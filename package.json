@@ -151,14 +151,16 @@
   },
   "codegenConfig": {
     "name": "RichTextViewSpec",
-    "type": "all",
+    "type": "components",
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "com.richtext"
     },
     "ios": {
-      "componentProvider": {
-        "RichTextView": "RichTextView"
+      "components": {
+        "RichTextView": {
+          "className": "RichTextView"
+        }
       }
     }
   },

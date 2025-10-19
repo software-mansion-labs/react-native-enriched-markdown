@@ -9,27 +9,33 @@ typedef struct {
 } MD4CContext;
 
 static void addNodeToContext(MarkdownASTNode *node, MD4CContext *context) {
-    if (!node) return;
+    if (!node || !context || !context->nodeStack) return;
     
     if (context->root == nil) {
         context->root = node;
     } else {
         MarkdownASTNode *parent = [context->nodeStack lastObject];
-        [parent addChild:node];
+        if (parent) {
+            [parent addChild:node];
+        }
     }
     [context->nodeStack addObject:node];
 }
 
 static void addInlineNodeToContext(MarkdownASTNode *node, MD4CContext *context) {
-    if (!node) return;
+    if (!node || !context || !context->nodeStack) return;
     
     MarkdownASTNode *parent = [context->nodeStack lastObject];
-    [parent addChild:node];
+    if (parent) {
+        [parent addChild:node];
+    }
 }
 
 // MD4C callback functions
 // Note: All callbacks return 0 for success (continue parsing) or non-zero for error (stop parsing)
 static int md4c_enter_block_callback(MD_BLOCKTYPE type, void *detail, void *userdata) {
+    if (!userdata) return 1;
+    
     MD4CContext *context = (MD4CContext *)userdata;
     MarkdownASTNode *node = nil;
     
@@ -45,6 +51,8 @@ static int md4c_enter_block_callback(MD_BLOCKTYPE type, void *detail, void *user
             if (detail) {
                 MD_BLOCK_H_DETAIL *h = (MD_BLOCK_H_DETAIL *)detail;
                 NSInteger level = (NSInteger)h->level;
+                // Clamp level to valid range (1-6)
+                level = MAX(1, MIN(6, level));
                 [node setAttribute:@"level" value:@(level).stringValue];
             }
             break;
@@ -53,12 +61,17 @@ static int md4c_enter_block_callback(MD_BLOCKTYPE type, void *detail, void *user
             return 0;
     }
     
-    addNodeToContext(node, context);
+    if (node) {
+        addNodeToContext(node, context);
+    }
     return 0;
 }
 
 static int md4c_leave_block_callback(MD_BLOCKTYPE type, void *detail, void *userdata) {
+    if (!userdata) return 1;
+    
     MD4CContext *context = (MD4CContext *)userdata;
+    if (!context || !context->nodeStack) return 1;
     
     if ([context->nodeStack count] > 0) {
         [context->nodeStack removeLastObject];
@@ -68,6 +81,8 @@ static int md4c_leave_block_callback(MD_BLOCKTYPE type, void *detail, void *user
 }
 
 static int md4c_enter_span_callback(MD_SPANTYPE type, void *detail, void *userdata) {
+    if (!userdata) return 1;
+    
     MD4CContext *context = (MD4CContext *)userdata;
     MarkdownASTNode *node = nil;
     
@@ -80,7 +95,9 @@ static int md4c_enter_span_callback(MD_SPANTYPE type, void *detail, void *userda
                     NSString *url = [[NSString alloc] initWithBytes:linkDetail->href.text 
                                                              length:linkDetail->href.size 
                                                            encoding:NSUTF8StringEncoding];
-                    [node setAttribute:@"url" value:url];
+                    if (url) {
+                        [node setAttribute:@"url" value:url];
+                    }
                 }
             }
             break;
@@ -89,12 +106,17 @@ static int md4c_enter_span_callback(MD_SPANTYPE type, void *detail, void *userda
             return 0;
     }
     
-    addNodeToContext(node, context);
+    if (node) {
+        addNodeToContext(node, context);
+    }
     return 0;
 }
 
 static int md4c_leave_span_callback(MD_SPANTYPE type, void *detail, void *userdata) {
+    if (!userdata) return 1;
+    
     MD4CContext *context = (MD4CContext *)userdata;
+    if (!context || !context->nodeStack) return 1;
     
     if ([context->nodeStack count] > 0) {
         [context->nodeStack removeLastObject];
@@ -104,7 +126,10 @@ static int md4c_leave_span_callback(MD_SPANTYPE type, void *detail, void *userda
 }
 
 static int md4c_text_callback(MD_TEXTTYPE type, const MD_CHAR *text, MD_SIZE size, void *userdata) {
+    if (!userdata) return 1;
+    
     MD4CContext *context = (MD4CContext *)userdata;
+    if (!context || !context->nodeStack) return 1;
 
     // Handle soft/hard line breaks (MD4C provides these for explicit line breaks within paragraphs)
     // Note: MD4C does NOT provide empty lines between blocks - those are added by renderers
@@ -114,11 +139,11 @@ static int md4c_text_callback(MD_TEXTTYPE type, const MD_CHAR *text, MD_SIZE siz
         return 0;
     }
 
-    if (size > 0) {
+    if (size > 0 && text) {
         NSString *textString = [[NSString alloc] initWithBytes:text
                                                         length:size
                                                       encoding:NSUTF8StringEncoding];
-        if (textString) {
+        if (textString && textString.length > 0) {
             MarkdownASTNode *textNode = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeText];
             textNode.content = textString;
             addInlineNodeToContext(textNode, context);
@@ -131,7 +156,7 @@ static int md4c_text_callback(MD_TEXTTYPE type, const MD_CHAR *text, MD_SIZE siz
 @implementation MarkdownParser
 
 - (MarkdownASTNode *)parseMarkdown:(NSString *)markdown {
-    if (!markdown.length) {
+    if (!markdown || markdown.length == 0) {
         return [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];
     }
     
@@ -141,7 +166,7 @@ static int md4c_text_callback(MD_TEXTTYPE type, const MD_CHAR *text, MD_SIZE siz
         .nodeStack = [[NSMutableArray alloc] init]
     };
     
-    // Configure MD4C parser
+    // Configure MD4C parser with callbacks
     MD_PARSER parser = {
         .enter_block = md4c_enter_block_callback,
         .leave_block = md4c_leave_block_callback,
@@ -152,8 +177,13 @@ static int md4c_text_callback(MD_TEXTTYPE type, const MD_CHAR *text, MD_SIZE siz
         .syntax = NULL
     };
     
-    // Parse the markdown
+    // Parse the markdown with proper error handling
     const char *markdownCString = markdown.UTF8String;
+    if (!markdownCString) {
+        NSLog(@"MarkdownParser: Failed to convert markdown to UTF-8");
+        return [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];
+    }
+    
     MD_SIZE markdownLength = (MD_SIZE)strlen(markdownCString);
     int result = md_parse(markdownCString, markdownLength, &parser, &context);
     

@@ -24,6 +24,7 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)setupConstraints;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
+- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size;
 @end
 
 @implementation RichTextView {
@@ -31,10 +32,14 @@ static const CGFloat kLabelPadding = 10.0;
     MarkdownParser * _parser;
 }
 
+// MARK: - Component utils
+
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
     return concreteComponentDescriptorProvider<RichTextViewComponentDescriptor>();
 }
+
+// MARK: - Init
 
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
@@ -84,6 +89,8 @@ static const CGFloat kLabelPadding = 10.0;
     ]];
 }
 
+// MARK: - Rendering
+
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props {
     MarkdownASTNode *ast = [_parser parseMarkdown:markdownString];
     if (!ast) {
@@ -95,7 +102,10 @@ static const CGFloat kLabelPadding = 10.0;
     RichTextTheme *theme = [RichTextTheme defaultTheme];
     
     CGFloat fontSize = props.fontSize > 0 ? props.fontSize : kDefaultFontSize;
-    theme.baseFont = [UIFont systemFontOfSize:fontSize];
+    
+    // Create font with family and size
+    NSString *fontFamily = [[NSString alloc] initWithUTF8String:props.fontFamily.c_str()];
+    theme.baseFont = [self createFontWithFamily:fontFamily size:fontSize];
     if (_textView.textColor) { theme.textColor = _textView.textColor; }
     
     const auto &headerConfig = props.headerConfig;
@@ -119,6 +129,8 @@ static const CGFloat kLabelPadding = 10.0;
     _textView.attributedText = attributedText;
 }
 
+// MARK: - Props
+
 - (void)updateProps:(Props::Shared const &)props 
           oldProps:(Props::Shared const &)oldProps {
     const auto &oldViewProps = *std::static_pointer_cast<RichTextViewProps const>(_props);
@@ -138,24 +150,11 @@ static const CGFloat kLabelPadding = 10.0;
         needsRerender = YES;
     }
     
-    if (oldViewProps.fontSize != newViewProps.fontSize) {
+    if (oldViewProps.fontSize != newViewProps.fontSize || oldViewProps.fontFamily != newViewProps.fontFamily) {
         CGFloat fontSize = newViewProps.fontSize > 0 ? newViewProps.fontSize : kDefaultFontSize;
-        _textView.font = [UIFont systemFontOfSize:fontSize];
-        needsRerender = YES;
-    }
-    
-    if (oldViewProps.fontFamily != newViewProps.fontFamily) {
         NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.fontFamily.c_str()];
-        CGFloat currentSize = _textView.font.pointSize;
-        UIFont *newFont = [UIFont fontWithName:fontFamily size:currentSize];
-        if (newFont) {
-            _textView.font = newFont;
-            needsRerender = YES;
-        } else {
-            // Fallback to system font with the same size
-            _textView.font = [UIFont systemFontOfSize:currentSize];
-            needsRerender = YES;
-        }
+        _textView.font = [self createFontWithFamily:fontFamily size:fontSize];
+        needsRerender = YES;
     }
     
     if (oldViewProps.headerConfig.scale != newViewProps.headerConfig.scale ||
@@ -192,6 +191,8 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
     
     return [UIColor colorWithRed:red green:green blue:blue alpha:1.0f];
 }
+
+// MARK: - Gesture handling
 
 - (void)textTapped:(UITapGestureRecognizer *)recognizer {
     /*
@@ -266,5 +267,21 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
     }
 }
 
+// MARK: - Helper methods
+
+- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size {
+    if (fontFamily && fontFamily.length > 0) {
+        UIFont *customFont = [UIFont fontWithName:fontFamily size:size];
+        if (customFont) {
+            NSLog(@"🎨 FontFamily applied: %@ (size: %.1f)", fontFamily, size);
+            return customFont;
+        } else {
+            NSLog(@"⚠️ FontFamily not found: %@, falling back to system font", fontFamily);
+        }
+    }
+    
+    NSLog(@"🎨 Using system font (size: %.1f)", size);
+    return [UIFont systemFontOfSize:size];
+}
 
 @end

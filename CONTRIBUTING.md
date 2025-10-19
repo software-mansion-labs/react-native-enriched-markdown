@@ -13,11 +13,67 @@ This project is a monorepo managed using [Yarn workspaces](https://yarnpkg.com/f
 
 To get started with the project, make sure you have the correct version of [Node.js](https://nodejs.org/) installed. See the [`.nvmrc`](./.nvmrc) file for the version used in this project.
 
-Run `yarn` in the root directory to install the required dependencies for each package:
+### Cloning the Repository
+
+When cloning this repository, make sure to include submodules:
 
 ```sh
+# Clone with submodules (recommended)
+git clone --recurse-submodules https://github.com/software-mansion-labs/react-native-rich-text.git
+
+# Or if you've already cloned without submodules:
+git clone https://github.com/software-mansion-labs/react-native-rich-text.git
+cd react-native-rich-text
+git submodule add https://github.com/mity/md4c.git shared/MD4C
+```
+
+## Initial Setup
+
+This project uses git submodules for native dependencies. You need to initialize the submodules before installing dependencies:
+
+```sh
+
+# Install dependencies
 yarn
 ```
+
+> **Important**: The project depends on the MD4C submodule located in `shared/MD4C/`. Make sure to run the submodule initialization command before installing dependencies.
+
+### Troubleshooting Submodule Issues
+
+If you encounter issues with the submodule setup, here are common scenarios and solutions:
+
+**Scenario 1: Empty `shared/` directory**
+
+```sh
+# Check if submodule is properly initialized
+ls shared/MD4C/src/
+# If empty or missing, reinitialize:
+git submodule update --init --recursive
+```
+
+**Scenario 2: `.gitmodules` exists but submodule content is missing**
+
+```sh
+# This can happen when cloning without submodules
+# Re-add the submodule manually:
+git submodule add https://github.com/mity/md4c.git shared/MD4C
+```
+
+**Scenario 3: Submodule is in detached HEAD state**
+
+```sh
+# Update to the latest commit
+git submodule update --remote
+```
+
+> **Note**: If you continue having issues, try removing the submodule and re-adding it:
+>
+> ```sh
+> git submodule deinit -f shared/MD4C
+> rm -rf shared/MD4C
+> git submodule add https://github.com/mity/md4c.git shared/MD4C
+> ```
 
 > Since the project relies on Yarn workspaces, you cannot use [`npm`](https://github.com/npm/cli) for development without manually migrating.
 
@@ -76,6 +132,22 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
+### Testing MD4C Integration
+
+This project includes native markdown parsing capabilities using the MD4C library. To test the MD4C integration:
+
+```sh
+# Run MD4C integration tests
+./scripts/test-md4c.sh
+```
+
+This will test:
+
+- MD4C compilation and execution
+- iOS podspec configuration
+
+> **Note**: The MD4C tests require the submodule to be properly initialized. If tests fail, make sure you've run `git submodule update --init --recursive`.
+
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
@@ -118,6 +190,10 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
+
+Additional scripts for native development:
+
+- `./scripts/test-md4c.sh`: test MD4C integration and native setup.
 
 ### Sending a pull request
 

@@ -1,0 +1,3 @@
+[submodule "shared/MD4C"]
+	path = shared/MD4C
+	url = https://github.com/mity/md4c.git

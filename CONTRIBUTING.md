@@ -146,8 +146,6 @@ This will test:
 - MD4C compilation and execution
 - iOS podspec configuration
 
-> **Note**: The MD4C tests require the submodule to be properly initialized. If tests fail, make sure you've run `git submodule update --init --recursive`.
-
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:

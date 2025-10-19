@@ -141,6 +141,9 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+
       - name: Setup MD4C for iOS
         run: ./scripts/setup-md4c.sh
 

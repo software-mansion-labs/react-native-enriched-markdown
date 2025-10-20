@@ -34,6 +34,7 @@
   "scripts": {
     "example": "yarn workspace react-native-rich-text-example",
     "test": "jest",
+    "test:md4c": "./scripts/test-md4c.sh",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
@@ -150,14 +151,16 @@
   },
   "codegenConfig": {
     "name": "RichTextViewSpec",
-    "type": "all",
+    "type": "components",
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "com.richtext"
     },
     "ios": {
-      "componentProvider": {
-        "RichTextView": "RichTextView"
+      "components": {
+        "RichTextView": {
+          "className": "RichTextView"
+        }
       }
     }
   },

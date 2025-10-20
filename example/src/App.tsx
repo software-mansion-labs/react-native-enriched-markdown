@@ -1,23 +1,77 @@
-import { View, StyleSheet } from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+  Linking,
+} from 'react-native';
 import { RichTextView } from 'react-native-rich-text';
+import type { HeaderConfig } from 'react-native-rich-text';
+
+const HEADER_CONFIG: HeaderConfig = {
+  scale: 2.0,
+  isBold: true,
+};
+
+const sampleMarkdown = `#### Welcome to the React Native Markdown component!
+
+This is a simple text with links.
+
+Check out this [link to React Native](https://reactnative.dev) and this [GitHub repository](https://github.com/facebook/react-native).
+
+Built with ❤️ using React Native Fabric Architecture`;
 
 export default function App() {
+  const handleLinkPress = (event: { nativeEvent: { url: string } }) => {
+    const { url } = event.nativeEvent;
+    Alert.alert('Link Pressed!', `You tapped on: ${url}`, [
+      {
+        text: 'Open in Browser',
+        onPress: () => {
+          Linking.openURL(url);
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
   return (
-    <View style={styles.container}>
-      <RichTextView color="#32a852" style={styles.box} />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
+        <RichTextView
+          markdown={sampleMarkdown}
+          style={styles.markdown}
+          fontSize={18}
+          fontFamily="Helvetica"
+          headerConfig={HEADER_CONFIG}
+          textColor="#F54927"
+          onLinkPress={handleLinkPress}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+  },
+  markdown: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 8,
+    minHeight: 250,
   },
 });

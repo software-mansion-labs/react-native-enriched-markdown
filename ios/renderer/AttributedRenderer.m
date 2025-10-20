@@ -123,11 +123,10 @@
         switch (child.type) {
             case MarkdownNodeTypeText:
                 if (child.content) {
-            // Use theme.baseFont directly (no scaling for regular text)
             NSAttributedString *text = [[NSAttributedString alloc] 
                 initWithString:child.content 
                 attributes:@{
-                    NSFontAttributeName: theme.baseFont,  // Direct fontSize usage
+                    NSFontAttributeName: theme.baseFont,
                     NSForegroundColorAttributeName: theme.textColor
                 }];
                     [output appendAttributedString:text];
@@ -199,20 +198,17 @@
            context:(RenderContext *)context {
     NSUInteger start = output.length;
     
-    // Render link children as text
     for (MarkdownASTNode *child in node.children) {
         if (child.type == MarkdownNodeTypeText && child.content) {
-            // Links use same fontSize as regular text
             NSAttributedString *text = [[NSAttributedString alloc] 
                 initWithString:child.content 
                 attributes:@{
-                    NSFontAttributeName: theme.baseFont  // Same fontSize as text
+                    NSFontAttributeName: theme.baseFont
                 }];
             [output appendAttributedString:text];
         }
     }
     
-    // Apply link attributes to the range
     NSUInteger len = output.length - start;
     if (len > 0) {
         NSRange range = NSMakeRange(start, len);
@@ -258,7 +254,6 @@
         }
     }
     
-    // Render text children
     for (MarkdownASTNode *child in node.children) {
         if (child.type == MarkdownNodeTypeText && child.content) {
             NSAttributedString *text = [[NSAttributedString alloc] 
@@ -271,11 +266,10 @@
         }
     }
     
-    // Add spacing after heading (proportional to base fontSize)
     NSAttributedString *spacing = [[NSAttributedString alloc] 
         initWithString:@"\n\n" 
         attributes:@{
-            NSFontAttributeName: theme.baseFont,  // Spacing proportional to fontSize
+            NSFontAttributeName: theme.baseFont,
             NSForegroundColorAttributeName: theme.textColor
         }];
     [output appendAttributedString:spacing];

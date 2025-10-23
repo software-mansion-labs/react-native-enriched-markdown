@@ -3,9 +3,6 @@ package com.richtext.theme
 import android.graphics.Typeface
 import android.graphics.Color
 
-/**
- * Theme configuration for rich text rendering
- */
 data class RichTextTheme(
     val baseFont: Typeface = Typeface.DEFAULT,
     val textColor: Int = Color.BLACK,

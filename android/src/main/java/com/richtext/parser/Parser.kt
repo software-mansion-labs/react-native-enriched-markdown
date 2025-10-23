@@ -4,19 +4,10 @@ import android.util.Log
 import org.commonmark.node.Document
 import org.commonmark.parser.Parser
 
-/**
- * Parser for converting markdown strings to CommonMark Document
- * Uses CommonMark-Java parser directly
- */
 class Parser {
 
     private val parser = Parser.builder().build()
 
-    /**
-     * Parse markdown string into CommonMark Document
-     * @param markdown The markdown string to parse
-     * @return CommonMark Document or null if parsing fails
-     */
     fun parseMarkdown(markdown: String): Document? {
         if (markdown.isBlank()) {
             return null

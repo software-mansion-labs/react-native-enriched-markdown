@@ -1,11 +1,7 @@
 package com.richtext.renderer
 
-import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
-import android.text.style.StyleSpan
-import android.text.style.URLSpan
-import android.text.style.UnderlineSpan
 import org.commonmark.node.*
 
 class Renderer {

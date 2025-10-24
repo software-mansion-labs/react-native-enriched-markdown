@@ -39,14 +39,13 @@ class ParagraphRenderer : NodeRenderer {
     ) {
         val paragraph = node as Paragraph
         val start = builder.length
-        
+
         var child = paragraph.firstChild
         while (child != null) {
             NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
             child = child.next
         }
-        
-        // Apply paragraph span to the entire paragraph content
+
         val contentLength = builder.length - start
         if (contentLength > 0) {
             builder.setSpan(
@@ -56,7 +55,7 @@ class ParagraphRenderer : NodeRenderer {
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
-        
+
         builder.append("\n")
     }
 }
@@ -69,7 +68,7 @@ class HeadingRenderer : NodeRenderer {
     ) {
         val heading = node as Heading
         val start = builder.length
-        
+
         var child = heading.firstChild
         while (child != null) {
             NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
@@ -78,7 +77,6 @@ class HeadingRenderer : NodeRenderer {
 
         val contentLength = builder.length - start
         if (contentLength > 0) {
-            // Use dedicated RichTextHeadingSpan instead of generic StyleSpan
             builder.setSpan(
                 RichTextHeadingSpan(heading.level),
                 start,
@@ -99,10 +97,9 @@ class TextRenderer : NodeRenderer {
         val text = node as Text
         val content = text.literal ?: ""
         val start = builder.length
-        
+
         builder.append(content)
-        
-        // Apply text span to the text content
+
         val contentLength = builder.length - start
         if (contentLength > 0) {
             builder.setSpan(
@@ -125,14 +122,12 @@ class LinkRenderer : NodeRenderer {
         val start = builder.length
         val url = link.destination ?: ""
 
-        // Render link content
         var child = link.firstChild
         while (child != null) {
             NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
             child = child.next
         }
 
-        // Apply link styling if content was added
         val contentLength = builder.length - start
         if (contentLength > 0) {
             builder.setSpan(
@@ -142,7 +137,6 @@ class LinkRenderer : NodeRenderer {
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
             )
 
-            // Add underline
             builder.setSpan(
                 UnderlineSpan(),
                 start,
@@ -173,7 +167,10 @@ object NodeRendererFactory {
             is Link -> LinkRenderer()
             is HardLineBreak, is SoftLineBreak -> LineBreakRenderer()
             else -> {
-                android.util.Log.w("NodeRendererFactory", "No renderer found for node type: ${node.javaClass.simpleName}")
+                android.util.Log.w(
+                    "NodeRendererFactory",
+                    "No renderer found for node type: ${node.javaClass.simpleName}"
+                )
                 TextRenderer() // Fallback to text renderer
             }
         }

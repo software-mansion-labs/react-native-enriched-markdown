@@ -1,11 +1,12 @@
 package com.richtext.renderer
 
-import android.graphics.Typeface
 import android.text.SpannableStringBuilder
-import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import com.richtext.theme.RichTextTheme
-import com.richtext.spans.CallbackURLSpan
+import com.richtext.spans.RichTextLinkSpan
+import com.richtext.spans.RichTextHeadingSpan
+import com.richtext.spans.RichTextParagraphSpan
+import com.richtext.spans.RichTextTextSpan
 import org.commonmark.node.*
 
 interface NodeRenderer {
@@ -41,11 +42,25 @@ class ParagraphRenderer : NodeRenderer {
         onLinkPress: ((String) -> Unit)?
     ) {
         val paragraph = node as Paragraph
+        val start = builder.length
+        
         var child = paragraph.firstChild
         while (child != null) {
             NodeRendererFactory.getRenderer(child).render(child, builder, theme, onLinkPress)
             child = child.next
         }
+        
+        // Apply paragraph span to the entire paragraph content
+        val contentLength = builder.length - start
+        if (contentLength > 0) {
+            builder.setSpan(
+                RichTextParagraphSpan(),
+                start,
+                start + contentLength,
+                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+        
         builder.append("\n")
     }
 }
@@ -68,15 +83,13 @@ class HeadingRenderer : NodeRenderer {
 
         val contentLength = builder.length - start
         if (contentLength > 0) {
-            val isBold = theme.headerConfig.isBold
-            if (isBold) {
-                builder.setSpan(
-                    StyleSpan(Typeface.BOLD),
-                    start,
-                    start + contentLength,
-                    android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
+            // Use dedicated RichTextHeadingSpan instead of generic StyleSpan
+            builder.setSpan(
+                RichTextHeadingSpan(theme, heading.level),
+                start,
+                start + contentLength,
+                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
         builder.append("\n")
     }
@@ -91,7 +104,20 @@ class TextRenderer : NodeRenderer {
     ) {
         val text = node as Text
         val content = text.literal ?: ""
+        val start = builder.length
+        
         builder.append(content)
+        
+        // Apply text span to the text content
+        val contentLength = builder.length - start
+        if (contentLength > 0) {
+            builder.setSpan(
+                RichTextTextSpan(),
+                start,
+                start + contentLength,
+                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
     }
 }
 
@@ -117,7 +143,7 @@ class LinkRenderer : NodeRenderer {
         val contentLength = builder.length - start
         if (contentLength > 0) {
             builder.setSpan(
-                CallbackURLSpan(url, onLinkPress),
+                RichTextLinkSpan(url, onLinkPress),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE

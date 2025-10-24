@@ -49,4 +49,18 @@ class RichTextView(context: Context) : AppCompatTextView(context) {
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
         onLinkPressCallback = callback
     }
+
+    fun emitOnLinkPress(url: String) {
+        val context = this.context as? com.facebook.react.bridge.ReactContext ?: return
+        val surfaceId = com.facebook.react.uimanager.UIManagerHelper.getSurfaceId(context)
+        val dispatcher = com.facebook.react.uimanager.UIManagerHelper.getEventDispatcherForReactTag(context, id)
+        
+        dispatcher?.dispatchEvent(
+            com.richtext.events.LinkPressEvent(
+                surfaceId,
+                id,
+                url
+            )
+        )
+    }
 }

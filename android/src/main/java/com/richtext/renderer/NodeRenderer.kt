@@ -6,6 +6,7 @@ import com.richtext.spans.RichTextLinkSpan
 import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextTextSpan
+import com.richtext.utils.addSpacing
 import org.commonmark.node.*
 
 interface NodeRenderer {
@@ -56,7 +57,7 @@ class ParagraphRenderer : NodeRenderer {
             )
         }
 
-        builder.append("\n")
+        builder.addSpacing()
     }
 }
 
@@ -84,7 +85,8 @@ class HeadingRenderer : NodeRenderer {
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
-        builder.append("\n")
+        
+        builder.addSpacing()
     }
 }
 

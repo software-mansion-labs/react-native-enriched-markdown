@@ -2,6 +2,7 @@
 #import "NodeRenderer.h"
 #import "RenderContext.h"
 #import "MarkdownASTNode.h"
+#import "SpacingUtils.h"
 
 @interface ParagraphRenderer : NSObject <NodeRenderer>
 @end
@@ -59,15 +60,8 @@
     for (NSUInteger i = 0; i < node.children.count; i++) {
         MarkdownASTNode *child = node.children[i];
         [self renderNodeRecursive:child into:out font:font color:color context:context isTopLevel:NO];
-        // Add spacing between paragraphs (MD4C doesn't provide empty lines between blocks)
-        // This is intentional rendering behavior to match markdown visual expectations
         if (child.type == MarkdownNodeTypeParagraph && i < node.children.count - 1) {
-            NSAttributedString *spacing = [[NSAttributedString alloc]
-                initWithString:@"\n\n"
-                attributes:@{
-                    NSFontAttributeName: font, 
-                    NSForegroundColorAttributeName: color
-                }];
+            NSAttributedString *spacing = createSpacing();
             [out appendAttributedString:spacing];
         }
     }
@@ -255,12 +249,7 @@
         }
     }
     
-    NSAttributedString *spacing = [[NSAttributedString alloc] 
-        initWithString:@"\n\n" 
-        attributes:@{
-            NSFontAttributeName: font,
-            NSForegroundColorAttributeName: color
-        }];
+    NSAttributedString *spacing = createSpacing();
     [output appendAttributedString:spacing];
 }
 @end

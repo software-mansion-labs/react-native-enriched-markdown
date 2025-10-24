@@ -12,13 +12,11 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
-import com.richtext.theme.RichTextTheme
 
 class RichTextView : AppCompatTextView {
 
     private val parser = Parser()
     private val renderer = Renderer()
-    private var theme = RichTextTheme.defaultTheme()
     private var onLinkPressCallback: ((String) -> Unit)? = null
     
     private var typefaceDirty = false
@@ -55,7 +53,7 @@ class RichTextView : AppCompatTextView {
         try {
             val document = parser.parseMarkdown(markdown)
             if (document != null) {
-                val styledText = renderer.renderDocument(document, theme, onLinkPressCallback)
+                val styledText = renderer.renderDocument(document, onLinkPressCallback)
                 setText(styledText)
                 movementMethod = LinkMovementMethod.getInstance()
             } else {
@@ -66,13 +64,6 @@ class RichTextView : AppCompatTextView {
         }
     }
 
-    fun updateTheme(newTheme: RichTextTheme) {
-        theme = newTheme
-        if (text.isNotEmpty()) {
-            val markdown = text.toString()
-            setMarkdownContent(markdown)
-        }
-    }
 
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
         onLinkPressCallback = callback

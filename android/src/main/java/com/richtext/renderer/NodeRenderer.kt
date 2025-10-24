@@ -2,7 +2,6 @@ package com.richtext.renderer
 
 import android.text.SpannableStringBuilder
 import android.text.style.UnderlineSpan
-import com.richtext.theme.RichTextTheme
 import com.richtext.spans.RichTextLinkSpan
 import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextParagraphSpan
@@ -13,7 +12,6 @@ interface NodeRenderer {
     fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     )
 }
@@ -22,13 +20,12 @@ class DocumentRenderer : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     ) {
         val document = node as Document
         var child = document.firstChild
         while (child != null) {
-            NodeRendererFactory.getRenderer(child).render(child, builder, theme, onLinkPress)
+            NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
             child = child.next
         }
     }
@@ -38,7 +35,6 @@ class ParagraphRenderer : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     ) {
         val paragraph = node as Paragraph
@@ -46,7 +42,7 @@ class ParagraphRenderer : NodeRenderer {
         
         var child = paragraph.firstChild
         while (child != null) {
-            NodeRendererFactory.getRenderer(child).render(child, builder, theme, onLinkPress)
+            NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
             child = child.next
         }
         
@@ -69,7 +65,6 @@ class HeadingRenderer : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     ) {
         val heading = node as Heading
@@ -77,7 +72,7 @@ class HeadingRenderer : NodeRenderer {
         
         var child = heading.firstChild
         while (child != null) {
-            NodeRendererFactory.getRenderer(child).render(child, builder, theme, onLinkPress)
+            NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
             child = child.next
         }
 
@@ -85,7 +80,7 @@ class HeadingRenderer : NodeRenderer {
         if (contentLength > 0) {
             // Use dedicated RichTextHeadingSpan instead of generic StyleSpan
             builder.setSpan(
-                RichTextHeadingSpan(theme, heading.level),
+                RichTextHeadingSpan(heading.level),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -99,7 +94,6 @@ class TextRenderer : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     ) {
         val text = node as Text
@@ -125,7 +119,6 @@ class LinkRenderer : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     ) {
         val link = node as Link
@@ -135,7 +128,7 @@ class LinkRenderer : NodeRenderer {
         // Render link content
         var child = link.firstChild
         while (child != null) {
-            NodeRendererFactory.getRenderer(child).render(child, builder, theme, onLinkPress)
+            NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
             child = child.next
         }
 
@@ -164,7 +157,6 @@ class LineBreakRenderer : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)?
     ) {
         builder.append("\n")

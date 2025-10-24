@@ -7,13 +7,12 @@ import android.text.style.StyleSpan
 import android.text.style.URLSpan
 import android.text.style.UnderlineSpan
 import org.commonmark.node.*
-import com.richtext.theme.RichTextTheme
 
 class Renderer {
-    fun renderDocument(document: Document, theme: RichTextTheme, onLinkPress: ((String) -> Unit)? = null): SpannableString {
+    fun renderDocument(document: Document, onLinkPress: ((String) -> Unit)? = null): SpannableString {
         val builder = SpannableStringBuilder()
 
-        renderNode(document, builder, theme, onLinkPress)
+        renderNode(document, builder, onLinkPress)
 
         return SpannableString(builder)
     }
@@ -21,10 +20,9 @@ class Renderer {
     private fun renderNode(
         node: Node,
         builder: SpannableStringBuilder,
-        theme: RichTextTheme,
         onLinkPress: ((String) -> Unit)? = null
     ) {
         val renderer = NodeRendererFactory.getRenderer(node)
-        renderer.render(node, builder, theme, onLinkPress)
+        renderer.render(node, builder, onLinkPress)
     }
 }

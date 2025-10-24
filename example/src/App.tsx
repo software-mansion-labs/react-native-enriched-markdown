@@ -6,12 +6,6 @@ import {
   Linking,
 } from 'react-native';
 import { RichTextView } from 'react-native-rich-text';
-import type { HeaderConfig } from 'react-native-rich-text';
-
-const HEADER_CONFIG: HeaderConfig = {
-  scale: 2.0,
-  isBold: true,
-};
 
 const sampleMarkdown = `#### Welcome to the React Native Markdown component!
 
@@ -49,7 +43,6 @@ export default function App() {
           style={styles.markdown}
           fontSize={18}
           fontFamily="Helvetica"
-          headerConfig={HEADER_CONFIG}
           color="#F54927"
           onLinkPress={handleLinkPress}
         />

@@ -5,22 +5,6 @@ import {
   type ColorValue,
 } from 'react-native';
 
-export interface HeaderConfig {
-  /**
-   * Header scaling factor relative to base fontSize.
-   * @default 2.0
-   * @example
-   * fontSize=18, scale=2.0 → H1=30pt, H2=28pt, H6=20pt
-   */
-  scale?: CodegenTypes.Double;
-  /**
-   * Make headers bold.
-   * @default true
-   * @note fontFamily takes precedence over this setting
-   */
-  isBold?: boolean;
-}
-
 interface NativeProps extends ViewProps {
   /**
    * Markdown content to render.
@@ -30,14 +14,13 @@ interface NativeProps extends ViewProps {
   /**
    * Base font size for all text elements (in points).
    * - Regular text, links, lists: Use fontSize directly
-   * - Headers: Scaled relative to fontSize using headerConfig.scale
+   * - Headers: Made bold, same size as base fontSize
    * @example
-   * fontSize=18 → text=18pt, H1=30pt, H2=28pt, H6=20pt
+   * fontSize=18 → all text=18pt, headers are bold
    */
   fontSize?: CodegenTypes.Int32;
   /**
    * Font family name for all text elements.
-   * @note Takes precedence over headerConfig.isBold for boldness
    */
   fontFamily?: string;
   /**
@@ -54,10 +37,6 @@ interface NativeProps extends ViewProps {
    * Text color in hex format.
    */
   color?: ColorValue;
-  /**
-   * Header configuration for scaling and boldness.
-   */
-  headerConfig?: HeaderConfig;
   /**
    * Callback fired when a link is pressed.
    * Receives the URL that was tapped.

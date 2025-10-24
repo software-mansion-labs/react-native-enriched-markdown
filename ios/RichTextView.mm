@@ -3,7 +3,6 @@
 #import "MarkdownASTNode.h"
 #import "AttributedRenderer.h"
 #import "RenderContext.h"
-#import "RichTextTheme.h"
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
 #import <react/renderer/components/RichTextViewSpec/EventEmitters.h>
@@ -11,6 +10,8 @@
 #import <react/renderer/components/RichTextViewSpec/RCTComponentViewHelpers.h>
 
 #import "RCTFabricComponentsPlugins.h"
+#import <React/RCTConversions.h>
+#import <React/RCTFont.h>
 
 using namespace facebook::react;
 
@@ -24,7 +25,7 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)setupConstraints;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
-- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size;
+- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size weight:(NSString *)weight style:(NSString *)style;
 @end
 
 @implementation RichTextView {
@@ -99,22 +100,22 @@ static const CGFloat kLabelPadding = 10.0;
     }
     
     AttributedRenderer *renderer = [AttributedRenderer new];
-    RichTextTheme *theme = [RichTextTheme defaultTheme];
     
     CGFloat fontSize = props.fontSize > 0 ? props.fontSize : kDefaultFontSize;
     
-    // Create font with family and size
     NSString *fontFamily = [[NSString alloc] initWithUTF8String:props.fontFamily.c_str()];
-    theme.baseFont = [self createFontWithFamily:fontFamily size:fontSize];
-    if (_textView.textColor) { theme.textColor = _textView.textColor; }
+    NSString *fontWeight = [[NSString alloc] initWithUTF8String:props.fontWeight.c_str()];
+    NSString *fontStyle = [[NSString alloc] initWithUTF8String:props.fontStyle.c_str()];
+    UIFont *font = [self createFontWithFamily:fontFamily size:fontSize weight:fontWeight style:fontStyle];
     
-    const auto &headerConfig = props.headerConfig;
-    
-    theme.headerConfig.scale = headerConfig.scale > 0 ? headerConfig.scale : 2.0;
-    theme.headerConfig.isBold = headerConfig.isBold;
+    // Get color from props or use textView's current color
+    UIColor *color = _textView.textColor ?: [UIColor blackColor];
+    if (props.color) {
+        color = RCTUIColorFromSharedColor(props.color);
+    }
     
     RenderContext *renderContext = [RenderContext new];
-    NSMutableAttributedString *attributedText = [renderer renderRoot:ast theme:theme context:renderContext];
+    NSMutableAttributedString *attributedText = [renderer renderRoot:ast font:font color:color context:renderContext];
     
     // Add custom attributes for links
     for (NSUInteger i = 0; i < renderContext.linkRanges.count; i++) {
@@ -144,23 +145,25 @@ static const CGFloat kLabelPadding = 10.0;
         needsRerender = YES;
     }
     
-    if (oldViewProps.textColor != newViewProps.textColor) {
-        NSString *textColorString = [[NSString alloc] initWithUTF8String:newViewProps.textColor.c_str()];
-        _textView.textColor = [self hexStringToColor:textColorString];
+    if (oldViewProps.color != newViewProps.color) {
+        // Convert React Native SharedColor to UIColor
+        UIColor *color = RCTUIColorFromSharedColor(newViewProps.color);
+        if (color) {
+            _textView.textColor = color;
+        }
         needsRerender = YES;
     }
     
-    if (oldViewProps.fontSize != newViewProps.fontSize || oldViewProps.fontFamily != newViewProps.fontFamily) {
+    if (oldViewProps.fontSize != newViewProps.fontSize || oldViewProps.fontFamily != newViewProps.fontFamily || oldViewProps.fontWeight != newViewProps.fontWeight || oldViewProps.fontStyle != newViewProps.fontStyle) {
         CGFloat fontSize = newViewProps.fontSize > 0 ? newViewProps.fontSize : kDefaultFontSize;
         NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.fontFamily.c_str()];
-        _textView.font = [self createFontWithFamily:fontFamily size:fontSize];
+        NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.fontWeight.c_str()];
+        NSString *fontStyle = [[NSString alloc] initWithUTF8String:newViewProps.fontStyle.c_str()];
+        _textView.font = [self createFontWithFamily:fontFamily size:fontSize weight:fontWeight style:fontStyle];
         needsRerender = YES;
     }
     
-    if (oldViewProps.headerConfig.scale != newViewProps.headerConfig.scale ||
-        oldViewProps.headerConfig.isBold != newViewProps.headerConfig.isBold) {
-        needsRerender = YES;
-    }
+    // HeaderConfig removed - no longer needed
     
     if (needsRerender && !newViewProps.markdown.empty()) {
         NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
@@ -175,22 +178,6 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
     return RichTextView.class;
 }
 
-- (UIColor *)hexStringToColor:(NSString *)hexString {
-    if (!hexString.length) return nil;
-    
-    NSString *cleanHex = [hexString stringByReplacingOccurrencesOfString:@"#" withString:@""];
-    if (cleanHex.length != 6) return nil;
-    
-    NSScanner *scanner = [NSScanner scannerWithString:cleanHex];
-    unsigned hexValue;
-    if (![scanner scanHexInt:&hexValue]) return nil;
-    
-    CGFloat red = ((hexValue >> 16) & 0xFF) / 255.0f;
-    CGFloat green = ((hexValue >> 8) & 0xFF) / 255.0f;
-    CGFloat blue = (hexValue & 0xFF) / 255.0f;
-    
-    return [UIColor colorWithRed:red green:green blue:blue alpha:1.0f];
-}
 
 // MARK: - Gesture handling
 
@@ -269,15 +256,23 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
 
 // MARK: - Helper methods
 
-- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size {
-    if (fontFamily && fontFamily.length > 0) {
-        UIFont *customFont = [UIFont fontWithName:fontFamily size:size];
-        if (customFont) {
-            return customFont;
-        }
+- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size weight:(NSString *)weight style:(NSString *)style {
+    // Use React Native's RCTFont.updateFont for consistent font handling
+    NSString *fontWeight = weight && weight.length > 0 ? weight : nullptr;
+    NSString *fontStyle = style && style.length > 0 ? style : nullptr;
+    
+    // Handle edge case: weight "0" should be treated as nullptr
+    if ([fontWeight isEqualToString:@"0"]) {
+        fontWeight = nullptr;
     }
     
-    return [UIFont systemFontOfSize:size];
+    return [RCTFont updateFont:nullptr
+                   withFamily:fontFamily
+                          size:@(size)
+                        weight:fontWeight
+                         style:fontStyle
+                      variant:nullptr
+                scaleMultiplier:1];
 }
 
 @end

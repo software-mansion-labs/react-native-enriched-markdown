@@ -3,7 +3,6 @@
 #import "MarkdownASTNode.h"
 #import "AttributedRenderer.h"
 #import "RenderContext.h"
-#import "RichTextTheme.h"
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
 #import <react/renderer/components/RichTextViewSpec/EventEmitters.h>
@@ -100,17 +99,21 @@ static const CGFloat kLabelPadding = 10.0;
     }
     
     AttributedRenderer *renderer = [AttributedRenderer new];
-    RichTextTheme *theme = [RichTextTheme defaultTheme];
     
     CGFloat fontSize = props.fontSize > 0 ? props.fontSize : kDefaultFontSize;
     
     // Create font with family and size
     NSString *fontFamily = [[NSString alloc] initWithUTF8String:props.fontFamily.c_str()];
-    theme.baseFont = [self createFontWithFamily:fontFamily size:fontSize];
-    if (_textView.textColor) { theme.textColor = _textView.textColor; }
+    UIFont *font = [self createFontWithFamily:fontFamily size:fontSize];
+    
+    // Get color from props or use textView's current color
+    UIColor *color = _textView.textColor ?: [UIColor blackColor];
+    if (props.color) {
+        color = RCTUIColorFromSharedColor(props.color);
+    }
     
     RenderContext *renderContext = [RenderContext new];
-    NSMutableAttributedString *attributedText = [renderer renderRoot:ast theme:theme context:renderContext];
+    NSMutableAttributedString *attributedText = [renderer renderRoot:ast font:font color:color context:renderContext];
     
     // Add custom attributes for links
     for (NSUInteger i = 0; i < renderContext.linkRanges.count; i++) {

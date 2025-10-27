@@ -1,8 +1,17 @@
 #import "ParagraphRenderer.h"
-#import "LinkRenderer.h"
 #import "SpacingUtils.h"
 
 @implementation ParagraphRenderer
+
+- (instancetype)initWithLinkRenderer:(id<NodeRenderer>)linkRenderer
+                        textRenderer:(id<NodeRenderer>)textRenderer {
+    self = [super init];
+    if (self) {
+        _linkRenderer = linkRenderer;
+        _textRenderer = textRenderer;
+    }
+    return self;
+}
 
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
@@ -13,49 +22,39 @@
     for (MarkdownASTNode *child in node.children) {
         switch (child.type) {
             case MarkdownNodeTypeText:
-                if (child.content) {
-                    NSAttributedString *text = [[NSAttributedString alloc] 
-                        initWithString:child.content 
-                        attributes:@{
-                            NSFontAttributeName: font,
-                            NSForegroundColorAttributeName: color
-                        }];
-                    [output appendAttributedString:text];
-                }
+                [self.textRenderer renderNode:child 
+                                        into:output 
+                                   withFont:font
+                                      color:color
+                                     context:context];
                 break;
                 
             case MarkdownNodeTypeLink: {
-                LinkRenderer *linkRenderer = [LinkRenderer new];
-                [linkRenderer renderNode:child 
-                                    into:output 
-                               withFont:font
-                                  color:color
-                                 context:context];
+                [self.linkRenderer renderNode:child 
+                                        into:output 
+                                   withFont:font
+                                      color:color
+                                     context:context];
                 break;
             }
             
-            case MarkdownNodeTypeLineBreak: {
-                NSAttributedString *br = [[NSAttributedString alloc] 
-                    initWithString:@"\n" 
-                    attributes:@{
-                        NSFontAttributeName: font, 
-                        NSForegroundColorAttributeName: color
-                    }];
-                [output appendAttributedString:br];
+            case MarkdownNodeTypeLineBreak:
+                [self.textRenderer renderNode:child 
+                                        into:output 
+                                   withFont:font
+                                      color:color
+                                     context:context];
                 break;
-            }
             
             default:
-                // Fallback: render children
+                // Fallback: render children using text renderer
                 for (MarkdownASTNode *grand in child.children) {
-                    if (grand.type == MarkdownNodeTypeText && grand.content) {
-                        NSAttributedString *t = [[NSAttributedString alloc] 
-                            initWithString:grand.content 
-                            attributes:@{
-                                NSFontAttributeName: font, 
-                                NSForegroundColorAttributeName: color
-                            }];
-                        [output appendAttributedString:t];
+                    if (grand.type == MarkdownNodeTypeText) {
+                        [self.textRenderer renderNode:grand 
+                                                into:output 
+                                           withFont:font
+                                              color:color
+                                             context:context];
                     }
                 }
                 break;

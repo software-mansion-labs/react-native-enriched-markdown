@@ -3,10 +3,7 @@
 #import "RenderContext.h"
 #import "MarkdownASTNode.h"
 #import "SpacingUtils.h"
-#import "ParagraphRenderer.h"
-#import "TextRenderer.h"
-#import "LinkRenderer.h"
-#import "HeadingRenderer.h"
+#import "RendererFactory.h"
 
 @interface AttributedRenderer (Helpers)
 - (NSAttributedString *)createTextString:(NSString *)text 
@@ -60,13 +57,7 @@
 }
 
 - (id<NodeRenderer>)rendererForNode:(MarkdownASTNode *)node {
-    switch (node.type) {
-        case MarkdownNodeTypeParagraph: return [ParagraphRenderer new];
-        case MarkdownNodeTypeText: return [TextRenderer new];
-        case MarkdownNodeTypeLink: return [LinkRenderer new];
-        case MarkdownNodeTypeHeading: return [HeadingRenderer new];
-        default: return nil;
-    }
+    return [[RendererFactory sharedFactory] rendererForNodeType:node.type];
 }
 
 @end

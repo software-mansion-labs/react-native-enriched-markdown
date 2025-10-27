@@ -3,6 +3,14 @@
 
 @implementation HeadingRenderer
 
+- (instancetype)initWithTextRenderer:(id<NodeRenderer>)textRenderer {
+    self = [super init];
+    if (self) {
+        _textRenderer = textRenderer;
+    }
+    return self;
+}
+
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font
@@ -13,13 +21,23 @@
     
     for (MarkdownASTNode *child in node.children) {
         if (child.type == MarkdownNodeTypeText && child.content) {
-            NSAttributedString *text = [[NSAttributedString alloc] 
-                initWithString:child.content 
-                attributes:@{
-                    NSFontAttributeName: boldFont, 
-                    NSForegroundColorAttributeName: color
-                }];
-            [output appendAttributedString:text];
+            if (self.textRenderer) {
+                // Use injected text renderer with bold font
+                [self.textRenderer renderNode:child 
+                                        into:output 
+                                   withFont:boldFont
+                                      color:color
+                                     context:context];
+            } else {
+                // Fallback to direct rendering
+                NSAttributedString *text = [[NSAttributedString alloc] 
+                    initWithString:child.content 
+                    attributes:@{
+                        NSFontAttributeName: boldFont, 
+                        NSForegroundColorAttributeName: color
+                    }];
+                [output appendAttributedString:text];
+            }
         }
     }
     

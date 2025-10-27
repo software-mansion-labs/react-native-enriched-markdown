@@ -1,8 +1,15 @@
 #import "ParagraphRenderer.h"
-#import "LinkRenderer.h"
 #import "SpacingUtils.h"
 
 @implementation ParagraphRenderer
+
+- (instancetype)initWithLinkRenderer:(id<NodeRenderer>)linkRenderer {
+    self = [super init];
+    if (self) {
+        _linkRenderer = linkRenderer;
+    }
+    return self;
+}
 
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
@@ -25,12 +32,13 @@
                 break;
                 
             case MarkdownNodeTypeLink: {
-                LinkRenderer *linkRenderer = [LinkRenderer new];
-                [linkRenderer renderNode:child 
-                                    into:output 
-                               withFont:font
-                                  color:color
-                                 context:context];
+                if (self.linkRenderer) {
+                    [self.linkRenderer renderNode:child 
+                                             into:output 
+                                        withFont:font
+                                           color:color
+                                          context:context];
+                }
                 break;
             }
             

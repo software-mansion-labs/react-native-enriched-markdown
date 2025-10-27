@@ -21,23 +21,12 @@
     
     for (MarkdownASTNode *child in node.children) {
         if (child.type == MarkdownNodeTypeText && child.content) {
-            if (self.textRenderer) {
-                // Use injected text renderer with bold font
-                [self.textRenderer renderNode:child 
-                                        into:output 
-                                   withFont:boldFont
-                                      color:color
-                                     context:context];
-            } else {
-                // Fallback to direct rendering
-                NSAttributedString *text = [[NSAttributedString alloc] 
-                    initWithString:child.content 
-                    attributes:@{
-                        NSFontAttributeName: boldFont, 
-                        NSForegroundColorAttributeName: color
-                    }];
-                [output appendAttributedString:text];
-            }
+            // Always use injected text renderer with bold font
+            [self.textRenderer renderNode:child 
+                                    into:output 
+                               withFont:boldFont
+                                  color:color
+                                 context:context];
         }
     }
     

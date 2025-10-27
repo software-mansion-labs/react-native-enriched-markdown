@@ -4,7 +4,12 @@
 #import "LinkRenderer.h"
 #import "HeadingRenderer.h"
 
-@implementation RendererFactory
+@implementation RendererFactory {
+    TextRenderer *_sharedTextRenderer;
+    LinkRenderer *_sharedLinkRenderer;
+    HeadingRenderer *_sharedHeadingRenderer;
+    ParagraphRenderer *_sharedParagraphRenderer;
+}
 
 + (instancetype)sharedFactory {
     static RendererFactory *sharedInstance = nil;
@@ -15,20 +20,29 @@
     return sharedInstance;
 }
 
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        // Create all shared renderer instances once
+        _sharedTextRenderer = [TextRenderer new];
+        _sharedLinkRenderer = [[LinkRenderer alloc] initWithTextRenderer:_sharedTextRenderer];
+        _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithTextRenderer:_sharedTextRenderer];
+        _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithLinkRenderer:_sharedLinkRenderer
+                                                                      textRenderer:_sharedTextRenderer];
+    }
+    return self;
+}
+
 - (id<NodeRenderer>)rendererForNodeType:(MarkdownNodeType)type {
     switch (type) {
-        case MarkdownNodeTypeParagraph: {
-            ParagraphRenderer *paragraphRenderer = [[ParagraphRenderer alloc] initWithLinkRenderer:[LinkRenderer new]];
-            return paragraphRenderer;
-        }
+        case MarkdownNodeTypeParagraph:
+            return _sharedParagraphRenderer;
         case MarkdownNodeTypeText: 
-            return [TextRenderer new];
-        case MarkdownNodeTypeLink: 
-            return [LinkRenderer new];
-        case MarkdownNodeTypeHeading: {
-            HeadingRenderer *headingRenderer = [[HeadingRenderer alloc] initWithTextRenderer:[TextRenderer new]];
-            return headingRenderer;
-        }
+            return _sharedTextRenderer;
+        case MarkdownNodeTypeLink:
+            return _sharedLinkRenderer;
+        case MarkdownNodeTypeHeading:
+            return _sharedHeadingRenderer;
         default: 
             return nil;
     }

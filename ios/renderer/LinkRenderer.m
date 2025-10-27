@@ -2,6 +2,14 @@
 
 @implementation LinkRenderer
 
+- (instancetype)initWithTextRenderer:(id<NodeRenderer>)textRenderer {
+    self = [super init];
+    if (self) {
+        _textRenderer = textRenderer;
+    }
+    return self;
+}
+
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font
@@ -11,12 +19,12 @@
     
     for (MarkdownASTNode *child in node.children) {
         if (child.type == MarkdownNodeTypeText && child.content) {
-            NSAttributedString *text = [[NSAttributedString alloc] 
-                initWithString:child.content 
-                attributes:@{
-                    NSFontAttributeName: font
-                }];
-            [output appendAttributedString:text];
+            // Always use injected text renderer
+            [self.textRenderer renderNode:child 
+                                    into:output 
+                               withFont:font
+                                  color:color
+                                 context:context];
         }
     }
     

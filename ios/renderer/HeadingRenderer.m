@@ -21,14 +21,12 @@
 
     UIFont *headingFont = font;
     
-    // Get heading level from attributes
     NSInteger level = 1; // Default to H1
     NSString *levelString = node.attributes[@"level"];
     if (levelString) {
         level = [levelString integerValue];
     }
     
-    // Dynamic heading style application for all levels (H1-H6)
     HeadingStyleBase *headingStyle = [self getHeadingStyleForLevel:level];
     if (headingStyle) {
         headingStyle.config = self.config;
@@ -36,19 +34,15 @@
         CGFloat fontSize = [headingStyle getHeadingFontSize];
         NSString *fontFamily = [headingStyle getHeadingFontFamily];
 
-        if (fontFamily != nil && fontFamily.length > 0) {
-            UIFont *familyFont = [UIFont fontWithName:fontFamily size:fontSize];
-            if (familyFont != nil) {
-                headingFont = familyFont;
-            } else {
-                // Fallback to base font with size
-                headingFont = [UIFont fontWithDescriptor:font.fontDescriptor size:fontSize];
-            }
+        // Try custom font family first, fallback to base font with size
+        if (fontFamily.length > 0) {
+            UIFont *customFont = [UIFont fontWithName:fontFamily size:fontSize];
+            headingFont = customFont ?: [UIFont fontWithDescriptor:font.fontDescriptor size:fontSize];
         } else {
             headingFont = [UIFont fontWithDescriptor:font.fontDescriptor size:fontSize];
         }
     } else {
-        // Fallback: make bold with original size
+        // Fallback: bold with original size
         headingFont = [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold] size:font.pointSize];
     }
     

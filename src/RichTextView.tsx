@@ -22,6 +22,10 @@ export interface RichTextStyle {
     fontSize?: number;
     fontFamily?: string;
   };
+  h5?: {
+    fontSize?: number;
+    fontFamily?: string;
+  };
 }
 
 export interface RichTextViewProps

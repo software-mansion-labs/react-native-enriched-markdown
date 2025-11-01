@@ -231,6 +231,21 @@ oldProps:(Props::Shared const &)oldProps {
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.h5.fontSize != oldViewProps.richTextStyle.h5.fontSize) {
+        [newConfig setH5FontSize:newViewProps.richTextStyle.h5.fontSize];
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h5.fontFamily != oldViewProps.richTextStyle.h5.fontFamily) {
+        if (!newViewProps.richTextStyle.h5.fontFamily.empty()) {
+            NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h5.fontFamily.c_str()];
+            [newConfig setH5FontFamily:fontFamily];
+        } else {
+            [newConfig setH5FontFamily:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
     if (stylePropChanged) {
         NSString *currentMarkdown = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
         

@@ -20,8 +20,8 @@
         case 2: return [_config h2FontSize];
         case 3: return [_config h3FontSize];
         case 4: return [_config h4FontSize];
-        // Future: Add H5-H6 support
-        // case 5: return [_config h5FontSize];
+        case 5: return [_config h5FontSize];
+        // Future: Add H6 support
         // case 6: return [_config h6FontSize];
         default: return 32.0; // Default heading size
     }
@@ -33,8 +33,8 @@
         case 2: return [_config h2FontFamily];
         case 3: return [_config h3FontFamily];
         case 4: return [_config h4FontFamily];
-        // Future: Add H5-H6 support
-        // case 5: return [_config h5FontFamily];
+        case 5: return [_config h5FontFamily];
+        // Future: Add H6 support
         // case 6: return [_config h6FontFamily];
         default: return nil;
     }

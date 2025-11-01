@@ -5,31 +5,18 @@ import RichTextViewNativeComponent, {
 import { normalizeRichTextStyle } from './normalizeRichTextStyle';
 import type { ViewStyle, TextStyle } from 'react-native';
 
+export interface HeadingStyle {
+  fontSize?: number;
+  fontFamily?: string;
+}
+
 export interface RichTextStyle {
-  h1?: {
-    fontSize?: number;
-    fontFamily?: string;
-  };
-  h2?: {
-    fontSize?: number;
-    fontFamily?: string;
-  };
-  h3?: {
-    fontSize?: number;
-    fontFamily?: string;
-  };
-  h4?: {
-    fontSize?: number;
-    fontFamily?: string;
-  };
-  h5?: {
-    fontSize?: number;
-    fontFamily?: string;
-  };
-  h6?: {
-    fontSize?: number;
-    fontFamily?: string;
-  };
+  h1?: HeadingStyle;
+  h2?: HeadingStyle;
+  h3?: HeadingStyle;
+  h4?: HeadingStyle;
+  h5?: HeadingStyle;
+  h6?: HeadingStyle;
 }
 
 export interface RichTextViewProps

@@ -5,31 +5,18 @@ import {
   type ColorValue,
 } from 'react-native';
 
+export interface HeadingStyleInternal {
+  fontSize?: CodegenTypes.Float;
+  fontFamily?: string;
+}
+
 export interface RichTextStyleInternal {
-  h1?: {
-    fontSize?: CodegenTypes.Float;
-    fontFamily?: string;
-  };
-  h2?: {
-    fontSize?: CodegenTypes.Float;
-    fontFamily?: string;
-  };
-  h3?: {
-    fontSize?: CodegenTypes.Float;
-    fontFamily?: string;
-  };
-  h4?: {
-    fontSize?: CodegenTypes.Float;
-    fontFamily?: string;
-  };
-  h5?: {
-    fontSize?: CodegenTypes.Float;
-    fontFamily?: string;
-  };
-  h6?: {
-    fontSize?: CodegenTypes.Float;
-    fontFamily?: string;
-  };
+  h1?: HeadingStyleInternal;
+  h2?: HeadingStyleInternal;
+  h3?: HeadingStyleInternal;
+  h4?: HeadingStyleInternal;
+  h5?: HeadingStyleInternal;
+  h6?: HeadingStyleInternal;
 }
 
 export interface NativeProps extends ViewProps {

@@ -175,7 +175,6 @@ class LineBreakRenderer : NodeRenderer {
 }
 
 class RendererFactory(private val config: RendererConfig?) {
-    // Cache renderer instances to avoid repeated allocations (similar to iOS)
     private val sharedTextRenderer = TextRenderer()
     private val sharedLinkRenderer = LinkRenderer(config)
     private val sharedHeadingRenderer = HeadingRenderer(config)

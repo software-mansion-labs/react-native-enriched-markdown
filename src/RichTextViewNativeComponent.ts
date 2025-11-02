@@ -5,24 +5,24 @@ import {
   type ColorValue,
 } from 'react-native';
 
-export interface HeadingStyleInternal {
-  fontSize?: CodegenTypes.Float;
-  fontFamily?: string;
+interface HeadingStyleInternal {
+  fontSize: CodegenTypes.Float;
+  fontFamily: string;
 }
 
-export interface LinkStyleInternal {
-  color?: ColorValue;
-  underline?: boolean;
+interface LinkStyleInternal {
+  color: ColorValue;
+  underline: boolean;
 }
 
 export interface RichTextStyleInternal {
-  h1?: HeadingStyleInternal;
-  h2?: HeadingStyleInternal;
-  h3?: HeadingStyleInternal;
-  h4?: HeadingStyleInternal;
-  h5?: HeadingStyleInternal;
-  h6?: HeadingStyleInternal;
-  link?: LinkStyleInternal;
+  h1: HeadingStyleInternal;
+  h2: HeadingStyleInternal;
+  h3: HeadingStyleInternal;
+  h4: HeadingStyleInternal;
+  h5: HeadingStyleInternal;
+  h6: HeadingStyleInternal;
+  link: LinkStyleInternal;
 }
 
 export interface NativeProps extends ViewProps {
@@ -55,7 +55,7 @@ export interface NativeProps extends ViewProps {
   /**
    * Style configuration for markdown elements.
    */
-  richTextStyle?: RichTextStyleInternal;
+  richTextStyle: RichTextStyleInternal;
   /**
    * Callback fired when a link is pressed.
    * Receives the URL that was tapped.

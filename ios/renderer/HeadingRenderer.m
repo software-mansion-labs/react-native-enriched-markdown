@@ -1,6 +1,6 @@
 #import "HeadingRenderer.h"
 #import "SpacingUtils.h"
-#import "HeadingStyle.h"
+#import "RichTextConfig.h"
 
 @implementation HeadingRenderer
 
@@ -27,9 +27,9 @@
         level = [levelString integerValue];
     }
     
-    HeadingStyle *headingStyle = [[HeadingStyle alloc] initWithLevel:level config:self.config];
-    CGFloat fontSize = [headingStyle fontSize];
-    NSString *fontFamily = [headingStyle fontFamily];
+    RichTextConfig *config = (RichTextConfig *)self.config;
+    CGFloat fontSize = [self getFontSizeForLevel:level config:config];
+    NSString *fontFamily = [self getFontFamilyForLevel:level config:config];
     
     // Try custom font family first, fallback to base font with size
     if (fontFamily.length > 0) {
@@ -53,5 +53,28 @@
     [output appendAttributedString:spacing];
 }
 
+- (CGFloat)getFontSizeForLevel:(NSInteger)level config:(RichTextConfig *)config {
+    switch (level) {
+        case 1: return [config h1FontSize];
+        case 2: return [config h2FontSize];
+        case 3: return [config h3FontSize];
+        case 4: return [config h4FontSize];
+        case 5: return [config h5FontSize];
+        case 6: return [config h6FontSize];
+        default: return 32.0;
+    }
+}
+
+- (NSString *)getFontFamilyForLevel:(NSInteger)level config:(RichTextConfig *)config {
+    switch (level) {
+        case 1: return [config h1FontFamily];
+        case 2: return [config h2FontFamily];
+        case 3: return [config h3FontFamily];
+        case 4: return [config h4FontFamily];
+        case 5: return [config h5FontFamily];
+        case 6: return [config h6FontFamily];
+        default: return nil;
+    }
+}
 
 @end

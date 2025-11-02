@@ -1,5 +1,5 @@
 #import "LinkRenderer.h"
-#import "LinkStyle.h"
+#import "RichTextConfig.h"
 
 @implementation LinkRenderer
 
@@ -35,18 +35,18 @@
         NSString *url = node.attributes[@"url"] ?: @"";
         
         NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
-        LinkStyle *linkStyle = [[LinkStyle alloc] initWithConfig:self.config];
+        RichTextConfig *config = (RichTextConfig *)self.config;
         
         NSMutableDictionary *linkAttributes = [existingAttributes mutableCopy];
         linkAttributes[NSLinkAttributeName] = url;
         
-        UIColor *linkColor = [linkStyle color];
+        UIColor *linkColor = [config linkColor];
         if (linkColor) {
             linkAttributes[NSForegroundColorAttributeName] = linkColor;
             linkAttributes[NSUnderlineColorAttributeName] = linkColor;
         }
         
-        if ([linkStyle underline]) {
+        if ([config linkUnderline]) {
             linkAttributes[NSUnderlineStyleAttributeName] = @(NSUnderlineStyleSingle);
         }
         

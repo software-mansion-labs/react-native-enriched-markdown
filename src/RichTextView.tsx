@@ -35,6 +35,13 @@ export interface RichTextViewProps
    * Style for the container view.
    */
   containerStyle?: ViewStyle | TextStyle;
+  /**
+   * Controls whether text is selectable and link previews are enabled.
+   * - iOS: Controls text selection and link previews on long press.
+   * - Android: Controls text selection.
+   * @default true
+   */
+  isSelectable?: boolean;
 }
 
 export const RichTextView = ({
@@ -47,6 +54,7 @@ export const RichTextView = ({
   style = {},
   containerStyle,
   onLinkPress,
+  isSelectable = true, // Default to true (allows text selection and link previews)
   ...rest
 }: RichTextViewProps) => {
   const normalizedStyle = useMemo(() => normalizeRichTextStyle(style), [style]);
@@ -61,6 +69,7 @@ export const RichTextView = ({
       color={color}
       richTextStyle={normalizedStyle}
       onLinkPress={onLinkPress}
+      isSelectable={isSelectable}
       style={containerStyle}
       {...rest}
     />

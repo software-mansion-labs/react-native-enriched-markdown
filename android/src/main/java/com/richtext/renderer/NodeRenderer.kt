@@ -19,7 +19,7 @@ interface NodeRenderer {
 }
 
 data class RendererConfig(
-    val style: RichTextStyle?
+    val style: RichTextStyle
 )
 
 class DocumentRenderer(
@@ -88,11 +88,11 @@ class HeadingRenderer(
         }
 
         val contentLength = builder.length - start
-        if (contentLength > 0) {
+        if (contentLength > 0 && config != null) {
             builder.setSpan(
                 RichTextHeadingSpan(
                     heading.level,
-                    config?.style
+                    config.style
                 ),
                 start,
                 start + contentLength,

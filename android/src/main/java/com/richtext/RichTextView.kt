@@ -62,7 +62,10 @@ class RichTextView : AppCompatTextView {
     try {
       val document = parser.parseMarkdown(currentMarkdown)
       if (document != null) {
-        renderer.setStyle(richTextStyle)
+        val currentStyle = requireNotNull(richTextStyle) {
+          "richTextStyle should always be provided from JS side with defaults."
+        }
+        renderer.setStyle(currentStyle)
         val styledText = renderer.renderDocument(document, onLinkPressCallback)
         text = styledText
         movementMethod = LinkMovementMethod.getInstance()
@@ -77,7 +80,8 @@ class RichTextView : AppCompatTextView {
   }
   
   fun setRichTextStyle(style: ReadableMap?) {
-    richTextStyle = RichTextStyle(style)
+    // JS always provides defaults via normalizeRichTextStyle, so style should always be present
+    richTextStyle = style?.let { RichTextStyle(it) }
   }
 
 

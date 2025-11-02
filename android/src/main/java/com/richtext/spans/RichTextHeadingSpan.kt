@@ -7,11 +7,11 @@ import com.richtext.styles.RichTextStyle
 
 class RichTextHeadingSpan(
   private val level: Int,
-  private val style: RichTextStyle?
-) : AbsoluteSizeSpan(getFontSize(level, style)) {
+  private val style: RichTextStyle
+) : AbsoluteSizeSpan(style.getHeadingFontSize(level).toInt()) {
 
   private val cachedTypeface: Typeface? by lazy {
-    style?.getHeadingFontFamily(level)?.let { fontFamily ->
+    style.getHeadingFontFamily(level)?.let { fontFamily ->
       Typeface.create(fontFamily, Typeface.NORMAL)
     }
   }
@@ -24,10 +24,5 @@ class RichTextHeadingSpan(
   override fun updateMeasureState(tp: TextPaint) {
     super.updateMeasureState(tp)
     cachedTypeface?.let { tp.typeface = it }
-  }
-
-  companion object {
-    private fun getFontSize(level: Int, style: RichTextStyle?): Int =
-      style?.getHeadingFontSize(level)?.toInt() ?: 32
   }
 }

@@ -8,13 +8,16 @@ import org.commonmark.node.*
 class Renderer {
     private var style: RichTextStyle? = null
 
-    fun setStyle(style: RichTextStyle?) {
+    fun setStyle(style: RichTextStyle) {
         this.style = style
     }
 
     fun renderDocument(document: Document, onLinkPress: ((String) -> Unit)? = null): SpannableString {
         val builder = SpannableStringBuilder()
-        val config = RendererConfig(style)
+        val currentStyle = requireNotNull(style) {
+            "richTextStyle should always be provided from JS side with defaults."
+        }
+        val config = RendererConfig(currentStyle)
 
         renderNode(document, builder, onLinkPress, config)
 

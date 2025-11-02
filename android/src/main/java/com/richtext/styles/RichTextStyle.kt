@@ -8,15 +8,16 @@ data class HeadingStyle(
   val fontFamily: String?
 )
 
-class RichTextStyle(style: ReadableMap?) {
-  private val headingStyles = mutableMapOf<Int, HeadingStyle>()
+class RichTextStyle(style: ReadableMap) {
+  private val headingStyles = arrayOfNulls<HeadingStyle>(7)
 
   init {
-    style?.let { parseStyles(it) }
+    parseStyles(style)
   }
 
   fun getHeadingFontSize(level: Int): Float {
-    return headingStyles[level]?.fontSize ?: 32f
+    return headingStyles[level]?.fontSize 
+      ?: error("Heading style for level $level not found. JS should always provide defaults.")
   }
 
   fun getHeadingFontFamily(level: Int): String? {
@@ -27,16 +28,16 @@ class RichTextStyle(style: ReadableMap?) {
     (1..6).forEach { level ->
       val levelKey = "h$level"
       val levelStyle = style.getMap(levelKey)
-      levelStyle?.let { map ->
-        val fontSize = if (map.hasKey("fontSize") && !map.isNull("fontSize")) {
-          PixelUtil.toPixelFromSP(map.getDouble("fontSize").toFloat())
-        } else {
-          32f
-        }
-        val fontFamily = map.getString("fontFamily")
-        
-        headingStyles[level] = HeadingStyle(fontSize, fontFamily)
+      requireNotNull(levelStyle) { "Style for $levelKey not found. JS should always provide defaults." }
+      
+      require(levelStyle.hasKey("fontSize") && !levelStyle.isNull("fontSize")) {
+        "fontSize not found for $levelKey. JS should always provide defaults."
       }
+      
+      val fontSize = PixelUtil.toPixelFromSP(levelStyle.getDouble("fontSize").toFloat())
+      val fontFamily = levelStyle.getString("fontFamily")
+      
+      headingStyles[level] = HeadingStyle(fontSize, fontFamily)
     }
   }
 }

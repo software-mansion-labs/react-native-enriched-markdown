@@ -12,27 +12,6 @@
     ParagraphRenderer *_sharedParagraphRenderer;
 }
 
-+ (instancetype)sharedFactory {
-    static RendererFactory *sharedInstance = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        sharedInstance = [[RendererFactory alloc] init];
-    });
-    return sharedInstance;
-}
-
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-        _sharedTextRenderer = [TextRenderer new];
-        _sharedLinkRenderer = [[LinkRenderer alloc] initWithTextRenderer:_sharedTextRenderer config:nil];
-        _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithTextRenderer:_sharedTextRenderer config:nil];
-        _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithLinkRenderer:_sharedLinkRenderer
-                                                                      textRenderer:_sharedTextRenderer];
-    }
-    return self;
-}
-
 - (instancetype)initWithConfig:(id)config {
     self = [super init];
     if (self) {

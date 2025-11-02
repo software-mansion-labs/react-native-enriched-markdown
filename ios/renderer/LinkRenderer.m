@@ -41,10 +41,8 @@
         linkAttributes[NSLinkAttributeName] = url;
         
         UIColor *linkColor = [config linkColor];
-        if (linkColor) {
-            linkAttributes[NSForegroundColorAttributeName] = linkColor;
-            linkAttributes[NSUnderlineColorAttributeName] = linkColor;
-        }
+        linkAttributes[NSForegroundColorAttributeName] = linkColor;
+        linkAttributes[NSUnderlineColorAttributeName] = linkColor;
         
         if ([config linkUnderline]) {
             linkAttributes[NSUnderlineStyleAttributeName] = @(NSUnderlineStyleSingle);

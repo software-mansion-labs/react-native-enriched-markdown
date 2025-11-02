@@ -61,7 +61,11 @@
         case 4: return [config h4FontSize];
         case 5: return [config h5FontSize];
         case 6: return [config h6FontSize];
-        default: return 32.0;
+        default: {
+            // Should never happen - JS always provides all 6 levels
+            NSLog(@"Warning: Invalid heading level %ld, using H1 size", (long)level);
+            return [config h1FontSize];
+        }
     }
 }
 
@@ -73,7 +77,11 @@
         case 4: return [config h4FontFamily];
         case 5: return [config h5FontFamily];
         case 6: return [config h6FontFamily];
-        default: return nil;
+        default: {
+            // Should never happen - JS always provides all 6 levels
+            NSLog(@"Warning: Invalid heading level %ld, using H1 family", (long)level);
+            return [config h1FontFamily];
+        }
     }
 }
 

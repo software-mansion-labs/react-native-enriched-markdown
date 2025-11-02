@@ -115,7 +115,7 @@
 }
 
 - (CGFloat)h1FontSize {
-    return _h1FontSize > 0 ? _h1FontSize : 32.0;
+    return _h1FontSize;
 }
 
 - (void)setH1FontSize:(CGFloat)newValue {
@@ -131,7 +131,7 @@
 }
 
 - (CGFloat)h2FontSize {
-    return _h2FontSize > 0 ? _h2FontSize : 28.0;
+    return _h2FontSize;
 }
 
 - (void)setH2FontSize:(CGFloat)newValue {
@@ -147,7 +147,7 @@
 }
 
 - (CGFloat)h3FontSize {
-    return _h3FontSize > 0 ? _h3FontSize : 24.0;
+    return _h3FontSize;
 }
 
 - (void)setH3FontSize:(CGFloat)newValue {
@@ -163,7 +163,7 @@
 }
 
 - (CGFloat)h4FontSize {
-    return _h4FontSize > 0 ? _h4FontSize : 20.0;
+    return _h4FontSize;
 }
 
 - (void)setH4FontSize:(CGFloat)newValue {
@@ -179,7 +179,7 @@
 }
 
 - (CGFloat)h5FontSize {
-    return _h5FontSize > 0 ? _h5FontSize : 18.0;
+    return _h5FontSize;
 }
 
 - (void)setH5FontSize:(CGFloat)newValue {
@@ -195,7 +195,7 @@
 }
 
 - (CGFloat)h6FontSize {
-    return _h6FontSize > 0 ? _h6FontSize : 16.0;
+    return _h6FontSize;
 }
 
 - (void)setH6FontSize:(CGFloat)newValue {
@@ -211,7 +211,7 @@
 }
 
 - (UIColor *)linkColor {
-    return _linkColor != nullptr ? _linkColor : [UIColor blueColor];
+    return _linkColor;
 }
 
 - (void)setLinkColor:(UIColor *)newValue {

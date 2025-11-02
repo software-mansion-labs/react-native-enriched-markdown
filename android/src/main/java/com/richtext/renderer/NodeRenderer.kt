@@ -1,7 +1,6 @@
 package com.richtext.renderer
 
 import android.text.SpannableStringBuilder
-import android.text.style.UnderlineSpan
 import com.richtext.spans.RichTextLinkSpan
 import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextParagraphSpan
@@ -128,7 +127,9 @@ class TextRenderer : NodeRenderer {
     }
 }
 
-class LinkRenderer : NodeRenderer {
+class LinkRenderer(
+    private val config: RendererConfig? = null
+) : NodeRenderer {
     override fun render(
         node: Node,
         builder: SpannableStringBuilder,
@@ -140,21 +141,14 @@ class LinkRenderer : NodeRenderer {
 
         var child = link.firstChild
         while (child != null) {
-            NodeRendererFactory.getRenderer(child).render(child, builder, onLinkPress)
+            NodeRendererFactory.getRenderer(child, config).render(child, builder, onLinkPress)
             child = child.next
         }
 
         val contentLength = builder.length - start
-        if (contentLength > 0) {
+        if (contentLength > 0 && config != null) {
             builder.setSpan(
-                RichTextLinkSpan(url, onLinkPress),
-                start,
-                start + contentLength,
-                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-
-            builder.setSpan(
-                UnderlineSpan(),
+                RichTextLinkSpan(url, onLinkPress, config.style),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -180,7 +174,7 @@ object NodeRendererFactory {
             is Paragraph -> ParagraphRenderer(config)
             is Heading -> HeadingRenderer(config)
             is Text -> TextRenderer()
-            is Link -> LinkRenderer()
+            is Link -> LinkRenderer(config)
             is HardLineBreak, is SoftLineBreak -> LineBreakRenderer()
             else -> {
                 android.util.Log.w(

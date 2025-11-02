@@ -4,10 +4,12 @@ import android.text.TextPaint
 import android.text.style.ClickableSpan
 import android.view.View
 import com.richtext.RichTextView
+import com.richtext.styles.RichTextStyle
 
 class RichTextLinkSpan(
   private val url: String,
-  private val onLinkPress: ((String) -> Unit)?
+  private val onLinkPress: ((String) -> Unit)?,
+  private val style: RichTextStyle
 ) : ClickableSpan() {
 
   override fun onClick(widget: View) {
@@ -21,7 +23,7 @@ class RichTextLinkSpan(
 
   override fun updateDrawState(textPaint: TextPaint) {
     super.updateDrawState(textPaint)
-    textPaint.isUnderlineText = true
-    textPaint.color = textPaint.linkColor
+    textPaint.color = style.getLinkColor()
+    textPaint.isUnderlineText = style.getLinkUnderline()
   }
 }

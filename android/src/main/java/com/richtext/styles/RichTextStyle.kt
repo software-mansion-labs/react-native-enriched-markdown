@@ -8,8 +8,14 @@ data class HeadingStyle(
   val fontFamily: String?
 )
 
+data class LinkStyle(
+  val color: Int,
+  val underline: Boolean
+)
+
 class RichTextStyle(style: ReadableMap) {
   private val headingStyles = arrayOfNulls<HeadingStyle>(7)
+  private lateinit var linkStyle: LinkStyle
 
   init {
     parseStyles(style)
@@ -24,14 +30,19 @@ class RichTextStyle(style: ReadableMap) {
     return headingStyles[level]?.fontFamily
   }
 
+  fun getLinkColor(): Int {
+    return linkStyle.color
+  }
+
+  fun getLinkUnderline(): Boolean {
+    return linkStyle.underline
+  }
+
   private fun parseStyles(style: ReadableMap) {
     (1..6).forEach { level ->
       val levelKey = "h$level"
-      val levelStyle = style.getMap(levelKey)
-      requireNotNull(levelStyle) { "Style for $levelKey not found. JS should always provide defaults." }
-      
-      require(levelStyle.hasKey("fontSize") && !levelStyle.isNull("fontSize")) {
-        "fontSize not found for $levelKey. JS should always provide defaults."
+      val levelStyle = requireNotNull(style.getMap(levelKey)) {
+        "Style for $levelKey not found. JS should always provide defaults."
       }
       
       val fontSize = PixelUtil.toPixelFromSP(levelStyle.getDouble("fontSize").toFloat())
@@ -39,6 +50,15 @@ class RichTextStyle(style: ReadableMap) {
       
       headingStyles[level] = HeadingStyle(fontSize, fontFamily)
     }
+
+    val linkStyleMap = requireNotNull(style.getMap("link")) {
+      "Link style not found. JS should always provide defaults."
+    }
+    
+    val color = linkStyleMap.getInt("color")
+    val underline = linkStyleMap.getBoolean("underline")
+    
+    linkStyle = LinkStyle(color, underline)
   }
 }
 

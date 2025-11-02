@@ -80,10 +80,13 @@ class RichTextView : AppCompatTextView {
   }
 
   fun setRichTextStyle(style: ReadableMap?) {
+    if (RichTextStyle.stylesAreEqual(richTextStyle, style)) {
+      return // Styles are equal, no need to recreate or re-render
+    }
+    
     val newStyle = style?.let { RichTextStyle(it) }
-    val styleChanged = richTextStyle != newStyle
     richTextStyle = newStyle
-    if (styleChanged && currentMarkdown.isNotEmpty()) {
+    if (currentMarkdown.isNotEmpty()) {
       renderMarkdown()
     }
   }

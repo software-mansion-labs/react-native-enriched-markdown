@@ -53,7 +53,8 @@ export interface NativeProps extends ViewProps {
    */
   color?: ColorValue;
   /**
-   * Style configuration for markdown elements.
+   * Internal style configuration for markdown elements.
+   * Always provided with complete defaults via normalizeRichTextStyle.
    */
   richTextStyle: RichTextStyleInternal;
   /**

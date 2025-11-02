@@ -11,7 +11,6 @@ class Renderer {
 
     fun setStyle(style: RichTextStyle) {
         this.style = style
-        // Recreate factory when style changes to update renderers with new config
         val config = RendererConfig(style)
         rendererFactory = RendererFactory(config)
     }

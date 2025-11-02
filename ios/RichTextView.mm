@@ -66,6 +66,9 @@ static const CGFloat kLabelPadding = 10.0;
     _textView.textContainer.lineFragmentPadding = 0;
     // Disable UITextView's default link styling - we handle it directly in attributed strings
     _textView.linkTextAttributes = @{};
+    // isSelectable controls text selection and link previews
+    // Default to YES to match the prop default
+    _textView.selectable = YES;
     // Add tap gesture recognizer
     UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
     [_textView addGestureRecognizer:tapRecognizer];
@@ -268,6 +271,13 @@ oldProps:(Props::Shared const &)oldProps {
     if (newViewProps.richTextStyle.link.underline != oldViewProps.richTextStyle.link.underline) {
         [newConfig setLinkUnderline:newViewProps.richTextStyle.link.underline];
         stylePropChanged = YES;
+    }
+    
+    // Control text selection and link previews via isSelectable property
+    // According to Apple docs, isSelectable controls whether text selection and link previews work
+    // https://developer.apple.com/documentation/uikit/uitextview/isselectable
+    if (_textView.selectable != newViewProps.isSelectable) {
+        _textView.selectable = newViewProps.isSelectable;
     }
     
     if (stylePropChanged) {

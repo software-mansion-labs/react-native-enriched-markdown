@@ -49,6 +49,7 @@ class RichTextView : AppCompatTextView {
 
   private fun prepareComponent() {
     movementMethod = LinkMovementMethod.getInstance()
+    setTextIsSelectable(true) // Default to true to match prop default
     setPadding(0, 0, 0, 0)
     setBackgroundColor(Color.TRANSPARENT)
   }
@@ -142,6 +143,24 @@ class RichTextView : AppCompatTextView {
   fun setColor(color: Int?) {
     if (color != null) {
       setTextColor(color)
+    }
+  }
+
+  fun setIsSelectable(selectable: Boolean) {
+    if (isTextSelectable != selectable) {
+      setTextIsSelectable(selectable)
+
+      // Ensure links always work: LinkMovementMethod is needed for link clicks
+      // setTextIsSelectable might reset movementMethod, so we always restore it
+      if (movementMethod !is LinkMovementMethod) {
+        movementMethod = LinkMovementMethod.getInstance()
+      }
+
+      // When selection is disabled, ensure view is clickable for link interaction
+      // setTextIsSelectable(false) might set isClickable=false, breaking links
+      if (!selectable && !isClickable) {
+        isClickable = true
+      }
     }
   }
 

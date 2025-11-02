@@ -76,6 +76,11 @@ class RichTextViewManager : SimpleViewManager<RichTextView>(),
     view?.setRichTextStyle(style)
   }
 
+  @ReactProp(name = "isSelectable", defaultBoolean = true)
+  override fun setIsSelectable(view: RichTextView?, selectable: Boolean) {
+    view?.setIsSelectable(selectable)
+  }
+
   override fun onAfterUpdateTransaction(view: RichTextView) {
     super.onAfterUpdateTransaction(view)
     view.updateTypeface()

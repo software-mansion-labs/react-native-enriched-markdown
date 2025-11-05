@@ -33,11 +33,7 @@ class DocumentRenderer(
         factory: RendererFactory
     ) {
         val document = node as Document
-        var child = document.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(document, builder, onLinkPress)
     }
 }
 
@@ -53,11 +49,7 @@ class ParagraphRenderer(
         val paragraph = node as Paragraph
         val start = builder.length
 
-        var child = paragraph.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(paragraph, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0) {
@@ -85,11 +77,7 @@ class HeadingRenderer(
         val heading = node as Heading
         val start = builder.length
 
-        var child = heading.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(heading, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0 && config != null) {
@@ -146,11 +134,7 @@ class LinkRenderer(
         val start = builder.length
         val url = link.destination ?: ""
 
-        var child = link.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(link, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0 && config != null) {
@@ -176,11 +160,7 @@ class BoldRenderer(
         val strongEmphasis = node as StrongEmphasis
         val start = builder.length
 
-        var child = strongEmphasis.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(strongEmphasis, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0 && config != null) {
@@ -230,6 +210,14 @@ class RendererFactory(private val config: RendererConfig?) {
                 )
                 sharedTextRenderer
             }
+        }
+    }
+
+    fun renderChildren(node: Node, builder: SpannableStringBuilder, onLinkPress: ((String) -> Unit)?) {
+        var child = node.firstChild
+        while (child != null) {
+            getRenderer(child).render(child, builder, onLinkPress, this)
+            child = child.next
         }
     }
 }

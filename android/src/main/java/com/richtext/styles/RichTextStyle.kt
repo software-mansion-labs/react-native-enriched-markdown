@@ -13,9 +13,14 @@ data class LinkStyle(
   val underline: Boolean
 )
 
+data class BoldStyle(
+  val color: Int
+)
+
 class RichTextStyle(style: ReadableMap) {
   private val headingStyles = arrayOfNulls<HeadingStyle>(7)
   private lateinit var linkStyle: LinkStyle
+  private lateinit var boldStyle: BoldStyle
 
   init {
     parseStyles(style)
@@ -36,6 +41,10 @@ class RichTextStyle(style: ReadableMap) {
 
   fun getLinkUnderline(): Boolean {
     return linkStyle.underline
+  }
+
+  fun getBoldColor(): Int {
+    return boldStyle.color
   }
 
   private fun parseStyles(style: ReadableMap) {
@@ -59,6 +68,14 @@ class RichTextStyle(style: ReadableMap) {
     val underline = linkStyleMap.getBoolean("underline")
     
     linkStyle = LinkStyle(color, underline)
+
+    val boldStyleMap = requireNotNull(style.getMap("bold")) {
+      "Bold style not found. JS should always provide defaults."
+    }
+    
+    val boldColor = boldStyleMap.getInt("color")
+    
+    boldStyle = BoldStyle(boldColor)
   }
 }
 

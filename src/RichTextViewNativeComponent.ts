@@ -15,6 +15,10 @@ interface LinkStyleInternal {
   underline: boolean;
 }
 
+interface BoldStyleInternal {
+  color: ColorValue;
+}
+
 export interface RichTextStyleInternal {
   h1: HeadingStyleInternal;
   h2: HeadingStyleInternal;
@@ -23,6 +27,7 @@ export interface RichTextStyleInternal {
   h5: HeadingStyleInternal;
   h6: HeadingStyleInternal;
   link: LinkStyleInternal;
+  bold: BoldStyleInternal;
 }
 
 export interface NativeProps extends ViewProps {

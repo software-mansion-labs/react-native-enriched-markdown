@@ -4,6 +4,7 @@ import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.style.AbsoluteSizeSpan
 import com.richtext.styles.RichTextStyle
+import com.richtext.utils.applyTypefacePreserving
 
 class RichTextHeadingSpan(
   private val level: Int,
@@ -18,11 +19,15 @@ class RichTextHeadingSpan(
 
   override fun updateDrawState(tp: TextPaint) {
     super.updateDrawState(tp)
-    cachedTypeface?.let { tp.typeface = it }
+    cachedTypeface?.let { headingTypeface ->
+      tp.applyTypefacePreserving(headingTypeface, Typeface.BOLD)
+    }
   }
 
   override fun updateMeasureState(tp: TextPaint) {
     super.updateMeasureState(tp)
-    cachedTypeface?.let { tp.typeface = it }
+    cachedTypeface?.let { headingTypeface ->
+      tp.applyTypefacePreserving(headingTypeface, Typeface.BOLD)
+    }
   }
 }

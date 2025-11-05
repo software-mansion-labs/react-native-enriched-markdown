@@ -7,13 +7,15 @@ import {
 } from 'react-native';
 import { RichTextView } from 'react-native-rich-text';
 
-const sampleMarkdown = `# Welcome to the React Native Markdown component!
+const sampleMarkdown = `# Welcome to the **React Native** Markdown component!
 
-This is a simple text with links.
+This is a simple text with links and __bold text__.
 
 Check out this [link to React Native](https://reactnative.dev) and this [GitHub repository](https://github.com/facebook/react-native).
 
-Built with ❤️ using React Native Fabric Architecture`;
+Here's some **bold text** and regular text together. You can also have **[bold links](https://reactnative.dev)** that are both bold and clickable!
+
+Built with ❤️ using **React Native Fabric Architecture**`;
 
 export default function App() {
   const handleLinkPress = (event: { nativeEvent: { url: string } }) => {
@@ -57,6 +59,9 @@ const markdownStyle = {
     fontSize: 24,
     fontFamily: 'Helvetica-Bold',
   },
+  bold: {
+    color: 'blue',
+  },
 };
 
 const styles = StyleSheet.create({
@@ -73,6 +78,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 8,
-    minHeight: 250,
+    minHeight: 300,
   },
 });

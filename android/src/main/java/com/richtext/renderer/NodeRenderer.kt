@@ -5,6 +5,7 @@ import com.richtext.spans.RichTextLinkSpan
 import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextTextSpan
+import com.richtext.spans.RichTextBoldSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.addSpacing
 import org.commonmark.node.*
@@ -32,11 +33,7 @@ class DocumentRenderer(
         factory: RendererFactory
     ) {
         val document = node as Document
-        var child = document.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(document, builder, onLinkPress)
     }
 }
 
@@ -52,11 +49,7 @@ class ParagraphRenderer(
         val paragraph = node as Paragraph
         val start = builder.length
 
-        var child = paragraph.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(paragraph, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0) {
@@ -84,11 +77,7 @@ class HeadingRenderer(
         val heading = node as Heading
         val start = builder.length
 
-        var child = heading.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(heading, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0 && config != null) {
@@ -102,7 +91,7 @@ class HeadingRenderer(
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
-        
+
         builder.addSpacing()
     }
 }
@@ -145,16 +134,38 @@ class LinkRenderer(
         val start = builder.length
         val url = link.destination ?: ""
 
-        var child = link.firstChild
-        while (child != null) {
-            factory.getRenderer(child).render(child, builder, onLinkPress, factory)
-            child = child.next
-        }
+        factory.renderChildren(link, builder, onLinkPress)
 
         val contentLength = builder.length - start
         if (contentLength > 0 && config != null) {
             builder.setSpan(
                 RichTextLinkSpan(url, onLinkPress, config.style),
+                start,
+                start + contentLength,
+                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+    }
+}
+
+class BoldRenderer(
+    private val config: RendererConfig? = null
+) : NodeRenderer {
+    override fun render(
+        node: Node,
+        builder: SpannableStringBuilder,
+        onLinkPress: ((String) -> Unit)?,
+        factory: RendererFactory
+    ) {
+        val strongEmphasis = node as StrongEmphasis
+        val start = builder.length
+
+        factory.renderChildren(strongEmphasis, builder, onLinkPress)
+
+        val contentLength = builder.length - start
+        if (contentLength > 0 && config != null) {
+            builder.setSpan(
+                RichTextBoldSpan(config.style),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -180,6 +191,7 @@ class RendererFactory(private val config: RendererConfig?) {
     private val sharedHeadingRenderer = HeadingRenderer(config)
     private val sharedParagraphRenderer = ParagraphRenderer(config)
     private val sharedDocumentRenderer = DocumentRenderer(config)
+    private val sharedBoldRenderer = BoldRenderer(config)
     private val sharedLineBreakRenderer = LineBreakRenderer()
 
     fun getRenderer(node: Node): NodeRenderer {
@@ -189,6 +201,7 @@ class RendererFactory(private val config: RendererConfig?) {
             is Heading -> sharedHeadingRenderer
             is Text -> sharedTextRenderer
             is Link -> sharedLinkRenderer
+            is StrongEmphasis -> sharedBoldRenderer
             is HardLineBreak, is SoftLineBreak -> sharedLineBreakRenderer
             else -> {
                 android.util.Log.w(
@@ -197,6 +210,14 @@ class RendererFactory(private val config: RendererConfig?) {
                 )
                 sharedTextRenderer
             }
+        }
+    }
+
+    fun renderChildren(node: Node, builder: SpannableStringBuilder, onLinkPress: ((String) -> Unit)?) {
+        var child = node.firstChild
+        while (child != null) {
+            getRenderer(child).render(child, builder, onLinkPress, this)
+            child = child.next
         }
     }
 }

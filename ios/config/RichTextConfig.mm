@@ -30,6 +30,8 @@
     // Link properties
     UIColor *_linkColor;
     BOOL _linkUnderline;
+    // Bold properties
+    UIColor *_boldColor;
 }
 
 - (instancetype)init {
@@ -61,6 +63,7 @@
     copy->_h6FontFamily = [_h6FontFamily copy];
     copy->_linkColor = [_linkColor copy];
     copy->_linkUnderline = _linkUnderline;
+    copy->_boldColor = [_boldColor copy];
     
     return copy;
 }
@@ -224,6 +227,14 @@
 
 - (void)setLinkUnderline:(BOOL)newValue {
     _linkUnderline = newValue;
+}
+
+- (UIColor *)boldColor {
+    return _boldColor;
+}
+
+- (void)setBoldColor:(UIColor *)newValue {
+    _boldColor = newValue;
 }
 
 @end

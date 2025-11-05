@@ -102,6 +102,10 @@ static int md4c_enter_span_callback(MD_SPANTYPE type, void *detail, void *userda
             }
             break;
         }
+        case MD_SPAN_STRONG: {
+            node = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeStrong];
+            break;
+        }
         default:
             return 0;
     }

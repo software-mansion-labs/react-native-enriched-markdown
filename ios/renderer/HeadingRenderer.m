@@ -1,13 +1,17 @@
 #import "HeadingRenderer.h"
 #import "SpacingUtils.h"
 #import "RichTextConfig.h"
+#import "RendererFactory.h"
 
-@implementation HeadingRenderer
+@implementation HeadingRenderer {
+    RendererFactory *_rendererFactory;
+}
 
-- (instancetype)initWithTextRenderer:(id<NodeRenderer>)textRenderer config:(id)config {
+- (instancetype)initWithRendererFactory:(id)rendererFactory
+                                 config:(id)config {
     self = [super init];
     if (self) {
-        _textRenderer = textRenderer;
+        _rendererFactory = rendererFactory;
         self.config = config;
     }
     return self;
@@ -39,15 +43,11 @@
         headingFont = [UIFont fontWithDescriptor:font.fontDescriptor size:fontSize];
     }
     
-    for (MarkdownASTNode *child in node.children) {
-        if (child.type == MarkdownNodeTypeText && child.content) {
-            [self.textRenderer renderNode:child 
-                                    into:output 
-                               withFont:headingFont
-                                  color:color
-                                 context:context];
-        }
-    }
+    [_rendererFactory renderChildrenOfNode:node
+                                      into:output
+                                  withFont:headingFont
+                                     color:color
+                                    context:context];
     
     NSAttributedString *spacing = createSpacing();
     [output appendAttributedString:spacing];

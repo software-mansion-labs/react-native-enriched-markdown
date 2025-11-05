@@ -48,5 +48,8 @@
 - (void)setLinkColor:(UIColor *)newValue;
 - (BOOL)linkUnderline;
 - (void)setLinkUnderline:(BOOL)newValue;
+// Bold properties
+- (UIColor *)boldColor;
+- (void)setBoldColor:(UIColor *)newValue;
 
 @end

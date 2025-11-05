@@ -1,12 +1,15 @@
 #import "LinkRenderer.h"
 #import "RichTextConfig.h"
+#import "RendererFactory.h"
 
-@implementation LinkRenderer
+@implementation LinkRenderer {
+    RendererFactory *_rendererFactory;
+}
 
-- (instancetype)initWithTextRenderer:(id<NodeRenderer>)textRenderer config:(id)config {
+- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config {
     self = [super init];
     if (self) {
-        _textRenderer = textRenderer;
+        _rendererFactory = rendererFactory;
         self.config = config;
     }
     return self;
@@ -19,15 +22,11 @@
            context:(RenderContext *)context {
     NSUInteger start = output.length;
     
-    for (MarkdownASTNode *child in node.children) {
-        if (child.type == MarkdownNodeTypeText && child.content) {
-            [self.textRenderer renderNode:child 
-                                    into:output 
-                               withFont:font
-                                  color:color
-                                 context:context];
-        }
-    }
+    [_rendererFactory renderChildrenOfNode:node
+                                      into:output
+                                  withFont:font
+                                     color:color
+                                    context:context];
     
     NSUInteger len = output.length - start;
     if (len > 0) {

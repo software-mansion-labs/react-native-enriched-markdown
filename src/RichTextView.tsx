@@ -15,6 +15,10 @@ export interface LinkStyle {
   underline?: boolean;
 }
 
+export interface BoldStyle {
+  color?: string;
+}
+
 export interface RichTextStyle {
   h1?: HeadingStyle;
   h2?: HeadingStyle;
@@ -23,6 +27,7 @@ export interface RichTextStyle {
   h5?: HeadingStyle;
   h6?: HeadingStyle;
   link?: LinkStyle;
+  bold?: BoldStyle;
 }
 
 export interface RichTextViewProps

@@ -3,12 +3,15 @@
 #import "TextRenderer.h"
 #import "LinkRenderer.h"
 #import "HeadingRenderer.h"
+#import "BoldRenderer.h"
+#import "RenderContext.h"
 
 @implementation RendererFactory {
     id _config;
     TextRenderer *_sharedTextRenderer;
     LinkRenderer *_sharedLinkRenderer;
     HeadingRenderer *_sharedHeadingRenderer;
+    BoldRenderer *_sharedBoldRenderer;
     ParagraphRenderer *_sharedParagraphRenderer;
 }
 
@@ -17,10 +20,12 @@
     if (self) {
         _config = config;
         _sharedTextRenderer = [TextRenderer new];
-        _sharedLinkRenderer = [[LinkRenderer alloc] initWithTextRenderer:_sharedTextRenderer config:config];
-        _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithTextRenderer:_sharedTextRenderer config:config];
-        _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithLinkRenderer:_sharedLinkRenderer
-                                                                      textRenderer:_sharedTextRenderer];
+        _sharedBoldRenderer = [[BoldRenderer alloc] initWithRendererFactory:self
+                                                                     config:config];
+        _sharedLinkRenderer = [[LinkRenderer alloc] initWithRendererFactory:self config:config];
+        _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithRendererFactory:self
+                                                                         config:config];
+        _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithRendererFactory:self];
     }
     return self;
 }
@@ -35,8 +40,27 @@
             return _sharedLinkRenderer;
         case MarkdownNodeTypeHeading:
             return _sharedHeadingRenderer;
+        case MarkdownNodeTypeStrong:
+            return _sharedBoldRenderer;
         default: 
             return nil;
+    }
+}
+
+- (void)renderChildrenOfNode:(MarkdownASTNode *)node
+                        into:(NSMutableAttributedString *)output
+                    withFont:(UIFont *)font
+                       color:(UIColor *)color
+                      context:(RenderContext *)context {
+    for (MarkdownASTNode *child in node.children) {
+        id<NodeRenderer> renderer = [self rendererForNodeType:child.type];
+        if (renderer) {
+            [renderer renderNode:child 
+                          into:output 
+                     withFont:font
+                        color:color
+                       context:context];
+        }
     }
 }
 

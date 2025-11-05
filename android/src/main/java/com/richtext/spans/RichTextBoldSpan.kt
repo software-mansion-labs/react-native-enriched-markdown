@@ -22,12 +22,12 @@ class RichTextBoldSpan(
   private fun applyBoldStyle(tp: TextPaint) {
     val currentTypeface = tp.typeface ?: Typeface.DEFAULT
     val currentStyle = currentTypeface.style
-    
-    // Optimize: skip if already bold
+
+    // Skip if already bold
     if ((currentStyle and Typeface.BOLD) != 0) {
       return
     }
-    
+
     val boldTypeface = Typeface.create(currentTypeface, Typeface.BOLD)
     tp.typeface = boldTypeface
   }

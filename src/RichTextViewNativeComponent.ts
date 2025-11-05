@@ -16,7 +16,7 @@ interface LinkStyleInternal {
 }
 
 interface BoldStyleInternal {
-  color?: ColorValue;
+  color: ColorValue;
 }
 
 export interface RichTextStyleInternal {

@@ -89,9 +89,8 @@ export const normalizeRichTextStyle = (
       color: normalizeColor(style.link?.color) ?? defaultLinkStyle.color,
     },
     bold: {
-      color: style.bold?.color
-        ? normalizeColor(style.bold?.color)
-        : defaultBoldStyle.color,
+      ...defaultBoldStyle,
+      color: normalizeColor(style.bold?.color) ?? defaultBoldStyle.color,
     },
   };
 };

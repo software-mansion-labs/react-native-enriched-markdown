@@ -49,6 +49,12 @@ const defaultLinkStyle: RichTextStyleInternal['link'] = {
   underline: true,
 };
 
+const defaultBoldColor = processColor('#000000') as ColorValue;
+
+const defaultBoldStyle: RichTextStyleInternal['bold'] = {
+  color: defaultBoldColor,
+};
+
 export const normalizeRichTextStyle = (
   style: RichTextStyle
 ): RichTextStyleInternal => {
@@ -83,7 +89,9 @@ export const normalizeRichTextStyle = (
       color: normalizeColor(style.link?.color) ?? defaultLinkStyle.color,
     },
     bold: {
-      color: normalizeColor(style.bold?.color),
+      color: style.bold?.color
+        ? normalizeColor(style.bold?.color)
+        : defaultBoldStyle.color,
     },
   };
 };

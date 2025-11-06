@@ -25,7 +25,7 @@ fun TextPaint.applyColorPreserving(color: Int, vararg preserveColors: Int) {
 }
 
 /**
- * Applies a typeface while preserving existing style traits (e.g., BOLD from RichTextBoldSpan).
+ * Applies a typeface while preserving existing style traits (e.g., BOLD from RichTextStrongSpan).
  * Useful when applying a base typeface (e.g., heading font) that should preserve styles.
  */
 fun TextPaint.applyTypefacePreserving(baseTypeface: Typeface, vararg preserveStyles: Int) {

@@ -5,7 +5,7 @@ import com.richtext.spans.RichTextLinkSpan
 import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextTextSpan
-import com.richtext.spans.RichTextBoldSpan
+import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextEmphasisSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.addSpacing
@@ -149,7 +149,7 @@ class LinkRenderer(
     }
 }
 
-class BoldRenderer(
+class StrongRenderer(
     private val config: RendererConfig? = null
 ) : NodeRenderer {
     override fun render(
@@ -166,7 +166,7 @@ class BoldRenderer(
         val contentLength = builder.length - start
         if (contentLength > 0 && config != null) {
             builder.setSpan(
-                RichTextBoldSpan(config.style),
+                RichTextStrongSpan(config.style),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -218,7 +218,7 @@ class RendererFactory(private val config: RendererConfig?) {
     private val sharedHeadingRenderer = HeadingRenderer(config)
     private val sharedParagraphRenderer = ParagraphRenderer(config)
     private val sharedDocumentRenderer = DocumentRenderer(config)
-    private val sharedBoldRenderer = BoldRenderer(config)
+    private val sharedStrongRenderer = StrongRenderer(config)
     private val sharedEmphasisRenderer = EmphasisRenderer(config)
     private val sharedLineBreakRenderer = LineBreakRenderer()
 
@@ -229,7 +229,7 @@ class RendererFactory(private val config: RendererConfig?) {
             is Heading -> sharedHeadingRenderer
             is Text -> sharedTextRenderer
             is Link -> sharedLinkRenderer
-            is StrongEmphasis -> sharedBoldRenderer
+            is StrongEmphasis -> sharedStrongRenderer
             is Emphasis -> sharedEmphasisRenderer
             is HardLineBreak, is SoftLineBreak -> sharedLineBreakRenderer
             else -> {

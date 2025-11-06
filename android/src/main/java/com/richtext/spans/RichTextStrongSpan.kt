@@ -6,20 +6,20 @@ import android.text.style.MetricAffectingSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.applyColorPreserving
 
-class RichTextBoldSpan(
+class RichTextStrongSpan(
   private val style: RichTextStyle
 ) : MetricAffectingSpan() {
 
   override fun updateDrawState(tp: TextPaint) {
-    applyBoldStyle(tp)
-    applyBoldColor(tp)
+    applyStrongStyle(tp)
+    applyStrongColor(tp)
   }
 
   override fun updateMeasureState(tp: TextPaint) {
-    applyBoldStyle(tp)
+    applyStrongStyle(tp)
   }
 
-  private fun applyBoldStyle(tp: TextPaint) {
+  private fun applyStrongStyle(tp: TextPaint) {
     val currentTypeface = tp.typeface ?: Typeface.DEFAULT
     val currentStyle = currentTypeface.style
 
@@ -33,13 +33,13 @@ class RichTextBoldSpan(
       (currentStyle and Typeface.ITALIC) != 0 -> Typeface.BOLD_ITALIC
       else -> Typeface.BOLD
     }
-    val boldTypeface = Typeface.create(currentTypeface, combinedStyle)
-    tp.typeface = boldTypeface
+    val strongTypeface = Typeface.create(currentTypeface, combinedStyle)
+    tp.typeface = strongTypeface
   }
 
-  private fun applyBoldColor(tp: TextPaint) {
+  private fun applyStrongColor(tp: TextPaint) {
     // Preserve link color - don't override if link span was already applied
-    tp.applyColorPreserving(style.getBoldColor(), style.getLinkColor())
+    tp.applyColorPreserving(style.getStrongColor(), style.getLinkColor())
   }
 }
 

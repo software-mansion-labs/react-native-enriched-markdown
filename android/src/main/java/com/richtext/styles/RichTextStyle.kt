@@ -13,7 +13,7 @@ data class LinkStyle(
   val underline: Boolean
 )
 
-data class BoldStyle(
+data class StrongStyle(
   val color: Int
 )
 
@@ -24,7 +24,7 @@ data class EmphasisStyle(
 class RichTextStyle(style: ReadableMap) {
   private val headingStyles = arrayOfNulls<HeadingStyle>(7)
   private lateinit var linkStyle: LinkStyle
-  private lateinit var boldStyle: BoldStyle
+  private lateinit var strongStyle: StrongStyle
   private lateinit var emphasisStyle: EmphasisStyle
 
   init {
@@ -48,8 +48,8 @@ class RichTextStyle(style: ReadableMap) {
     return linkStyle.underline
   }
 
-  fun getBoldColor(): Int {
-    return boldStyle.color
+  fun getStrongColor(): Int {
+    return strongStyle.color
   }
 
   fun getEmphasisColor(): Int {
@@ -78,13 +78,13 @@ class RichTextStyle(style: ReadableMap) {
     
     linkStyle = LinkStyle(color, underline)
 
-    val boldStyleMap = requireNotNull(style.getMap("bold")) {
-      "Bold style not found. JS should always provide defaults."
+    val strongStyleMap = requireNotNull(style.getMap("strong")) {
+      "Strong style not found. JS should always provide defaults."
     }
     
-    val boldColor = boldStyleMap.getInt("color")
+    val strongColor = strongStyleMap.getInt("color")
     
-    boldStyle = BoldStyle(boldColor)
+    strongStyle = StrongStyle(strongColor)
 
     val emphasisStyleMap = requireNotNull(style.getMap("em")) {
       "Emphasis style not found. JS should always provide defaults."

@@ -28,7 +28,7 @@ class RichTextEmphasisSpan(
       return
     }
     
-    // Combine with existing style (preserve bold if present)
+    // Combine with existing style (preserve strong if present)
     val combinedStyle = when {
       (currentStyle and Typeface.BOLD) != 0 -> Typeface.BOLD_ITALIC
       else -> Typeface.ITALIC
@@ -38,8 +38,8 @@ class RichTextEmphasisSpan(
   }
 
   private fun applyEmphasisColor(tp: TextPaint) {
-    // Preserve link color and bold color - don't override if link or bold span was already applied
-    tp.applyColorPreserving(style.getEmphasisColor(), style.getLinkColor(), style.getBoldColor())
+    // Preserve link color and strong color - don't override if link or strong span was already applied
+    tp.applyColorPreserving(style.getEmphasisColor(), style.getLinkColor(), style.getStrongColor())
   }
 }
 

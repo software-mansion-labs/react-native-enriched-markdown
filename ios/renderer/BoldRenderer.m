@@ -50,12 +50,7 @@
         }
     }
     
-    UIFontDescriptor *fontDescriptor = font.fontDescriptor;
-    UIFontDescriptorSymbolicTraits existingTraits = fontDescriptor.symbolicTraits;
-    // Combine bold with existing traits (preserve italic if present)
-    UIFontDescriptorSymbolicTraits combinedTraits = existingTraits | UIFontDescriptorTraitBold;
-    UIFontDescriptor *boldDescriptor = [fontDescriptor fontDescriptorWithSymbolicTraits:combinedTraits];
-    UIFont *boldFont = [UIFont fontWithDescriptor:boldDescriptor size:font.pointSize];
+    UIFont *boldFont = [self ensureFontIsBold:font];
     
     [_rendererFactory renderChildrenOfNode:node
                                       into:output

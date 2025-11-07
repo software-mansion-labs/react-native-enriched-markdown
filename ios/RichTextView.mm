@@ -293,6 +293,29 @@ oldProps:(Props::Shared const &)oldProps {
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.code.color != oldViewProps.richTextStyle.code.color) {
+        if (newViewProps.richTextStyle.code.color) {
+            UIColor *codeColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.code.color);
+            [newConfig setCodeColor:codeColor];
+        } else {
+            [newConfig setCodeColor:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.code.backgroundColor != oldViewProps.richTextStyle.code.backgroundColor) {
+        if (newViewProps.richTextStyle.code.backgroundColor) {
+            UIColor *codeBackgroundColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.code.backgroundColor);
+            [newConfig setCodeBackgroundColor:codeBackgroundColor];
+        } else {
+            [newConfig setCodeBackgroundColor:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // Note: codeBorderColor is accepted from JS but not used in iOS implementation yet
+    // It's kept in the JS API for future use
+    
     // Control text selection and link previews via isSelectable property
     // According to Apple docs, isSelectable controls whether text selection and link previews work
     // https://developer.apple.com/documentation/uikit/uitextview/isselectable

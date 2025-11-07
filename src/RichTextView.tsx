@@ -23,6 +23,12 @@ export interface EmphasisStyle {
   color?: string;
 }
 
+export interface CodeStyle {
+  color?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+}
+
 export interface RichTextStyle {
   h1?: HeadingStyle;
   h2?: HeadingStyle;
@@ -33,6 +39,7 @@ export interface RichTextStyle {
   link?: LinkStyle;
   strong?: StrongStyle;
   em?: EmphasisStyle;
+  code?: CodeStyle;
 }
 
 export interface RichTextViewProps

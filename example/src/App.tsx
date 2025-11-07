@@ -17,6 +17,8 @@ Here's some **bold text** and regular text together. You can also have **[bold l
 
 You can use *emphasis* with asterisks or _emphasis_ with underscores. You can also have *[emphasized links](https://reactnative.dev)* that are both italic and clickable!
 
+You can use inline code like \`const x = 42\` or \`function test() {}\` within text. You can also combine code with **strong** like **\`bold code\`** or *emphasis* like *\`italic code\`* . You can even combine both: ***\`bold and italic code\`*** .
+
 Built with ❤️ using **React Native Fabric Architecture**`;
 
 export default function App() {
@@ -67,6 +69,10 @@ const markdownStyle = {
   em: {
     color: 'green',
   },
+  code: {
+    color: '#E83E8C',
+    backgroundColor: '#F3F4F6',
+  },
 };
 
 const styles = StyleSheet.create({
@@ -83,6 +89,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 8,
-    height: 400,
+    height: 800,
   },
 });

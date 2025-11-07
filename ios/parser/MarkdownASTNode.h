@@ -8,7 +8,8 @@ typedef NS_ENUM(NSInteger, MarkdownNodeType) {
     MarkdownNodeTypeHeading,
     MarkdownNodeTypeLineBreak,
     MarkdownNodeTypeStrong,
-    MarkdownNodeTypeEmphasis
+    MarkdownNodeTypeEmphasis,
+    MarkdownNodeTypeCode
 };
 
 @interface MarkdownASTNode : NSObject

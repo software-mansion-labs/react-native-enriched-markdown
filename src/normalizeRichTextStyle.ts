@@ -61,6 +61,16 @@ const defaultEmphasisStyle: RichTextStyleInternal['em'] = {
   color: defaultEmphasisColor,
 };
 
+const defaultCodeColor = processColor('#E83E8C') as ColorValue;
+const defaultCodeBackgroundColor = processColor('#F3F4F6') as ColorValue;
+const defaultCodeBorderColor = processColor('#D1D5DB') as ColorValue;
+
+const defaultCodeStyle: RichTextStyleInternal['code'] = {
+  color: defaultCodeColor,
+  backgroundColor: defaultCodeBackgroundColor,
+  borderColor: defaultCodeBorderColor,
+};
+
 export const normalizeRichTextStyle = (
   style: RichTextStyle
 ): RichTextStyleInternal => {
@@ -96,11 +106,21 @@ export const normalizeRichTextStyle = (
     },
     strong: {
       ...defaultStrongStyle,
-      color: normalizeColor(style.strong?.color) ?? defaultStrongStyle.color,
+      color: (normalizeColor(style.strong?.color) ??
+        defaultStrongStyle.color) as ColorValue,
     },
     em: {
       ...defaultEmphasisStyle,
       color: normalizeColor(style.em?.color) ?? defaultEmphasisStyle.color,
+    },
+    code: {
+      ...defaultCodeStyle,
+      color: normalizeColor(style.code?.color) ?? defaultCodeStyle.color,
+      backgroundColor:
+        normalizeColor(style.code?.backgroundColor) ??
+        defaultCodeStyle.backgroundColor,
+      borderColor:
+        normalizeColor(style.code?.borderColor) ?? defaultCodeStyle.borderColor,
     },
   };
 };

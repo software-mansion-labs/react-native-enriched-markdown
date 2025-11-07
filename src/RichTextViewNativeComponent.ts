@@ -23,6 +23,12 @@ interface EmphasisStyleInternal {
   color: ColorValue;
 }
 
+interface CodeStyleInternal {
+  color: ColorValue;
+  backgroundColor: ColorValue;
+  borderColor: ColorValue;
+}
+
 export interface RichTextStyleInternal {
   h1: HeadingStyleInternal;
   h2: HeadingStyleInternal;
@@ -33,6 +39,7 @@ export interface RichTextStyleInternal {
   link: LinkStyleInternal;
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;
+  code: CodeStyleInternal;
 }
 
 export interface NativeProps extends ViewProps {

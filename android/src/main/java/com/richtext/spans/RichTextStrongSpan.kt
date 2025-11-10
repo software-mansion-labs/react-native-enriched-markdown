@@ -23,23 +23,23 @@ class RichTextStrongSpan(
     val currentTypeface = tp.typeface ?: Typeface.DEFAULT
     val currentStyle = currentTypeface.style
 
-    // Skip if already bold
-    if ((currentStyle and Typeface.BOLD) != 0) {
-      return
-    }
+    if ((currentStyle and Typeface.BOLD) != 0) return
 
-    // Combine with existing style (preserve italic if present)
-    val combinedStyle = when {
-      (currentStyle and Typeface.ITALIC) != 0 -> Typeface.BOLD_ITALIC
-      else -> Typeface.BOLD
+    val combinedStyle = if ((currentStyle and Typeface.ITALIC) != 0) {
+      Typeface.BOLD_ITALIC
+    } else {
+      Typeface.BOLD
     }
-    val strongTypeface = Typeface.create(currentTypeface, combinedStyle)
-    tp.typeface = strongTypeface
+    
+    tp.typeface = Typeface.create(currentTypeface, combinedStyle)
   }
 
   private fun applyStrongColor(tp: TextPaint) {
-    // Preserve link color - don't override if link span was already applied
-    tp.applyColorPreserving(style.getStrongColor(), style.getLinkColor())
+    tp.applyColorPreserving(
+      style.getStrongColor(),
+      style.getCodeStyle().color,
+      style.getLinkColor()
+    )
   }
 }
 

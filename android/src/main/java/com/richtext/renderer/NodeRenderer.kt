@@ -7,6 +7,7 @@ import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextTextSpan
 import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextEmphasisSpan
+import com.richtext.spans.RichTextCodeStyleSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.addSpacing
 import org.commonmark.node.*
@@ -201,6 +202,33 @@ class EmphasisRenderer(
     }
 }
 
+class CodeRenderer(
+    private val config: RendererConfig? = null
+) : NodeRenderer {
+    override fun render(
+        node: Node,
+        builder: SpannableStringBuilder,
+        onLinkPress: ((String) -> Unit)?,
+        factory: RendererFactory
+    ) {
+        val code = node as Code
+        val start = builder.length
+        val codeText = code.literal ?: ""
+
+        builder.append(codeText)
+
+        val contentLength = builder.length - start
+        if (contentLength > 0 && config != null) {
+            builder.setSpan(
+                RichTextCodeStyleSpan(config.style),
+                start,
+                start + contentLength,
+                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+    }
+}
+
 class LineBreakRenderer : NodeRenderer {
     override fun render(
         node: Node,
@@ -220,6 +248,7 @@ class RendererFactory(private val config: RendererConfig?) {
     private val sharedDocumentRenderer = DocumentRenderer(config)
     private val sharedStrongRenderer = StrongRenderer(config)
     private val sharedEmphasisRenderer = EmphasisRenderer(config)
+    private val sharedCodeRenderer = CodeRenderer(config)
     private val sharedLineBreakRenderer = LineBreakRenderer()
 
     fun getRenderer(node: Node): NodeRenderer {
@@ -231,6 +260,7 @@ class RendererFactory(private val config: RendererConfig?) {
             is Link -> sharedLinkRenderer
             is StrongEmphasis -> sharedStrongRenderer
             is Emphasis -> sharedEmphasisRenderer
+            is Code -> sharedCodeRenderer
             is HardLineBreak, is SoftLineBreak -> sharedLineBreakRenderer
             else -> {
                 android.util.Log.w(

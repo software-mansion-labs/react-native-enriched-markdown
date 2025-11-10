@@ -10,9 +10,12 @@ import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.react.bridge.ReadableMap
+import android.graphics.Canvas
+import android.text.Spanned
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
 import com.richtext.styles.RichTextStyle
+import com.richtext.utils.CodeBackgroundHelper
 
 class RichTextView : AppCompatTextView {
 
@@ -30,6 +33,7 @@ class RichTextView : AppCompatTextView {
 
   var richTextStyle: RichTextStyle? = null
   private var currentMarkdown: String = ""
+  private var codeBackgroundHelper: CodeBackgroundHelper? = null
 
   constructor(context: Context) : super(context) {
     prepareComponent()
@@ -70,6 +74,9 @@ class RichTextView : AppCompatTextView {
         val styledText = renderer.renderDocument(document, onLinkPressCallback)
         text = styledText
         movementMethod = LinkMovementMethod.getInstance()
+
+        // Create helper for drawing code backgrounds
+        codeBackgroundHelper = CodeBackgroundHelper(currentStyle)
       } else {
         android.util.Log.e("RichTextView", "Failed to parse markdown - Document is null")
         text = ""
@@ -176,5 +183,18 @@ class RichTextView : AppCompatTextView {
     super.onAttachedToWindow()
     didAttachToWindow = true
     updateTypeface()
+  }
+
+  override fun onDraw(canvas: Canvas) {
+    val currentLayout = layout ?: return super.onDraw(canvas)
+    val currentText = text as? Spanned ?: return super.onDraw(canvas)
+    val helper = codeBackgroundHelper ?: return super.onDraw(canvas)
+    
+    canvas.save()
+    canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
+    helper.draw(canvas, currentText, currentLayout)
+    canvas.restore()
+    
+    super.onDraw(canvas)
   }
 }

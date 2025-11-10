@@ -21,11 +21,18 @@ data class EmphasisStyle(
   val color: Int
 )
 
+data class CodeStyle(
+  val color: Int,
+  val backgroundColor: Int,
+  val borderColor: Int
+)
+
 class RichTextStyle(style: ReadableMap) {
   private val headingStyles = arrayOfNulls<HeadingStyle>(7)
   private lateinit var linkStyle: LinkStyle
   private lateinit var strongStyle: StrongStyle
   private lateinit var emphasisStyle: EmphasisStyle
+  private lateinit var codeStyle: CodeStyle
 
   init {
     parseStyles(style)
@@ -54,6 +61,10 @@ class RichTextStyle(style: ReadableMap) {
 
   fun getEmphasisColor(): Int {
     return emphasisStyle.color
+  }
+
+  fun getCodeStyle(): CodeStyle {
+    return codeStyle
   }
 
   private fun parseStyles(style: ReadableMap) {
@@ -93,6 +104,16 @@ class RichTextStyle(style: ReadableMap) {
     val emphasisColor = emphasisStyleMap.getInt("color")
     
     emphasisStyle = EmphasisStyle(emphasisColor)
+
+    val codeStyleMap = requireNotNull(style.getMap("code")) {
+      "Code style not found. JS should always provide defaults."
+    }
+    
+    val codeColor = codeStyleMap.getInt("color")
+    val codeBackgroundColor = codeStyleMap.getInt("backgroundColor")
+    val codeBorderColor = codeStyleMap.getInt("borderColor")
+    
+    codeStyle = CodeStyle(codeColor, codeBackgroundColor, codeBorderColor)
   }
 }
 

@@ -11,7 +11,7 @@ import com.richtext.styles.RichTextStyle
 import kotlin.math.max
 import kotlin.math.min
 
-class CodeBackgroundHelper(
+class CodeBackground(
   private val style: RichTextStyle
 ) {
   private val horizontalPadding = 5

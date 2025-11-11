@@ -15,7 +15,7 @@ import android.text.Spanned
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
 import com.richtext.styles.RichTextStyle
-import com.richtext.utils.CodeBackgroundHelper
+import com.richtext.utils.CodeBackground
 
 class RichTextView : AppCompatTextView {
 
@@ -33,7 +33,7 @@ class RichTextView : AppCompatTextView {
 
   var richTextStyle: RichTextStyle? = null
   private var currentMarkdown: String = ""
-  private var codeBackgroundHelper: CodeBackgroundHelper? = null
+  private var codeBackground: CodeBackground? = null
 
   constructor(context: Context) : super(context) {
     prepareComponent()
@@ -75,8 +75,8 @@ class RichTextView : AppCompatTextView {
         text = styledText
         movementMethod = LinkMovementMethod.getInstance()
 
-        // Create helper for drawing code backgrounds
-        codeBackgroundHelper = CodeBackgroundHelper(currentStyle)
+        // Create code background for drawing code backgrounds
+        codeBackground = CodeBackground(currentStyle)
       } else {
         android.util.Log.e("RichTextView", "Failed to parse markdown - Document is null")
         text = ""
@@ -188,11 +188,11 @@ class RichTextView : AppCompatTextView {
   override fun onDraw(canvas: Canvas) {
     val currentLayout = layout ?: return super.onDraw(canvas)
     val currentText = text as? Spanned ?: return super.onDraw(canvas)
-    val helper = codeBackgroundHelper ?: return super.onDraw(canvas)
+    val codeBg = codeBackground ?: return super.onDraw(canvas)
     
     canvas.save()
     canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
-    helper.draw(canvas, currentText, currentLayout)
+    codeBg.draw(canvas, currentText, currentLayout)
     canvas.restore()
     
     super.onDraw(canvas)

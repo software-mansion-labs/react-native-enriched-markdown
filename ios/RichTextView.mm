@@ -4,6 +4,8 @@
 #import "AttributedRenderer.h"
 #import "RenderContext.h"
 #import "RichTextConfig.h"
+#import "RichTextLayoutManager.h"
+#import <objc/runtime.h>
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
 #import <react/renderer/components/RichTextViewSpec/EventEmitters.h>
@@ -26,6 +28,7 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
 - (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size weight:(NSString *)weight style:(NSString *)style;
+- (void)setupLayoutManager;
 @end
 
 @implementation RichTextView {
@@ -39,18 +42,18 @@ static const CGFloat kLabelPadding = 10.0;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
-    if (self = [super initWithFrame:frame]) {
-        static const auto defaultProps = std::make_shared<const RichTextViewProps>();
-        _props = defaultProps;
+  if (self = [super initWithFrame:frame]) {
+    static const auto defaultProps = std::make_shared<const RichTextViewProps>();
+    _props = defaultProps;
 
         self.backgroundColor = [UIColor clearColor];  
         _parser = [[MarkdownParser alloc] init];
-        
+
         [self setupTextView];
         [self setupConstraints];
-    }
+  }
 
-    return self;
+  return self;
 }
 
 - (void)setupTextView {
@@ -69,11 +72,48 @@ static const CGFloat kLabelPadding = 10.0;
     // isSelectable controls text selection and link previews
     // Default to YES to match the prop default
     _textView.selectable = YES;
+    
     // Add tap gesture recognizer
     UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
     [_textView addGestureRecognizer:tapRecognizer];
     
     [self addSubview:_textView];
+}
+
+- (void)didAddSubview:(UIView *)subview {
+    [super didAddSubview:subview];
+    
+    // Set up layout manager when text view is added (like react-native-live-markdown pattern)
+    if (subview == _textView) {
+        [self setupLayoutManager];
+    }
+}
+
+- (void)willRemoveSubview:(UIView *)subview {
+    // Clean up layout manager when text view is removed (like react-native-live-markdown pattern)
+    if (subview == _textView && _textView.layoutManager != nil) {
+        NSLayoutManager *layoutManager = _textView.layoutManager;
+        if ([object_getClass(layoutManager) isEqual:[RichTextLayoutManager class]]) {
+            [layoutManager setValue:nil forKey:@"config"];
+            object_setClass(layoutManager, [NSLayoutManager class]);
+        }
+    }
+    [super willRemoveSubview:subview];
+}
+
+- (void)setupLayoutManager {
+    // Set up custom layout manager for rich text custom drawing (code, blockquotes, etc.)
+    // This single manager can handle multiple element types
+    NSLayoutManager *layoutManager = _textView.layoutManager;
+    if (layoutManager != nil) {
+        layoutManager.allowsNonContiguousLayout = NO; // workaround for onScroll issue (like react-native-live-markdown)
+        object_setClass(layoutManager, [RichTextLayoutManager class]);
+        
+        // Set config on layout manager (like react-native-live-markdown sets markdownUtils)
+        if (_config != nil) {
+            [layoutManager setValue:_config forKey:@"config"];
+        }
+    }
 }
 
 - (void)setupConstraints {
@@ -117,7 +157,20 @@ static const CGFloat kLabelPadding = 10.0;
         [attributedText addAttribute:@"linkURL" value:url range:range];
     }
     
+    // Set config on the layout manager (like react-native-live-markdown pattern)
+    // Use setValue:forKey: for runtime class changes (more reliable than direct property access)
+    NSLayoutManager *layoutManager = _textView.layoutManager;
+    if ([layoutManager isKindOfClass:[RichTextLayoutManager class]]) {
+        [layoutManager setValue:_config forKey:@"config"];
+    }
+    
     _textView.attributedText = attributedText;
+    
+    // Ensure layout is updated
+    [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
+    [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, attributedText.length) actualCharacterRange:NULL];
+    [_textView setNeedsLayout];
+    [_textView setNeedsDisplay];
 }
 
 - (void)updateProps:(Props::Shared const &)props 
@@ -131,14 +184,15 @@ oldProps:(Props::Shared const &)oldProps {
         _config = [[RichTextConfig alloc] init];
     }
         
-    RichTextConfig *newConfig = [_config copy];
+    // Update existing config object's properties (like react-native-live-markdown pattern)
+    // Instead of creating a new config, we update the existing one that the layout manager references
     
     if (newViewProps.color != oldViewProps.color) {
         if (newViewProps.color) {
             UIColor *uiColor = RCTUIColorFromSharedColor(newViewProps.color);
-            [newConfig setPrimaryColor:uiColor];
+            [_config setPrimaryColor:uiColor];
         } else {
-            [newConfig setPrimaryColor:nullptr];
+            [_config setPrimaryColor:nullptr];
         }
         stylePropChanged = YES;
     }
@@ -146,33 +200,33 @@ oldProps:(Props::Shared const &)oldProps {
     if (newViewProps.fontSize != oldViewProps.fontSize) {
         if (newViewProps.fontSize > 0) {
             NSNumber *fontSize = @(newViewProps.fontSize);
-            [newConfig setPrimaryFontSize:fontSize];
+            [_config setPrimaryFontSize:fontSize];
         } else {
-            [newConfig setPrimaryFontSize:nullptr];
+            [_config setPrimaryFontSize:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.fontWeight != oldViewProps.fontWeight) {
         if (!newViewProps.fontWeight.empty()) {
-            [newConfig setPrimaryFontWeight:[[NSString alloc] initWithUTF8String:newViewProps.fontWeight.c_str()]];
+            [_config setPrimaryFontWeight:[[NSString alloc] initWithUTF8String:newViewProps.fontWeight.c_str()]];
         } else {
-            [newConfig setPrimaryFontWeight:nullptr];
+            [_config setPrimaryFontWeight:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.fontFamily != oldViewProps.fontFamily) {
         if (!newViewProps.fontFamily.empty()) {
-            [newConfig setPrimaryFontFamily:[[NSString alloc] initWithUTF8String:newViewProps.fontFamily.c_str()]];
+            [_config setPrimaryFontFamily:[[NSString alloc] initWithUTF8String:newViewProps.fontFamily.c_str()]];
         } else {
-            [newConfig setPrimaryFontFamily:nullptr];
+            [_config setPrimaryFontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h1.fontSize != oldViewProps.richTextStyle.h1.fontSize) {
-        [newConfig setH1FontSize:newViewProps.richTextStyle.h1.fontSize];
+        [_config setH1FontSize:newViewProps.richTextStyle.h1.fontSize];
         stylePropChanged = YES;
     }
     
@@ -180,105 +234,105 @@ oldProps:(Props::Shared const &)oldProps {
     if (newViewProps.richTextStyle.h1.fontFamily != oldViewProps.richTextStyle.h1.fontFamily) {
         if (!newViewProps.richTextStyle.h1.fontFamily.empty()) {
             NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h1.fontFamily.c_str()];
-            [newConfig setH1FontFamily:fontFamily];
+            [_config setH1FontFamily:fontFamily];
         } else {
-            [newConfig setH1FontFamily:nullptr];
+            [_config setH1FontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h2.fontSize != oldViewProps.richTextStyle.h2.fontSize) {
-        [newConfig setH2FontSize:newViewProps.richTextStyle.h2.fontSize];
+        [_config setH2FontSize:newViewProps.richTextStyle.h2.fontSize];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h2.fontFamily != oldViewProps.richTextStyle.h2.fontFamily) {
         if (!newViewProps.richTextStyle.h2.fontFamily.empty()) {
             NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h2.fontFamily.c_str()];
-            [newConfig setH2FontFamily:fontFamily];
+            [_config setH2FontFamily:fontFamily];
         } else {
-            [newConfig setH2FontFamily:nullptr];
+            [_config setH2FontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h3.fontSize != oldViewProps.richTextStyle.h3.fontSize) {
-        [newConfig setH3FontSize:newViewProps.richTextStyle.h3.fontSize];
+        [_config setH3FontSize:newViewProps.richTextStyle.h3.fontSize];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h3.fontFamily != oldViewProps.richTextStyle.h3.fontFamily) {
         if (!newViewProps.richTextStyle.h3.fontFamily.empty()) {
             NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h3.fontFamily.c_str()];
-            [newConfig setH3FontFamily:fontFamily];
+            [_config setH3FontFamily:fontFamily];
         } else {
-            [newConfig setH3FontFamily:nullptr];
+            [_config setH3FontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h4.fontSize != oldViewProps.richTextStyle.h4.fontSize) {
-        [newConfig setH4FontSize:newViewProps.richTextStyle.h4.fontSize];
+        [_config setH4FontSize:newViewProps.richTextStyle.h4.fontSize];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h4.fontFamily != oldViewProps.richTextStyle.h4.fontFamily) {
         if (!newViewProps.richTextStyle.h4.fontFamily.empty()) {
             NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h4.fontFamily.c_str()];
-            [newConfig setH4FontFamily:fontFamily];
+            [_config setH4FontFamily:fontFamily];
         } else {
-            [newConfig setH4FontFamily:nullptr];
+            [_config setH4FontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h5.fontSize != oldViewProps.richTextStyle.h5.fontSize) {
-        [newConfig setH5FontSize:newViewProps.richTextStyle.h5.fontSize];
+        [_config setH5FontSize:newViewProps.richTextStyle.h5.fontSize];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h5.fontFamily != oldViewProps.richTextStyle.h5.fontFamily) {
         if (!newViewProps.richTextStyle.h5.fontFamily.empty()) {
             NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h5.fontFamily.c_str()];
-            [newConfig setH5FontFamily:fontFamily];
+            [_config setH5FontFamily:fontFamily];
         } else {
-            [newConfig setH5FontFamily:nullptr];
+            [_config setH5FontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h6.fontSize != oldViewProps.richTextStyle.h6.fontSize) {
-        [newConfig setH6FontSize:newViewProps.richTextStyle.h6.fontSize];
+        [_config setH6FontSize:newViewProps.richTextStyle.h6.fontSize];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.h6.fontFamily != oldViewProps.richTextStyle.h6.fontFamily) {
         if (!newViewProps.richTextStyle.h6.fontFamily.empty()) {
             NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h6.fontFamily.c_str()];
-            [newConfig setH6FontFamily:fontFamily];
+            [_config setH6FontFamily:fontFamily];
         } else {
-            [newConfig setH6FontFamily:nullptr];
+            [_config setH6FontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.link.color != oldViewProps.richTextStyle.link.color) {
         UIColor *linkColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.link.color);
-        [newConfig setLinkColor:linkColor];
+        [_config setLinkColor:linkColor];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.link.underline != oldViewProps.richTextStyle.link.underline) {
-        [newConfig setLinkUnderline:newViewProps.richTextStyle.link.underline];
+        [_config setLinkUnderline:newViewProps.richTextStyle.link.underline];
         stylePropChanged = YES;
     }
     
     if (newViewProps.richTextStyle.strong.color != oldViewProps.richTextStyle.strong.color) {
         if (newViewProps.richTextStyle.strong.color) {
             UIColor *strongColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.strong.color);
-            [newConfig setStrongColor:strongColor];
+            [_config setStrongColor:strongColor];
         } else {
-            [newConfig setStrongColor:nullptr];
+            [_config setStrongColor:nullptr];
         }
         stylePropChanged = YES;
     }
@@ -286,9 +340,9 @@ oldProps:(Props::Shared const &)oldProps {
     if (newViewProps.richTextStyle.em.color != oldViewProps.richTextStyle.em.color) {
         if (newViewProps.richTextStyle.em.color) {
             UIColor *emphasisColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.em.color);
-            [newConfig setEmphasisColor:emphasisColor];
+            [_config setEmphasisColor:emphasisColor];
         } else {
-            [newConfig setEmphasisColor:nullptr];
+            [_config setEmphasisColor:nullptr];
         }
         stylePropChanged = YES;
     }
@@ -296,9 +350,9 @@ oldProps:(Props::Shared const &)oldProps {
     if (newViewProps.richTextStyle.code.color != oldViewProps.richTextStyle.code.color) {
         if (newViewProps.richTextStyle.code.color) {
             UIColor *codeColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.code.color);
-            [newConfig setCodeColor:codeColor];
+            [_config setCodeColor:codeColor];
         } else {
-            [newConfig setCodeColor:nullptr];
+            [_config setCodeColor:nullptr];
         }
         stylePropChanged = YES;
     }
@@ -306,15 +360,33 @@ oldProps:(Props::Shared const &)oldProps {
     if (newViewProps.richTextStyle.code.backgroundColor != oldViewProps.richTextStyle.code.backgroundColor) {
         if (newViewProps.richTextStyle.code.backgroundColor) {
             UIColor *codeBackgroundColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.code.backgroundColor);
-            [newConfig setCodeBackgroundColor:codeBackgroundColor];
+            [_config setCodeBackgroundColor:codeBackgroundColor];
         } else {
-            [newConfig setCodeBackgroundColor:nullptr];
+            [_config setCodeBackgroundColor:nullptr];
         }
         stylePropChanged = YES;
     }
     
-    // Note: codeBorderColor is accepted from JS but not used in iOS implementation yet
-    // It's kept in the JS API for future use
+    if (newViewProps.richTextStyle.code.borderColor != oldViewProps.richTextStyle.code.borderColor) {
+        if (newViewProps.richTextStyle.code.borderColor) {
+            UIColor *codeBorderColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.code.borderColor);
+            [_config setCodeBorderColor:codeBorderColor];
+        } else {
+            [_config setCodeBorderColor:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // Update config reference on layout manager if it's not already set
+    // (like react-native-live-markdown pattern - they set it once, then update the object's properties)
+    NSLayoutManager *layoutManager = _textView.layoutManager;
+    if ([layoutManager isKindOfClass:[RichTextLayoutManager class]]) {
+        RichTextConfig *currentConfig = [layoutManager valueForKey:@"config"];
+        if (currentConfig != _config) {
+            // Only update reference if it's different (first time setup)
+            [layoutManager setValue:_config forKey:@"config"];
+        }
+    }
     
     // Control text selection and link previews via isSelectable property
     // According to Apple docs, isSelectable controls whether text selection and link previews work
@@ -323,13 +395,10 @@ oldProps:(Props::Shared const &)oldProps {
         _textView.selectable = newViewProps.isSelectable;
     }
     
-    if (stylePropChanged) {
-        NSString *currentMarkdown = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
-        
-        _config = newConfig;
-        
-        [self renderMarkdownContent:currentMarkdown];
-    }
+        if (stylePropChanged) {
+            NSString *currentMarkdown = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
+            [self renderMarkdownContent:currentMarkdown];
+        }
     
     if (oldViewProps.markdown != newViewProps.markdown && !stylePropChanged) {
         NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];

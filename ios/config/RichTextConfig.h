@@ -59,5 +59,7 @@
 - (void)setCodeColor:(UIColor *)newValue;
 - (UIColor *)codeBackgroundColor;
 - (void)setCodeBackgroundColor:(UIColor *)newValue;
+- (UIColor *)codeBorderColor;
+- (void)setCodeBorderColor:(UIColor *)newValue;
 
 @end

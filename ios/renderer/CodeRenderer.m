@@ -3,6 +3,7 @@
 #import "RenderContext.h"
 #import "RichTextConfig.h"
 #import "RendererFactory.h"
+#import "CodeBackground.h"
 
 @implementation CodeRenderer {
     RendererFactory *_rendererFactory;
@@ -67,9 +68,8 @@
         if (codeColor) {
             codeAttributes[NSForegroundColorAttributeName] = codeColor;
         }
-        if (codeBackgroundColor) {
-            codeAttributes[NSBackgroundColorAttributeName] = codeBackgroundColor;
-        }
+        
+        codeAttributes[RichTextCodeAttributeName] = @YES;
         [output addAttributes:codeAttributes range:range];
     }
 }

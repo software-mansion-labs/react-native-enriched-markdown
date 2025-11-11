@@ -37,6 +37,7 @@
     // Code properties
     UIColor *_codeColor;
     UIColor *_codeBackgroundColor;
+    UIColor *_codeBorderColor;
 }
 
 - (instancetype)init {
@@ -72,6 +73,7 @@
     copy->_emphasisColor = [_emphasisColor copy];
     copy->_codeColor = [_codeColor copy];
     copy->_codeBackgroundColor = [_codeBackgroundColor copy];
+    copy->_codeBorderColor = [_codeBorderColor copy];
     
     return copy;
 }
@@ -267,6 +269,14 @@
 
 - (void)setCodeBackgroundColor:(UIColor *)newValue {
     _codeBackgroundColor = newValue;
+}
+
+- (UIColor *)codeBorderColor {
+    return _codeBorderColor;
+}
+
+- (void)setCodeBorderColor:(UIColor *)newValue {
+    _codeBorderColor = newValue;
 }
 
 @end

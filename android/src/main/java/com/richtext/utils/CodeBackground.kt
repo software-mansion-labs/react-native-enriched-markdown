@@ -32,10 +32,9 @@ class CodeBackground(
 
       val startLine = layout.getLineForOffset(spanStart)
       val endLine = layout.getLineForOffset(spanEnd)
-      val startOffset = (layout.getPrimaryHorizontal(spanStart)
-          + -1 * layout.getParagraphDirection(startLine) * horizontalPadding).toInt()
-      val endOffset = (layout.getPrimaryHorizontal(spanEnd)
-          + layout.getParagraphDirection(endLine) * horizontalPadding).toInt()
+
+      val startOffset = (layout.getPrimaryHorizontal(spanStart) - horizontalPadding).toInt()
+      val endOffset = (layout.getPrimaryHorizontal(spanEnd) + horizontalPadding).toInt()
 
       if (startLine == endLine) {
         drawSingleLine(canvas, layout, startLine, startOffset, endOffset, backgroundColor, borderColor)
@@ -94,10 +93,9 @@ class CodeBackground(
     backgroundColor: Int,
     borderColor: Int
   ) {
-    val isRTL = layout.getParagraphDirection(startLine) == Layout.DIR_RIGHT_TO_LEFT
-    val lineEndOffset = (if (isRTL) layout.getLineLeft(startLine) else layout.getLineRight(startLine)).toInt()
+    val lineEndOffset = layout.getLineRight(startLine).toInt()
     val (startTop, startBottom) = getLineBounds(layout, startLine)
-    drawRoundedEdge(canvas, startOffset, startTop, lineEndOffset, startBottom, backgroundColor, borderColor, isLeft = !isRTL)
+    drawRoundedEdge(canvas, startOffset, startTop, lineEndOffset, startBottom, backgroundColor, borderColor, isLeft = true)
 
     for (line in startLine + 1 until endLine) {
       val (top, bottom) = getLineBounds(layout, line)
@@ -106,9 +104,9 @@ class CodeBackground(
       drawMiddleBorders(canvas, rect, borderColor)
     }
 
-    val lineStartOffset = (if (isRTL) layout.getLineRight(startLine) else layout.getLineLeft(startLine)).toInt()
+    val lineStartOffset = layout.getLineLeft(endLine).toInt()
     val (endTop, endBottom) = getLineBounds(layout, endLine)
-    drawRoundedEdge(canvas, lineStartOffset, endTop, endOffset, endBottom, backgroundColor, borderColor, isLeft = isRTL)
+    drawRoundedEdge(canvas, lineStartOffset, endTop, endOffset, endBottom, backgroundColor, borderColor, isLeft = false)
   }
 
   private fun drawRoundedEdge(

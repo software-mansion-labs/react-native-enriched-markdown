@@ -19,7 +19,7 @@ class RichTextCodeStyleSpan(
   }
 
   private fun applyMonospacedFont(paint: TextPaint) {
-    paint.textSize = paint.textSize * 0.7f
+    paint.textSize = paint.textSize * 0.85f
 
     val currentTypeface = paint.typeface ?: Typeface.DEFAULT
     val preservedStyle = currentTypeface.style and (Typeface.BOLD or Typeface.ITALIC)

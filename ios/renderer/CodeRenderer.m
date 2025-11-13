@@ -25,7 +25,7 @@
         return [UIFont monospacedSystemFontOfSize:16 weight:UIFontWeightRegular];
     }
     
-    CGFloat fontSize = font.pointSize * 0.6;
+    CGFloat fontSize = font.pointSize * 0.85;
     UIFontWeight weight = [self fontWeightFromFont:font];
     return [UIFont monospacedSystemFontOfSize:fontSize weight:weight];
 }

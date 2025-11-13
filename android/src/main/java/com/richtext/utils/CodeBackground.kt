@@ -14,11 +14,12 @@ import kotlin.math.min
 class CodeBackground(
   private val style: RichTextStyle
 ) {
-  private val horizontalPadding = 5
   private val cornerRadius = 6.0f
   private val borderWidth = 1.0f
   private val halfStroke = borderWidth / 2f
-  private val heightReductionFactor = 0.1f
+  // Through this variable we could set height for the inline code.
+  // Potentially this should be removed in the future - when we establish approach for the consistent height
+  private val heightReductionFactor = 0.0f
 
   fun draw(canvas: Canvas, text: Spanned, layout: Layout) {
     val codeStyle = style.getCodeStyle()
@@ -33,8 +34,8 @@ class CodeBackground(
       val startLine = layout.getLineForOffset(spanStart)
       val endLine = layout.getLineForOffset(spanEnd)
 
-      val startOffset = (layout.getPrimaryHorizontal(spanStart) - horizontalPadding).toInt()
-      val endOffset = (layout.getPrimaryHorizontal(spanEnd) + horizontalPadding).toInt()
+      val startOffset = layout.getPrimaryHorizontal(spanStart).toInt()
+      val endOffset = layout.getPrimaryHorizontal(spanEnd).toInt()
 
       if (startLine == endLine) {
         drawSingleLine(canvas, layout, startLine, startOffset, endOffset, backgroundColor, borderColor)

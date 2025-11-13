@@ -15,7 +15,9 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
         _config = config;
         _cornerRadius = 2.0;
         _borderWidth = 1.0;
-        _heightReductionFactor = 0.1;
+        // Through this variable we could set height for the inline code.
+        // Potentially this should be removed in the future - when we establish approach for the consistent height
+        _heightReductionFactor = 0.0;
     }
     return self;
 }
@@ -103,17 +105,20 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
                         atPoint:(CGPoint)origin
                backgroundColor:(UIColor *)backgroundColor
                     borderColor:(UIColor *)borderColor {
+    // Store both bounding rects and fragment rects for each line
     NSMutableArray<NSValue *> *lineRects = [NSMutableArray array];
+    NSMutableArray<NSValue *> *fragmentRects = [NSMutableArray array];
     NSUInteger glyphIndex = glyphRange.location;
     
     while (glyphIndex < NSMaxRange(glyphRange)) {
         NSRange lineRange;
-        [layoutManager lineFragmentRectForGlyphAtIndex:glyphIndex effectiveRange:&lineRange];
+        CGRect fragmentRect = [layoutManager lineFragmentRectForGlyphAtIndex:glyphIndex effectiveRange:&lineRange];
         
         NSRange intersection = NSIntersectionRange(lineRange, glyphRange);
         if (intersection.length > 0) {
             CGRect boundingRect = [self boundingRectForGlyphRange:intersection layoutManager:layoutManager textContainer:textContainer];
             [lineRects addObject:[NSValue valueWithCGRect:boundingRect]];
+            [fragmentRects addObject:[NSValue valueWithCGRect:fragmentRect]];
         }
         glyphIndex = NSMaxRange(lineRange);
     }
@@ -122,19 +127,15 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     
     // Draw start line
     CGRect firstRect = [lineRects[0] CGRectValue];
-    NSRange firstLineRange;
-    CGRect firstFragmentRect = [layoutManager lineFragmentRectForGlyphAtIndex:glyphRange.location effectiveRange:&firstLineRange];
+    CGRect firstFragmentRect = [fragmentRects[0] CGRectValue];
     CGRect adjustedFirstRect = [self adjustedRect:firstRect atPoint:origin];
     adjustedFirstRect.size.width = CGRectGetMaxX(firstFragmentRect) + origin.x - adjustedFirstRect.origin.x;
     [self drawRoundedEdge:adjustedFirstRect backgroundColor:backgroundColor borderColor:borderColor isLeft:YES];
     
     // Draw middle lines
     for (NSUInteger i = 1; i < lineRects.count - 1; i++) {
-        CGRect lineRect = [lineRects[i] CGRectValue];
-        NSRange lineRange;
-        CGRect fragmentRect = [layoutManager lineFragmentRectForGlyphAtIndex:glyphRange.location + i effectiveRange:&lineRange];
-        
-        CGRect middleRect = [self adjustedRect:lineRect atPoint:origin];
+        CGRect fragmentRect = [fragmentRects[i] CGRectValue];
+        CGRect middleRect = [self adjustedRect:fragmentRect atPoint:origin];
         middleRect.origin.x = fragmentRect.origin.x + origin.x;
         middleRect.size.width = fragmentRect.size.width;
         
@@ -149,8 +150,7 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     // Draw end line
     if (lineRects.count > 1) {
         CGRect lastRect = [lineRects[lineRects.count - 1] CGRectValue];
-        NSRange lastLineRange;
-        CGRect lastFragmentRect = [layoutManager lineFragmentRectForGlyphAtIndex:NSMaxRange(glyphRange) - 1 effectiveRange:&lastLineRange];
+        CGRect lastFragmentRect = [fragmentRects[fragmentRects.count - 1] CGRectValue];
         CGRect adjustedLastRect = [self adjustedRect:lastRect atPoint:origin];
         adjustedLastRect.origin.x = lastFragmentRect.origin.x + origin.x;
         adjustedLastRect.size.width = CGRectGetMaxX(lastRect) + origin.x - adjustedLastRect.origin.x;

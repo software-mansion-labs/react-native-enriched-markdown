@@ -2,6 +2,8 @@
 #import <UIKit/UIKit.h>
 #import "RichTextConfig.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 extern NSString *const RichTextCodeAttributeName;
 
 @interface CodeBackground : NSObject
@@ -13,4 +15,6 @@ extern NSString *const RichTextCodeAttributeName;
                                atPoint:(CGPoint)origin;
 
 @end
+
+NS_ASSUME_NONNULL_END
 

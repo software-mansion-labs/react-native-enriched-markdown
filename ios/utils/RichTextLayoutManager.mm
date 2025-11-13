@@ -14,8 +14,8 @@ static void *CodeBackgroundKey = &CodeBackgroundKey;
 - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin {
     [super drawBackgroundForGlyphRange:glyphsToShow atPoint:origin];
     
-    RichTextConfig *config = self.config;
-    if (!config || !self.textStorage || self.textStorage.length == 0) return;
+    NSTextStorage *textStorage = self.textStorage;
+    if (!textStorage || textStorage.length == 0) return;
     
     // Get text container for the glyph range
     NSRange effectiveRange;
@@ -23,25 +23,7 @@ static void *CodeBackgroundKey = &CodeBackgroundKey;
     if (!textContainer) return;
     
     // Draw code backgrounds
-    [self drawCodeBackgroundsForGlyphRange:glyphsToShow
-                              textContainer:textContainer
-                                     atPoint:origin
-                                       config:config];
-    
-    // Add other element drawing here:
-    // [self drawBlockquoteBackgroundsForGlyphRange:glyphsToShow
-    //                                 textContainer:textContainer
-    //                                        atPoint:origin
-    //                                          config:config];
-}
-
-- (void)drawCodeBackgroundsForGlyphRange:(NSRange)glyphsToShow
-                             textContainer:(NSTextContainer *)textContainer
-                                    atPoint:(CGPoint)origin
-                                      config:(RichTextConfig *)config {
-    UIColor *backgroundColor = [config codeBackgroundColor];
-    if (!backgroundColor) return;
-    
+    RichTextConfig *config = self.config;
     CodeBackground *codeBackground = objc_getAssociatedObject(self, CodeBackgroundKey);
     if (!codeBackground) {
         codeBackground = [[CodeBackground alloc] initWithConfig:config];
@@ -52,6 +34,12 @@ static void *CodeBackgroundKey = &CodeBackgroundKey;
                                     layoutManager:self
                                     textContainer:textContainer
                                            atPoint:origin];
+    
+    // Add other element drawing here:
+    // [self drawBlockquoteBackgroundsForGlyphRange:glyphsToShow
+    //                                 textContainer:textContainer
+    //                                        atPoint:origin
+    //                                          config:config];
 }
 
 - (RichTextConfig *)config {
@@ -59,13 +47,10 @@ static void *CodeBackgroundKey = &CodeBackgroundKey;
 }
 
 - (void)setConfig:(RichTextConfig *)config {
-    RichTextConfig *oldConfig = objc_getAssociatedObject(self, ConfigKey);
-    if (oldConfig != config) {
-        objc_setAssociatedObject(self, ConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        // Reset all drawing objects when config changes
-        objc_setAssociatedObject(self, CodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        // Add more resets here for other element types
-    }
+    objc_setAssociatedObject(self, ConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    // Reset all drawing objects when config changes (they'll be recreated on next draw)
+    objc_setAssociatedObject(self, CodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    // Add more resets here for other element types
 }
 
 @end

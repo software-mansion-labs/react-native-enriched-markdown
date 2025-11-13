@@ -105,34 +105,28 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
                         atPoint:(CGPoint)origin
                backgroundColor:(UIColor *)backgroundColor
                     borderColor:(UIColor *)borderColor {
-    // Store both bounding rects and fragment rects for each line
     NSMutableArray<NSValue *> *lineRects = [NSMutableArray array];
     NSMutableArray<NSValue *> *fragmentRects = [NSMutableArray array];
-    NSUInteger glyphIndex = glyphRange.location;
     
-    while (glyphIndex < NSMaxRange(glyphRange)) {
-        NSRange lineRange;
-        CGRect fragmentRect = [layoutManager lineFragmentRectForGlyphAtIndex:glyphIndex effectiveRange:&lineRange];
-        
-        NSRange intersection = NSIntersectionRange(lineRange, glyphRange);
+    [layoutManager enumerateLineFragmentsForGlyphRange:glyphRange usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *container, NSRange lineGlyphRange, BOOL *stop) {
+        NSRange intersection = NSIntersectionRange(lineGlyphRange, glyphRange);
         if (intersection.length > 0) {
             CGRect boundingRect = [self boundingRectForGlyphRange:intersection layoutManager:layoutManager textContainer:textContainer];
             [lineRects addObject:[NSValue valueWithCGRect:boundingRect]];
-            [fragmentRects addObject:[NSValue valueWithCGRect:fragmentRect]];
+            [fragmentRects addObject:[NSValue valueWithCGRect:rect]];
         }
-        glyphIndex = NSMaxRange(lineRange);
-    }
+    }];
     
     if (lineRects.count == 0) return;
     
-    // Draw start line
+    // Draw start line (rounded left, no right border)
     CGRect firstRect = [lineRects[0] CGRectValue];
     CGRect firstFragmentRect = [fragmentRects[0] CGRectValue];
     CGRect adjustedFirstRect = [self adjustedRect:firstRect atPoint:origin];
     adjustedFirstRect.size.width = CGRectGetMaxX(firstFragmentRect) + origin.x - adjustedFirstRect.origin.x;
     [self drawRoundedEdge:adjustedFirstRect backgroundColor:backgroundColor borderColor:borderColor isLeft:YES];
     
-    // Draw middle lines
+    // Draw middle lines (no left border, no rounded corners)
     for (NSUInteger i = 1; i < lineRects.count - 1; i++) {
         CGRect fragmentRect = [fragmentRects[i] CGRectValue];
         CGRect middleRect = [self adjustedRect:fragmentRect atPoint:origin];
@@ -147,7 +141,7 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
         }
     }
     
-    // Draw end line
+    // Draw end line (rounded right, no left border)
     if (lineRects.count > 1) {
         CGRect lastRect = [lineRects[lineRects.count - 1] CGRectValue];
         CGRect lastFragmentRect = [fragmentRects[fragmentRects.count - 1] CGRectValue];
@@ -168,28 +162,28 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     [fillPath fill];
     
     // Draw borders
-    if (borderColor) {
-        CGContextRef context = UIGraphicsGetCurrentContext();
-        CGContextSaveGState(context);
-        [self configureBorderContext:context borderColor:borderColor];
-        
-        CGFloat halfStroke = _borderWidth / 2.0;
-        CGFloat topY = rect.origin.y + halfStroke;
-        CGFloat bottomY = CGRectGetMaxY(rect) - halfStroke;
-        
-        [self drawRoundedBorder:rect topY:topY bottomY:bottomY context:context isLeft:isLeft];
-        
-        // Draw top and bottom borders
-        CGFloat startX = isLeft ? (rect.origin.x + _cornerRadius) : rect.origin.x;
-        CGFloat endX = isLeft ? CGRectGetMaxX(rect) : (CGRectGetMaxX(rect) - _cornerRadius);
-        CGContextMoveToPoint(context, startX, topY);
-        CGContextAddLineToPoint(context, endX, topY);
-        CGContextMoveToPoint(context, startX, bottomY);
-        CGContextAddLineToPoint(context, endX, bottomY);
-        
-        CGContextStrokePath(context);
-        CGContextRestoreGState(context);
-    }
+    if (!borderColor) return;
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSaveGState(context);
+    [self configureBorderContext:context borderColor:borderColor];
+    
+    CGFloat halfStroke = _borderWidth / 2.0;
+    CGFloat topY = rect.origin.y + halfStroke;
+    CGFloat bottomY = CGRectGetMaxY(rect) - halfStroke;
+    
+    [self drawRoundedBorder:rect topY:topY bottomY:bottomY context:context isLeft:isLeft];
+    
+    // Draw top and bottom borders
+    CGFloat startX = isLeft ? (rect.origin.x + _cornerRadius) : rect.origin.x;
+    CGFloat endX = isLeft ? CGRectGetMaxX(rect) : (CGRectGetMaxX(rect) - _cornerRadius);
+    CGContextMoveToPoint(context, startX, topY);
+    CGContextAddLineToPoint(context, endX, topY);
+    CGContextMoveToPoint(context, startX, bottomY);
+    CGContextAddLineToPoint(context, endX, bottomY);
+    CGContextStrokePath(context);
+    
+    CGContextRestoreGState(context);
 }
 
 - (UIBezierPath *)createRoundedFillPath:(CGRect)rect isLeft:(BOOL)isLeft {

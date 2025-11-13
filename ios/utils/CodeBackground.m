@@ -2,22 +2,20 @@
 
 NSString *const RichTextCodeAttributeName = @"RichTextCode";
 
+static const CGFloat kCodeBackgroundCornerRadius = 2.0;
+static const CGFloat kCodeBackgroundBorderWidth = 1.0;
+// Through this variable we could set height for the inline code.
+// Potentially this should be removed in the future - when we establish approach for the consistent height
+static const CGFloat kCodeBackgroundHeightReductionFactor = 0.0;
+
 @implementation CodeBackground {
     RichTextConfig *_config;
-    CGFloat _cornerRadius;
-    CGFloat _borderWidth;
-    CGFloat _heightReductionFactor;
 }
 
 - (instancetype)initWithConfig:(RichTextConfig *)config {
     self = [super init];
     if (self) {
         _config = config;
-        _cornerRadius = 2.0;
-        _borderWidth = 1.0;
-        // Through this variable we could set height for the inline code.
-        // Potentially this should be removed in the future - when we establish approach for the consistent height
-        _heightReductionFactor = 0.0;
     }
     return self;
 }
@@ -27,8 +25,6 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
                         textContainer:(NSTextContainer *)textContainer
                                atPoint:(CGPoint)origin {
     UIColor *backgroundColor = _config.codeBackgroundColor;
-    UIColor *borderColor = _config.codeBorderColor;
-    
     if (!backgroundColor) return;
     
     NSTextStorage *textStorage = layoutManager.textStorage;
@@ -36,6 +32,8 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     
     NSRange charRange = [layoutManager characterRangeForGlyphRange:glyphsToShow actualGlyphRange:NULL];
     if (charRange.location == NSNotFound || charRange.length == 0) return;
+    
+    UIColor *borderColor = _config.codeBorderColor;
     
     [textStorage enumerateAttribute:RichTextCodeAttributeName
                              inRange:NSMakeRange(0, textStorage.length)
@@ -86,17 +84,17 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     CGRect rect = [self adjustedRect:boundingRect atPoint:origin];
     if (CGRectIsEmpty(rect) || CGRectIsInfinite(rect)) return;
     
-    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:_cornerRadius];
+    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:kCodeBackgroundCornerRadius];
     [backgroundColor setFill];
     [path fill];
     
-    if (borderColor) {
-        [borderColor setStroke];
-        path.lineWidth = _borderWidth;
-        path.lineCapStyle = kCGLineCapRound;
-        path.lineJoinStyle = kCGLineJoinRound;
-        [path stroke];
-    }
+    if (!borderColor) return;
+    
+    [borderColor setStroke];
+    path.lineWidth = kCodeBackgroundBorderWidth;
+    path.lineCapStyle = kCGLineCapRound;
+    path.lineJoinStyle = kCGLineJoinRound;
+    [path stroke];
 }
 
 - (void)drawMultiLineBackground:(NSRange)glyphRange
@@ -168,15 +166,15 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     CGContextSaveGState(context);
     [self configureBorderContext:context borderColor:borderColor];
     
-    CGFloat halfStroke = _borderWidth / 2.0;
+    CGFloat halfStroke = kCodeBackgroundBorderWidth / 2.0;
     CGFloat topY = rect.origin.y + halfStroke;
     CGFloat bottomY = CGRectGetMaxY(rect) - halfStroke;
     
     [self drawRoundedBorder:rect topY:topY bottomY:bottomY context:context isLeft:isLeft];
     
     // Draw top and bottom borders
-    CGFloat startX = isLeft ? (rect.origin.x + _cornerRadius) : rect.origin.x;
-    CGFloat endX = isLeft ? CGRectGetMaxX(rect) : (CGRectGetMaxX(rect) - _cornerRadius);
+    CGFloat startX = isLeft ? (rect.origin.x + kCodeBackgroundCornerRadius) : rect.origin.x;
+    CGFloat endX = isLeft ? CGRectGetMaxX(rect) : (CGRectGetMaxX(rect) - kCodeBackgroundCornerRadius);
     CGContextMoveToPoint(context, startX, topY);
     CGContextAddLineToPoint(context, endX, topY);
     CGContextMoveToPoint(context, startX, bottomY);
@@ -190,22 +188,22 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     UIBezierPath *path = [UIBezierPath bezierPath];
     
     if (isLeft) {
-        [path moveToPoint:CGPointMake(rect.origin.x + _cornerRadius, rect.origin.y)];
+        [path moveToPoint:CGPointMake(rect.origin.x + kCodeBackgroundCornerRadius, rect.origin.y)];
         [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), rect.origin.y)];
         [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(rect))];
-        [path addLineToPoint:CGPointMake(rect.origin.x + _cornerRadius, CGRectGetMaxY(rect))];
-        [path addQuadCurveToPoint:CGPointMake(rect.origin.x, CGRectGetMaxY(rect) - _cornerRadius)
+        [path addLineToPoint:CGPointMake(rect.origin.x + kCodeBackgroundCornerRadius, CGRectGetMaxY(rect))];
+        [path addQuadCurveToPoint:CGPointMake(rect.origin.x, CGRectGetMaxY(rect) - kCodeBackgroundCornerRadius)
                       controlPoint:CGPointMake(rect.origin.x, CGRectGetMaxY(rect))];
-        [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + _cornerRadius)];
-        [path addQuadCurveToPoint:CGPointMake(rect.origin.x + _cornerRadius, rect.origin.y)
+        [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + kCodeBackgroundCornerRadius)];
+        [path addQuadCurveToPoint:CGPointMake(rect.origin.x + kCodeBackgroundCornerRadius, rect.origin.y)
                       controlPoint:CGPointMake(rect.origin.x, rect.origin.y)];
     } else {
         [path moveToPoint:CGPointMake(rect.origin.x, rect.origin.y)];
-        [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect) - _cornerRadius, rect.origin.y)];
-        [path addQuadCurveToPoint:CGPointMake(CGRectGetMaxX(rect), rect.origin.y + _cornerRadius)
+        [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect) - kCodeBackgroundCornerRadius, rect.origin.y)];
+        [path addQuadCurveToPoint:CGPointMake(CGRectGetMaxX(rect), rect.origin.y + kCodeBackgroundCornerRadius)
                       controlPoint:CGPointMake(CGRectGetMaxX(rect), rect.origin.y)];
-        [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(rect) - _cornerRadius)];
-        [path addQuadCurveToPoint:CGPointMake(CGRectGetMaxX(rect) - _cornerRadius, CGRectGetMaxY(rect))
+        [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(rect) - kCodeBackgroundCornerRadius)];
+        [path addQuadCurveToPoint:CGPointMake(CGRectGetMaxX(rect) - kCodeBackgroundCornerRadius, CGRectGetMaxY(rect))
                       controlPoint:CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(rect))];
         [path addLineToPoint:CGPointMake(rect.origin.x, CGRectGetMaxY(rect))];
         [path closePath];
@@ -219,7 +217,7 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
     CGContextSaveGState(context);
     [self configureBorderContext:context borderColor:borderColor];
     
-    CGFloat halfStroke = _borderWidth / 2.0;
+    CGFloat halfStroke = kCodeBackgroundBorderWidth / 2.0;
     CGFloat topY = rect.origin.y + halfStroke;
     CGFloat bottomY = CGRectGetMaxY(rect) - halfStroke;
     CGFloat rightX = CGRectGetMaxX(rect) - halfStroke;
@@ -237,41 +235,41 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
 
 - (void)configureBorderContext:(CGContextRef)context borderColor:(UIColor *)borderColor {
     CGContextSetStrokeColorWithColor(context, borderColor.CGColor);
-    CGContextSetLineWidth(context, _borderWidth);
+    CGContextSetLineWidth(context, kCodeBackgroundBorderWidth);
     CGContextSetLineCap(context, kCGLineCapRound);
     CGContextSetLineJoin(context, kCGLineJoinRound);
 }
 
 - (void)drawRoundedBorder:(CGRect)rect topY:(CGFloat)topY bottomY:(CGFloat)bottomY context:(CGContextRef)context isLeft:(BOOL)isLeft {
-    CGFloat halfStroke = _borderWidth / 2.0;
+    CGFloat halfStroke = kCodeBackgroundBorderWidth / 2.0;
     CGFloat borderX = isLeft ? (rect.origin.x + halfStroke) : (CGRectGetMaxX(rect) - halfStroke);
-    CGFloat cornerX = isLeft ? (rect.origin.x + _cornerRadius) : (CGRectGetMaxX(rect) - _cornerRadius);
+    CGFloat cornerX = isLeft ? (rect.origin.x + kCodeBackgroundCornerRadius) : (CGRectGetMaxX(rect) - kCodeBackgroundCornerRadius);
     CGFloat edgeX = isLeft ? rect.origin.x : CGRectGetMaxX(rect);
     
     UIBezierPath *path = [UIBezierPath bezierPath];
     
     if (isLeft) {
-        [path moveToPoint:CGPointMake(borderX, rect.origin.y + _cornerRadius)];
+        [path moveToPoint:CGPointMake(borderX, rect.origin.y + kCodeBackgroundCornerRadius)];
         [path addQuadCurveToPoint:CGPointMake(cornerX, topY) controlPoint:CGPointMake(borderX, rect.origin.y)];
         [path moveToPoint:CGPointMake(cornerX, bottomY)];
-        [path addQuadCurveToPoint:CGPointMake(borderX, CGRectGetMaxY(rect) - _cornerRadius)
+        [path addQuadCurveToPoint:CGPointMake(borderX, CGRectGetMaxY(rect) - kCodeBackgroundCornerRadius)
                       controlPoint:CGPointMake(borderX, CGRectGetMaxY(rect))];
-        [path addLineToPoint:CGPointMake(borderX, rect.origin.y + _cornerRadius)];
+        [path addLineToPoint:CGPointMake(borderX, rect.origin.y + kCodeBackgroundCornerRadius)];
     } else {
         [path moveToPoint:CGPointMake(cornerX, topY)];
-        [path addQuadCurveToPoint:CGPointMake(borderX, rect.origin.y + _cornerRadius)
+        [path addQuadCurveToPoint:CGPointMake(borderX, rect.origin.y + kCodeBackgroundCornerRadius)
                       controlPoint:CGPointMake(edgeX, rect.origin.y)];
-        [path moveToPoint:CGPointMake(borderX, CGRectGetMaxY(rect) - _cornerRadius)];
+        [path moveToPoint:CGPointMake(borderX, CGRectGetMaxY(rect) - kCodeBackgroundCornerRadius)];
         [path addQuadCurveToPoint:CGPointMake(cornerX, bottomY)
                       controlPoint:CGPointMake(edgeX, CGRectGetMaxY(rect))];
-        [path addLineToPoint:CGPointMake(borderX, rect.origin.y + _cornerRadius)];
+        [path addLineToPoint:CGPointMake(borderX, rect.origin.y + kCodeBackgroundCornerRadius)];
     }
     
     CGContextAddPath(context, path.CGPath);
 }
 
 - (CGRect)adjustedRect:(CGRect)rect atPoint:(CGPoint)origin {
-    CGFloat reduction = rect.size.height * _heightReductionFactor;
+    CGFloat reduction = rect.size.height * kCodeBackgroundHeightReductionFactor;
     CGFloat top = rect.origin.y + reduction + origin.y;
     CGFloat bottom = CGRectGetMaxY(rect) - reduction + origin.y;
     return CGRectMake(rect.origin.x + origin.x, top, rect.size.width, bottom - top);

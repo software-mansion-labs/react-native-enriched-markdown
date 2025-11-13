@@ -20,37 +20,23 @@
     return self;
 }
 
-- (UIFont *)monospacedFontFromFont:(UIFont *)font {
-    if (!font) {
-        return [UIFont monospacedSystemFontOfSize:16 weight:UIFontWeightRegular];
-    }
-    
-    CGFloat fontSize = font.pointSize * 0.85;
-    UIFontWeight weight = [self fontWeightFromFont:font];
-    return [UIFont monospacedSystemFontOfSize:fontSize weight:weight];
-}
-
-- (UIFontWeight)fontWeightFromFont:(UIFont *)font {
-    UIFontDescriptorSymbolicTraits traits = font.fontDescriptor.symbolicTraits;
-    return (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
-}
-
-- (UIColor *)codeColorFromColor:(UIColor *)color {
-    return _config.codeColor ?: color;
-}
-
-- (UIColor *)codeBackgroundColorFromConfig {
-    return _config.codeBackgroundColor;
-}
-
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font
             color:(UIColor *)color
            context:(RenderContext *)context {
-    UIFont *monospacedFont = [self monospacedFontFromFont:font];
-    UIColor *codeColor = [self codeColorFromColor:color];
-    UIColor *codeBackgroundColor = [self codeBackgroundColorFromConfig];
+            
+    UIFont *monospacedFont;
+    if (!font) {
+        monospacedFont = [UIFont monospacedSystemFontOfSize:16 weight:UIFontWeightRegular];
+    } else {
+        CGFloat fontSize = font.pointSize * 0.85;
+        UIFontDescriptorSymbolicTraits traits = font.fontDescriptor.symbolicTraits;
+        UIFontWeight weight = (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
+        monospacedFont = [UIFont monospacedSystemFontOfSize:fontSize weight:weight];
+    }
+    
+    UIColor *codeColor = _config.codeColor ?: color;
     
     NSUInteger start = output.length;
     
@@ -68,7 +54,6 @@
         if (codeColor) {
             codeAttributes[NSForegroundColorAttributeName] = codeColor;
         }
-        
         codeAttributes[RichTextCodeAttributeName] = @YES;
         [output addAttributes:codeAttributes range:range];
     }

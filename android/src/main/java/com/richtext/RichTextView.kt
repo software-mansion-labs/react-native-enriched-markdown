@@ -72,18 +72,27 @@ class RichTextView : AppCompatTextView {
         }
         renderer.setStyle(currentStyle)
         val styledText = renderer.renderDocument(document, onLinkPressCallback)
+        codeBackground = CodeBackground(currentStyle)
         text = styledText
         movementMethod = LinkMovementMethod.getInstance()
-
-        // Create code background for drawing code backgrounds
-        codeBackground = CodeBackground(currentStyle)
       } else {
         android.util.Log.e("RichTextView", "Failed to parse markdown - Document is null")
+        codeBackground = null
         text = ""
       }
     } catch (e: Exception) {
       android.util.Log.e("RichTextView", "Error parsing markdown: ${e.message}")
+      codeBackground = null
       text = ""
+    }
+    
+    // TextView's setText() already calls requestLayout() and invalidate() internally
+    // We need to ensure onDraw() is called for code backgrounds after layout is ready
+    // Use post() to ensure invalidation happens after the current layout pass
+    if (codeBackground != null) {
+      post {
+        invalidate()
+      }
     }
   }
 
@@ -183,6 +192,15 @@ class RichTextView : AppCompatTextView {
     super.onAttachedToWindow()
     didAttachToWindow = true
     updateTypeface()
+  }
+
+  override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+    super.onLayout(changed, left, top, right, bottom)
+    // Invalidate when layout changes to ensure code backgrounds are redrawn
+    // We're already on the UI thread, so invalidate() is sufficient
+    if (changed && codeBackground != null) {
+      invalidate()
+    }
   }
 
   override fun onDraw(canvas: Canvas) {

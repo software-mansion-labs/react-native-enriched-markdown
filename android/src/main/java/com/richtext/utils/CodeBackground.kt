@@ -93,6 +93,8 @@ class CodeBackground(
     backgroundColor: Int,
     borderColor: Int
   ) {
+    val referenceHeight = findReferenceHeight(layout, startLine, endLine, spanStart, spanEnd)
+    
     // Draw start line (rounded left, no right border)
     val startOffset = layout.getPrimaryHorizontal(spanStart).toInt()
     val lineEndOffset = layout.getLineRight(startLine).toInt()
@@ -100,12 +102,16 @@ class CodeBackground(
     drawRoundedEdge(canvas, startOffset, startTop, lineEndOffset, startBottom, backgroundColor, borderColor, isLeft = true)
 
     // Draw middle lines (no left or right borders, only top and bottom)
+    var previousBottom = startBottom
     for (line in startLine + 1 until endLine) {
       val (top, bottom) = getLineBounds(layout, line)
-      // For middle lines, use full line width to match iOS behavior and ensure borders are visible
-      val rect = RectF(layout.getLineLeft(line), top.toFloat(), layout.getLineRight(line), bottom.toFloat())
+      val (adjustedTop, adjustedBottom) = adjustLineHeight(top, bottom, referenceHeight, previousBottom)
+      
+      val rect = RectF(layout.getLineLeft(line), adjustedTop.toFloat(), layout.getLineRight(line), adjustedBottom.toFloat())
       canvas.drawRect(rect, createPaint(Paint.Style.FILL, backgroundColor))
       drawMiddleBorders(canvas, rect, borderColor)
+      
+      previousBottom = adjustedBottom
     }
 
     // Draw end line (rounded right, no left border)
@@ -113,6 +119,41 @@ class CodeBackground(
     val lineStartOffset = layout.getLineLeft(endLine).toInt()
     val (endTop, endBottom) = getLineBounds(layout, endLine)
     drawRoundedEdge(canvas, lineStartOffset, endTop, endOffset, endBottom, backgroundColor, borderColor, isLeft = false)
+  }
+  
+  private fun findReferenceHeight(layout: Layout, startLine: Int, endLine: Int, spanStart: Int, spanEnd: Int): Int {
+    // Prefer height from lines with normal text (most accurate)
+    if (spanStart > layout.getLineStart(startLine)) {
+      return getLineHeight(layout, startLine)
+    }
+    if (spanEnd < layout.getLineEnd(endLine)) {
+      return getLineHeight(layout, endLine)
+    }
+    
+    // Use adjacent line if available
+    if (startLine > 0) return getLineHeight(layout, startLine - 1)
+    if (endLine < layout.lineCount - 1) return getLineHeight(layout, endLine + 1)
+    
+    // Fallback: max height from code lines
+    return (startLine..endLine).maxOfOrNull { getLineHeight(layout, it) } ?: 0
+  }
+  
+  private fun getLineHeight(layout: Layout, line: Int): Int {
+    val (top, bottom) = getLineBounds(layout, line)
+    return bottom - top
+  }
+
+  private fun adjustLineHeight(top: Int, bottom: Int, referenceHeight: Int, previousBottom: Int): Pair<Int, Int> {
+    val lineHeight = bottom - top
+    return if (referenceHeight > 0 && lineHeight < referenceHeight) {
+      // Expand centered, but ensure top doesn't go above previous line's bottom
+      val centerY = (top + bottom) / 2f
+      val expandedTop = (centerY - referenceHeight / 2f).toInt()
+      val expandedBottom = (centerY + referenceHeight / 2f).toInt()
+      Pair(max(previousBottom, max(top, expandedTop)), expandedBottom)
+    } else {
+      Pair(max(previousBottom, top), bottom)
+    }
   }
 
   private fun drawRoundedEdge(
@@ -132,10 +173,8 @@ class CodeBackground(
       floatArrayOf(0f, 0f, CORNER_RADIUS, CORNER_RADIUS, CORNER_RADIUS, CORNER_RADIUS, 0f, 0f)
     }
     
-    // Draw fill
     canvas.drawPath(Path().apply { addRoundRect(rect, radii, Path.Direction.CW) }, createPaint(Paint.Style.FILL, backgroundColor))
     
-    // Draw border
     val paint = createPaint(Paint.Style.STROKE, borderColor)
     val borderX = if (isLeft) rect.left + halfStroke else rect.right - halfStroke
     val topY = rect.top + halfStroke

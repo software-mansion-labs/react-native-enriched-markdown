@@ -11,6 +11,10 @@ import com.richtext.styles.RichTextStyle
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Draws rounded rectangle backgrounds for code spans in markdown text.
+ * Handles both single-line and multi-line code blocks with proper border rendering.
+ */
 class CodeBackground(
   private val style: RichTextStyle
 ) {
@@ -19,8 +23,13 @@ class CodeBackground(
     private const val BORDER_WIDTH = 1.0f
   }
   
+  // Half stroke width for centering border lines within the stroke width
   private val halfStroke = BORDER_WIDTH / 2f
 
+  /**
+   * Draws code backgrounds for all code spans in the text.
+   * Finds all RichTextCodeStyleSpan instances and draws backgrounds for each.
+   */
   fun draw(canvas: Canvas, text: Spanned, layout: Layout) {
     val codeStyle = style.getCodeStyle()
     val backgroundColor = codeStyle.backgroundColor
@@ -83,6 +92,11 @@ class CodeBackground(
     canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, createPaint(Paint.Style.STROKE, borderColor))
   }
 
+  /**
+   * Draws a multi-line code background with rounded corners on first and last lines.
+   * Strategy: rounded left edge on first line, rounded right edge on last line,
+   * rectangular middle lines with only top/bottom borders.
+   */
   private fun drawMultiLine(
     canvas: Canvas,
     layout: Layout,
@@ -121,6 +135,10 @@ class CodeBackground(
     drawRoundedEdge(canvas, lineStartOffset, endTop, endOffset, endBottom, backgroundColor, borderColor, isLeft = false)
   }
   
+  /**
+   * Finds a reference line height for consistent multi-line code block rendering.
+   * Prefers lines with normal text (not full-width code) for accurate height measurement.
+   */
   private fun findReferenceHeight(layout: Layout, startLine: Int, endLine: Int, spanStart: Int, spanEnd: Int): Int {
     // Prefer height from lines with normal text (most accurate)
     if (spanStart > layout.getLineStart(startLine)) {
@@ -143,6 +161,10 @@ class CodeBackground(
     return bottom - top
   }
 
+  /**
+   * Adjusts line height to match reference height for consistent rendering.
+   * Expands lines that are shorter than reference, ensuring no gaps between lines.
+   */
   private fun adjustLineHeight(top: Int, bottom: Int, referenceHeight: Int, previousBottom: Int): Pair<Int, Int> {
     val lineHeight = bottom - top
     return if (referenceHeight > 0 && lineHeight < referenceHeight) {
@@ -156,6 +178,11 @@ class CodeBackground(
     }
   }
 
+  /**
+   * Draws a rounded edge (left or right) for the first or last line of a multi-line code block.
+   * Radii array format: [top-left-x, top-left-y, top-right-x, top-right-y,
+   *                     bottom-right-x, bottom-right-y, bottom-left-x, bottom-left-y]
+   */
   private fun drawRoundedEdge(
     canvas: Canvas,
     start: Int,
@@ -167,6 +194,7 @@ class CodeBackground(
     isLeft: Boolean
   ) {
     val rect = RectF(min(start, end).toFloat(), top.toFloat(), max(start, end).toFloat(), bottom.toFloat())
+    // Radii: left edge = rounded top-left and bottom-left, right edge = rounded top-right and bottom-right
     val radii = if (isLeft) {
       floatArrayOf(CORNER_RADIUS, CORNER_RADIUS, 0f, 0f, 0f, 0f, CORNER_RADIUS, CORNER_RADIUS)
     } else {
@@ -191,6 +219,10 @@ class CodeBackground(
     }
   }
 
+  /**
+   * Creates a path for the rounded border edge (left or right side).
+   * Uses quadratic curves for smooth rounded corners at top and bottom.
+   */
   private fun createRoundedBorderPath(borderX: Float, rect: RectF, topY: Float, bottomY: Float, isLeft: Boolean) = Path().apply {
     if (isLeft) {
       moveTo(borderX, rect.top + CORNER_RADIUS)

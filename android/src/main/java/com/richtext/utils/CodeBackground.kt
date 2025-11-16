@@ -136,24 +136,20 @@ class CodeBackground(
   }
   
   /**
-   * Finds a reference line height for consistent multi-line code block rendering.
-   * Prefers lines with normal text (not full-width code) for accurate height measurement.
+   * Gets reference line height for consistent code block rendering.
+   * Uses normal text's line height from layout paint, since code font is 85% of normal font size.
+   * 
+   * TODO: Get lineHeight from TypeScript side (via RichTextStyle config) instead of calculating from layout paint.
+   * This would provide a single source of truth and handle custom line spacing more accurately.
    */
   private fun findReferenceHeight(layout: Layout, startLine: Int, endLine: Int, spanStart: Int, spanEnd: Int): Int {
-    // Prefer height from lines with normal text (most accurate)
-    if (spanStart > layout.getLineStart(startLine)) {
-      return getLineHeight(layout, startLine)
-    }
-    if (spanEnd < layout.getLineEnd(endLine)) {
-      return getLineHeight(layout, endLine)
-    }
-    
-    // Use adjacent line if available
-    if (startLine > 0) return getLineHeight(layout, startLine - 1)
-    if (endLine < layout.lineCount - 1) return getLineHeight(layout, endLine + 1)
-    
-    // Fallback: max height from code lines
-    return (startLine..endLine).maxOfOrNull { getLineHeight(layout, it) } ?: 0
+    // Use normal text line height from layout paint - this ensures consistent height for both inline and standalone code
+    // The layout's paint contains the normal text font metrics (before code span modifications)
+    // This is equivalent to iOS using primaryFont.lineHeight from config
+    val paint = layout.paint
+    val fontMetrics = paint.fontMetrics
+    // Line height = descent - ascent (standard Android line height calculation)
+    return (fontMetrics.descent - fontMetrics.ascent).toInt()
   }
   
   private fun getLineHeight(layout: Layout, line: Int): Int {

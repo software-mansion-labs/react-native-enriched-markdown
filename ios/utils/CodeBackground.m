@@ -134,16 +134,16 @@ static inline CGFloat HalfStroke(void) {
     
     if (boundingRects.count == 0) return;
     
-    CGFloat referenceHeight = [self findReferenceHeight:boundingRects fragmentRects:fragmentRects lineGlyphRanges:lineGlyphRanges layoutManager:layoutManager];
+    CGFloat referenceHeight = [self findReferenceHeight];
     
-    [self drawStartLine:boundingRects[0] fragmentRect:fragmentRects[0] origin:origin backgroundColor:backgroundColor borderColor:borderColor];
+    [self drawStartLine:boundingRects[0] fragmentRect:fragmentRects[0] referenceHeight:referenceHeight origin:origin backgroundColor:backgroundColor borderColor:borderColor];
     
     for (NSUInteger i = 1; i < boundingRects.count - 1; i++) {
         [self drawMiddleLine:fragmentRects[i] referenceHeight:referenceHeight origin:origin backgroundColor:backgroundColor borderColor:borderColor];
     }
     
     if (boundingRects.count > 1) {
-        [self drawEndLine:boundingRects[boundingRects.count - 1] fragmentRect:fragmentRects[fragmentRects.count - 1] origin:origin backgroundColor:backgroundColor borderColor:borderColor];
+        [self drawEndLine:boundingRects[boundingRects.count - 1] fragmentRect:fragmentRects[fragmentRects.count - 1] referenceHeight:referenceHeight origin:origin backgroundColor:backgroundColor borderColor:borderColor];
     }
 }
 
@@ -261,72 +261,30 @@ static inline CGFloat HalfStroke(void) {
 #pragma mark - Helper Methods
 
 /**
- * Finds a reference line height for consistent multi-line code block rendering.
- * Prefers lines with normal text (not full-width code) for accurate height measurement.
+ * Gets reference line height for consistent code block rendering.
+ * Uses primary font's line height to match normal text, since code font is 85% of normal font size.
+ * 
+ * TODO: Get lineHeight from TypeScript side (via richTextStyle config) instead of calculating from primaryFont.
+ * This would provide a single source of truth and handle custom line spacing more accurately.
  */
-- (CGFloat)findReferenceHeight:(NSArray<NSValue *> *)boundingRects
-                  fragmentRects:(NSArray<NSValue *> *)fragmentRects
-                lineGlyphRanges:(NSArray<NSValue *> *)lineGlyphRanges
-                  layoutManager:(NSLayoutManager *)layoutManager {
-    // Prefer height from lines with normal text (most accurate)
-    if (boundingRects.count > 0) {
-        CGRect firstBounding = [boundingRects[0] CGRectValue];
-        CGRect firstFragment = [fragmentRects[0] CGRectValue];
-        if (firstBounding.origin.x > firstFragment.origin.x) {
-            return firstFragment.size.height;
-        }
-    }
-    
-    // Check last line if it has normal text
-    if (boundingRects.count > 1) {
-        NSUInteger lastIndex = boundingRects.count - 1;
-        CGRect lastBounding = [boundingRects[lastIndex] CGRectValue];
-        CGRect lastFragment = [fragmentRects[lastIndex] CGRectValue];
-        if (CGRectGetMaxX(lastBounding) < CGRectGetMaxX(lastFragment)) {
-            return lastFragment.size.height;
-        }
-    }
-    
-    // Use adjacent line if available
-    if (lineGlyphRanges.count == 0) {
-        return [self fallbackHeightFromFragments:fragmentRects];
-    }
-    
-    NSRange firstRange = [lineGlyphRanges[0] rangeValue];
-    if (firstRange.location > 0) {
-        NSRange effectiveRange;
-        CGRect prevRect = [layoutManager lineFragmentRectForGlyphAtIndex:firstRange.location - 1 effectiveRange:&effectiveRange];
-        if (prevRect.size.height > 0) {
-            return prevRect.size.height;
-        }
-    }
-    
-    NSRange lastRange = [lineGlyphRanges[lineGlyphRanges.count - 1] rangeValue];
-    NSUInteger nextIndex = NSMaxRange(lastRange);
-    if (nextIndex < layoutManager.numberOfGlyphs) {
-        NSRange effectiveRange;
-        CGRect nextRect = [layoutManager lineFragmentRectForGlyphAtIndex:nextIndex effectiveRange:&effectiveRange];
-        if (nextRect.size.height > 0) {
-            return nextRect.size.height;
-        }
-    }
-    
-    return [self fallbackHeightFromFragments:fragmentRects];
+- (CGFloat)findReferenceHeight {
+    // Use primary font's line height directly - this ensures consistent height for both inline and standalone code
+    return _config.primaryFont.lineHeight;
 }
 
-- (CGFloat)fallbackHeightFromFragments:(NSArray<NSValue *> *)fragmentRects {
-    CGFloat maxHeight = 0;
-    for (NSValue *value in fragmentRects) {
-        maxHeight = MAX(maxHeight, [value CGRectValue].size.height);
-    }
-    return maxHeight > 0 ? maxHeight : [fragmentRects[0] CGRectValue].size.height;
-}
 
-- (void)drawStartLine:(NSValue *)boundingValue fragmentRect:(NSValue *)fragmentValue origin:(CGPoint)origin backgroundColor:(UIColor *)backgroundColor borderColor:(UIColor *)borderColor {
+- (void)drawStartLine:(NSValue *)boundingValue fragmentRect:(NSValue *)fragmentValue referenceHeight:(CGFloat)referenceHeight origin:(CGPoint)origin backgroundColor:(UIColor *)backgroundColor borderColor:(UIColor *)borderColor {
     CGRect boundingRect = [boundingValue CGRectValue];
     CGRect fragmentRect = [fragmentValue CGRectValue];
     CGRect rect = [self adjustedRect:boundingRect atPoint:origin];
     rect.size.width = CGRectGetMaxX(fragmentRect) + origin.x - rect.origin.x;
+    
+    // Apply reference height if current line is smaller (for standalone code)
+    // Expand downward to match normal text height, keeping top aligned
+    if (rect.size.height < referenceHeight) {
+        rect.size.height = referenceHeight;
+    }
+    
     [self drawRoundedEdge:rect backgroundColor:backgroundColor borderColor:borderColor isLeft:YES];
 }
 
@@ -356,12 +314,19 @@ static inline CGFloat HalfStroke(void) {
     }
 }
 
-- (void)drawEndLine:(NSValue *)boundingValue fragmentRect:(NSValue *)fragmentValue origin:(CGPoint)origin backgroundColor:(UIColor *)backgroundColor borderColor:(UIColor *)borderColor {
+- (void)drawEndLine:(NSValue *)boundingValue fragmentRect:(NSValue *)fragmentValue referenceHeight:(CGFloat)referenceHeight origin:(CGPoint)origin backgroundColor:(UIColor *)backgroundColor borderColor:(UIColor *)borderColor {
     CGRect boundingRect = [boundingValue CGRectValue];
     CGRect fragmentRect = [fragmentValue CGRectValue];
     CGRect rect = [self adjustedRect:boundingRect atPoint:origin];
     rect.origin.x = fragmentRect.origin.x + origin.x;
     rect.size.width = CGRectGetMaxX(boundingRect) + origin.x - rect.origin.x;
+    
+    // Apply reference height if current line is smaller (for standalone code)
+    // Expand downward to match normal text height, keeping top aligned
+    if (rect.size.height < referenceHeight) {
+        rect.size.height = referenceHeight;
+    }
+    
     [self drawRoundedEdge:rect backgroundColor:backgroundColor borderColor:borderColor isLeft:NO];
 }
 

@@ -66,11 +66,6 @@ class RichTextViewManager : SimpleViewManager<RichTextView>(),
     view?.setFontWeight(weight)
   }
 
-  @ReactProp(name = "fontStyle")
-  override fun setFontStyle(view: RichTextView?, style: String?) {
-    view?.setFontStyle(style)
-  }
-
   @ReactProp(name = "richTextStyle")
   override fun setRichTextStyle(view: RichTextView?, style: com.facebook.react.bridge.ReadableMap?) {
     view?.setRichTextStyle(style)

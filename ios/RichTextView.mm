@@ -27,7 +27,6 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)setupConstraints;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
-- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size weight:(NSString *)weight style:(NSString *)style;
 - (void)setupLayoutManager;
 @end
 
@@ -184,9 +183,6 @@ oldProps:(Props::Shared const &)oldProps {
         _config = [[RichTextConfig alloc] init];
     }
         
-    // Update existing config object's properties
-    // Instead of creating a new config, we update the existing one that the layout manager references
-
     if (newViewProps.color != oldViewProps.color) {
         if (newViewProps.color) {
             UIColor *uiColor = RCTUIColorFromSharedColor(newViewProps.color);
@@ -485,23 +481,5 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
     }
 }
 
-- (UIFont *)createFontWithFamily:(NSString *)fontFamily size:(CGFloat)size weight:(NSString *)weight style:(NSString *)style {
-    // Use React Native's RCTFont.updateFont for consistent font handling
-    NSString *fontWeight = weight && weight.length > 0 ? weight : nullptr;
-    NSString *fontStyle = style && style.length > 0 ? style : nullptr;
-    
-    // Handle edge case: weight "0" should be treated as nullptr
-    if ([fontWeight isEqualToString:@"0"]) {
-        fontWeight = nullptr;
-    }
-    
-    return [RCTFont updateFont:nullptr
-                   withFamily:fontFamily
-                          size:@(size)
-                        weight:fontWeight
-                         style:fontStyle
-                      variant:nullptr
-                scaleMultiplier:1];
-}
 
 @end

@@ -7,7 +7,6 @@ import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatTextView
 import com.facebook.react.common.ReactConstants
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
-import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.react.bridge.ReadableMap
 import android.graphics.Canvas
@@ -28,7 +27,6 @@ class RichTextView : AppCompatTextView {
 
   var fontSize: Float? = null
   private var fontFamily: String? = null
-  private var fontStyle: Int = ReactConstants.UNSET
   private var fontWeight: Int = ReactConstants.UNSET
 
   var richTextStyle: RichTextStyle? = null
@@ -147,15 +145,6 @@ class RichTextView : AppCompatTextView {
     }
   }
 
-  fun setFontStyle(style: String?) {
-    val parsedStyle = parseFontStyle(style)
-    if (parsedStyle != fontStyle) {
-      fontStyle = parsedStyle
-      typefaceDirty = true
-      updateTypeface()
-    }
-  }
-
   fun setColor(color: Int?) {
     if (color != null) {
       setTextColor(color)
@@ -184,7 +173,7 @@ class RichTextView : AppCompatTextView {
     if (!typefaceDirty) return
     typefaceDirty = false
 
-    val newTypeface = applyStyles(typeface, fontStyle, fontWeight, fontFamily, context.assets)
+    val newTypeface = applyStyles(typeface, ReactConstants.UNSET, fontWeight, fontFamily, context.assets)
     setTypeface(newTypeface)
   }
 

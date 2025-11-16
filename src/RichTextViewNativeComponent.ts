@@ -61,11 +61,6 @@ export interface NativeProps extends ViewProps {
    */
   fontWeight?: string;
   /**
-   * Font style for all text elements.
-   * @example "normal", "italic"
-   */
-  fontStyle?: string;
-  /**
    * Text color in hex format.
    */
   color?: ColorValue;

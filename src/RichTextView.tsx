@@ -65,7 +65,6 @@ export const RichTextView = ({
   fontSize,
   fontFamily,
   fontWeight,
-  fontStyle,
   color,
   style = {},
   containerStyle,
@@ -81,7 +80,6 @@ export const RichTextView = ({
       fontSize={fontSize}
       fontFamily={fontFamily}
       fontWeight={fontWeight}
-      fontStyle={fontStyle}
       color={color}
       richTextStyle={normalizedStyle}
       onLinkPress={onLinkPress}

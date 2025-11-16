@@ -5,10 +5,15 @@ NSString *const RichTextCodeAttributeName = @"RichTextCode";
 static const CGFloat kCodeBackgroundCornerRadius = 2.0;
 static const CGFloat kCodeBackgroundBorderWidth = 1.0;
 
+// Half stroke width for centering border lines within the stroke width
 static inline CGFloat HalfStroke(void) {
     return kCodeBackgroundBorderWidth / 2.0;
 }
 
+/**
+ * Draws rounded rectangle backgrounds for code spans in markdown text.
+ * Handles both single-line and multi-line code blocks with proper border rendering.
+ */
 @implementation CodeBackground {
     RichTextConfig *_config;
 }
@@ -21,6 +26,10 @@ static inline CGFloat HalfStroke(void) {
     return self;
 }
 
+/**
+ * Draws code backgrounds for all code spans in the visible glyph range.
+ * Finds all RichTextCodeAttributeName instances and draws backgrounds for each.
+ */
 - (void)drawBackgroundsForGlyphRange:(NSRange)glyphsToShow
                         layoutManager:(NSLayoutManager *)layoutManager
                         textContainer:(NSTextContainer *)textContainer
@@ -99,6 +108,11 @@ static inline CGFloat HalfStroke(void) {
     }
 }
 
+/**
+ * Draws a multi-line code background with rounded corners on first and last lines.
+ * Strategy: rounded left edge on first line, rounded right edge on last line,
+ * rectangular middle lines with only top/bottom borders.
+ */
 - (void)drawMultiLineBackground:(NSRange)glyphRange
                  layoutManager:(NSLayoutManager *)layoutManager
                  textContainer:(NSTextContainer *)textContainer
@@ -135,6 +149,10 @@ static inline CGFloat HalfStroke(void) {
 
 #pragma mark - Drawing Methods
 
+/**
+ * Draws a rounded edge (left or right) for the first or last line of a multi-line code block.
+ * Creates both the fill path and the border path with rounded corners.
+ */
 - (void)drawRoundedEdge:(CGRect)rect
         backgroundColor:(UIColor *)backgroundColor
             borderColor:(UIColor *)borderColor
@@ -151,6 +169,11 @@ static inline CGFloat HalfStroke(void) {
     }
 }
 
+/**
+ * Creates a fill path for a rounded edge (left or right side of a code block line).
+ * Left edge: rounded top-left and bottom-left corners.
+ * Right edge: rounded top-right and bottom-right corners.
+ */
 - (UIBezierPath *)createRoundedFillPath:(CGRect)rect isLeft:(BOOL)isLeft {
     UIBezierPath *path = [UIBezierPath bezierPath];
     
@@ -179,6 +202,10 @@ static inline CGFloat HalfStroke(void) {
     return path;
 }
 
+/**
+ * Draws borders for middle lines of a multi-line code block.
+ * Middle lines only have top and bottom borders (no left or right borders).
+ */
 - (void)drawMiddleBorders:(CGRect)rect borderColor:(UIColor *)borderColor {
     CGFloat topY = rect.origin.y + HalfStroke();
     CGFloat bottomY = CGRectGetMaxY(rect) - HalfStroke();
@@ -194,6 +221,10 @@ static inline CGFloat HalfStroke(void) {
 
 #pragma mark - Path Creation
 
+/**
+ * Creates a path for the rounded border edge (left or right side).
+ * Uses quadratic curves for smooth rounded corners at top and bottom.
+ */
 - (UIBezierPath *)createRoundedBorderPath:(CGRect)rect topY:(CGFloat)topY bottomY:(CGFloat)bottomY isLeft:(BOOL)isLeft {
     UIBezierPath *path = [UIBezierPath bezierPath];
     
@@ -229,6 +260,10 @@ static inline CGFloat HalfStroke(void) {
 
 #pragma mark - Helper Methods
 
+/**
+ * Finds a reference line height for consistent multi-line code block rendering.
+ * Prefers lines with normal text (not full-width code) for accurate height measurement.
+ */
 - (CGFloat)findReferenceHeight:(NSArray<NSValue *> *)boundingRects
                   fragmentRects:(NSArray<NSValue *> *)fragmentRects
                 lineGlyphRanges:(NSArray<NSValue *> *)lineGlyphRanges
@@ -286,6 +321,11 @@ static inline CGFloat HalfStroke(void) {
     [self drawRoundedEdge:rect backgroundColor:backgroundColor borderColor:borderColor isLeft:YES];
 }
 
+/**
+ * Draws a middle line of a multi-line code block.
+ * Adjusts line height to match reference height for consistent rendering.
+ * Expands lines that are shorter than reference, ensuring no gaps between lines.
+ */
 - (void)drawMiddleLine:(NSValue *)fragmentValue referenceHeight:(CGFloat)referenceHeight origin:(CGPoint)origin backgroundColor:(UIColor *)backgroundColor borderColor:(UIColor *)borderColor {
     CGRect fragmentRect = [fragmentValue CGRectValue];
     CGRect rect = [self adjustedRect:fragmentRect atPoint:origin];

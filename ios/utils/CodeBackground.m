@@ -3,7 +3,7 @@
 NSString *const RichTextCodeAttributeName = @"RichTextCode";
 
 static const CGFloat kCodeBackgroundCornerRadius = 2.0;
-static const CGFloat kCodeBackgroundBorderWidth = 1.0;
+static const CGFloat kCodeBackgroundBorderWidth = 0.5; // Reduced to match Android visual appearance
 
 // Half stroke width for centering border lines within the stroke width
 static inline CGFloat HalfStroke(void) {

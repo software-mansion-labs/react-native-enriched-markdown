@@ -249,6 +249,11 @@ class RichTextImageSpan(
     // Batching mechanism per view to reduce flickering when multiple images load
     internal val pendingUpdates = mutableMapOf<RichTextView, Runnable>()
     
+    /**
+     * Creates a placeholder drawable for the image span.
+     * Must be in companion object because it's called during constructor initialization
+     * (before instance is fully available) via ImageSpan constructor.
+     */
     private fun createPlaceholderDrawable(
       context: Context,
       style: RichTextStyle,

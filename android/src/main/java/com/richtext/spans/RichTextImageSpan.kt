@@ -234,10 +234,10 @@ class RichTextImageSpan(
       fontSize: Float?
     ): Int {
       val inlineImageStyle = style.getInlineImageStyle()
-      val baseSizeDp = inlineImageStyle.size
+      val baseSizePx = inlineImageStyle.size
       val currentFontSize = fontSize ?: DEFAULT_FONT_SIZE
-      val scaledSizeDp = baseSizeDp * (currentFontSize / DEFAULT_FONT_SIZE)
-      return (scaledSizeDp * context.resources.displayMetrics.density).toInt()
+      val scaledSizePx = baseSizePx * (currentFontSize / DEFAULT_FONT_SIZE)
+      return scaledSizePx.toInt()
     }
     
     private fun createPlaceholderDrawable(

@@ -147,7 +147,7 @@ class RichTextStyle(style: ReadableMap) {
       "InlineImage style not found. JS should always provide defaults."
     }
     
-    val inlineImageSize = inlineImageStyleMap.getInt("size").toFloat()
+    val inlineImageSize = PixelUtil.toPixelFromDIP(inlineImageStyleMap.getInt("size").toFloat())
     
     inlineImageStyle = InlineImageStyle(inlineImageSize)
   }

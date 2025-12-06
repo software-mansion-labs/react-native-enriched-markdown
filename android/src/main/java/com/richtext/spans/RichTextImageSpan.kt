@@ -171,14 +171,14 @@ class RichTextImageSpan(
     private val borderRadius: Int = 0
   ) : Drawable() {
     
-    private val roundedRectPath = borderRadius.takeIf { it > 0 }?.let {
+    private val roundedRectPath: Path? = if (borderRadius > 0) {
       Path().apply {
         addRoundRect(
           0f, 0f, targetWidth.toFloat(), targetHeight.toFloat(),
-          it.toFloat(), it.toFloat(), Path.Direction.CW
+          borderRadius.toFloat(), borderRadius.toFloat(), Path.Direction.CW
         )
       }
-    }
+    } else null
     
     init {
       val imageWidth = imageDrawable.intrinsicWidth.takeIf { it > 0 } ?: targetWidth

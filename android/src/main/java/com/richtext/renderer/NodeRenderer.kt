@@ -248,6 +248,9 @@ class ImageRenderer(
         
         val isInline = builder.isInlineImage()
         val start = builder.length
+        
+        // Append object replacement character (U+FFFC) - Android requires text to attach spans to.
+        // ImageSpan will replace this placeholder with the actual image during rendering.
         builder.append("\uFFFC")
 
         if (config != null && context != null) {

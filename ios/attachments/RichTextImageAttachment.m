@@ -142,38 +142,47 @@
 - (UIImage *)scaleImage:(UIImage *)image toWidth:(CGFloat)targetWidth height:(CGFloat)targetHeight borderRadius:(CGFloat)borderRadius {
     if (!image) return nil;
     
-    CGSize imageSize = image.size;
-    if (imageSize.width == 0 || imageSize.height == 0) return image;
+    CGSize originalImageSize = image.size;
+    if (originalImageSize.width == 0 || originalImageSize.height == 0) return image;
     
-    // Inline: scale to fit height. Block: aspect fill (scale to fill both dimensions)
-    CGFloat scale = self.isInline 
-        ? targetHeight / imageSize.height
-        : MAX(targetWidth / imageSize.width, targetHeight / imageSize.height);
+    // Calculate scale factor: inline fits height, block fills both dimensions (aspect fill)
+    CGFloat scaleFactor = self.isInline 
+        ? targetHeight / originalImageSize.height
+        : MAX(targetWidth / originalImageSize.width, targetHeight / originalImageSize.height);
     
-    CGSize scaledSize = CGSizeMake(imageSize.width * scale, imageSize.height * scale);
-    CGSize finalSize = self.isInline 
+    CGSize scaledImageSize = CGSizeMake(originalImageSize.width * scaleFactor, originalImageSize.height * scaleFactor);
+    CGSize targetSize = self.isInline 
         ? CGSizeMake(targetHeight, targetHeight)
         : CGSizeMake(targetWidth, targetHeight);
     
-    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:finalSize];
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:targetSize];
     return [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {
         CGContextRef context = rendererContext.CGContext;
         
+        // Apply rounded corners if specified
         if (borderRadius > 0) {
-            UIBezierPath *roundedPath = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, finalSize.width, finalSize.height)
+            UIBezierPath *roundedPath = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, targetSize.width, targetSize.height)
                                                                cornerRadius:borderRadius];
             CGContextAddPath(context, roundedPath.CGPath);
             CGContextClip(context);
         }
         
-        // Draw image: inline at origin, block centered
-        CGRect drawRect = self.isInline
-            ? CGRectMake(0, 0, scaledSize.width, scaledSize.height)
-            : CGRectMake((targetWidth - scaledSize.width) / 2.0,
-                        (targetHeight - scaledSize.height) / 2.0,
-                        scaledSize.width, scaledSize.height);
-        [image drawInRect:drawRect];
+        // Calculate draw rect: inline at origin, block centered
+        CGRect imageDrawRect = [self calculateImageDrawRectForScaledSize:scaledImageSize 
+                                                              targetSize:targetSize];
+        [image drawInRect:imageDrawRect];
     }];
+}
+
+- (CGRect)calculateImageDrawRectForScaledSize:(CGSize)scaledSize targetSize:(CGSize)targetSize {
+    if (self.isInline) {
+        return CGRectMake(0, 0, scaledSize.width, scaledSize.height);
+    } else {
+        // Center the scaled image within the target size
+        CGFloat x = (targetSize.width - scaledSize.width) / 2.0;
+        CGFloat y = (targetSize.height - scaledSize.height) / 2.0;
+        return CGRectMake(x, y, scaledSize.width, scaledSize.height);
+    }
 }
 
 - (void)updateTextViewForLoadedImage:(UITextView *)textView {

@@ -41,7 +41,7 @@ class RichTextImageSpan(
 
   init {
     height = customHeight ?: if (isInline) {
-      calculateInlineImageSize(context, style, fontSize)
+      calculateInlineImageSize(fontSize)
     } else {
       imageStyle.height.toInt()
     }
@@ -49,6 +49,20 @@ class RichTextImageSpan(
   }
   
   private fun getWidth(): Int = if (isInline) height else (viewRef?.get()?.width ?: 0)
+  
+  /**
+   * Calculates inline image size in pixels, scaled with fontSize.
+   * TODO: Replace DEFAULT_FONT_SIZE with paragraph fontSize from style in the future.
+   */
+  private fun calculateInlineImageSize(fontSize: Float?): Int {
+    val inlineImageStyle = style.getInlineImageStyle()
+    val baseSizePx = inlineImageStyle.size
+    // Use fontSize if provided, otherwise fall back to default
+    // TODO: Get paragraph fontSize from style instead of using DEFAULT_FONT_SIZE
+    val currentFontSize = fontSize ?: DEFAULT_FONT_SIZE
+    val scaledSizePx = baseSizePx * (currentFontSize / DEFAULT_FONT_SIZE)
+    return scaledSizePx.toInt()
+  }
   
   /**
    * Registers a RichTextView with this span so it can be notified when images load.
@@ -223,22 +237,6 @@ class RichTextImageSpan(
     // Batching mechanism per view to reduce flickering when multiple images load
     internal val pendingUpdates = mutableMapOf<RichTextView, Runnable>()
     
-    /**
-     * Calculates inline image size in pixels, scaled with fontSize.
-     * TODO: Use paragraph fontSize instead of base fontSize for more accurate scaling
-     */
-    private fun calculateInlineImageSize(
-      context: Context,
-      style: RichTextStyle,
-      fontSize: Float?
-    ): Int {
-      val inlineImageStyle = style.getInlineImageStyle()
-      val baseSizePx = inlineImageStyle.size
-      val currentFontSize = fontSize ?: DEFAULT_FONT_SIZE
-      val scaledSizePx = baseSizePx * (currentFontSize / DEFAULT_FONT_SIZE)
-      return scaledSizePx.toInt()
-    }
-    
     private fun createPlaceholderDrawable(
       context: Context,
       style: RichTextStyle,
@@ -247,7 +245,13 @@ class RichTextImageSpan(
       fontSize: Float?
     ): Drawable {
       val width = if (isInline) {
-        calculateInlineImageSize(context, style, fontSize)
+        // Calculate inline image size (same logic as instance method, but needed here for constructor)
+        val inlineImageStyle = style.getInlineImageStyle()
+        val baseSizePx = inlineImageStyle.size
+        // Use fontSize if provided, otherwise fall back to default
+        // TODO: Get paragraph fontSize from style instead of using DEFAULT_FONT_SIZE
+        val currentFontSize = fontSize ?: DEFAULT_FONT_SIZE
+        (baseSizePx * (currentFontSize / DEFAULT_FONT_SIZE)).toInt()
       } else {
         // For block images, placeholder width doesn't matter - actual width will be set from TextView in getDrawable()
         // Use height as placeholder width to avoid layout issues

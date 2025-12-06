@@ -73,10 +73,17 @@ class RichTextImageSpan(
   fun registerTextView(view: RichTextView) {
     viewRef = WeakReference(view)
     if (!isInline && loadedDrawable == null) {
-      view.post {
-        if (view.width > 0 && loadedDrawable == null) {
-          loadImageWithGlide()
-        }
+      scheduleBlockImageLoad(view)
+    }
+  }
+  
+  /**
+   * Schedules image loading for block images after layout is complete.
+   */
+  private fun scheduleBlockImageLoad(view: RichTextView) {
+    view.post {
+      if (view.width > 0 && loadedDrawable == null) {
+        loadImageWithGlide()
       }
     }
   }

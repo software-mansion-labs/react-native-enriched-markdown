@@ -40,6 +40,7 @@ class RichTextImageSpan(
   } else {
     imageStyle.height.toInt()
   }
+  private val borderRadiusPx: Int = (imageStyle.borderRadius * context.resources.displayMetrics.density).toInt()
   private var viewRef: WeakReference<RichTextView>? = null
   private val placeholderDrawable: Drawable = super.getDrawable()
 
@@ -133,8 +134,6 @@ class RichTextImageSpan(
     val currentWidth = getWidth()
     
     if (currentWidth <= 0 && !isInline) return
-    
-    val borderRadiusPx = (imageStyle.borderRadius * context.resources.displayMetrics.density).toInt()
     
     Glide.with(context)
       .load(uri)

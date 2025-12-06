@@ -218,7 +218,6 @@ class RichTextImageSpan(
 
   companion object {
     private const val DEFAULT_FONT_SIZE = 14f
-    private const val BLOCK_IMAGE_PLACEHOLDER_WIDTH_DP = 300f
     private const val IMAGE_UPDATE_DELAY_MS = 50L
     
     // Batching mechanism per view to reduce flickering when multiple images load
@@ -247,11 +246,12 @@ class RichTextImageSpan(
       customHeight: Int?,
       fontSize: Float?
     ): Drawable {
-      val density = context.resources.displayMetrics.density
       val width = if (isInline) {
         calculateInlineImageSize(context, style, fontSize)
       } else {
-        (BLOCK_IMAGE_PLACEHOLDER_WIDTH_DP * density).toInt()
+        // For block images, placeholder width doesn't matter - actual width will be set from TextView in getDrawable()
+        // Use height as placeholder width to avoid layout issues
+        (customHeight ?: style.getImageStyle().height.toInt())
       }
       val height = customHeight ?: if (isInline) width else style.getImageStyle().height.toInt()
       

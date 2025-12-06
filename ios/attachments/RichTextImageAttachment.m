@@ -207,17 +207,24 @@
     NSAttributedString *currentText = textView.attributedText;
     if (!currentText || currentText.length == 0) return;
     
-    // UITextView caches attachment images - reset text to force re-query of image property
+    // Step 1: Force UITextView to re-query attachment images
+    // UITextView caches attachment images, so we must reset attributedText to trigger
+    // a fresh query of the attachment's image property
     textView.attributedText = [currentText copy];
     
-    // Invalidate layout to trigger redraw with new image
+    // Step 2: Invalidate and recalculate layout
+    // This ensures the layout manager recalculates positions with the new image
     NSRange fullRange = NSMakeRange(0, currentText.length);
     [textView.layoutManager invalidateLayoutForCharacterRange:fullRange actualCharacterRange:NULL];
     [textView.layoutManager ensureLayoutForTextContainer:textView.textContainer];
-    [textView invalidateIntrinsicContentSize];
+    
+    // Step 3: Trigger view updates
+    // Mark the view as needing layout and display to redraw with the new image
     [textView setNeedsLayout];
     [textView setNeedsDisplay];
     
+    // Step 4: Update parent view if needed
+    // Allow parent view to recalculate its size if it depends on text view's content
     UIView *superview = textView.superview;
     if (superview) {
         [superview invalidateIntrinsicContentSize];

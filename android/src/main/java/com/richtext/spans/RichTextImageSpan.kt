@@ -229,16 +229,15 @@ class RichTextImageSpan(
    * Updates the view's text to reflect loaded images.
    * TextView caches drawables from getDrawable(), so we need to set text again
    * to force TextView to re-query getDrawable().
+   * This is already called from a posted callback (via scheduleViewUpdate),
+   * so we can directly invalidate after setting text.
    */
   private fun updateViewForLoadedImages(view: RichTextView) {
     val currentText = view.text
     if (currentText is Spannable) {
-      // Setting text triggers layout. Use nested post() to ensure layout completes
-      // before invalidating, so code backgrounds are redrawn after layout.
       view.text = currentText
-      view.post {
-        view.postInvalidateOnAnimation()
-      }
+      // postInvalidateOnAnimation() syncs with VSync and will happen after layout completes
+      view.postInvalidateOnAnimation()
     }
   }
 

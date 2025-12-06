@@ -35,17 +35,18 @@ class RichTextImageSpan(
   
   private var loadedDrawable: Drawable? = null
   private val imageStyle = style.getImageStyle()
-  private val height: Int
+  private val height: Int = customHeight ?: if (isInline) {
+    calculateInlineImageSize(fontSize)
+  } else {
+    imageStyle.height.toInt()
+  }
   private var viewRef: WeakReference<RichTextView>? = null
   private val placeholderDrawable: Drawable = super.getDrawable()
 
   init {
-    height = customHeight ?: if (isInline) {
-      calculateInlineImageSize(fontSize)
-    } else {
-      imageStyle.height.toInt()
+    if (isInline) {
+      loadImageWithGlide(context)
     }
-    loadImageWithGlide(context)
   }
   
   private fun getWidth(): Int = if (isInline) height else (viewRef?.get()?.width ?: 0)

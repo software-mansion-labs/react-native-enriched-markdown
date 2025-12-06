@@ -11,6 +11,7 @@ import com.richtext.spans.RichTextCodeStyleSpan
 import com.richtext.spans.RichTextImageSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.addSpacing
+import com.richtext.utils.isInlineImage
 import org.commonmark.node.*
 import android.content.Context
 
@@ -245,10 +246,7 @@ class ImageRenderer(
         val image = node as? Image ?: return
         val imageUrl = image.destination ?: return
         
-        // Detect if image is inline (within paragraph with other content)
-        // Inline images don't have line breaks before them and are within text
-        val isInline = builder.isNotEmpty() && builder.last() != '\n' && builder.last() != '\u200B'
-        
+        val isInline = builder.isInlineImage()
         val start = builder.length
         builder.append("\uFFFC")
 

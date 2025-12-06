@@ -10,6 +10,7 @@
 @property (nonatomic, weak) RichTextConfig *config;
 @property (nonatomic, assign) BOOL isInline;
 @property (nonatomic, assign) CGFloat cachedHeight;
+@property (nonatomic, assign) CGFloat cachedBorderRadius;
 @property (nonatomic, weak) NSTextContainer *textContainer;
 @property (nonatomic, strong) UIImage *originalImage;
 @property (nonatomic, strong) UIImage *loadedImage;
@@ -28,8 +29,9 @@
         _config = config;
         _isInline = isInline;
         
-        // Cache height calculation to avoid repeated method calls
+        // Cache config values to avoid repeated method calls
         _cachedHeight = isInline ? [config inlineImageSize] : [config imageHeight];
+        _cachedBorderRadius = config ? [config imageBorderRadius] : 0.0;
         
         // Create placeholder - width will be recalculated in attachmentBoundsForTextContainer
         self.bounds = CGRectMake(0, 0, _cachedHeight, _cachedHeight);
@@ -78,8 +80,7 @@
     // Scale original image on-demand when bounds are available (dynamic sizing)
     if (self.originalImage && imageBounds.size.width > 0) {
         CGFloat targetWidth = self.isInline ? _cachedHeight : imageBounds.size.width;
-        CGFloat borderRadius = self.config ? [self.config imageBorderRadius] : 0.0;
-        UIImage *scaledImage = [self scaleImage:self.originalImage toWidth:targetWidth height:_cachedHeight borderRadius:borderRadius];
+        UIImage *scaledImage = [self scaleImage:self.originalImage toWidth:targetWidth height:_cachedHeight borderRadius:_cachedBorderRadius];
         
         if (scaledImage) {
             self.loadedImage = scaledImage;

@@ -75,27 +75,45 @@
               characterIndex:(NSUInteger)charIndex {
     self.textContainer = textContainer;
     
+    // Return cached scaled image if available
     if (self.loadedImage) {
         return self.loadedImage;
     }
     
     // Scale original image on-demand when bounds are available (dynamic sizing)
     if (self.originalImage && imageBounds.size.width > 0) {
-        CGFloat targetWidth = self.isInline ? _cachedHeight : imageBounds.size.width;
-        UIImage *scaledImage = [self scaleImage:self.originalImage toWidth:targetWidth height:_cachedHeight borderRadius:_cachedBorderRadius];
-        
+        UIImage *scaledImage = [self scaleAndCacheImageForBounds:imageBounds];
         if (scaledImage) {
-            self.loadedImage = scaledImage;
-            self.bounds = CGRectMake(0, 0, targetWidth, _cachedHeight);
             return scaledImage;
         }
     }
     
-    if (self.imageURL.length > 0) {
+    // Start loading if not already loaded
+    if (self.imageURL.length > 0 && !self.originalImage) {
         [self loadImage];
     }
     
+    // Return placeholder until image loads
     return self.image;
+}
+
+- (UIImage *)scaleAndCacheImageForBounds:(CGRect)imageBounds {
+    if (!self.originalImage || imageBounds.size.width <= 0) {
+        return nil;
+    }
+    
+    CGFloat targetWidth = self.isInline ? _cachedHeight : imageBounds.size.width;
+    UIImage *scaledImage = [self scaleImage:self.originalImage 
+                                    toWidth:targetWidth 
+                                     height:_cachedHeight 
+                               borderRadius:_cachedBorderRadius];
+    
+    if (scaledImage) {
+        self.loadedImage = scaledImage;
+        self.bounds = CGRectMake(0, 0, targetWidth, _cachedHeight);
+    }
+    
+    return scaledImage;
 }
 
 

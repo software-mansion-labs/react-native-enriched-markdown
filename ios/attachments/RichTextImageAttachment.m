@@ -3,6 +3,7 @@
 #import "RichTextRuntimeKeys.h"
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
+#import <React/RCTLog.h>
 
 // Constants for image rendering
 static const CGFloat kCenteringDivisor = 2.0;
@@ -109,7 +110,13 @@ static const CGFloat kMinimumValidDimension = 0.0;
 }
 
 - (UIImage *)scaleAndCacheImageForBounds:(CGRect)imageBounds {
-    if (!self.originalImage || imageBounds.size.width <= kMinimumValidDimension) {
+    if (!self.originalImage) {
+        RCTLogWarn(@"[RichTextImageAttachment] Cannot scale and cache: original image not loaded for '%@'", self.imageURL);
+        return nil;
+    }
+    
+    if (imageBounds.size.width <= kMinimumValidDimension) {
+        RCTLogWarn(@"[RichTextImageAttachment] Cannot scale and cache: invalid bounds width (%.1f) for '%@'", imageBounds.size.width, self.imageURL);
         return nil;
     }
     
@@ -144,21 +151,39 @@ static const CGFloat kMinimumValidDimension = 0.0;
 
 
 - (void)loadImage {
-    if (self.imageURL.length == 0) return;
+    if (self.imageURL.length == 0) {
+        RCTLogWarn(@"[RichTextImageAttachment] Cannot load image: empty URL");
+        return;
+    }
     
     NSURL *url = [NSURL URLWithString:self.imageURL];
-    if (!url || !url.scheme) return;
+    if (!url || !url.scheme) {
+        RCTLogWarn(@"[RichTextImageAttachment] Cannot load image: invalid URL '%@'", self.imageURL);
+        return;
+    }
     
     // Cancel any existing download task
     [self.loadingTask cancel];
     
     NSURLSession *session = [NSURLSession sharedSession];
     __weak typeof(self) weakSelf = self;
+    NSString *imageURLForLogging = [self.imageURL copy]; // Capture URL for logging in case self is deallocated
     self.loadingTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        if (error || !data) return;
+        if (error) {
+            RCTLogError(@"[RichTextImageAttachment] Failed to load image from '%@': %@", imageURLForLogging, error.localizedDescription);
+            return;
+        }
+        
+        if (!data) {
+            RCTLogWarn(@"[RichTextImageAttachment] No data received for image '%@'", imageURLForLogging);
+            return;
+        }
         
         UIImage *image = [UIImage imageWithData:data];
-        if (!image) return;
+        if (!image) {
+            RCTLogWarn(@"[RichTextImageAttachment] Invalid image data for '%@'", imageURLForLogging);
+            return;
+        }
         
         // Switch to main thread for UI updates
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -183,6 +208,8 @@ static const CGFloat kMinimumValidDimension = 0.0;
                     if (textView) {
                         [strongSelf updateTextViewForLoadedImage:textView];
                     }
+                } else {
+                    RCTLogWarn(@"[RichTextImageAttachment] Failed to scale inline image for '%@'", strongSelf.imageURL);
                 }
             }
         });
@@ -192,10 +219,14 @@ static const CGFloat kMinimumValidDimension = 0.0;
 }
 
 - (UIImage *)scaleImage:(UIImage *)image toWidth:(CGFloat)targetWidth height:(CGFloat)targetHeight borderRadius:(CGFloat)borderRadius {
-    if (!image) return nil;
+    if (!image) {
+        RCTLogWarn(@"[RichTextImageAttachment] Cannot scale image: image is nil");
+        return nil;
+    }
     
     CGSize originalImageSize = image.size;
     if (originalImageSize.width <= kMinimumValidDimension || originalImageSize.height <= kMinimumValidDimension) {
+        RCTLogWarn(@"[RichTextImageAttachment] Cannot scale image: invalid dimensions (%.1f x %.1f)", originalImageSize.width, originalImageSize.height);
         return nil;
     }
     

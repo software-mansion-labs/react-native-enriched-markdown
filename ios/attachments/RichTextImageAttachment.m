@@ -173,14 +173,24 @@
     if (originalImageSize.width == 0 || originalImageSize.height == 0) return image;
     
     // Calculate scale factor: inline fits height, block fills both dimensions (aspect fill)
-    CGFloat scaleFactor = self.isInline 
-        ? targetHeight / originalImageSize.height
-        : MAX(targetWidth / originalImageSize.width, targetHeight / originalImageSize.height);
+    CGFloat scaleFactor;
+    if (self.isInline) {
+        scaleFactor = targetHeight / originalImageSize.height;
+    } else {
+        CGFloat widthScale = targetWidth / originalImageSize.width;
+        CGFloat heightScale = targetHeight / originalImageSize.height;
+        scaleFactor = MAX(widthScale, heightScale);
+    }
     
     CGSize scaledImageSize = CGSizeMake(originalImageSize.width * scaleFactor, originalImageSize.height * scaleFactor);
-    CGSize targetSize = self.isInline 
-        ? CGSizeMake(targetHeight, targetHeight)
-        : CGSizeMake(targetWidth, targetHeight);
+    
+    // Determine target size: inline is square, block uses full width
+    CGSize targetSize;
+    if (self.isInline) {
+        targetSize = CGSizeMake(targetHeight, targetHeight);
+    } else {
+        targetSize = CGSizeMake(targetWidth, targetHeight);
+    }
     
     UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:targetSize];
     return [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {

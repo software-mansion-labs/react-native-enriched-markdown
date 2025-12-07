@@ -82,14 +82,14 @@
               characterIndex:(NSUInteger)charIndex {
     self.textContainer = textContainer;
     
-    // Return cached scaled image if available (avoids re-scaling on every layout pass)
+    // 1. Return cached scaled image if available (avoids re-scaling on every layout pass)
     if (self.loadedImage) {
         return self.loadedImage;
     }
     
-    // Scale original image on-demand when bounds are available
-    // For block images: wait until imageBounds.size.width is valid before scaling
-    // For inline images: scale immediately after loading (handled in loadImage completion)
+    // 2. Scale original image on-demand when bounds are available
+    // Block images: scale when bounds become valid
+    // Inline images: already scaled in loadImage completion, so this path is rarely reached
     if (self.originalImage && imageBounds.size.width > 0) {
         UIImage *scaledImage = [self scaleAndCacheImageForBounds:imageBounds];
         if (scaledImage) {
@@ -97,8 +97,7 @@
         }
     }
     
-    // Return transparent placeholder until image loads and is scaled
-    // Image loading started in init, so we just wait for it to complete
+    // 3. Return transparent placeholder until image loads and is scaled
     return self.image;
 }
 

@@ -45,9 +45,10 @@ class RichTextImageSpan(
   private val placeholderDrawable: Drawable = super.getDrawable()
 
   init {
-    if (isInline) {
-      loadImageWithGlide()
-    }
+    // Start loading immediately for both inline and block images
+    // Inline images: load with fixed size immediately
+    // Block images: wait for TextView width in loadImageWithGlide, but start downloading early
+    loadImageWithGlide()
   }
   
   private fun getWidth(): Int = if (isInline) height else (viewRef?.get()?.width ?: 0)
@@ -70,27 +71,18 @@ class RichTextImageSpan(
    * Registers a RichTextView with this span so it can be notified when images load.
    * Called automatically by RichTextView when text is set.
    * 
-   * Block images wait for TextView width because:
-   * - Block images should fill the full width of the TextView
-   * - TextView width is not available during span creation (constructor)
-   * - We need the actual width to scale images correctly and avoid layout issues
-   * - Inline images don't need TextView width as they use fixed height-based sizing
+   * Block images: Image loading started in init, but waits for TextView width.
+   * When width becomes available, we trigger loading if not already loaded.
    */
   fun registerTextView(view: RichTextView) {
     viewRef = WeakReference(view)
+    // For block images: trigger loading if width is now available and image not yet loaded
+    // Inline images already started loading in init
     if (!isInline && loadedDrawable == null) {
-      scheduleBlockImageLoad(view)
-    }
-  }
-  
-  /**
-   * Schedules image loading for block images after layout is complete.
-   * Uses post() to wait for the view's layout pass to complete, ensuring width is available.
-   */
-  private fun scheduleBlockImageLoad(view: RichTextView) {
-    view.post {
-      if (view.width > 0 && loadedDrawable == null) {
-        loadImageWithGlide()
+      view.post {
+        if (view.width > 0 && loadedDrawable == null) {
+          loadImageWithGlide()
+        }
       }
     }
   }

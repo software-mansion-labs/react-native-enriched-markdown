@@ -4,6 +4,10 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+// Constants for image rendering
+static const CGFloat kCenteringDivisor = 2.0;
+static const CGFloat kMinimumValidDimension = 0.0;
+
 @interface RichTextImageAttachment ()
 
 @property (nonatomic, strong) NSString *imageURL;
@@ -74,7 +78,7 @@
     // The actual width will be used when imageForBounds is called with proper bounds
     // This ensures block images fill the full width of the text container
     CGFloat width;
-    if (lineFrag.size.width > 0) {
+    if (lineFrag.size.width > kMinimumValidDimension) {
         width = lineFrag.size.width;
     } else {
         width = self.cachedHeight;
@@ -99,7 +103,7 @@
     // 2. Scale original image on-demand when bounds are available
     // Block images: scale when bounds become valid
     // Inline images: already scaled in loadImage completion, so this path is rarely reached
-    if (self.originalImage && imageBounds.size.width > 0) {
+    if (self.originalImage && imageBounds.size.width > kMinimumValidDimension) {
         UIImage *scaledImage = [self scaleAndCacheImageForBounds:imageBounds];
         if (scaledImage) {
             return scaledImage;
@@ -111,7 +115,7 @@
 }
 
 - (UIImage *)scaleAndCacheImageForBounds:(CGRect)imageBounds {
-    if (!self.originalImage || imageBounds.size.width <= 0) {
+    if (!self.originalImage || imageBounds.size.width <= kMinimumValidDimension) {
         return nil;
     }
     
@@ -197,7 +201,9 @@
     if (!image) return nil;
     
     CGSize originalImageSize = image.size;
-    if (originalImageSize.width == 0 || originalImageSize.height == 0) return nil;
+    if (originalImageSize.width <= kMinimumValidDimension || originalImageSize.height <= kMinimumValidDimension) {
+        return nil;
+    }
     
     // Calculate scale factor: inline fits height, block fills both dimensions (aspect fill)
     CGFloat scaleFactor;
@@ -224,7 +230,7 @@
         CGContextRef context = rendererContext.CGContext;
         
         // Apply rounded corners if specified
-        if (borderRadius > 0) {
+        if (borderRadius > kMinimumValidDimension) {
             UIBezierPath *roundedPath = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, targetSize.width, targetSize.height)
                                                                cornerRadius:borderRadius];
             CGContextAddPath(context, roundedPath.CGPath);
@@ -243,8 +249,8 @@
         return CGRectMake(0, 0, scaledImageSize.width, scaledImageSize.height);
     } else {
         // Center the scaled image within the target size
-        CGFloat x = (targetSize.width - scaledImageSize.width) / 2.0;
-        CGFloat y = (targetSize.height - scaledImageSize.height) / 2.0;
+        CGFloat x = (targetSize.width - scaledImageSize.width) / kCenteringDivisor;
+        CGFloat y = (targetSize.height - scaledImageSize.height) / kCenteringDivisor;
         return CGRectMake(x, y, scaledImageSize.width, scaledImageSize.height);
     }
 }

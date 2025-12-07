@@ -183,14 +183,14 @@
     }];
 }
 
-- (CGRect)calculateImageDrawRectForScaledSize:(CGSize)scaledSize targetSize:(CGSize)targetSize {
+- (CGRect)calculateImageDrawRectForScaledSize:(CGSize)scaledImageSize targetSize:(CGSize)targetSize {
     if (self.isInline) {
-        return CGRectMake(0, 0, scaledSize.width, scaledSize.height);
+        return CGRectMake(0, 0, scaledImageSize.width, scaledImageSize.height);
     } else {
         // Center the scaled image within the target size
-        CGFloat x = (targetSize.width - scaledSize.width) / 2.0;
-        CGFloat y = (targetSize.height - scaledSize.height) / 2.0;
-        return CGRectMake(x, y, scaledSize.width, scaledSize.height);
+        CGFloat x = (targetSize.width - scaledImageSize.width) / 2.0;
+        CGFloat y = (targetSize.height - scaledImageSize.height) / 2.0;
+        return CGRectMake(x, y, scaledImageSize.width, scaledImageSize.height);
     }
 }
 

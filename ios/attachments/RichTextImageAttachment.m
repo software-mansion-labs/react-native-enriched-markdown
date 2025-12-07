@@ -125,9 +125,6 @@
     NSURLSession *session = [NSURLSession sharedSession];
     __weak typeof(self) weakSelf = self;
     self.loadingTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) return;
-        
         if (error || !data) return;
         
         UIImage *image = [UIImage imageWithData:data];

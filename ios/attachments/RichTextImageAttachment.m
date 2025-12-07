@@ -116,6 +116,15 @@
     if (scaledImage) {
         self.loadedImage = scaledImage;
         self.bounds = CGRectMake(0, 0, targetWidth, self.cachedHeight);
+        
+        // For block images: update text view now that final scaled image is ready
+        // Inline images are already updated in loadImage completion handler
+        if (!self.isInline) {
+            UITextView *textView = [self textViewFromTextContainer:self.textContainer];
+            if (textView) {
+                [self updateTextViewForLoadedImage:textView];
+            }
+        }
     }
     
     return scaledImage;
@@ -146,10 +155,23 @@
             
             strongSelf.originalImage = image;
             
-            // Get text view from text container and update
-            UITextView *textView = [strongSelf textViewFromTextContainer:strongSelf.textContainer];
-            if (textView) {
-                [strongSelf updateTextViewForLoadedImage:textView];
+            // For inline images: scale immediately since size is fixed, then update
+            // For block images: wait for bounds to scale, update will happen in scaleAndCacheImageForBounds
+            if (strongSelf.isInline) {
+                UIImage *scaledImage = [strongSelf scaleImage:image 
+                                                      toWidth:strongSelf.cachedHeight 
+                                                       height:strongSelf.cachedHeight 
+                                                 borderRadius:strongSelf.cachedBorderRadius];
+                if (scaledImage) {
+                    strongSelf.loadedImage = scaledImage;
+                    strongSelf.bounds = CGRectMake(0, 0, strongSelf.cachedHeight, strongSelf.cachedHeight);
+                    
+                    // Update text view now that final image is ready
+                    UITextView *textView = [strongSelf textViewFromTextContainer:strongSelf.textContainer];
+                    if (textView) {
+                        [strongSelf updateTextViewForLoadedImage:textView];
+                    }
+                }
             }
         });
     }];

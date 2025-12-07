@@ -8,9 +8,12 @@ import com.richtext.spans.RichTextTextSpan
 import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextEmphasisSpan
 import com.richtext.spans.RichTextCodeStyleSpan
+import com.richtext.spans.RichTextImageSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.addSpacing
+import com.richtext.utils.isInlineImage
 import org.commonmark.node.*
+import android.content.Context
 
 interface NodeRenderer {
     fun render(
@@ -22,7 +25,8 @@ interface NodeRenderer {
 }
 
 data class RendererConfig(
-    val style: RichTextStyle
+    val style: RichTextStyle,
+    val fontSize: Float? = null
 )
 
 class DocumentRenderer(
@@ -229,6 +233,37 @@ class CodeRenderer(
     }
 }
 
+class ImageRenderer(
+    private val config: RendererConfig? = null,
+    private val context: Context? = null
+) : NodeRenderer {
+    override fun render(
+        node: Node,
+        builder: SpannableStringBuilder,
+        onLinkPress: ((String) -> Unit)?,
+        factory: RendererFactory
+    ) {
+        val image = node as? Image ?: return
+        val imageUrl = image.destination ?: return
+        
+        val isInline = builder.isInlineImage()
+        val start = builder.length
+        
+        // Append object replacement character (U+FFFC) - Android requires text to attach spans to.
+        // ImageSpan will replace this placeholder with the actual image during rendering.
+        builder.append("\uFFFC")
+
+        if (config != null && context != null) {
+            builder.setSpan(
+                RichTextImageSpan(context, imageUrl, config.style, isInline, null, config.fontSize),
+                start,
+                start + 1,
+                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+    }
+}
+
 class LineBreakRenderer : NodeRenderer {
     override fun render(
         node: Node,
@@ -240,7 +275,10 @@ class LineBreakRenderer : NodeRenderer {
     }
 }
 
-class RendererFactory(private val config: RendererConfig?) {
+class RendererFactory(
+    private val config: RendererConfig?,
+    private val context: Context? = null
+) {
     private val sharedTextRenderer = TextRenderer()
     private val sharedLinkRenderer = LinkRenderer(config)
     private val sharedHeadingRenderer = HeadingRenderer(config)
@@ -249,6 +287,7 @@ class RendererFactory(private val config: RendererConfig?) {
     private val sharedStrongRenderer = StrongRenderer(config)
     private val sharedEmphasisRenderer = EmphasisRenderer(config)
     private val sharedCodeRenderer = CodeRenderer(config)
+    private val sharedImageRenderer = ImageRenderer(config, context)
     private val sharedLineBreakRenderer = LineBreakRenderer()
 
     fun getRenderer(node: Node): NodeRenderer {
@@ -261,6 +300,7 @@ class RendererFactory(private val config: RendererConfig?) {
             is StrongEmphasis -> sharedStrongRenderer
             is Emphasis -> sharedEmphasisRenderer
             is Code -> sharedCodeRenderer
+            is Image -> sharedImageRenderer
             is HardLineBreak, is SoftLineBreak -> sharedLineBreakRenderer
             else -> {
                 android.util.Log.w(

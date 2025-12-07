@@ -5,6 +5,8 @@
 #import "RenderContext.h"
 #import "RichTextConfig.h"
 #import "RichTextLayoutManager.h"
+#import "RichTextImageAttachment.h"
+#import "RichTextRuntimeKeys.h"
 #import <objc/runtime.h>
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
@@ -41,18 +43,18 @@ static const CGFloat kLabelPadding = 10.0;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
-  if (self = [super initWithFrame:frame]) {
-    static const auto defaultProps = std::make_shared<const RichTextViewProps>();
-    _props = defaultProps;
+    if (self = [super initWithFrame:frame]) {
+        static const auto defaultProps = std::make_shared<const RichTextViewProps>();
+        _props = defaultProps;
 
         self.backgroundColor = [UIColor clearColor];  
         _parser = [[MarkdownParser alloc] init];
-
+        
         [self setupTextView];
         [self setupConstraints];
-  }
+    }
 
-  return self;
+    return self;
 }
 
 - (void)setupTextView {
@@ -63,6 +65,8 @@ static const CGFloat kLabelPadding = 10.0;
     _textView.backgroundColor = [UIColor clearColor];  
     _textView.textColor = [UIColor blackColor];
     _textView.editable = NO;
+    // TODO: Calculate proper height to fit all content including images
+    // Currently scrollEnabled = NO means content beyond viewport may not render
     _textView.scrollEnabled = NO;
     _textView.textContainerInset = UIEdgeInsetsZero;
     _textView.textContainer.lineFragmentPadding = 0;
@@ -163,20 +167,26 @@ static const CGFloat kLabelPadding = 10.0;
         [layoutManager setValue:_config forKey:@"config"];
     }
     
+    // Store text view on text container so attachments can access it
+    objc_setAssociatedObject(_textView.textContainer, kRichTextTextViewKey, _textView, OBJC_ASSOCIATION_ASSIGN);
+    
     _textView.attributedText = attributedText;
     
     // Ensure layout is updated
     [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
     [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, attributedText.length) actualCharacterRange:NULL];
+    
     [_textView setNeedsLayout];
     [_textView setNeedsDisplay];
+    [self setNeedsLayout];
 }
 
+
 - (void)updateProps:(Props::Shared const &)props 
-oldProps:(Props::Shared const &)oldProps {
+          oldProps:(Props::Shared const &)oldProps {
     const auto &oldViewProps = *std::static_pointer_cast<RichTextViewProps const>(_props);
     const auto &newViewProps = *std::static_pointer_cast<RichTextViewProps const>(props);
-
+    
     BOOL stylePropChanged = NO;
     
     if (_config == nil) {
@@ -370,6 +380,21 @@ oldProps:(Props::Shared const &)oldProps {
         } else {
             [_config setCodeBorderColor:nullptr];
         }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.image.height != oldViewProps.richTextStyle.image.height) {
+        [_config setImageHeight:newViewProps.richTextStyle.image.height];
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.image.borderRadius != oldViewProps.richTextStyle.image.borderRadius) {
+        [_config setImageBorderRadius:newViewProps.richTextStyle.image.borderRadius];
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.inlineImage.size != oldViewProps.richTextStyle.inlineImage.size) {
+        [_config setInlineImageSize:newViewProps.richTextStyle.inlineImage.size];
         stylePropChanged = YES;
     }
     

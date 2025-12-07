@@ -29,6 +29,15 @@ export interface CodeStyle {
   borderColor?: string;
 }
 
+export interface ImageStyle {
+  height?: number;
+  borderRadius?: number;
+}
+
+export interface InlineImageStyle {
+  size?: number;
+}
+
 export interface RichTextStyle {
   h1?: HeadingStyle;
   h2?: HeadingStyle;
@@ -40,6 +49,8 @@ export interface RichTextStyle {
   strong?: StrongStyle;
   em?: EmphasisStyle;
   code?: CodeStyle;
+  image?: ImageStyle;
+  inlineImage?: InlineImageStyle;
 }
 
 export interface RichTextViewProps

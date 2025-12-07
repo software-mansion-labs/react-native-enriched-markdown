@@ -38,6 +38,11 @@
     UIColor *_codeColor;
     UIColor *_codeBackgroundColor;
     UIColor *_codeBorderColor;
+    // Image properties
+    CGFloat _imageHeight;
+    CGFloat _imageBorderRadius;
+    // Inline image properties
+    CGFloat _inlineImageSize;
 }
 
 - (instancetype)init {
@@ -74,6 +79,9 @@
     copy->_codeColor = [_codeColor copy];
     copy->_codeBackgroundColor = [_codeBackgroundColor copy];
     copy->_codeBorderColor = [_codeBorderColor copy];
+    copy->_imageHeight = _imageHeight;
+    copy->_imageBorderRadius = _imageBorderRadius;
+    copy->_inlineImageSize = _inlineImageSize;
     
     return copy;
 }
@@ -277,6 +285,30 @@
 
 - (void)setCodeBorderColor:(UIColor *)newValue {
     _codeBorderColor = newValue;
+}
+
+- (CGFloat)imageHeight {
+    return _imageHeight;
+}
+
+- (void)setImageHeight:(CGFloat)newValue {
+    _imageHeight = newValue;
+}
+
+- (CGFloat)imageBorderRadius {
+    return _imageBorderRadius;
+}
+
+- (void)setImageBorderRadius:(CGFloat)newValue {
+    _imageBorderRadius = newValue;
+}
+
+- (CGFloat)inlineImageSize {
+    return _inlineImageSize;
+}
+
+- (void)setInlineImageSize:(CGFloat)newValue {
+    _inlineImageSize = newValue;
 }
 
 @end

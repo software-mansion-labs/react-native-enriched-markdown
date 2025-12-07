@@ -17,6 +17,16 @@ fun SpannableStringBuilder.addSpacing() {
 }
 
 /**
+ * Determines if an image should be rendered inline (within text) or as a block element.
+ * An image is inline if it's not preceded by a line break or zero-width space.
+ */
+fun SpannableStringBuilder.isInlineImage(): Boolean {
+    if (isEmpty()) return false
+    val lastChar = last()
+    return lastChar != '\n' && lastChar != '\u200B'
+}
+
+/**
  * Applies a color to TextPaint while preserving priority colors (e.g., link color).
  */
 fun TextPaint.applyColorPreserving(color: Int, vararg preserveColors: Int) {

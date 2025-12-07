@@ -6,6 +6,7 @@
 #import "StrongRenderer.h"
 #import "EmphasisRenderer.h"
 #import "CodeRenderer.h"
+#import "ImageRenderer.h"
 #import "RenderContext.h"
 
 @implementation RendererFactory {
@@ -16,6 +17,7 @@
     StrongRenderer *_sharedStrongRenderer;
     EmphasisRenderer *_sharedEmphasisRenderer;
     CodeRenderer *_sharedCodeRenderer;
+    ImageRenderer *_sharedImageRenderer;
     ParagraphRenderer *_sharedParagraphRenderer;
 }
 
@@ -30,6 +32,8 @@
                                                                              config:config];
         _sharedCodeRenderer = [[CodeRenderer alloc] initWithRendererFactory:self
                                                                       config:config];
+        _sharedImageRenderer = [[ImageRenderer alloc] initWithRendererFactory:self
+                                                                       config:config];
         _sharedLinkRenderer = [[LinkRenderer alloc] initWithRendererFactory:self config:config];
         _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithRendererFactory:self
                                                                          config:config];
@@ -54,6 +58,8 @@
             return _sharedEmphasisRenderer;
         case MarkdownNodeTypeCode:
             return _sharedCodeRenderer;
+        case MarkdownNodeTypeImage:
+            return _sharedImageRenderer;
         default: 
             return nil;
     }

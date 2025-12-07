@@ -11,8 +11,11 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.react.bridge.ReadableMap
 import android.graphics.Canvas
 import android.text.Spanned
+import android.text.Spannable
+import android.text.SpannableString
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
+import com.richtext.spans.RichTextImageSpan
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.CodeBackground
 
@@ -68,11 +71,15 @@ class RichTextView : AppCompatTextView {
         val currentStyle = requireNotNull(richTextStyle) {
           "richTextStyle should always be provided from JS side with defaults."
         }
-        renderer.setStyle(currentStyle)
+        renderer.configure(currentStyle, context, fontSize)
         val styledText = renderer.renderDocument(document, onLinkPressCallback)
         codeBackground = CodeBackground(currentStyle)
         text = styledText
+        registerImageSpans(styledText)
         movementMethod = LinkMovementMethod.getInstance()
+        
+        // Invalidate after layout is calculated to ensure code backgrounds are drawn
+        invalidateCodeBackgrounds()
       } else {
         android.util.Log.e("RichTextView", "Failed to parse markdown - Document is null")
         codeBackground = null
@@ -82,15 +89,6 @@ class RichTextView : AppCompatTextView {
       android.util.Log.e("RichTextView", "Error parsing markdown: ${e.message}")
       codeBackground = null
       text = ""
-    }
-    
-    // Invalidate after layout is calculated to ensure code backgrounds are drawn.
-    // setText() invalidates immediately, but layout may not be ready yet.
-    // Using post() defers invalidation until after the current layout pass completes.
-    if (codeBackground != null) {
-      post {
-        invalidate()
-      }
     }
   }
 
@@ -183,6 +181,24 @@ class RichTextView : AppCompatTextView {
     updateTypeface()
   }
   
+  override fun onDetachedFromWindow() {
+    super.onDetachedFromWindow()
+    // Clean up any pending image update callbacks to prevent memory leaks
+    cleanupPendingImageUpdates()
+  }
+  
+  /**
+   * Cancels and removes any pending image update callbacks for this view.
+   * Called when the view is detached to prevent memory leaks.
+   */
+  private fun cleanupPendingImageUpdates() {
+    val pendingRunnable = RichTextImageSpan.pendingUpdates[this]
+    pendingRunnable?.let {
+      removeCallbacks(it)
+      RichTextImageSpan.pendingUpdates.remove(this)
+    }
+  }
+  
   override fun onDraw(canvas: Canvas) {
     val currentLayout = layout ?: return super.onDraw(canvas)
     val currentText = text as? Spanned ?: return super.onDraw(canvas)
@@ -195,4 +211,30 @@ class RichTextView : AppCompatTextView {
     
     super.onDraw(canvas)
   }
+  
+  /**
+   * Scans the text for ImageSpans and registers this TextView with them
+   * so they can trigger redraws when images load.
+   */
+  private fun registerImageSpans(text: SpannableString) {
+    val imageSpans = text.getSpans(0, text.length, RichTextImageSpan::class.java)
+    for (span in imageSpans) {
+      span.registerTextView(this)
+    }
+  }
+  
+  /**
+   * Invalidates the view to redraw code backgrounds after layout is calculated.
+   * setText() triggers a layout pass. Using post() defers invalidation until
+   * after the current message queue processes, which includes layout calculation.
+   * postInvalidateOnAnimation() syncs with VSync to minimize flickering.
+   */
+  private fun invalidateCodeBackgrounds() {
+    if (codeBackground != null) {
+      post {
+        postInvalidateOnAnimation()
+      }
+    }
+  }
+  
 }

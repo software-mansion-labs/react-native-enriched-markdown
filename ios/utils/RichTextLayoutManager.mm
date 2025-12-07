@@ -1,13 +1,8 @@
 #import "RichTextLayoutManager.h"
 #import "CodeBackground.h"
 #import "RichTextConfig.h"
+#import "RichTextRuntimeKeys.h"
 #import <objc/runtime.h>
-
-// Use associated objects to store config and drawing objects (more reliable with object_setClass)
-static void *ConfigKey = &ConfigKey;
-static void *CodeBackgroundKey = &CodeBackgroundKey;
-// Add more keys here for other element types:
-// static void *BlockquoteBackgroundKey = &BlockquoteBackgroundKey;
 
 @implementation RichTextLayoutManager
 
@@ -24,10 +19,10 @@ static void *CodeBackgroundKey = &CodeBackgroundKey;
     
     // Draw code backgrounds
     RichTextConfig *config = self.config;
-    CodeBackground *codeBackground = objc_getAssociatedObject(self, CodeBackgroundKey);
+    CodeBackground *codeBackground = objc_getAssociatedObject(self, kRichTextCodeBackgroundKey);
     if (!codeBackground) {
         codeBackground = [[CodeBackground alloc] initWithConfig:config];
-        objc_setAssociatedObject(self, CodeBackgroundKey, codeBackground, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self, kRichTextCodeBackgroundKey, codeBackground, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     
     [codeBackground drawBackgroundsForGlyphRange:glyphsToShow
@@ -43,13 +38,13 @@ static void *CodeBackgroundKey = &CodeBackgroundKey;
 }
 
 - (RichTextConfig *)config {
-    return objc_getAssociatedObject(self, ConfigKey);
+    return objc_getAssociatedObject(self, kRichTextConfigKey);
 }
 
 - (void)setConfig:(RichTextConfig *)config {
-    objc_setAssociatedObject(self, ConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, kRichTextConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     // Reset all drawing objects when config changes (they'll be recreated on next draw)
-    objc_setAssociatedObject(self, CodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, kRichTextCodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     // Add more resets here for other element types
 }
 

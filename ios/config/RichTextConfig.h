@@ -61,5 +61,13 @@
 - (void)setCodeBackgroundColor:(UIColor *)newValue;
 - (UIColor *)codeBorderColor;
 - (void)setCodeBorderColor:(UIColor *)newValue;
+// Image properties
+- (CGFloat)imageHeight;
+- (void)setImageHeight:(CGFloat)newValue;
+- (CGFloat)imageBorderRadius;
+- (void)setImageBorderRadius:(CGFloat)newValue;
+// Inline image properties
+- (CGFloat)inlineImageSize;
+- (void)setInlineImageSize:(CGFloat)newValue;
 
 @end

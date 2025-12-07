@@ -30,6 +30,14 @@ static void addInlineNodeToContext(MarkdownASTNode *node, MD4CContext *context) 
     }
 }
 
+static NSString *stringFromMDAttribute(const MD_ATTRIBUTE *attr) {
+    if (!attr || attr->size == 0) return nil;
+    
+    return [[NSString alloc] initWithBytes:attr->text
+                                     length:attr->size
+                                   encoding:NSUTF8StringEncoding];
+}
+
 // MD4C callback functions
 // Note: All callbacks return 0 for success (continue parsing) or non-zero for error (stop parsing)
 static int md4c_enter_block_callback(MD_BLOCKTYPE type, void *detail, void *userdata) {
@@ -90,13 +98,9 @@ static int md4c_enter_span_callback(MD_SPANTYPE type, void *detail, void *userda
             node = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeLink];
             if (detail) {
                 MD_SPAN_A_DETAIL *linkDetail = (MD_SPAN_A_DETAIL *)detail;
-                if (linkDetail->href.size > 0) {
-                    NSString *url = [[NSString alloc] initWithBytes:linkDetail->href.text 
-                                                             length:linkDetail->href.size 
-                                                           encoding:NSUTF8StringEncoding];
-                    if (url) {
-                        [node setAttribute:@"url" value:url];
-                    }
+                NSString *url = stringFromMDAttribute(&linkDetail->href);
+                if (url) {
+                    [node setAttribute:@"url" value:url];
                 }
             }
             break;
@@ -111,6 +115,21 @@ static int md4c_enter_span_callback(MD_SPANTYPE type, void *detail, void *userda
         }
         case MD_SPAN_CODE: {
             node = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeCode];
+            break;
+        }
+        case MD_SPAN_IMG: {
+            node = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeImage];
+            if (detail) {
+                MD_SPAN_IMG_DETAIL *imgDetail = (MD_SPAN_IMG_DETAIL *)detail;
+                NSString *url = stringFromMDAttribute(&imgDetail->src);
+                if (url) {
+                    [node setAttribute:@"url" value:url];
+                }
+                NSString *title = stringFromMDAttribute(&imgDetail->title);
+                if (title) {
+                    [node setAttribute:@"title" value:title];
+                }
+            }
             break;
         }
         default:

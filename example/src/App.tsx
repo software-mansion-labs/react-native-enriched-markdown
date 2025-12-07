@@ -11,6 +11,8 @@ const sampleMarkdown = `# Welcome to the ***React Native*** Markdown component!
 
 This is a simple text with links and __bold text__.
 
+![GitHub Logo](https://static.vecteezy.com/system/resources/previews/060/023/285/non_2x/sad-wild-monkey-in-nature-on-monkey-mountain-in-da-nang-in-vietnam-photo.jpg)
+
 Check out this [link to React Native](https://reactnative.dev) and this [GitHub repository](https://github.com/facebook/react-native).
 
 Here's some **bold text** and regular text together. You can also have **[bold links](https://reactnative.dev)** that are both bold and clickable!
@@ -20,6 +22,10 @@ You can use *emphasis* with asterisks or _emphasis_ with underscores. You can al
 You can use inline code like \`const x = 42\` or \`function test() {}\` within text. You can also combine code with **strong** like **\`getUserData()\`** or *emphasis* like *\`isValid\`* or *\`handleClick\`*. You can even combine both: **\`boldCode\`** and *\`italicCode\`*.
 
 Here's a longer inline code example that will wrap to multiple lines: \`const result = await fetchUserData(userId, profile, options, flags, errorCallback, call, function)\`.
+
+![GitHub Logo](https://t3.ftcdn.net/jpg/04/19/36/50/360_F_419365051_DshHeVWEWVKVn878QnjZzoknJZCz36Z6.jpg)
+
+You can also use images inline with text like this ![GitHub icon](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png) in the middle of a sentence.
 
 Built with ❤️ using **React Native Fabric Architecture**`;
 
@@ -75,6 +81,10 @@ const markdownStyle = {
     color: '#E83E8C',
     backgroundColor: '#F3F4F6',
     borderColor: 'red',
+  },
+  image: {
+    height: 200,
+    borderRadius: 3,
   },
 };
 

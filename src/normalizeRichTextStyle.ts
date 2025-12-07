@@ -71,6 +71,15 @@ const defaultCodeStyle: RichTextStyleInternal['code'] = {
   borderColor: defaultCodeBorderColor,
 };
 
+const defaultImageStyle: RichTextStyleInternal['image'] = {
+  height: 200,
+  borderRadius: 10,
+};
+
+const defaultInlineImageStyle: RichTextStyleInternal['inlineImage'] = {
+  size: 16,
+};
+
 export const normalizeRichTextStyle = (
   style: RichTextStyle
 ): RichTextStyleInternal => {
@@ -121,6 +130,15 @@ export const normalizeRichTextStyle = (
         defaultCodeStyle.backgroundColor,
       borderColor:
         normalizeColor(style.code?.borderColor) ?? defaultCodeStyle.borderColor,
+    },
+    image: {
+      ...defaultImageStyle,
+      height: style.image?.height ?? defaultImageStyle.height,
+      borderRadius: style.image?.borderRadius ?? defaultImageStyle.borderRadius,
+    },
+    inlineImage: {
+      ...defaultInlineImageStyle,
+      size: style.inlineImage?.size ?? defaultInlineImageStyle.size,
     },
   };
 };

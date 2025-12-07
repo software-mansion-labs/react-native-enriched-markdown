@@ -29,6 +29,15 @@ interface CodeStyleInternal {
   borderColor: ColorValue;
 }
 
+interface ImageStyleInternal {
+  height: CodegenTypes.Float;
+  borderRadius: CodegenTypes.Float;
+}
+
+interface InlineImageStyleInternal {
+  size: CodegenTypes.Float;
+}
+
 export interface RichTextStyleInternal {
   h1: HeadingStyleInternal;
   h2: HeadingStyleInternal;
@@ -40,6 +49,8 @@ export interface RichTextStyleInternal {
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;
   code: CodeStyleInternal;
+  image: ImageStyleInternal;
+  inlineImage: InlineImageStyleInternal;
 }
 
 export interface NativeProps extends ViewProps {

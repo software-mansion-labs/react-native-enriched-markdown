@@ -27,12 +27,23 @@ data class CodeStyle(
   val borderColor: Int
 )
 
+data class ImageStyle(
+  val height: Float,
+  val borderRadius: Float
+)
+
+data class InlineImageStyle(
+  val size: Float
+)
+
 class RichTextStyle(style: ReadableMap) {
   private val headingStyles = arrayOfNulls<HeadingStyle>(7)
   private lateinit var linkStyle: LinkStyle
   private lateinit var strongStyle: StrongStyle
   private lateinit var emphasisStyle: EmphasisStyle
   private lateinit var codeStyle: CodeStyle
+  private lateinit var imageStyle: ImageStyle
+  private lateinit var inlineImageStyle: InlineImageStyle
 
   init {
     parseStyles(style)
@@ -65,6 +76,14 @@ class RichTextStyle(style: ReadableMap) {
 
   fun getCodeStyle(): CodeStyle {
     return codeStyle
+  }
+
+  fun getImageStyle(): ImageStyle {
+    return imageStyle
+  }
+
+  fun getInlineImageStyle(): InlineImageStyle {
+    return inlineImageStyle
   }
 
   private fun parseStyles(style: ReadableMap) {
@@ -114,6 +133,23 @@ class RichTextStyle(style: ReadableMap) {
     val codeBorderColor = codeStyleMap.getInt("borderColor")
     
     codeStyle = CodeStyle(codeColor, codeBackgroundColor, codeBorderColor)
+
+    val imageStyleMap = requireNotNull(style.getMap("image")) {
+      "Image style not found. JS should always provide defaults."
+    }
+    
+    val imageHeight = PixelUtil.toPixelFromDIP(imageStyleMap.getDouble("height").toFloat())
+    val imageBorderRadius = PixelUtil.toPixelFromDIP(imageStyleMap.getDouble("borderRadius").toFloat())
+    
+    imageStyle = ImageStyle(imageHeight, imageBorderRadius)
+
+    val inlineImageStyleMap = requireNotNull(style.getMap("inlineImage")) {
+      "InlineImage style not found. JS should always provide defaults."
+    }
+    
+    val inlineImageSize = PixelUtil.toPixelFromDIP(inlineImageStyleMap.getInt("size").toFloat())
+    
+    inlineImageStyle = InlineImageStyle(inlineImageSize)
   }
 }
 

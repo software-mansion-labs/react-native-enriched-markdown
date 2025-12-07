@@ -7,12 +7,14 @@ import org.commonmark.node.*
 
 class Renderer {
     private var style: RichTextStyle? = null
+    private var fontSize: Float? = null
     private lateinit var rendererFactory: RendererFactory
 
-    fun setStyle(style: RichTextStyle) {
+    fun configure(style: RichTextStyle, context: android.content.Context? = null, fontSize: Float? = null) {
         this.style = style
-        val config = RendererConfig(style)
-        rendererFactory = RendererFactory(config)
+        this.fontSize = fontSize
+        val config = RendererConfig(style, fontSize)
+        rendererFactory = RendererFactory(config, context)
     }
 
     fun renderDocument(document: Document, onLinkPress: ((String) -> Unit)? = null): SpannableString {

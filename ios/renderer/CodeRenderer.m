@@ -4,6 +4,7 @@
 #import "RichTextConfig.h"
 #import "RendererFactory.h"
 #import "CodeBackground.h"
+#import "FontUtils.h"
 
 @implementation CodeRenderer {
     RendererFactory *_rendererFactory;
@@ -25,18 +26,18 @@
           withFont:(UIFont *)font
             color:(UIColor *)color
            context:(RenderContext *)context {
-            
-    UIFont *monospacedFont;
-    if (!font) {
-        monospacedFont = [UIFont monospacedSystemFontOfSize:16 weight:UIFontWeightRegular];
-    } else {
-        CGFloat fontSize = font.pointSize * 0.85;
-        UIFontDescriptorSymbolicTraits traits = font.fontDescriptor.symbolicTraits;
-        UIFontWeight weight = (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
-        monospacedFont = [UIFont monospacedSystemFontOfSize:fontSize weight:weight];
-    }
     
-    UIColor *codeColor = _config.codeColor ?: color;
+    BlockStyle *blockStyle = [context getBlockStyle];
+    
+    UIColor *codeColor = _config.codeColor;
+    
+    UIFont *blockFont = fontFromBlockStyle(blockStyle);
+    CGFloat codeFontSize = blockStyle.fontSize * 0.85;
+    
+    UIFontDescriptorSymbolicTraits traits = blockFont.fontDescriptor.symbolicTraits;
+    UIFontWeight weight = (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
+    
+    UIFont *monospacedFont = [UIFont monospacedSystemFontOfSize:codeFontSize weight:weight];
     
     NSUInteger start = output.length;
     
@@ -55,6 +56,10 @@
             codeAttributes[NSForegroundColorAttributeName] = codeColor;
         }
         codeAttributes[RichTextCodeAttributeName] = @YES;
+        
+        // Store block line height directly for CodeBackground to use
+        codeAttributes[@"RichTextBlockLineHeight"] = @(blockFont.lineHeight);
+        
         [output addAttributes:codeAttributes range:range];
     }
 }

@@ -13,36 +13,69 @@
 - (NSString *)primaryFontFamily;
 - (void)setPrimaryFontFamily:(NSString *)newValue;
 - (UIFont *)primaryFont;
+// Paragraph properties
+- (CGFloat)paragraphFontSize;
+- (void)setParagraphFontSize:(CGFloat)newValue;
+- (NSString *)paragraphFontFamily;
+- (void)setParagraphFontFamily:(NSString *)newValue;
+- (NSString *)paragraphFontWeight;
+- (void)setParagraphFontWeight:(NSString *)newValue;
+- (UIColor *)paragraphColor;
+- (void)setParagraphColor:(UIColor *)newValue;
 // H1 properties
 - (CGFloat)h1FontSize;
 - (void)setH1FontSize:(CGFloat)newValue;
 - (NSString *)h1FontFamily;
 - (void)setH1FontFamily:(NSString *)newValue;
+- (NSString *)h1FontWeight;
+- (void)setH1FontWeight:(NSString *)newValue;
+- (UIColor *)h1Color;
+- (void)setH1Color:(UIColor *)newValue;
 // H2 properties
 - (CGFloat)h2FontSize;
 - (void)setH2FontSize:(CGFloat)newValue;
 - (NSString *)h2FontFamily;
 - (void)setH2FontFamily:(NSString *)newValue;
+- (NSString *)h2FontWeight;
+- (void)setH2FontWeight:(NSString *)newValue;
+- (UIColor *)h2Color;
+- (void)setH2Color:(UIColor *)newValue;
 // H3 properties
 - (CGFloat)h3FontSize;
 - (void)setH3FontSize:(CGFloat)newValue;
 - (NSString *)h3FontFamily;
 - (void)setH3FontFamily:(NSString *)newValue;
+- (NSString *)h3FontWeight;
+- (void)setH3FontWeight:(NSString *)newValue;
+- (UIColor *)h3Color;
+- (void)setH3Color:(UIColor *)newValue;
 // H4 properties
 - (CGFloat)h4FontSize;
 - (void)setH4FontSize:(CGFloat)newValue;
 - (NSString *)h4FontFamily;
 - (void)setH4FontFamily:(NSString *)newValue;
+- (NSString *)h4FontWeight;
+- (void)setH4FontWeight:(NSString *)newValue;
+- (UIColor *)h4Color;
+- (void)setH4Color:(UIColor *)newValue;
 // H5 properties
 - (CGFloat)h5FontSize;
 - (void)setH5FontSize:(CGFloat)newValue;
 - (NSString *)h5FontFamily;
 - (void)setH5FontFamily:(NSString *)newValue;
+- (NSString *)h5FontWeight;
+- (void)setH5FontWeight:(NSString *)newValue;
+- (UIColor *)h5Color;
+- (void)setH5Color:(UIColor *)newValue;
 // H6 properties
 - (CGFloat)h6FontSize;
 - (void)setH6FontSize:(CGFloat)newValue;
 - (NSString *)h6FontFamily;
 - (void)setH6FontFamily:(NSString *)newValue;
+- (NSString *)h6FontWeight;
+- (void)setH6FontWeight:(NSString *)newValue;
+- (UIColor *)h6Color;
+- (void)setH6Color:(UIColor *)newValue;
 // Link properties
 - (UIColor *)linkColor;
 - (void)setLinkColor:(UIColor *)newValue;

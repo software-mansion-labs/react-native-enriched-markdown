@@ -3,6 +3,7 @@
 #import "RenderContext.h"
 #import "RichTextConfig.h"
 #import "RendererFactory.h"
+#import "FontUtils.h"
 
 @implementation EmphasisRenderer {
     RendererFactory *_rendererFactory;
@@ -34,23 +35,6 @@
     return [UIFont fontWithDescriptor:italicDescriptor size:font.pointSize] ?: font;
 }
 
-- (UIColor *)emphasisColorFromColor:(UIColor *)color {
-    if (!_config) {
-        return color;
-    }
-    
-    RichTextConfig *config = (RichTextConfig *)_config;
-    UIColor *configStrongColor = [config strongColor];
-    UIColor *configEmphasisColor = [config emphasisColor];
-    
-    // If nested inside strong (color matches strongColor), preserve strong color
-    if (configStrongColor && [color isEqual:configStrongColor]) {
-        return configStrongColor;
-    }
-    
-    return configEmphasisColor ?: color;
-}
-
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font
@@ -58,12 +42,32 @@
            context:(RenderContext *)context {
     NSUInteger start = output.length;
     
-    UIColor *emphasisColor = [self emphasisColorFromColor:color];
-    UIFont *italicFont = [self ensureFontIsItalic:font];
+    // Read block style from context to inherit base properties
+    BlockStyle *blockStyle = [context getBlockStyle];
+    
+    // Get emphasisColor from config if explicitly set
+    RichTextConfig *config = (RichTextConfig *)_config;
+    UIColor *configEmphasisColor = [config emphasisColor];
+    UIColor *configStrongColor = [config strongColor];
+    
+    UIFont *emphasisFont;
+    UIColor *emphasisColor;
+    
+    // Inherit fontSize, fontFamily, fontWeight from block style
+    UIFont *blockFont = fontFromBlockStyle(blockStyle);
+    emphasisFont = [self ensureFontIsItalic:blockFont];
+    
+    // If nested inside strong (block color matches strongColor), preserve strong color
+    if (configStrongColor && [blockStyle.color isEqual:configStrongColor]) {
+        emphasisColor = configStrongColor;
+    } else {
+        // Override color with emphasisColor from config if explicitly set, otherwise use block color
+        emphasisColor = configEmphasisColor ?: blockStyle.color;
+    }
     
     [_rendererFactory renderChildrenOfNode:node
                                       into:output
-                                  withFont:italicFont
+                                  withFont:emphasisFont
                                      color:emphasisColor
                                     context:context];
     
@@ -72,7 +76,7 @@
         NSRange range = NSMakeRange(start, len);
         NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
         UIFont *currentFont = existingAttributes[NSFontAttributeName];
-        UIFont *verifiedItalicFont = [self ensureFontIsItalic:currentFont ?: italicFont];
+        UIFont *verifiedItalicFont = [self ensureFontIsItalic:currentFont ?: emphasisFont];
         
         if (![verifiedItalicFont isEqual:currentFont]) {
             NSMutableDictionary *emphasisAttributes = [existingAttributes ?: @{} mutableCopy];

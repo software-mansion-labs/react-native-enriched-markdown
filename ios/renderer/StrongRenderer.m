@@ -3,6 +3,7 @@
 #import "RenderContext.h"
 #import "RichTextConfig.h"
 #import "RendererFactory.h"
+#import "FontUtils.h"
 
 @implementation StrongRenderer {
     RendererFactory *_rendererFactory;
@@ -34,16 +35,6 @@
     return [UIFont fontWithDescriptor:boldDescriptor size:font.pointSize] ?: font;
 }
 
-- (UIColor *)strongColorFromColor:(UIColor *)color {
-    if (!_config) {
-        return color;
-    }
-    
-    RichTextConfig *config = (RichTextConfig *)_config;
-    UIColor *configStrongColor = [config strongColor];
-    return configStrongColor ?: color;
-}
-
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font
@@ -51,8 +42,14 @@
            context:(RenderContext *)context {
     NSUInteger start = output.length;
     
-    UIColor *strongColor = [self strongColorFromColor:color];
-    UIFont *strongFont = [self ensureFontIsBold:font];
+    BlockStyle *blockStyle = [context getBlockStyle];
+    
+    RichTextConfig *config = (RichTextConfig *)_config;
+    UIColor *configStrongColor = [config strongColor];
+    
+    UIFont *blockFont = fontFromBlockStyle(blockStyle);
+    UIFont *strongFont = [self ensureFontIsBold:blockFont];
+    UIColor *strongColor = configStrongColor ?: blockStyle.color;
     
     [_rendererFactory renderChildrenOfNode:node
                                       into:output

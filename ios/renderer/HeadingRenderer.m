@@ -2,6 +2,7 @@
 #import "SpacingUtils.h"
 #import "RichTextConfig.h"
 #import "RendererFactory.h"
+#import "RenderContext.h"
 
 @implementation HeadingRenderer {
     RendererFactory *_rendererFactory;
@@ -34,6 +35,15 @@
     RichTextConfig *config = (RichTextConfig *)self.config;
     CGFloat fontSize = [self getFontSizeForLevel:level config:config];
     NSString *fontFamily = [self getFontFamilyForLevel:level config:config];
+    NSString *fontWeight = [self getFontWeightForLevel:level config:config];
+    UIColor *headingColor = [self getColorForLevel:level config:config];
+    
+    [context setBlockStyle:BlockTypeHeading
+                  fontSize:fontSize
+                fontFamily:fontFamily
+                fontWeight:fontWeight
+                     color:headingColor
+              headingLevel:level];
     
     // Try custom font family first, fallback to base font with size
     if (fontFamily.length > 0) {
@@ -43,11 +53,15 @@
         headingFont = [UIFont fontWithDescriptor:font.fontDescriptor size:fontSize];
     }
     
-    [_rendererFactory renderChildrenOfNode:node
-                                      into:output
-                                  withFont:headingFont
-                                     color:color
-                                    context:context];
+    @try {
+        [_rendererFactory renderChildrenOfNode:node
+                                          into:output
+                                      withFont:headingFont
+                                         color:headingColor ?: color
+                                        context:context];
+    } @finally {
+        [context clearBlockStyle];
+    }
     
     NSAttributedString *spacing = createSpacing();
     [output appendAttributedString:spacing];
@@ -81,6 +95,38 @@
             // Should never happen - JS always provides all 6 levels
             NSLog(@"Warning: Invalid heading level %ld, using H1 family", (long)level);
             return [config h1FontFamily];
+        }
+    }
+}
+
+- (NSString *)getFontWeightForLevel:(NSInteger)level config:(RichTextConfig *)config {
+    switch (level) {
+        case 1: return [config h1FontWeight];
+        case 2: return [config h2FontWeight];
+        case 3: return [config h3FontWeight];
+        case 4: return [config h4FontWeight];
+        case 5: return [config h5FontWeight];
+        case 6: return [config h6FontWeight];
+        default: {
+            // Should never happen - JS always provides all 6 levels
+            NSLog(@"Warning: Invalid heading level %ld, using H1 weight", (long)level);
+            return [config h1FontWeight];
+        }
+    }
+}
+
+- (UIColor *)getColorForLevel:(NSInteger)level config:(RichTextConfig *)config {
+    switch (level) {
+        case 1: return [config h1Color];
+        case 2: return [config h2Color];
+        case 3: return [config h3Color];
+        case 4: return [config h4Color];
+        case 5: return [config h5Color];
+        case 6: return [config h6Color];
+        default: {
+            // Should never happen - JS always provides all 6 levels
+            NSLog(@"Warning: Invalid heading level %ld, using H1 color", (long)level);
+            return [config h1Color];
         }
     }
 }

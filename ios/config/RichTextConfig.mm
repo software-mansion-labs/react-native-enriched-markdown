@@ -9,24 +9,41 @@
     NSString *_primaryFontFamily;
     UIFont *_primaryFont;
     BOOL _primaryFontNeedsRecreation;
+    // Paragraph properties
+    CGFloat _paragraphFontSize;
+    NSString *_paragraphFontFamily;
+    NSString *_paragraphFontWeight;
+    UIColor *_paragraphColor;
     // H1 properties
     CGFloat _h1FontSize;
     NSString *_h1FontFamily;
+    NSString *_h1FontWeight;
+    UIColor *_h1Color;
     // H2 properties
     CGFloat _h2FontSize;
     NSString *_h2FontFamily;
+    NSString *_h2FontWeight;
+    UIColor *_h2Color;
     // H3 properties
     CGFloat _h3FontSize;
     NSString *_h3FontFamily;
+    NSString *_h3FontWeight;
+    UIColor *_h3Color;
     // H4 properties
     CGFloat _h4FontSize;
     NSString *_h4FontFamily;
+    NSString *_h4FontWeight;
+    UIColor *_h4Color;
     // H5 properties
     CGFloat _h5FontSize;
     NSString *_h5FontFamily;
+    NSString *_h5FontWeight;
+    UIColor *_h5Color;
     // H6 properties
     CGFloat _h6FontSize;
     NSString *_h6FontFamily;
+    NSString *_h6FontWeight;
+    UIColor *_h6Color;
     // Link properties
     UIColor *_linkColor;
     BOOL _linkUnderline;
@@ -60,18 +77,34 @@
     copy->_primaryFontFamily = [_primaryFontFamily copy];
     copy->_primaryFontNeedsRecreation = YES;
     
+    copy->_paragraphFontSize = _paragraphFontSize;
+    copy->_paragraphFontFamily = [_paragraphFontFamily copy];
+    copy->_paragraphFontWeight = [_paragraphFontWeight copy];
+    copy->_paragraphColor = [_paragraphColor copy];
     copy->_h1FontSize = _h1FontSize;
     copy->_h1FontFamily = [_h1FontFamily copy];
+    copy->_h1FontWeight = [_h1FontWeight copy];
+    copy->_h1Color = [_h1Color copy];
     copy->_h2FontSize = _h2FontSize;
     copy->_h2FontFamily = [_h2FontFamily copy];
+    copy->_h2FontWeight = [_h2FontWeight copy];
+    copy->_h2Color = [_h2Color copy];
     copy->_h3FontSize = _h3FontSize;
     copy->_h3FontFamily = [_h3FontFamily copy];
+    copy->_h3FontWeight = [_h3FontWeight copy];
+    copy->_h3Color = [_h3Color copy];
     copy->_h4FontSize = _h4FontSize;
     copy->_h4FontFamily = [_h4FontFamily copy];
+    copy->_h4FontWeight = [_h4FontWeight copy];
+    copy->_h4Color = [_h4Color copy];
     copy->_h5FontSize = _h5FontSize;
     copy->_h5FontFamily = [_h5FontFamily copy];
+    copy->_h5FontWeight = [_h5FontWeight copy];
+    copy->_h5Color = [_h5Color copy];
     copy->_h6FontSize = _h6FontSize;
     copy->_h6FontFamily = [_h6FontFamily copy];
+    copy->_h6FontWeight = [_h6FontWeight copy];
+    copy->_h6Color = [_h6Color copy];
     copy->_linkColor = [_linkColor copy];
     copy->_linkUnderline = _linkUnderline;
     copy->_strongColor = [_strongColor copy];
@@ -135,6 +168,39 @@
     return _primaryFont;
 }
 
+// Paragraph properties
+- (CGFloat)paragraphFontSize {
+    return _paragraphFontSize > 0 ? _paragraphFontSize : 16;
+}
+
+- (void)setParagraphFontSize:(CGFloat)newValue {
+    _paragraphFontSize = newValue;
+}
+
+- (NSString *)paragraphFontFamily {
+    return _paragraphFontFamily ?: @"";
+}
+
+- (void)setParagraphFontFamily:(NSString *)newValue {
+    _paragraphFontFamily = newValue;
+}
+
+- (NSString *)paragraphFontWeight {
+    return _paragraphFontWeight ?: @"normal";
+}
+
+- (void)setParagraphFontWeight:(NSString *)newValue {
+    _paragraphFontWeight = newValue;
+}
+
+- (UIColor *)paragraphColor {
+    return _paragraphColor ?: [UIColor blackColor];
+}
+
+- (void)setParagraphColor:(UIColor *)newValue {
+    _paragraphColor = newValue;
+}
+
 - (CGFloat)h1FontSize {
     return _h1FontSize;
 }
@@ -149,6 +215,22 @@
 
 - (void)setH1FontFamily:(NSString *)newValue {
     _h1FontFamily = newValue;
+}
+
+- (NSString *)h1FontWeight {
+    return _h1FontWeight ?: @"normal";
+}
+
+- (void)setH1FontWeight:(NSString *)newValue {
+    _h1FontWeight = newValue;
+}
+
+- (UIColor *)h1Color {
+    return _h1Color ?: [UIColor blackColor];
+}
+
+- (void)setH1Color:(UIColor *)newValue {
+    _h1Color = newValue;
 }
 
 - (CGFloat)h2FontSize {
@@ -167,6 +249,22 @@
     _h2FontFamily = newValue;
 }
 
+- (NSString *)h2FontWeight {
+    return _h2FontWeight ?: @"normal";
+}
+
+- (void)setH2FontWeight:(NSString *)newValue {
+    _h2FontWeight = newValue;
+}
+
+- (UIColor *)h2Color {
+    return _h2Color ?: [UIColor blackColor];
+}
+
+- (void)setH2Color:(UIColor *)newValue {
+    _h2Color = newValue;
+}
+
 - (CGFloat)h3FontSize {
     return _h3FontSize;
 }
@@ -181,6 +279,22 @@
 
 - (void)setH3FontFamily:(NSString *)newValue {
     _h3FontFamily = newValue;
+}
+
+- (NSString *)h3FontWeight {
+    return _h3FontWeight ?: @"normal";
+}
+
+- (void)setH3FontWeight:(NSString *)newValue {
+    _h3FontWeight = newValue;
+}
+
+- (UIColor *)h3Color {
+    return _h3Color ?: [UIColor blackColor];
+}
+
+- (void)setH3Color:(UIColor *)newValue {
+    _h3Color = newValue;
 }
 
 - (CGFloat)h4FontSize {
@@ -199,6 +313,22 @@
     _h4FontFamily = newValue;
 }
 
+- (NSString *)h4FontWeight {
+    return _h4FontWeight ?: @"normal";
+}
+
+- (void)setH4FontWeight:(NSString *)newValue {
+    _h4FontWeight = newValue;
+}
+
+- (UIColor *)h4Color {
+    return _h4Color ?: [UIColor blackColor];
+}
+
+- (void)setH4Color:(UIColor *)newValue {
+    _h4Color = newValue;
+}
+
 - (CGFloat)h5FontSize {
     return _h5FontSize;
 }
@@ -215,6 +345,22 @@
     _h5FontFamily = newValue;
 }
 
+- (NSString *)h5FontWeight {
+    return _h5FontWeight ?: @"normal";
+}
+
+- (void)setH5FontWeight:(NSString *)newValue {
+    _h5FontWeight = newValue;
+}
+
+- (UIColor *)h5Color {
+    return _h5Color ?: [UIColor blackColor];
+}
+
+- (void)setH5Color:(UIColor *)newValue {
+    _h5Color = newValue;
+}
+
 - (CGFloat)h6FontSize {
     return _h6FontSize;
 }
@@ -229,6 +375,22 @@
 
 - (void)setH6FontFamily:(NSString *)newValue {
     _h6FontFamily = newValue;
+}
+
+- (NSString *)h6FontWeight {
+    return _h6FontWeight ?: @"normal";
+}
+
+- (void)setH6FontWeight:(NSString *)newValue {
+    _h6FontWeight = newValue;
+}
+
+- (UIColor *)h6Color {
+    return _h6Color ?: [UIColor blackColor];
+}
+
+- (void)setH6Color:(UIColor *)newValue {
+    _h6Color = newValue;
 }
 
 - (UIColor *)linkColor {

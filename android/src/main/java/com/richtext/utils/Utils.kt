@@ -1,9 +1,14 @@
 package com.richtext.utils
 
+import android.content.Context
 import android.graphics.Typeface
 import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.TextPaint
+import com.facebook.react.common.ReactConstants
+import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
+import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
+import com.richtext.renderer.BlockStyle
 
 /**
  * Adds Zero Width Space spacing between markdown elements.
@@ -52,6 +57,25 @@ fun TextPaint.applyTypefacePreserving(baseTypeface: Typeface, vararg preserveSty
     } else {
         baseTypeface
     }
+}
+
+/**
+ * Applies fontFamily and fontWeight from BlockStyle to TextPaint.
+ * Used by spans that inherit font properties from block elements (paragraph, headings).
+ */
+fun TextPaint.applyBlockStyleFont(blockStyle: BlockStyle, context: Context) {
+    val baseTypeface = blockStyle.fontFamily.takeIf { it.isNotEmpty() }
+        ?.let { Typeface.create(it, Typeface.NORMAL) }
+        ?: (this.typeface ?: Typeface.DEFAULT)
+    
+    val fontWeight = parseFontWeight(blockStyle.fontWeight)
+    this.typeface = applyStyles(
+        baseTypeface,
+        ReactConstants.UNSET,
+        fontWeight,
+        blockStyle.fontFamily.takeIf { it.isNotEmpty() },
+        context.assets
+    )
 }
 
 private const val DEFAULT_LINESPACING_EXTRA = 0f

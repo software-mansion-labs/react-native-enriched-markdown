@@ -12,8 +12,9 @@ class RichTextHeadingSpan(
 ) : AbsoluteSizeSpan(style.getHeadingFontSize(level).toInt()) {
 
   private val cachedTypeface: Typeface? by lazy {
-    style.getHeadingFontFamily(level)?.let { fontFamily ->
-      Typeface.create(fontFamily, Typeface.NORMAL)
+    val fontFamily = style.getHeadingFontFamily(level)
+    fontFamily.takeIf { it.isNotEmpty() }?.let { 
+      Typeface.create(it, Typeface.NORMAL)
     }
   }
 

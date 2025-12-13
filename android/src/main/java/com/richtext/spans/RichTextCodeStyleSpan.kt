@@ -3,10 +3,12 @@ package com.richtext.spans
 import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
+import com.richtext.renderer.BlockStyle
 import com.richtext.styles.RichTextStyle
 
 class RichTextCodeStyleSpan(
-  private val style: RichTextStyle
+  private val style: RichTextStyle,
+  private val blockStyle: BlockStyle
 ) : MetricAffectingSpan() {
 
   override fun updateDrawState(tp: TextPaint) {
@@ -19,7 +21,9 @@ class RichTextCodeStyleSpan(
   }
 
   private fun applyMonospacedFont(paint: TextPaint) {
-    paint.textSize = paint.textSize * 0.85f
+    // Calculate code fontSize from block style (0.85 * block fontSize)
+    val codeFontSize = blockStyle.fontSize * 0.85f
+    paint.textSize = codeFontSize
 
     val currentTypeface = paint.typeface ?: Typeface.DEFAULT
     val preservedStyle = currentTypeface.style and (Typeface.BOLD or Typeface.ITALIC)

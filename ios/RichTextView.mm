@@ -7,6 +7,7 @@
 #import "RichTextLayoutManager.h"
 #import "RichTextImageAttachment.h"
 #import "RichTextRuntimeKeys.h"
+#import "FontUtils.h"
 #import <objc/runtime.h>
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
@@ -30,6 +31,8 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
 - (void)setupLayoutManager;
+- (UIFont *)defaultFontFromParagraphStyle;
+- (UIColor *)defaultColorFromParagraphStyle;
 @end
 
 @implementation RichTextView {
@@ -143,11 +146,10 @@ static const CGFloat kLabelPadding = 10.0;
     AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:_config];
     RenderContext *renderContext = [RenderContext new];
     
-    UIFont *font = [_config primaryFont];
-    UIColor *color = _textView.textColor ?: [UIColor blackColor];
-    if ([_config primaryColor]) {
-        color = [_config primaryColor];
-    }
+    // Use paragraph style as the default font/color for rendering
+    // This will be overridden by block styles when rendering specific blocks
+    UIFont *font = [self defaultFontFromParagraphStyle];
+    UIColor *color = [self defaultColorFromParagraphStyle];
     
     NSMutableAttributedString *attributedText = [renderer renderRoot:ast font:font color:color context:renderContext];
     
@@ -192,50 +194,48 @@ static const CGFloat kLabelPadding = 10.0;
     if (_config == nil) {
         _config = [[RichTextConfig alloc] init];
     }
-        
-    if (newViewProps.color != oldViewProps.color) {
-        if (newViewProps.color) {
-            UIColor *uiColor = RCTUIColorFromSharedColor(newViewProps.color);
-            [_config setPrimaryColor:uiColor];
+    
+    // Paragraph style
+    if (newViewProps.richTextStyle.paragraph.fontSize != oldViewProps.richTextStyle.paragraph.fontSize) {
+        [_config setParagraphFontSize:newViewProps.richTextStyle.paragraph.fontSize];
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.paragraph.fontFamily != oldViewProps.richTextStyle.paragraph.fontFamily) {
+        if (!newViewProps.richTextStyle.paragraph.fontFamily.empty()) {
+            NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.paragraph.fontFamily.c_str()];
+            [_config setParagraphFontFamily:fontFamily];
         } else {
-            [_config setPrimaryColor:nullptr];
+            [_config setParagraphFontFamily:nullptr];
         }
         stylePropChanged = YES;
     }
     
-    if (newViewProps.fontSize != oldViewProps.fontSize) {
-        if (newViewProps.fontSize > 0) {
-            NSNumber *fontSize = @(newViewProps.fontSize);
-            [_config setPrimaryFontSize:fontSize];
+    if (newViewProps.richTextStyle.paragraph.fontWeight != oldViewProps.richTextStyle.paragraph.fontWeight) {
+        if (!newViewProps.richTextStyle.paragraph.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.paragraph.fontWeight.c_str()];
+            [_config setParagraphFontWeight:fontWeight];
         } else {
-            [_config setPrimaryFontSize:nullptr];
+            [_config setParagraphFontWeight:nullptr];
         }
         stylePropChanged = YES;
     }
     
-    if (newViewProps.fontWeight != oldViewProps.fontWeight) {
-        if (!newViewProps.fontWeight.empty()) {
-            [_config setPrimaryFontWeight:[[NSString alloc] initWithUTF8String:newViewProps.fontWeight.c_str()]];
+    if (newViewProps.richTextStyle.paragraph.color != oldViewProps.richTextStyle.paragraph.color) {
+        if (newViewProps.richTextStyle.paragraph.color) {
+            UIColor *paragraphColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.paragraph.color);
+            [_config setParagraphColor:paragraphColor];
         } else {
-            [_config setPrimaryFontWeight:nullptr];
+            [_config setParagraphColor:nullptr];
         }
         stylePropChanged = YES;
     }
     
-    if (newViewProps.fontFamily != oldViewProps.fontFamily) {
-        if (!newViewProps.fontFamily.empty()) {
-            [_config setPrimaryFontFamily:[[NSString alloc] initWithUTF8String:newViewProps.fontFamily.c_str()]];
-        } else {
-            [_config setPrimaryFontFamily:nullptr];
-        }
-        stylePropChanged = YES;
-    }
-    
+    // H1 style
     if (newViewProps.richTextStyle.h1.fontSize != oldViewProps.richTextStyle.h1.fontSize) {
         [_config setH1FontSize:newViewProps.richTextStyle.h1.fontSize];
         stylePropChanged = YES;
     }
-    
     
     if (newViewProps.richTextStyle.h1.fontFamily != oldViewProps.richTextStyle.h1.fontFamily) {
         if (!newViewProps.richTextStyle.h1.fontFamily.empty()) {
@@ -247,6 +247,27 @@ static const CGFloat kLabelPadding = 10.0;
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.h1.fontWeight != oldViewProps.richTextStyle.h1.fontWeight) {
+        if (!newViewProps.richTextStyle.h1.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h1.fontWeight.c_str()];
+            [_config setH1FontWeight:fontWeight];
+        } else {
+            [_config setH1FontWeight:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h1.color != oldViewProps.richTextStyle.h1.color) {
+        if (newViewProps.richTextStyle.h1.color) {
+            UIColor *h1Color = RCTUIColorFromSharedColor(newViewProps.richTextStyle.h1.color);
+            [_config setH1Color:h1Color];
+        } else {
+            [_config setH1Color:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // H2 style
     if (newViewProps.richTextStyle.h2.fontSize != oldViewProps.richTextStyle.h2.fontSize) {
         [_config setH2FontSize:newViewProps.richTextStyle.h2.fontSize];
         stylePropChanged = YES;
@@ -262,6 +283,27 @@ static const CGFloat kLabelPadding = 10.0;
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.h2.fontWeight != oldViewProps.richTextStyle.h2.fontWeight) {
+        if (!newViewProps.richTextStyle.h2.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h2.fontWeight.c_str()];
+            [_config setH2FontWeight:fontWeight];
+        } else {
+            [_config setH2FontWeight:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h2.color != oldViewProps.richTextStyle.h2.color) {
+        if (newViewProps.richTextStyle.h2.color) {
+            UIColor *h2Color = RCTUIColorFromSharedColor(newViewProps.richTextStyle.h2.color);
+            [_config setH2Color:h2Color];
+        } else {
+            [_config setH2Color:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // H3 style
     if (newViewProps.richTextStyle.h3.fontSize != oldViewProps.richTextStyle.h3.fontSize) {
         [_config setH3FontSize:newViewProps.richTextStyle.h3.fontSize];
         stylePropChanged = YES;
@@ -277,6 +319,27 @@ static const CGFloat kLabelPadding = 10.0;
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.h3.fontWeight != oldViewProps.richTextStyle.h3.fontWeight) {
+        if (!newViewProps.richTextStyle.h3.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h3.fontWeight.c_str()];
+            [_config setH3FontWeight:fontWeight];
+        } else {
+            [_config setH3FontWeight:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h3.color != oldViewProps.richTextStyle.h3.color) {
+        if (newViewProps.richTextStyle.h3.color) {
+            UIColor *h3Color = RCTUIColorFromSharedColor(newViewProps.richTextStyle.h3.color);
+            [_config setH3Color:h3Color];
+        } else {
+            [_config setH3Color:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // H4 style
     if (newViewProps.richTextStyle.h4.fontSize != oldViewProps.richTextStyle.h4.fontSize) {
         [_config setH4FontSize:newViewProps.richTextStyle.h4.fontSize];
         stylePropChanged = YES;
@@ -292,6 +355,27 @@ static const CGFloat kLabelPadding = 10.0;
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.h4.fontWeight != oldViewProps.richTextStyle.h4.fontWeight) {
+        if (!newViewProps.richTextStyle.h4.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h4.fontWeight.c_str()];
+            [_config setH4FontWeight:fontWeight];
+        } else {
+            [_config setH4FontWeight:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h4.color != oldViewProps.richTextStyle.h4.color) {
+        if (newViewProps.richTextStyle.h4.color) {
+            UIColor *h4Color = RCTUIColorFromSharedColor(newViewProps.richTextStyle.h4.color);
+            [_config setH4Color:h4Color];
+        } else {
+            [_config setH4Color:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // H5 style
     if (newViewProps.richTextStyle.h5.fontSize != oldViewProps.richTextStyle.h5.fontSize) {
         [_config setH5FontSize:newViewProps.richTextStyle.h5.fontSize];
         stylePropChanged = YES;
@@ -307,6 +391,27 @@ static const CGFloat kLabelPadding = 10.0;
         stylePropChanged = YES;
     }
     
+    if (newViewProps.richTextStyle.h5.fontWeight != oldViewProps.richTextStyle.h5.fontWeight) {
+        if (!newViewProps.richTextStyle.h5.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h5.fontWeight.c_str()];
+            [_config setH5FontWeight:fontWeight];
+        } else {
+            [_config setH5FontWeight:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h5.color != oldViewProps.richTextStyle.h5.color) {
+        if (newViewProps.richTextStyle.h5.color) {
+            UIColor *h5Color = RCTUIColorFromSharedColor(newViewProps.richTextStyle.h5.color);
+            [_config setH5Color:h5Color];
+        } else {
+            [_config setH5Color:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    // H6 style
     if (newViewProps.richTextStyle.h6.fontSize != oldViewProps.richTextStyle.h6.fontSize) {
         [_config setH6FontSize:newViewProps.richTextStyle.h6.fontSize];
         stylePropChanged = YES;
@@ -318,6 +423,26 @@ static const CGFloat kLabelPadding = 10.0;
             [_config setH6FontFamily:fontFamily];
         } else {
             [_config setH6FontFamily:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h6.fontWeight != oldViewProps.richTextStyle.h6.fontWeight) {
+        if (!newViewProps.richTextStyle.h6.fontWeight.empty()) {
+            NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.h6.fontWeight.c_str()];
+            [_config setH6FontWeight:fontWeight];
+        } else {
+            [_config setH6FontWeight:nullptr];
+        }
+        stylePropChanged = YES;
+    }
+    
+    if (newViewProps.richTextStyle.h6.color != oldViewProps.richTextStyle.h6.color) {
+        if (newViewProps.richTextStyle.h6.color) {
+            UIColor *h6Color = RCTUIColorFromSharedColor(newViewProps.richTextStyle.h6.color);
+            [_config setH6Color:h6Color];
+        } else {
+            [_config setH6Color:nullptr];
         }
         stylePropChanged = YES;
     }
@@ -506,5 +631,26 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
     }
 }
 
+
+/**
+ * Creates the default font from paragraph style.
+ * Uses paragraph style as the base, with fallbacks to system font.
+ */
+- (UIFont *)defaultFontFromParagraphStyle {
+    CGFloat paragraphFontSize = [_config paragraphFontSize];
+    NSString *paragraphFontFamily = [_config paragraphFontFamily];
+    NSString *paragraphFontWeight = [_config paragraphFontWeight];
+    
+    return fontFromProperties(paragraphFontSize, paragraphFontFamily, paragraphFontWeight);
+}
+
+/**
+ * Gets the default color from paragraph style.
+ * Falls back to textView textColor or black if paragraph color is not set.
+ */
+- (UIColor *)defaultColorFromParagraphStyle {
+    UIColor *paragraphColor = [_config paragraphColor];
+    return paragraphColor ?: (_textView.textColor ?: [UIColor blackColor]);
+}
 
 @end

@@ -5,10 +5,17 @@ import {
   type ColorValue,
 } from 'react-native';
 
-interface HeadingStyleInternal {
+// All block styles extend this interface
+interface BaseBlockStyleInternal {
   fontSize: CodegenTypes.Float;
   fontFamily: string;
+  fontWeight: string;
+  color: ColorValue;
 }
+
+interface ParagraphStyleInternal extends BaseBlockStyleInternal {}
+
+interface HeadingStyleInternal extends BaseBlockStyleInternal {}
 
 interface LinkStyleInternal {
   color: ColorValue;
@@ -16,11 +23,11 @@ interface LinkStyleInternal {
 }
 
 interface StrongStyleInternal {
-  color: ColorValue;
+  color?: ColorValue;
 }
 
 interface EmphasisStyleInternal {
-  color: ColorValue;
+  color?: ColorValue;
 }
 
 interface CodeStyleInternal {
@@ -39,6 +46,7 @@ interface InlineImageStyleInternal {
 }
 
 export interface RichTextStyleInternal {
+  paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
   h2: HeadingStyleInternal;
   h3: HeadingStyleInternal;
@@ -59,25 +67,9 @@ export interface NativeProps extends ViewProps {
    */
   markdown: string;
   /**
-   * Base font size for all text elements.
-   */
-  fontSize?: CodegenTypes.Int32;
-  /**
-   * Font family name for all text elements.
-   */
-  fontFamily?: string;
-  /**
-   * Font weight for all text elements.
-   * @example "normal", "bold", "100", "200", "300", "400", "500", "600", "700", "800", "900"
-   */
-  fontWeight?: string;
-  /**
-   * Text color in hex format.
-   */
-  color?: ColorValue;
-  /**
    * Internal style configuration for markdown elements.
    * Always provided with complete defaults via normalizeRichTextStyle.
+   * Block styles (paragraph, headings) contain fontSize, fontFamily, fontWeight, and color.
    */
   richTextStyle: RichTextStyleInternal;
   /**

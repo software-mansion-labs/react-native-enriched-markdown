@@ -1,11 +1,22 @@
 package com.richtext.styles
 
+import android.content.Context
+import com.facebook.react.bridge.ColorPropConverter
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 
+data class ParagraphStyle(
+  val fontSize: Float,
+  val fontFamily: String,
+  val fontWeight: String,
+  val color: Int
+)
+
 data class HeadingStyle(
   val fontSize: Float,
-  val fontFamily: String?
+  val fontFamily: String,
+  val fontWeight: String,
+  val color: Int
 )
 
 data class LinkStyle(
@@ -14,11 +25,11 @@ data class LinkStyle(
 )
 
 data class StrongStyle(
-  val color: Int
+  val color: Int?
 )
 
 data class EmphasisStyle(
-  val color: Int
+  val color: Int?
 )
 
 data class CodeStyle(
@@ -36,7 +47,8 @@ data class InlineImageStyle(
   val size: Float
 )
 
-class RichTextStyle(style: ReadableMap) {
+class RichTextStyle(style: ReadableMap, private val context: Context) {
+  private lateinit var paragraphStyle: ParagraphStyle
   private val headingStyles = arrayOfNulls<HeadingStyle>(7)
   private lateinit var linkStyle: LinkStyle
   private lateinit var strongStyle: StrongStyle
@@ -49,13 +61,22 @@ class RichTextStyle(style: ReadableMap) {
     parseStyles(style)
   }
 
+  fun getParagraphStyle(): ParagraphStyle {
+    return paragraphStyle
+  }
+
+  fun getHeadingStyle(level: Int): HeadingStyle {
+    return headingStyles[level] 
+      ?: error("Heading style for level $level not found. JS should always provide defaults.")
+  }
+
   fun getHeadingFontSize(level: Int): Float {
     return headingStyles[level]?.fontSize 
       ?: error("Heading style for level $level not found. JS should always provide defaults.")
   }
 
-  fun getHeadingFontFamily(level: Int): String? {
-    return headingStyles[level]?.fontFamily
+  fun getHeadingFontFamily(level: Int): String {
+    return headingStyles[level]?.fontFamily ?: ""
   }
 
   fun getLinkColor(): Int {
@@ -66,11 +87,11 @@ class RichTextStyle(style: ReadableMap) {
     return linkStyle.underline
   }
 
-  fun getStrongColor(): Int {
+  fun getStrongColor(): Int? {
     return strongStyle.color
   }
 
-  fun getEmphasisColor(): Int {
+  fun getEmphasisColor(): Int? {
     return emphasisStyle.color
   }
 
@@ -86,7 +107,31 @@ class RichTextStyle(style: ReadableMap) {
     return inlineImageStyle
   }
 
+  private fun parseOptionalColor(map: ReadableMap, key: String): Int? {
+    if (!map.hasKey(key) || map.isNull(key)) {
+      return null
+    }
+    val colorValue = map.getDouble(key)
+    return ColorPropConverter.getColor(colorValue, context)
+  }
+
+  private fun parseColor(map: ReadableMap, key: String): Int {
+    return parseOptionalColor(map, key)
+      ?: throw IllegalArgumentException("Color key '$key' is missing, null, or invalid")
+  }
+
   private fun parseStyles(style: ReadableMap) {
+    // Parse paragraph style
+    val paragraphStyleMap = requireNotNull(style.getMap("paragraph")) {
+      "Paragraph style not found. JS should always provide defaults."
+    }
+    val paragraphFontSize = PixelUtil.toPixelFromSP(paragraphStyleMap.getDouble("fontSize").toFloat())
+    val paragraphFontFamily = paragraphStyleMap.getString("fontFamily") ?: ""
+    val paragraphFontWeight = paragraphStyleMap.getString("fontWeight") ?: "normal"
+    val paragraphColor = parseColor(paragraphStyleMap, "color")
+    paragraphStyle = ParagraphStyle(paragraphFontSize, paragraphFontFamily, paragraphFontWeight, paragraphColor)
+
+    // Parse heading styles
     (1..6).forEach { level ->
       val levelKey = "h$level"
       val levelStyle = requireNotNull(style.getMap(levelKey)) {
@@ -94,16 +139,18 @@ class RichTextStyle(style: ReadableMap) {
       }
       
       val fontSize = PixelUtil.toPixelFromSP(levelStyle.getDouble("fontSize").toFloat())
-      val fontFamily = levelStyle.getString("fontFamily")
+      val fontFamily = levelStyle.getString("fontFamily") ?: ""
+      val fontWeight = levelStyle.getString("fontWeight") ?: "normal"
+      val color = parseColor(levelStyle, "color")
       
-      headingStyles[level] = HeadingStyle(fontSize, fontFamily)
+      headingStyles[level] = HeadingStyle(fontSize, fontFamily, fontWeight, color)
     }
 
     val linkStyleMap = requireNotNull(style.getMap("link")) {
       "Link style not found. JS should always provide defaults."
     }
     
-    val color = linkStyleMap.getInt("color")
+    val color = parseColor(linkStyleMap, "color")
     val underline = linkStyleMap.getBoolean("underline")
     
     linkStyle = LinkStyle(color, underline)
@@ -112,7 +159,7 @@ class RichTextStyle(style: ReadableMap) {
       "Strong style not found. JS should always provide defaults."
     }
     
-    val strongColor = strongStyleMap.getInt("color")
+    val strongColor = parseOptionalColor(strongStyleMap, "color")
     
     strongStyle = StrongStyle(strongColor)
 
@@ -120,7 +167,7 @@ class RichTextStyle(style: ReadableMap) {
       "Emphasis style not found. JS should always provide defaults."
     }
     
-    val emphasisColor = emphasisStyleMap.getInt("color")
+    val emphasisColor = parseOptionalColor(emphasisStyleMap, "color")
     
     emphasisStyle = EmphasisStyle(emphasisColor)
 
@@ -128,9 +175,9 @@ class RichTextStyle(style: ReadableMap) {
       "Code style not found. JS should always provide defaults."
     }
     
-    val codeColor = codeStyleMap.getInt("color")
-    val codeBackgroundColor = codeStyleMap.getInt("backgroundColor")
-    val codeBorderColor = codeStyleMap.getInt("borderColor")
+    val codeColor = parseColor(codeStyleMap, "color")
+    val codeBackgroundColor = parseColor(codeStyleMap, "backgroundColor")
+    val codeBorderColor = parseColor(codeStyleMap, "borderColor")
     
     codeStyle = CodeStyle(codeColor, codeBackgroundColor, codeBorderColor)
 

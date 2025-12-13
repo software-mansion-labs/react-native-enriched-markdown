@@ -22,7 +22,6 @@ import java.util.WeakHashMap
 /**
  * Custom ImageSpan for rendering markdown images.
  * Images are loaded asynchronously using Glide and appear on their own line.
- * Supports custom height via the customHeight parameter.
  * 
  * The TextView is automatically registered by RichTextView when text is set,
  * allowing immediate redraws when images finish loading.
@@ -31,18 +30,16 @@ class RichTextImageSpan(
   private val context: Context,
   private val imageUrl: String,
   private val style: RichTextStyle,
-  private val isInline: Boolean = false,
-  private val customHeight: Int? = null,
-  private val fontSize: Float? = null
-) : ImageSpan(createPlaceholderDrawable(context, style, isInline, customHeight, fontSize), imageUrl, ALIGN_CENTER) {
+  private val isInline: Boolean = false
+) : ImageSpan(createPlaceholderDrawable(context, style, isInline), imageUrl, ALIGN_CENTER) {
   
   private val reactContext: ReactContext = requireNotNull(context as? ReactContext) {
     "RichTextImageSpan requires ReactContext, but received: ${context::class.java.name}"
   }
   private var loadedDrawable: Drawable? = null
   private val imageStyle = style.getImageStyle()
-  private val height: Int = customHeight ?: if (isInline) {
-    Companion.calculateInlineImageSize(style, fontSize)
+  private val height: Int = if (isInline) {
+    Companion.calculateInlineImageSize(style)
   } else {
     imageStyle.height.toInt()
   }
@@ -290,7 +287,6 @@ class RichTextImageSpan(
   }
 
   companion object {
-    private const val DEFAULT_FONT_SIZE = 14f
     private const val IMAGE_UPDATE_DELAY_MS = 50L
     private const val MINIMUM_VALID_DIMENSION = 0
     private const val CENTERING_DIVISOR = 2
@@ -302,18 +298,13 @@ class RichTextImageSpan(
     internal val pendingUpdates = WeakHashMap<RichTextView, Runnable>()
     
     /**
-     * Calculates inline image size in pixels, scaled with fontSize.
+     * Calculates inline image size in pixels.
      * Extracted to companion object to be shared between instance method and createPlaceholderDrawable.
-     * TODO: Replace DEFAULT_FONT_SIZE with paragraph fontSize from style in the future.
+     * Returns the base size from inlineImageStyle without scaling.
      */
-    private fun calculateInlineImageSize(style: RichTextStyle, fontSize: Float?): Int {
+    private fun calculateInlineImageSize(style: RichTextStyle): Int {
       val inlineImageStyle = style.getInlineImageStyle()
-      val baseImageSizePx = inlineImageStyle.size
-      // Use fontSize if provided, otherwise fall back to default
-      // TODO: Get paragraph fontSize from style instead of using DEFAULT_FONT_SIZE
-      val currentFontSize = fontSize ?: DEFAULT_FONT_SIZE
-      val scaledSizePx = baseImageSizePx * (currentFontSize / DEFAULT_FONT_SIZE)
-      return scaledSizePx.toInt()
+      return inlineImageStyle.size.toInt()
     }
     
     /**
@@ -324,19 +315,17 @@ class RichTextImageSpan(
     private fun createPlaceholderDrawable(
       context: Context,
       style: RichTextStyle,
-      isInline: Boolean,
-      customHeight: Int?,
-      fontSize: Float?
+      isInline: Boolean
     ): Drawable {
       val imageStyle = style.getImageStyle()
       val placeholderWidth = if (isInline) {
-        calculateInlineImageSize(style, fontSize)
+        calculateInlineImageSize(style)
       } else {
         // For block images, placeholder width doesn't matter - actual width will be set from TextView in getDrawable()
         // Use height as placeholder width to avoid layout issues
-        (customHeight ?: imageStyle.height.toInt())
+        imageStyle.height.toInt()
       }
-      val placeholderHeight = customHeight ?: if (isInline) placeholderWidth else imageStyle.height.toInt()
+      val placeholderHeight = if (isInline) placeholderWidth else imageStyle.height.toInt()
       
       return PlaceholderDrawable(placeholderWidth, placeholderHeight)
     }

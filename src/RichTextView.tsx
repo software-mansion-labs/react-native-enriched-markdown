@@ -5,9 +5,18 @@ import RichTextViewNativeComponent, {
 import { normalizeRichTextStyle } from './normalizeRichTextStyle';
 import type { ViewStyle, TextStyle } from 'react-native';
 
+export interface ParagraphStyle {
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string;
+  color?: string;
+}
+
 export interface HeadingStyle {
   fontSize?: number;
   fontFamily?: string;
+  fontWeight?: string;
+  color?: string;
 }
 
 export interface LinkStyle {
@@ -39,6 +48,7 @@ export interface InlineImageStyle {
 }
 
 export interface RichTextStyle {
+  paragraph?: ParagraphStyle;
   h1?: HeadingStyle;
   h2?: HeadingStyle;
   h3?: HeadingStyle;
@@ -67,10 +77,6 @@ export interface RichTextViewProps
 
 export const RichTextView = ({
   markdown,
-  fontSize,
-  fontFamily,
-  fontWeight,
-  color,
   style = {},
   containerStyle,
   onLinkPress,
@@ -82,10 +88,6 @@ export const RichTextView = ({
   return (
     <RichTextViewNativeComponent
       markdown={markdown}
-      fontSize={fontSize}
-      fontFamily={fontFamily}
-      fontWeight={fontWeight}
-      color={color}
       richTextStyle={normalizedStyle}
       onLinkPress={onLinkPress}
       isSelectable={isSelectable}

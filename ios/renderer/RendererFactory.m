@@ -37,7 +37,8 @@
         _sharedLinkRenderer = [[LinkRenderer alloc] initWithRendererFactory:self config:config];
         _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithRendererFactory:self
                                                                          config:config];
-        _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithRendererFactory:self];
+        _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithRendererFactory:self
+                                                                                config:config];
     }
     return self;
 }

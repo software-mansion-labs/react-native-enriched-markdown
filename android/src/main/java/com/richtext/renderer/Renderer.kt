@@ -1,5 +1,6 @@
 package com.richtext.renderer
 
+import android.content.Context
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import com.richtext.styles.RichTextStyle
@@ -7,13 +8,11 @@ import org.commonmark.node.*
 
 class Renderer {
     private var style: RichTextStyle? = null
-    private var fontSize: Float? = null
     private lateinit var rendererFactory: RendererFactory
 
-    fun configure(style: RichTextStyle, context: android.content.Context? = null, fontSize: Float? = null) {
+    fun configure(style: RichTextStyle, context: Context) {
         this.style = style
-        this.fontSize = fontSize
-        val config = RendererConfig(style, fontSize)
+        val config = RendererConfig(style)
         rendererFactory = RendererFactory(config, context)
     }
 

@@ -19,7 +19,7 @@ typedef NS_ENUM(NSInteger, BlockType) {
 @property (nonatomic, strong) NSMutableArray<NSString *> *linkURLs;
 @property (nonatomic, assign) BlockType currentBlockType;
 @property (nonatomic, strong) BlockStyle *currentBlockStyle;
-@property (nonatomic, assign) NSInteger currentHeadingLevel; // 1-6 for headings, 0 otherwise
+@property (nonatomic, assign) NSInteger currentHeadingLevel;
 
 - (instancetype)init;
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url;

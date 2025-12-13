@@ -12,34 +12,55 @@ export const normalizeColor = (
   return processColor(color);
 };
 
+const defaultColor = processColor('#000000') as ColorValue;
+
+const paragraphDefaultStyles: RichTextStyleInternal['paragraph'] = {
+  fontSize: 16,
+  fontFamily: '',
+  fontWeight: 'normal',
+  color: defaultColor,
+};
+
 const defaultH1Style: RichTextStyleInternal['h1'] = {
   fontSize: 36,
   fontFamily: 'Helvetica-Bold',
+  fontWeight: 'normal',
+  color: defaultColor,
 };
 
 const defaultH2Style: RichTextStyleInternal['h2'] = {
   fontSize: 28,
   fontFamily: 'Helvetica-Bold',
+  fontWeight: 'normal',
+  color: defaultColor,
 };
 
 const defaultH3Style: RichTextStyleInternal['h3'] = {
   fontSize: 24,
   fontFamily: 'Helvetica-Bold',
+  fontWeight: 'normal',
+  color: defaultColor,
 };
 
 const defaultH4Style: RichTextStyleInternal['h4'] = {
   fontSize: 20,
   fontFamily: 'Helvetica-Bold',
+  fontWeight: 'normal',
+  color: defaultColor,
 };
 
 const defaultH5Style: RichTextStyleInternal['h5'] = {
   fontSize: 18,
   fontFamily: 'Helvetica-Bold',
+  fontWeight: 'normal',
+  color: defaultColor,
 };
 
 const defaultH6Style: RichTextStyleInternal['h6'] = {
   fontSize: 16,
   fontFamily: 'Helvetica-Bold',
+  fontWeight: 'normal',
+  color: defaultColor,
 };
 
 const defaultLinkColor = processColor('#007AFF') as ColorValue;
@@ -47,18 +68,6 @@ const defaultLinkColor = processColor('#007AFF') as ColorValue;
 const defaultLinkStyle: RichTextStyleInternal['link'] = {
   color: defaultLinkColor,
   underline: true,
-};
-
-const defaultStrongColor = processColor('#000000') as ColorValue;
-
-const defaultStrongStyle: RichTextStyleInternal['strong'] = {
-  color: defaultStrongColor,
-};
-
-const defaultEmphasisColor = processColor('#000000') as ColorValue;
-
-const defaultEmphasisStyle: RichTextStyleInternal['em'] = {
-  color: defaultEmphasisColor,
 };
 
 const defaultCodeColor = processColor('#E83E8C') as ColorValue;
@@ -83,44 +92,76 @@ const defaultInlineImageStyle: RichTextStyleInternal['inlineImage'] = {
 export const normalizeRichTextStyle = (
   style: RichTextStyle
 ): RichTextStyleInternal => {
+  const paragraph: RichTextStyleInternal['paragraph'] = {
+    fontSize: style.paragraph?.fontSize ?? paragraphDefaultStyles.fontSize,
+    fontFamily:
+      style.paragraph?.fontFamily ?? paragraphDefaultStyles.fontFamily,
+    fontWeight:
+      style.paragraph?.fontWeight ?? paragraphDefaultStyles.fontWeight,
+    color:
+      normalizeColor(style.paragraph?.color) ?? paragraphDefaultStyles.color,
+  };
+
+  const h1: RichTextStyleInternal['h1'] = {
+    fontSize: style.h1?.fontSize ?? defaultH1Style.fontSize,
+    fontFamily: style.h1?.fontFamily ?? defaultH1Style.fontFamily,
+    fontWeight: style.h1?.fontWeight ?? defaultH1Style.fontWeight,
+    color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
+  };
+
+  const h2: RichTextStyleInternal['h2'] = {
+    fontSize: style.h2?.fontSize ?? defaultH2Style.fontSize,
+    fontFamily: style.h2?.fontFamily ?? defaultH2Style.fontFamily,
+    fontWeight: style.h2?.fontWeight ?? defaultH2Style.fontWeight,
+    color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
+  };
+
+  const h3: RichTextStyleInternal['h3'] = {
+    fontSize: style.h3?.fontSize ?? defaultH3Style.fontSize,
+    fontFamily: style.h3?.fontFamily ?? defaultH3Style.fontFamily,
+    fontWeight: style.h3?.fontWeight ?? defaultH3Style.fontWeight,
+    color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
+  };
+
+  const h4: RichTextStyleInternal['h4'] = {
+    fontSize: style.h4?.fontSize ?? defaultH4Style.fontSize,
+    fontFamily: style.h4?.fontFamily ?? defaultH4Style.fontFamily,
+    fontWeight: style.h4?.fontWeight ?? defaultH4Style.fontWeight,
+    color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
+  };
+
+  const h5: RichTextStyleInternal['h5'] = {
+    fontSize: style.h5?.fontSize ?? defaultH5Style.fontSize,
+    fontFamily: style.h5?.fontFamily ?? defaultH5Style.fontFamily,
+    fontWeight: style.h5?.fontWeight ?? defaultH5Style.fontWeight,
+    color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
+  };
+
+  const h6: RichTextStyleInternal['h6'] = {
+    fontSize: style.h6?.fontSize ?? defaultH6Style.fontSize,
+    fontFamily: style.h6?.fontFamily ?? defaultH6Style.fontFamily,
+    fontWeight: style.h6?.fontWeight ?? defaultH6Style.fontWeight,
+    color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
+  };
+
   return {
-    h1: {
-      ...defaultH1Style,
-      ...style.h1,
-    },
-    h2: {
-      ...defaultH2Style,
-      ...style.h2,
-    },
-    h3: {
-      ...defaultH3Style,
-      ...style.h3,
-    },
-    h4: {
-      ...defaultH4Style,
-      ...style.h4,
-    },
-    h5: {
-      ...defaultH5Style,
-      ...style.h5,
-    },
-    h6: {
-      ...defaultH6Style,
-      ...style.h6,
-    },
+    paragraph,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
     link: {
       ...defaultLinkStyle,
       ...style.link,
       color: normalizeColor(style.link?.color) ?? defaultLinkStyle.color,
     },
     strong: {
-      ...defaultStrongStyle,
-      color: (normalizeColor(style.strong?.color) ??
-        defaultStrongStyle.color) as ColorValue,
+      color: normalizeColor(style.strong?.color),
     },
     em: {
-      ...defaultEmphasisStyle,
-      color: normalizeColor(style.em?.color) ?? defaultEmphasisStyle.color,
+      color: normalizeColor(style.em?.color),
     },
     code: {
       ...defaultCodeStyle,

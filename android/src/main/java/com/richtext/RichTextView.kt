@@ -5,9 +5,6 @@ import android.graphics.Color
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatTextView
-import com.facebook.react.common.ReactConstants
-import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
-import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.react.bridge.ReadableMap
 import android.graphics.Canvas
 import android.text.Spanned
@@ -24,13 +21,6 @@ class RichTextView : AppCompatTextView {
   private val parser = Parser()
   private val renderer = Renderer()
   private var onLinkPressCallback: ((String) -> Unit)? = null
-
-  private var typefaceDirty = false
-  private var didAttachToWindow = false
-
-  var fontSize: Float? = null
-  private var fontFamily: String? = null
-  private var fontWeight: Int = ReactConstants.UNSET
 
   var richTextStyle: RichTextStyle? = null
   private var currentMarkdown: String = ""
@@ -71,7 +61,7 @@ class RichTextView : AppCompatTextView {
         val currentStyle = requireNotNull(richTextStyle) {
           "richTextStyle should always be provided from JS side with defaults."
         }
-        renderer.configure(currentStyle, context, fontSize)
+        renderer.configure(currentStyle, context)
         val styledText = renderer.renderDocument(document, onLinkPressCallback)
         codeBackground = CodeBackground(currentStyle)
         text = styledText
@@ -93,7 +83,7 @@ class RichTextView : AppCompatTextView {
   }
 
   fun setRichTextStyle(style: ReadableMap?) {
-    val newStyle = style?.let { RichTextStyle(it) }
+    val newStyle = style?.let { RichTextStyle(it, context) }
     val styleChanged = richTextStyle != newStyle
     richTextStyle = newStyle
     if (styleChanged) {
@@ -121,34 +111,6 @@ class RichTextView : AppCompatTextView {
     )
   }
 
-  fun setFontSize(size: Float) {
-    fontSize = size
-    textSize = size
-    typefaceDirty = true
-    updateTypeface()
-  }
-
-  fun setFontFamily(family: String?) {
-    fontFamily = family
-    typefaceDirty = true
-    updateTypeface()
-  }
-
-  fun setFontWeight(weight: String?) {
-    val parsedWeight = parseFontWeight(weight)
-    if (parsedWeight != fontWeight) {
-      fontWeight = parsedWeight
-      typefaceDirty = true
-      updateTypeface()
-    }
-  }
-
-  fun setColor(color: Int?) {
-    if (color != null) {
-      setTextColor(color)
-    }
-  }
-
   fun setIsSelectable(selectable: Boolean) {
     if (isTextSelectable != selectable) {
       setTextIsSelectable(selectable)
@@ -167,20 +129,6 @@ class RichTextView : AppCompatTextView {
     }
   }
 
-  fun updateTypeface() {
-    if (!typefaceDirty) return
-    typefaceDirty = false
-
-    val newTypeface = applyStyles(typeface, ReactConstants.UNSET, fontWeight, fontFamily, context.assets)
-    setTypeface(newTypeface)
-  }
-
-  override fun onAttachedToWindow() {
-    super.onAttachedToWindow()
-    didAttachToWindow = true
-    updateTypeface()
-  }
-  
   override fun onDetachedFromWindow() {
     super.onDetachedFromWindow()
     // Clean up any pending image update callbacks to prevent memory leaks

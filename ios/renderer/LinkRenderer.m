@@ -1,6 +1,8 @@
 #import "LinkRenderer.h"
 #import "RichTextConfig.h"
 #import "RendererFactory.h"
+#import "RenderContext.h"
+#import "FontUtils.h"
 
 @implementation LinkRenderer {
     RendererFactory *_rendererFactory;
@@ -22,10 +24,17 @@
            context:(RenderContext *)context {
     NSUInteger start = output.length;
     
+    BlockStyle *blockStyle = [context getBlockStyle];
+    
+    RichTextConfig *config = (RichTextConfig *)self.config;
+    UIColor *linkColor = [config linkColor];
+    
+    UIFont *linkFont = fontFromBlockStyle(blockStyle);
+    
     [_rendererFactory renderChildrenOfNode:node
                                       into:output
-                                  withFont:font
-                                     color:color
+                                  withFont:linkFont
+                                     color:linkColor
                                     context:context];
     
     NSUInteger len = output.length - start;
@@ -34,12 +43,9 @@
         NSString *url = node.attributes[@"url"] ?: @"";
         
         NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
-        RichTextConfig *config = (RichTextConfig *)self.config;
         
         NSMutableDictionary *linkAttributes = [existingAttributes mutableCopy];
         linkAttributes[NSLinkAttributeName] = url;
-        
-        UIColor *linkColor = [config linkColor];
         linkAttributes[NSForegroundColorAttributeName] = linkColor;
         linkAttributes[NSUnderlineColorAttributeName] = linkColor;
         

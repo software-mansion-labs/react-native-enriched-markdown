@@ -11,21 +11,15 @@ const sampleMarkdown = `# Welcome to the ***React Native*** Markdown component!
 
 This is a simple text with links and __bold text__.
 
-![GitHub Logo](https://static.vecteezy.com/system/resources/previews/060/023/285/non_2x/sad-wild-monkey-in-nature-on-monkey-mountain-in-da-nang-in-vietnam-photo.jpg)
+![GitHub Logo](https://media.istockphoto.com/id/1295031273/pl/zdj%C4%99cie/big-ben-clock-tower-w-londynie-wielka-brytania-w-jasny-dzie%C5%84-kompozycja-panoramiczna-z.jpg?s=612x612&w=0&k=20&c=d_zKT1ovgOY8wIlgtUwItgTES-b3kulohbTV9Z36lFg=)
 
-Check out this [link to React Native](https://reactnative.dev) and this [GitHub repository](https://github.com/facebook/react-native).
-
-Here's some **bold text** and regular text together. You can also have **[bold links](https://reactnative.dev)** that are both bold and clickable!
-
-You can use *emphasis* with asterisks or _emphasis_ with underscores. You can also have *[emphasized links](https://reactnative.dev)* that are both italic and clickable!
+Check out this *[link to React Native](https://reactnative.dev)* and this [GitHub repository](https://github.com/facebook/react-native).
 
 You can use inline code like \`const x = 42\` or \`function test() {}\` within text. You can also combine code with **strong** like **\`getUserData()\`** or *emphasis* like *\`isValid\`* or *\`handleClick\`*. You can even combine both: **\`boldCode\`** and *\`italicCode\`*.
 
 Here's a longer inline code example that will wrap to multiple lines: \`const result = await fetchUserData(userId, profile, options, flags, errorCallback, call, function)\`.
 
-![GitHub Logo](https://t3.ftcdn.net/jpg/04/19/36/50/360_F_419365051_DshHeVWEWVKVn878QnjZzoknJZCz36Z6.jpg)
-
-You can also use images inline with text like this ![GitHub icon](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png) in the middle of a sentence.
+You can also use images inline with text like this ![GitHub icon](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAZGzTL011iyJZUnzy9T278kjLQmk9W0DMug&s) in the middle of a sentence.
 
 Built with ❤️ using **React Native Fabric Architecture**`;
 
@@ -56,9 +50,6 @@ export default function App() {
           markdown={sampleMarkdown}
           style={markdownStyle}
           containerStyle={styles.markdown}
-          fontSize={18}
-          fontFamily="Helvetica"
-          color="#F54927"
           onLinkPress={handleLinkPress}
         />
       </ScrollView>
@@ -67,6 +58,11 @@ export default function App() {
 }
 
 const markdownStyle = {
+  paragraph: {
+    fontSize: 18,
+    fontFamily: 'monospace',
+    color: '#F54927',
+  },
   h1: {
     fontSize: 24,
     fontFamily: 'Helvetica-Bold',
@@ -84,7 +80,10 @@ const markdownStyle = {
   },
   image: {
     height: 200,
-    borderRadius: 3,
+    borderRadius: 10,
+  },
+  inlineImage: {
+    size: 20,
   },
 };
 
@@ -102,6 +101,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 8,
-    height: 800,
+    height: 1000,
   },
 });

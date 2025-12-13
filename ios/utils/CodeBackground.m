@@ -1,4 +1,5 @@
 #import "CodeBackground.h"
+#import "RenderContext.h"
 
 NSString *const RichTextCodeAttributeName = @"RichTextCode";
 
@@ -134,7 +135,9 @@ static inline CGFloat HalfStroke(void) {
     
     if (boundingRects.count == 0) return;
     
-    CGFloat referenceHeight = [self findReferenceHeight];
+    // Get character range to read block style attributes
+    NSRange charRange = [layoutManager characterRangeForGlyphRange:glyphRange actualGlyphRange:NULL];
+    CGFloat referenceHeight = [self findReferenceHeightForRange:charRange textStorage:layoutManager.textStorage];
     
     [self drawStartLine:boundingRects[0] fragmentRect:fragmentRects[0] referenceHeight:referenceHeight origin:origin backgroundColor:backgroundColor borderColor:borderColor];
     
@@ -262,14 +265,20 @@ static inline CGFloat HalfStroke(void) {
 
 /**
  * Gets reference line height for consistent code block rendering.
- * Uses primary font's line height to match normal text, since code font is 85% of normal font size.
- * 
- * TODO: Get lineHeight from TypeScript side (via richTextStyle config) instead of calculating from primaryFont.
- * This would provide a single source of truth and handle custom line spacing more accurately.
+ * Reads the line height directly from attributes (calculated during rendering).
+ * Falls back to paragraph font size if not found.
  */
-- (CGFloat)findReferenceHeight {
-    // Use primary font's line height directly - this ensures consistent height for both inline and standalone code
-    return _config.primaryFont.lineHeight;
+- (CGFloat)findReferenceHeightForRange:(NSRange)range textStorage:(NSTextStorage *)textStorage {
+    if (range.location == NSNotFound || range.length == 0 || !textStorage) {
+        return [_config paragraphFontSize] * 1.2;
+    }
+    
+    NSNumber *lineHeightValue = [textStorage attribute:@"RichTextBlockLineHeight" atIndex:range.location effectiveRange:NULL];
+    if (lineHeightValue) {
+        return [lineHeightValue doubleValue];
+    }
+    
+    return [_config paragraphFontSize] * 1.2;
 }
 
 

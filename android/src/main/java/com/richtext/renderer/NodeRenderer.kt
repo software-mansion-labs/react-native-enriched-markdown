@@ -25,8 +25,7 @@ interface NodeRenderer {
 }
 
 data class RendererConfig(
-    val style: RichTextStyle,
-    val fontSize: Float? = null
+    val style: RichTextStyle
 )
 
 class DocumentRenderer(
@@ -44,7 +43,7 @@ class DocumentRenderer(
 }
 
 class ParagraphRenderer(
-    private val config: RendererConfig? = null
+    private val config: RendererConfig
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -55,7 +54,14 @@ class ParagraphRenderer(
         val paragraph = node as Paragraph
         val start = builder.length
 
-        factory.renderChildren(paragraph, builder, onLinkPress)
+        val paragraphStyle = config.style.getParagraphStyle()
+        factory.blockStyleContext.setParagraphStyle(paragraphStyle)
+
+        try {
+            factory.renderChildren(paragraph, builder, onLinkPress)
+        } finally {
+            factory.blockStyleContext.clearBlockStyle()
+        }
 
         val contentLength = builder.length - start
         if (contentLength > 0) {
@@ -72,7 +78,7 @@ class ParagraphRenderer(
 }
 
 class HeadingRenderer(
-    private val config: RendererConfig? = null
+    private val config: RendererConfig
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -83,10 +89,17 @@ class HeadingRenderer(
         val heading = node as Heading
         val start = builder.length
 
-        factory.renderChildren(heading, builder, onLinkPress)
+        val headingStyle = config.style.getHeadingStyle(heading.level)
+        factory.blockStyleContext.setHeadingStyle(headingStyle, heading.level)
+
+        try {
+            factory.renderChildren(heading, builder, onLinkPress)
+        } finally {
+            factory.blockStyleContext.clearBlockStyle()
+        }
 
         val contentLength = builder.length - start
-        if (contentLength > 0 && config != null) {
+        if (contentLength > 0) {
             builder.setSpan(
                 RichTextHeadingSpan(
                     heading.level,
@@ -116,9 +129,10 @@ class TextRenderer : NodeRenderer {
         builder.append(content)
 
         val contentLength = builder.length - start
-        if (contentLength > 0) {
+        val blockStyle = factory.blockStyleContext.getBlockStyle()
+        if (contentLength > 0 && blockStyle != null) {
             builder.setSpan(
-                RichTextTextSpan(),
+                RichTextTextSpan(blockStyle, factory.context),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -128,7 +142,7 @@ class TextRenderer : NodeRenderer {
 }
 
 class LinkRenderer(
-    private val config: RendererConfig? = null
+    private val config: RendererConfig
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -143,9 +157,10 @@ class LinkRenderer(
         factory.renderChildren(link, builder, onLinkPress)
 
         val contentLength = builder.length - start
-        if (contentLength > 0 && config != null) {
+        val blockStyle = factory.blockStyleContext.getBlockStyle()
+        if (contentLength > 0 && blockStyle != null) {
             builder.setSpan(
-                RichTextLinkSpan(url, onLinkPress, config.style),
+                RichTextLinkSpan(url, onLinkPress, config.style, blockStyle, factory.context),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -155,7 +170,7 @@ class LinkRenderer(
 }
 
 class StrongRenderer(
-    private val config: RendererConfig? = null
+    private val config: RendererConfig
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -169,9 +184,10 @@ class StrongRenderer(
         factory.renderChildren(strongEmphasis, builder, onLinkPress)
 
         val contentLength = builder.length - start
-        if (contentLength > 0 && config != null) {
+        val blockStyle = factory.blockStyleContext.getBlockStyle()
+        if (contentLength > 0 && blockStyle != null) {
             builder.setSpan(
-                RichTextStrongSpan(config.style),
+                RichTextStrongSpan(config.style, blockStyle),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -181,7 +197,7 @@ class StrongRenderer(
 }
 
 class EmphasisRenderer(
-    private val config: RendererConfig? = null
+    private val config: RendererConfig
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -195,9 +211,10 @@ class EmphasisRenderer(
         factory.renderChildren(emphasis, builder, onLinkPress)
 
         val contentLength = builder.length - start
-        if (contentLength > 0 && config != null) {
+        val blockStyle = factory.blockStyleContext.getBlockStyle()
+        if (contentLength > 0 && blockStyle != null) {
             builder.setSpan(
-                RichTextEmphasisSpan(config.style),
+                RichTextEmphasisSpan(config.style, blockStyle),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -207,7 +224,7 @@ class EmphasisRenderer(
 }
 
 class CodeRenderer(
-    private val config: RendererConfig? = null
+    private val config: RendererConfig
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -222,9 +239,10 @@ class CodeRenderer(
         builder.append(codeText)
 
         val contentLength = builder.length - start
-        if (contentLength > 0 && config != null) {
+        val blockStyle = factory.blockStyleContext.getBlockStyle()
+        if (contentLength > 0 && blockStyle != null) {
             builder.setSpan(
-                RichTextCodeStyleSpan(config.style),
+                RichTextCodeStyleSpan(config.style, blockStyle),
                 start,
                 start + contentLength,
                 android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -234,8 +252,8 @@ class CodeRenderer(
 }
 
 class ImageRenderer(
-    private val config: RendererConfig? = null,
-    private val context: Context? = null
+    private val config: RendererConfig,
+    private val context: Context
 ) : NodeRenderer {
     override fun render(
         node: Node,
@@ -253,14 +271,12 @@ class ImageRenderer(
         // ImageSpan will replace this placeholder with the actual image during rendering.
         builder.append("\uFFFC")
 
-        if (config != null && context != null) {
-            builder.setSpan(
-                RichTextImageSpan(context, imageUrl, config.style, isInline, null, config.fontSize),
-                start,
-                start + 1,
-                android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
+        builder.setSpan(
+            RichTextImageSpan(context, imageUrl, config.style, isInline),
+            start,
+            start + 1,
+            android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 }
 
@@ -276,9 +292,11 @@ class LineBreakRenderer : NodeRenderer {
 }
 
 class RendererFactory(
-    private val config: RendererConfig?,
-    private val context: Context? = null
+    private val config: RendererConfig,
+    val context: Context
 ) {
+    val blockStyleContext = BlockStyleContext()
+    
     private val sharedTextRenderer = TextRenderer()
     private val sharedLinkRenderer = LinkRenderer(config)
     private val sharedHeadingRenderer = HeadingRenderer(config)

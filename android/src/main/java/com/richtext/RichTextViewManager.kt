@@ -45,27 +45,6 @@ class RichTextViewManager : SimpleViewManager<RichTextView>(),
     view?.setMarkdownContent(markdown ?: "No markdown content")
   }
 
-
-  @ReactProp(name = "fontSize", defaultInt = ViewDefaults.FONT_SIZE_SP.toInt())
-  override fun setFontSize(view: RichTextView?, fontSize: Int) {
-    view?.setFontSize(fontSize.toFloat())
-  }
-
-  @ReactProp(name = "fontFamily")
-  override fun setFontFamily(view: RichTextView?, family: String?) {
-    view?.setFontFamily(family)
-  }
-
-  @ReactProp(name = ViewProps.COLOR, customType = "Color")
-  override fun setColor(view: RichTextView?, color: Int?) {
-    view?.setColor(color)
-  }
-
-  @ReactProp(name = "fontWeight")
-  override fun setFontWeight(view: RichTextView?, weight: String?) {
-    view?.setFontWeight(weight)
-  }
-
   @ReactProp(name = "richTextStyle")
   override fun setRichTextStyle(view: RichTextView?, style: com.facebook.react.bridge.ReadableMap?) {
     view?.setRichTextStyle(style)
@@ -74,11 +53,6 @@ class RichTextViewManager : SimpleViewManager<RichTextView>(),
   @ReactProp(name = "isSelectable", defaultBoolean = true)
   override fun setIsSelectable(view: RichTextView?, selectable: Boolean) {
     view?.setIsSelectable(selectable)
-  }
-
-  override fun onAfterUpdateTransaction(view: RichTextView) {
-    super.onAfterUpdateTransaction(view)
-    view.updateTypeface()
   }
 
   private fun emitOnLinkPress(view: RichTextView, url: String) {

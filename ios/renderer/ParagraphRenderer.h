@@ -3,7 +3,10 @@
 #import "NodeRenderer.h"
 
 @interface ParagraphRenderer : NSObject <NodeRenderer>
-- (instancetype)initWithRendererFactory:(id)rendererFactory;
+@property (nonatomic, strong) id config;
+
+- (instancetype)initWithRendererFactory:(id)rendererFactory
+                                 config:(id)config;
 - (void)renderNode:(MarkdownASTNode *)node
              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font

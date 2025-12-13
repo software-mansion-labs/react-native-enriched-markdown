@@ -1,17 +1,27 @@
 package com.richtext.spans
 
+import android.content.Context
 import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
+import com.richtext.renderer.BlockStyle
+import com.richtext.utils.applyBlockStyleFont
 
-class RichTextTextSpan : MetricAffectingSpan() {
+class RichTextTextSpan(
+  private val blockStyle: BlockStyle,
+  private val context: Context
+) : MetricAffectingSpan() {
 
   override fun updateDrawState(tp: TextPaint) {
-    // Text-specific styling can be added here
-    // For now, we just use default text styling
+    applyBlockStyle(tp)
   }
 
   override fun updateMeasureState(tp: TextPaint) {
-    // Text-specific measurement can be added here
-    // For now, we just use default text measurement
+    applyBlockStyle(tp)
+  }
+
+  private fun applyBlockStyle(tp: TextPaint) {
+    tp.textSize = blockStyle.fontSize
+    tp.color = blockStyle.color
+    tp.applyBlockStyleFont(blockStyle, context)
   }
 }

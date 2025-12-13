@@ -26,4 +26,3 @@ extern UIFont *fontFromProperties(CGFloat fontSize, NSString *fontFamily, NSStri
 #endif
 
 NS_ASSUME_NONNULL_END
-

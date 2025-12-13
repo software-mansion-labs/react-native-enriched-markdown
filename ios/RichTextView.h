@@ -1,6 +1,6 @@
+#import "RichTextConfig.h"
 #import <React/RCTViewComponentView.h>
 #import <UIKit/UIKit.h>
-#import "RichTextConfig.h"
 
 #ifndef RichTextViewNativeComponent_h
 #define RichTextViewNativeComponent_h

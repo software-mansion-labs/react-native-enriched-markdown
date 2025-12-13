@@ -8,7 +8,5 @@
 - (NSMutableAttributedString *)renderRoot:(MarkdownASTNode *)root
                                      font:(UIFont *)font
                                     color:(UIColor *)color
-                                   context:(RenderContext *)context;
+                                  context:(RenderContext *)context;
 @end
-
-

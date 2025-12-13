@@ -5,10 +5,8 @@
 
 @protocol NodeRenderer <NSObject>
 - (void)renderNode:(MarkdownASTNode *)node
-             into:(NSMutableAttributedString *)output
+              into:(NSMutableAttributedString *)output
           withFont:(UIFont *)font
-            color:(UIColor *)color
+             color:(UIColor *)color
            context:(RenderContext *)context;
 @end
-
-

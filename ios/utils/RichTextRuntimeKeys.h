@@ -21,4 +21,3 @@ extern void *kRichTextConfigKey;
 extern void *kRichTextCodeBackgroundKey;
 
 NS_ASSUME_NONNULL_END
-

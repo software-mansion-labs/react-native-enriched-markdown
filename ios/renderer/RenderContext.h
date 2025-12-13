@@ -1,11 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSInteger, BlockType) {
-    BlockTypeNone,
-    BlockTypeParagraph,
-    BlockTypeHeading
-};
+typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, BlockTypeHeading };
 
 @interface BlockStyle : NSObject
 @property (nonatomic, assign) CGFloat fontSize;
@@ -23,10 +19,17 @@ typedef NS_ENUM(NSInteger, BlockType) {
 
 - (instancetype)init;
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url;
-- (void)setBlockStyle:(BlockType)type fontSize:(CGFloat)fontSize fontFamily:(NSString *)fontFamily fontWeight:(NSString *)fontWeight color:(UIColor *)color;
-- (void)setBlockStyle:(BlockType)type fontSize:(CGFloat)fontSize fontFamily:(NSString *)fontFamily fontWeight:(NSString *)fontWeight color:(UIColor *)color headingLevel:(NSInteger)headingLevel;
+- (void)setBlockStyle:(BlockType)type
+             fontSize:(CGFloat)fontSize
+           fontFamily:(NSString *)fontFamily
+           fontWeight:(NSString *)fontWeight
+                color:(UIColor *)color;
+- (void)setBlockStyle:(BlockType)type
+             fontSize:(CGFloat)fontSize
+           fontFamily:(NSString *)fontFamily
+           fontWeight:(NSString *)fontWeight
+                color:(UIColor *)color
+         headingLevel:(NSInteger)headingLevel;
 - (BlockStyle *)getBlockStyle;
 - (void)clearBlockStyle;
 @end
-
-

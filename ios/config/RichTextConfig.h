@@ -1,7 +1,7 @@
 #pragma once
 #import <UIKit/UIKit.h>
 
-@interface RichTextConfig: NSObject<NSCopying>
+@interface RichTextConfig : NSObject <NSCopying>
 - (instancetype)init;
 // Primary font properties
 - (UIColor *)primaryColor;

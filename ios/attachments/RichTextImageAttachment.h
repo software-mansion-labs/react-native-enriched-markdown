@@ -13,11 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface RichTextImageAttachment : NSTextAttachment
 
-- (instancetype)initWithImageURL:(NSString *)imageURL
-                          config:(RichTextConfig *)config
-                        isInline:(BOOL)isInline;
+- (instancetype)initWithImageURL:(NSString *)imageURL config:(RichTextConfig *)config isInline:(BOOL)isInline;
 
 @end
 
 NS_ASSUME_NONNULL_END
-

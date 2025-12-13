@@ -1,5 +1,5 @@
-#import <Foundation/Foundation.h>
 #import "MarkdownASTNode.h"
+#import <Foundation/Foundation.h>
 
 @interface MarkdownParser : NSObject
 

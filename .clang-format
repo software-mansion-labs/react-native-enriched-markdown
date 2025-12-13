@@ -1,0 +1,49 @@
+---
+# Core formatting
+ColumnLimit: 120
+IndentWidth: 2
+UseTab: Never
+TabWidth: 2
+
+# Braces and brackets
+BreakBeforeBraces: Attach
+SpaceBeforeParens: ControlStatements
+
+# Indentation
+IndentCaseLabels: true
+ContinuationIndentWidth: 4
+
+# Spacing
+SpaceBeforeAssignmentOperators: true
+SpacesBeforeTrailingComments: 1
+SpaceInEmptyParentheses: false
+
+# Line breaks
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty
+AlwaysBreakBeforeMultilineStrings: true
+
+# Comments
+ReflowComments: false
+MaxEmptyLinesToKeep: 1
+
+# Includes
+SortIncludes: true
+
+# Pointer alignment
+PointerAlignment: Right
+
+# C++
+---
+Language: Cpp
+Cpp11BracedListStyle: true
+
+---
+# Objective-C
+Language: ObjC
+BreakBeforeBraces: WebKit
+ObjCBlockIndentWidth: 2
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true

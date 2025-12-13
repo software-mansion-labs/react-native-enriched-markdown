@@ -1,5 +1,5 @@
-#import "NodeRenderer.h"
 #import "MarkdownASTNode.h"
+#import "NodeRenderer.h"
 
 @class RenderContext;
 
@@ -10,5 +10,5 @@
                         into:(NSMutableAttributedString *)output
                     withFont:(UIFont *)font
                        color:(UIColor *)color
-                      context:(RenderContext *)context;
+                     context:(RenderContext *)context;
 @end

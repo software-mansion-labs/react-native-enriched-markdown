@@ -1,16 +1,16 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM(NSInteger, MarkdownNodeType) {
-    MarkdownNodeTypeDocument,
-    MarkdownNodeTypeParagraph,
-    MarkdownNodeTypeText,
-    MarkdownNodeTypeLink,
-    MarkdownNodeTypeHeading,
-    MarkdownNodeTypeLineBreak,
-    MarkdownNodeTypeStrong,
-    MarkdownNodeTypeEmphasis,
-    MarkdownNodeTypeCode,
-    MarkdownNodeTypeImage
+  MarkdownNodeTypeDocument,
+  MarkdownNodeTypeParagraph,
+  MarkdownNodeTypeText,
+  MarkdownNodeTypeLink,
+  MarkdownNodeTypeHeading,
+  MarkdownNodeTypeLineBreak,
+  MarkdownNodeTypeStrong,
+  MarkdownNodeTypeEmphasis,
+  MarkdownNodeTypeCode,
+  MarkdownNodeTypeImage
 };
 
 @interface MarkdownASTNode : NSObject

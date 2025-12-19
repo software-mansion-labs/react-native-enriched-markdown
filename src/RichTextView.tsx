@@ -11,6 +11,7 @@ export interface ParagraphStyle {
   fontWeight?: string;
   color?: string;
   marginBottom?: number;
+  lineHeight?: number;
 }
 
 export interface HeadingStyle {
@@ -19,6 +20,7 @@ export interface HeadingStyle {
   fontWeight?: string;
   color?: string;
   marginBottom?: number;
+  lineHeight?: number;
 }
 
 export interface LinkStyle {

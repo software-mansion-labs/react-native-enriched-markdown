@@ -20,6 +20,7 @@ const paragraphDefaultStyles: RichTextStyleInternal['paragraph'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 16,
+  lineHeight: 16 * 1.4,
 };
 
 const defaultH1Style: RichTextStyleInternal['h1'] = {
@@ -28,6 +29,7 @@ const defaultH1Style: RichTextStyleInternal['h1'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 24,
+  lineHeight: 28 * 1.1,
 };
 
 const defaultH2Style: RichTextStyleInternal['h2'] = {
@@ -36,6 +38,7 @@ const defaultH2Style: RichTextStyleInternal['h2'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 24,
+  lineHeight: 28 * 1.1,
 };
 
 const defaultH3Style: RichTextStyleInternal['h3'] = {
@@ -44,6 +47,7 @@ const defaultH3Style: RichTextStyleInternal['h3'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 20,
+  lineHeight: 24 * 1.1,
 };
 
 const defaultH4Style: RichTextStyleInternal['h4'] = {
@@ -52,6 +56,7 @@ const defaultH4Style: RichTextStyleInternal['h4'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 18,
+  lineHeight: 20 * 1.1,
 };
 
 const defaultH5Style: RichTextStyleInternal['h5'] = {
@@ -60,6 +65,7 @@ const defaultH5Style: RichTextStyleInternal['h5'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 16,
+  lineHeight: 18 * 1.1,
 };
 
 const defaultH6Style: RichTextStyleInternal['h6'] = {
@@ -68,6 +74,7 @@ const defaultH6Style: RichTextStyleInternal['h6'] = {
   fontWeight: 'normal',
   color: defaultColor,
   marginBottom: 16,
+  lineHeight: 16 * 1.1,
 };
 
 const defaultLinkColor = processColor('#007AFF') as ColorValue;
@@ -110,6 +117,7 @@ export const normalizeRichTextStyle = (
       normalizeColor(style.paragraph?.color) ?? paragraphDefaultStyles.color,
     marginBottom:
       style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom,
+    lineHeight: paragraphDefaultStyles.lineHeight,
   };
 
   const h1: RichTextStyleInternal['h1'] = {
@@ -118,6 +126,7 @@ export const normalizeRichTextStyle = (
     fontWeight: style.h1?.fontWeight ?? defaultH1Style.fontWeight,
     color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
     marginBottom: style.h1?.marginBottom ?? defaultH1Style.marginBottom,
+    lineHeight: style.h1?.lineHeight ?? defaultH1Style.lineHeight,
   };
 
   const h2: RichTextStyleInternal['h2'] = {
@@ -126,6 +135,7 @@ export const normalizeRichTextStyle = (
     fontWeight: style.h2?.fontWeight ?? defaultH2Style.fontWeight,
     color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
     marginBottom: style.h2?.marginBottom ?? defaultH2Style.marginBottom,
+    lineHeight: style.h2?.lineHeight ?? defaultH2Style.lineHeight,
   };
 
   const h3: RichTextStyleInternal['h3'] = {
@@ -134,6 +144,7 @@ export const normalizeRichTextStyle = (
     fontWeight: style.h3?.fontWeight ?? defaultH3Style.fontWeight,
     color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
     marginBottom: style.h3?.marginBottom ?? defaultH3Style.marginBottom,
+    lineHeight: style.h3?.lineHeight ?? defaultH3Style.lineHeight,
   };
 
   const h4: RichTextStyleInternal['h4'] = {
@@ -142,6 +153,7 @@ export const normalizeRichTextStyle = (
     fontWeight: style.h4?.fontWeight ?? defaultH4Style.fontWeight,
     color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
     marginBottom: style.h4?.marginBottom ?? defaultH4Style.marginBottom,
+    lineHeight: style.h4?.lineHeight ?? defaultH4Style.lineHeight,
   };
 
   const h5: RichTextStyleInternal['h5'] = {
@@ -150,6 +162,7 @@ export const normalizeRichTextStyle = (
     fontWeight: style.h5?.fontWeight ?? defaultH5Style.fontWeight,
     color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
     marginBottom: style.h5?.marginBottom ?? defaultH5Style.marginBottom,
+    lineHeight: style.h5?.lineHeight ?? defaultH5Style.lineHeight,
   };
 
   const h6: RichTextStyleInternal['h6'] = {
@@ -158,6 +171,7 @@ export const normalizeRichTextStyle = (
     fontWeight: style.h6?.fontWeight ?? defaultH6Style.fontWeight,
     color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
     marginBottom: style.h6?.marginBottom ?? defaultH6Style.marginBottom,
+    lineHeight: style.h6?.lineHeight ?? defaultH6Style.lineHeight,
   };
 
   return {

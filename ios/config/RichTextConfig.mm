@@ -15,42 +15,49 @@
   NSString *_paragraphFontWeight;
   UIColor *_paragraphColor;
   CGFloat _paragraphMarginBottom;
+  CGFloat _paragraphLineHeight;
   // H1 properties
   CGFloat _h1FontSize;
   NSString *_h1FontFamily;
   NSString *_h1FontWeight;
   UIColor *_h1Color;
   CGFloat _h1MarginBottom;
+  CGFloat _h1LineHeight;
   // H2 properties
   CGFloat _h2FontSize;
   NSString *_h2FontFamily;
   NSString *_h2FontWeight;
   UIColor *_h2Color;
   CGFloat _h2MarginBottom;
+  CGFloat _h2LineHeight;
   // H3 properties
   CGFloat _h3FontSize;
   NSString *_h3FontFamily;
   NSString *_h3FontWeight;
   UIColor *_h3Color;
   CGFloat _h3MarginBottom;
+  CGFloat _h3LineHeight;
   // H4 properties
   CGFloat _h4FontSize;
   NSString *_h4FontFamily;
   NSString *_h4FontWeight;
   UIColor *_h4Color;
   CGFloat _h4MarginBottom;
+  CGFloat _h4LineHeight;
   // H5 properties
   CGFloat _h5FontSize;
   NSString *_h5FontFamily;
   NSString *_h5FontWeight;
   UIColor *_h5Color;
   CGFloat _h5MarginBottom;
+  CGFloat _h5LineHeight;
   // H6 properties
   CGFloat _h6FontSize;
   NSString *_h6FontFamily;
   NSString *_h6FontWeight;
   UIColor *_h6Color;
   CGFloat _h6MarginBottom;
+  CGFloat _h6LineHeight;
   // Link properties
   UIColor *_linkColor;
   BOOL _linkUnderline;
@@ -92,36 +99,43 @@
   copy->_paragraphFontWeight = [_paragraphFontWeight copy];
   copy->_paragraphColor = [_paragraphColor copy];
   copy->_paragraphMarginBottom = _paragraphMarginBottom;
+  copy->_paragraphLineHeight = _paragraphLineHeight;
   copy->_h1FontSize = _h1FontSize;
   copy->_h1FontFamily = [_h1FontFamily copy];
   copy->_h1FontWeight = [_h1FontWeight copy];
   copy->_h1Color = [_h1Color copy];
   copy->_h1MarginBottom = _h1MarginBottom;
+  copy->_h1LineHeight = _h1LineHeight;
   copy->_h2FontSize = _h2FontSize;
   copy->_h2FontFamily = [_h2FontFamily copy];
   copy->_h2FontWeight = [_h2FontWeight copy];
   copy->_h2Color = [_h2Color copy];
   copy->_h2MarginBottom = _h2MarginBottom;
+  copy->_h2LineHeight = _h2LineHeight;
   copy->_h3FontSize = _h3FontSize;
   copy->_h3FontFamily = [_h3FontFamily copy];
   copy->_h3FontWeight = [_h3FontWeight copy];
   copy->_h3Color = [_h3Color copy];
   copy->_h3MarginBottom = _h3MarginBottom;
+  copy->_h3LineHeight = _h3LineHeight;
   copy->_h4FontSize = _h4FontSize;
   copy->_h4FontFamily = [_h4FontFamily copy];
   copy->_h4FontWeight = [_h4FontWeight copy];
   copy->_h4Color = [_h4Color copy];
   copy->_h4MarginBottom = _h4MarginBottom;
+  copy->_h4LineHeight = _h4LineHeight;
   copy->_h5FontSize = _h5FontSize;
   copy->_h5FontFamily = [_h5FontFamily copy];
   copy->_h5FontWeight = [_h5FontWeight copy];
   copy->_h5Color = [_h5Color copy];
   copy->_h5MarginBottom = _h5MarginBottom;
+  copy->_h5LineHeight = _h5LineHeight;
   copy->_h6FontSize = _h6FontSize;
   copy->_h6FontFamily = [_h6FontFamily copy];
   copy->_h6FontWeight = [_h6FontWeight copy];
   copy->_h6Color = [_h6Color copy];
   copy->_h6MarginBottom = _h6MarginBottom;
+  copy->_h6LineHeight = _h6LineHeight;
   copy->_linkColor = [_linkColor copy];
   copy->_linkUnderline = _linkUnderline;
   copy->_strongColor = [_strongColor copy];
@@ -246,6 +260,16 @@
   _paragraphMarginBottom = newValue;
 }
 
+- (CGFloat)paragraphLineHeight
+{
+  return _paragraphLineHeight;
+}
+
+- (void)setParagraphLineHeight:(CGFloat)newValue
+{
+  _paragraphLineHeight = newValue;
+}
+
 - (CGFloat)h1FontSize
 {
   return _h1FontSize;
@@ -294,6 +318,16 @@
 - (void)setH1MarginBottom:(CGFloat)newValue
 {
   _h1MarginBottom = newValue;
+}
+
+- (CGFloat)h1LineHeight
+{
+  return _h1LineHeight;
+}
+
+- (void)setH1LineHeight:(CGFloat)newValue
+{
+  _h1LineHeight = newValue;
 }
 
 - (CGFloat)h2FontSize
@@ -346,6 +380,16 @@
   _h2MarginBottom = newValue;
 }
 
+- (CGFloat)h2LineHeight
+{
+  return _h2LineHeight;
+}
+
+- (void)setH2LineHeight:(CGFloat)newValue
+{
+  _h2LineHeight = newValue;
+}
+
 - (CGFloat)h3FontSize
 {
   return _h3FontSize;
@@ -394,6 +438,16 @@
 - (void)setH3MarginBottom:(CGFloat)newValue
 {
   _h3MarginBottom = newValue;
+}
+
+- (CGFloat)h3LineHeight
+{
+  return _h3LineHeight;
+}
+
+- (void)setH3LineHeight:(CGFloat)newValue
+{
+  _h3LineHeight = newValue;
 }
 
 - (CGFloat)h4FontSize
@@ -446,6 +500,16 @@
   _h4MarginBottom = newValue;
 }
 
+- (CGFloat)h4LineHeight
+{
+  return _h4LineHeight;
+}
+
+- (void)setH4LineHeight:(CGFloat)newValue
+{
+  _h4LineHeight = newValue;
+}
+
 - (CGFloat)h5FontSize
 {
   return _h5FontSize;
@@ -496,6 +560,16 @@
   _h5MarginBottom = newValue;
 }
 
+- (CGFloat)h5LineHeight
+{
+  return _h5LineHeight;
+}
+
+- (void)setH5LineHeight:(CGFloat)newValue
+{
+  _h5LineHeight = newValue;
+}
+
 - (CGFloat)h6FontSize
 {
   return _h6FontSize;
@@ -544,6 +618,16 @@
 - (void)setH6MarginBottom:(CGFloat)newValue
 {
   _h6MarginBottom = newValue;
+}
+
+- (CGFloat)h6LineHeight
+{
+  return _h6LineHeight;
+}
+
+- (void)setH6LineHeight:(CGFloat)newValue
+{
+  _h6LineHeight = newValue;
 }
 
 - (UIColor *)linkColor

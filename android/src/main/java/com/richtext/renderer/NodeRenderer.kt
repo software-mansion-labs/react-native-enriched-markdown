@@ -11,9 +11,10 @@ import com.richtext.spans.RichTextMarginBottomSpan
 import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextTextSpan
-import com.richtext.styles.ParagraphStyle
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.applyMarginBottom
+import com.richtext.utils.containsBlockImage
+import com.richtext.utils.createLineHeightSpan
 import com.richtext.utils.getMarginBottomForParagraph
 import com.richtext.utils.isInlineImage
 import org.commonmark.node.Code
@@ -86,6 +87,16 @@ class ParagraphRenderer(
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
 
+      // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
+      if (!paragraph.containsBlockImage()) {
+        builder.setSpan(
+          createLineHeightSpan(paragraphStyle.lineHeight),
+          start,
+          start + contentLength,
+          android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+      }
+
       val marginBottom = getMarginBottomForParagraph(paragraph, paragraphStyle, config.style)
       applyMarginBottom(builder, start, marginBottom)
     }
@@ -120,6 +131,13 @@ class HeadingRenderer(
           heading.level,
           config.style,
         ),
+        start,
+        start + contentLength,
+        android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
+      )
+
+      builder.setSpan(
+        createLineHeightSpan(headingStyle.lineHeight),
         start,
         start + contentLength,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,

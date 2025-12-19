@@ -65,6 +65,13 @@
     [context clearBlockStyle];
   }
 
+  NSUInteger headingEnd = output.length;
+
+  // Apply lineHeight to heading content, then add spacing
+  CGFloat lineHeight = [self getLineHeightForLevel:level config:config];
+  NSRange headingContentRange = NSMakeRange(headingStart, headingEnd - headingStart);
+  applyLineHeight(output, headingContentRange, lineHeight);
+
   CGFloat marginBottom = [self getMarginBottomForLevel:level config:config];
   applyParagraphSpacing(output, headingStart, marginBottom);
 }
@@ -180,6 +187,29 @@
       // Should never happen - JS always provides all 6 levels
       NSLog(@"Warning: Invalid heading level %ld, using H1 marginBottom", (long)level);
       return [config h1MarginBottom];
+    }
+  }
+}
+
+- (CGFloat)getLineHeightForLevel:(NSInteger)level config:(RichTextConfig *)config
+{
+  switch (level) {
+    case 1:
+      return [config h1LineHeight];
+    case 2:
+      return [config h2LineHeight];
+    case 3:
+      return [config h3LineHeight];
+    case 4:
+      return [config h4LineHeight];
+    case 5:
+      return [config h5LineHeight];
+    case 6:
+      return [config h6LineHeight];
+    default: {
+      // Should never happen - JS always provides all 6 levels
+      NSLog(@"Warning: Invalid heading level %ld, using H1 lineHeight", (long)level);
+      return [config h1LineHeight];
     }
   }
 }

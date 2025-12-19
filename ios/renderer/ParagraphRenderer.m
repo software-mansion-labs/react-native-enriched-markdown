@@ -44,6 +44,18 @@
     [context clearBlockStyle];
   }
 
+  NSUInteger paragraphEnd = output.length;
+
+  // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
+  BOOL containsBlockImage =
+      (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
+
+  if (!containsBlockImage) {
+    CGFloat lineHeight = [config paragraphLineHeight];
+    NSRange paragraphContentRange = NSMakeRange(paragraphStart, paragraphEnd - paragraphStart);
+    applyLineHeight(output, paragraphContentRange, lineHeight);
+  }
+
   CGFloat marginBottom = [self getMarginBottomForParagraph:node config:config];
   applyParagraphSpacing(output, paragraphStart, marginBottom);
 }

@@ -242,6 +242,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.paragraph.lineHeight != oldViewProps.richTextStyle.paragraph.lineHeight) {
+    [_config setParagraphLineHeight:newViewProps.richTextStyle.paragraph.lineHeight];
+    stylePropChanged = YES;
+  }
+
   // H1 style
   if (newViewProps.richTextStyle.h1.fontSize != oldViewProps.richTextStyle.h1.fontSize) {
     [_config setH1FontSize:newViewProps.richTextStyle.h1.fontSize];
@@ -280,6 +285,11 @@ static const CGFloat kLabelPadding = 10.0;
 
   if (newViewProps.richTextStyle.h1.marginBottom != oldViewProps.richTextStyle.h1.marginBottom) {
     [_config setH1MarginBottom:newViewProps.richTextStyle.h1.marginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.h1.lineHeight != oldViewProps.richTextStyle.h1.lineHeight) {
+    [_config setH1LineHeight:newViewProps.richTextStyle.h1.lineHeight];
     stylePropChanged = YES;
   }
 
@@ -324,6 +334,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.h2.lineHeight != oldViewProps.richTextStyle.h2.lineHeight) {
+    [_config setH2LineHeight:newViewProps.richTextStyle.h2.lineHeight];
+    stylePropChanged = YES;
+  }
+
   // H3 style
   if (newViewProps.richTextStyle.h3.fontSize != oldViewProps.richTextStyle.h3.fontSize) {
     [_config setH3FontSize:newViewProps.richTextStyle.h3.fontSize];
@@ -362,6 +377,11 @@ static const CGFloat kLabelPadding = 10.0;
 
   if (newViewProps.richTextStyle.h3.marginBottom != oldViewProps.richTextStyle.h3.marginBottom) {
     [_config setH3MarginBottom:newViewProps.richTextStyle.h3.marginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.h3.lineHeight != oldViewProps.richTextStyle.h3.lineHeight) {
+    [_config setH3LineHeight:newViewProps.richTextStyle.h3.lineHeight];
     stylePropChanged = YES;
   }
 
@@ -406,6 +426,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.h4.lineHeight != oldViewProps.richTextStyle.h4.lineHeight) {
+    [_config setH4LineHeight:newViewProps.richTextStyle.h4.lineHeight];
+    stylePropChanged = YES;
+  }
+
   // H5 style
   if (newViewProps.richTextStyle.h5.fontSize != oldViewProps.richTextStyle.h5.fontSize) {
     [_config setH5FontSize:newViewProps.richTextStyle.h5.fontSize];
@@ -447,6 +472,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.h5.lineHeight != oldViewProps.richTextStyle.h5.lineHeight) {
+    [_config setH5LineHeight:newViewProps.richTextStyle.h5.lineHeight];
+    stylePropChanged = YES;
+  }
+
   // H6 style
   if (newViewProps.richTextStyle.h6.fontSize != oldViewProps.richTextStyle.h6.fontSize) {
     [_config setH6FontSize:newViewProps.richTextStyle.h6.fontSize];
@@ -485,6 +515,11 @@ static const CGFloat kLabelPadding = 10.0;
 
   if (newViewProps.richTextStyle.h6.marginBottom != oldViewProps.richTextStyle.h6.marginBottom) {
     [_config setH6MarginBottom:newViewProps.richTextStyle.h6.marginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.h6.lineHeight != oldViewProps.richTextStyle.h6.lineHeight) {
+    [_config setH6LineHeight:newViewProps.richTextStyle.h6.lineHeight];
     stylePropChanged = YES;
   }
 

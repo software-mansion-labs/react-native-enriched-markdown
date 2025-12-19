@@ -12,6 +12,7 @@ interface BaseBlockStyleInternal {
   fontWeight: string;
   color: ColorValue;
   marginBottom: CodegenTypes.Float;
+  lineHeight: CodegenTypes.Float;
 }
 
 interface ParagraphStyleInternal extends BaseBlockStyleInternal {}

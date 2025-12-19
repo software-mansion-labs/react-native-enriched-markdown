@@ -24,6 +24,8 @@
 - (void)setParagraphColor:(UIColor *)newValue;
 - (CGFloat)paragraphMarginBottom;
 - (void)setParagraphMarginBottom:(CGFloat)newValue;
+- (CGFloat)paragraphLineHeight;
+- (void)setParagraphLineHeight:(CGFloat)newValue;
 // H1 properties
 - (CGFloat)h1FontSize;
 - (void)setH1FontSize:(CGFloat)newValue;
@@ -35,6 +37,8 @@
 - (void)setH1Color:(UIColor *)newValue;
 - (CGFloat)h1MarginBottom;
 - (void)setH1MarginBottom:(CGFloat)newValue;
+- (CGFloat)h1LineHeight;
+- (void)setH1LineHeight:(CGFloat)newValue;
 // H2 properties
 - (CGFloat)h2FontSize;
 - (void)setH2FontSize:(CGFloat)newValue;
@@ -46,6 +50,8 @@
 - (void)setH2Color:(UIColor *)newValue;
 - (CGFloat)h2MarginBottom;
 - (void)setH2MarginBottom:(CGFloat)newValue;
+- (CGFloat)h2LineHeight;
+- (void)setH2LineHeight:(CGFloat)newValue;
 // H3 properties
 - (CGFloat)h3FontSize;
 - (void)setH3FontSize:(CGFloat)newValue;
@@ -57,6 +63,8 @@
 - (void)setH3Color:(UIColor *)newValue;
 - (CGFloat)h3MarginBottom;
 - (void)setH3MarginBottom:(CGFloat)newValue;
+- (CGFloat)h3LineHeight;
+- (void)setH3LineHeight:(CGFloat)newValue;
 // H4 properties
 - (CGFloat)h4FontSize;
 - (void)setH4FontSize:(CGFloat)newValue;
@@ -68,6 +76,8 @@
 - (void)setH4Color:(UIColor *)newValue;
 - (CGFloat)h4MarginBottom;
 - (void)setH4MarginBottom:(CGFloat)newValue;
+- (CGFloat)h4LineHeight;
+- (void)setH4LineHeight:(CGFloat)newValue;
 // H5 properties
 - (CGFloat)h5FontSize;
 - (void)setH5FontSize:(CGFloat)newValue;
@@ -79,6 +89,8 @@
 - (void)setH5Color:(UIColor *)newValue;
 - (CGFloat)h5MarginBottom;
 - (void)setH5MarginBottom:(CGFloat)newValue;
+- (CGFloat)h5LineHeight;
+- (void)setH5LineHeight:(CGFloat)newValue;
 // H6 properties
 - (CGFloat)h6FontSize;
 - (void)setH6FontSize:(CGFloat)newValue;
@@ -90,6 +102,8 @@
 - (void)setH6Color:(UIColor *)newValue;
 - (CGFloat)h6MarginBottom;
 - (void)setH6MarginBottom:(CGFloat)newValue;
+- (CGFloat)h6LineHeight;
+- (void)setH6LineHeight:(CGFloat)newValue;
 // Link properties
 - (UIColor *)linkColor;
 - (void)setLinkColor:(UIColor *)newValue;

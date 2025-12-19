@@ -11,6 +11,7 @@ data class ParagraphStyle(
   val fontWeight: String,
   val color: Int,
   val marginBottom: Float,
+  val lineHeight: Float,
 )
 
 data class HeadingStyle(
@@ -19,6 +20,7 @@ data class HeadingStyle(
   val fontWeight: String,
   val color: Int,
   val marginBottom: Float,
+  val lineHeight: Float,
 )
 
 data class LinkStyle(
@@ -133,7 +135,17 @@ class RichTextStyle(
     val paragraphFontWeight = paragraphStyleMap.getString("fontWeight") ?: "normal"
     val paragraphColor = parseColor(paragraphStyleMap, "color")
     val paragraphMarginBottom = PixelUtil.toPixelFromDIP(parseOptionalDouble(paragraphStyleMap, "marginBottom", 16.0).toFloat())
-    paragraphStyle = ParagraphStyle(paragraphFontSize, paragraphFontFamily, paragraphFontWeight, paragraphColor, paragraphMarginBottom)
+    val paragraphLineHeightRaw = parseOptionalDouble(paragraphStyleMap, "lineHeight", 0.0).toFloat()
+    val paragraphLineHeight = PixelUtil.toPixelFromSP(paragraphLineHeightRaw)
+    paragraphStyle =
+      ParagraphStyle(
+        paragraphFontSize,
+        paragraphFontFamily,
+        paragraphFontWeight,
+        paragraphColor,
+        paragraphMarginBottom,
+        paragraphLineHeight,
+      )
 
     // Parse heading styles
     (1..6).forEach { level ->
@@ -150,8 +162,10 @@ class RichTextStyle(
       // Default marginBottom: h1=0, h2-h6=24, but we'll use 24 for all as a safe default
       val defaultMarginBottom = if (level == 1) 0.0 else 24.0
       val marginBottom = PixelUtil.toPixelFromDIP(parseOptionalDouble(levelStyle, "marginBottom", defaultMarginBottom).toFloat())
+      val lineHeightRaw = parseOptionalDouble(levelStyle, "lineHeight", 0.0).toFloat()
+      val lineHeight = PixelUtil.toPixelFromSP(lineHeightRaw)
 
-      headingStyles[level] = HeadingStyle(fontSize, fontFamily, fontWeight, color, marginBottom)
+      headingStyles[level] = HeadingStyle(fontSize, fontFamily, fontWeight, color, marginBottom, lineHeight)
     }
 
     val linkStyleMap =

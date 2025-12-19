@@ -11,9 +11,10 @@ import com.richtext.spans.RichTextMarginBottomSpan
 import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextTextSpan
-import com.richtext.styles.ParagraphStyle
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.applyMarginBottom
+import com.richtext.utils.containsBlockImage
+import com.richtext.utils.createLineHeightSpan
 import com.richtext.utils.getMarginBottomForParagraph
 import com.richtext.utils.isInlineImage
 import org.commonmark.node.Code
@@ -86,6 +87,18 @@ class ParagraphRenderer(
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
 
+      // Apply lineHeight span only if paragraph doesn't contain block images
+      // Block images have their own chooseHeight that reserves space, and applying
+      // lineHeight span to the entire paragraph (including image) causes conflicts
+      if (!paragraph.containsBlockImage()) {
+        builder.setSpan(
+          createLineHeightSpan(paragraphStyle.lineHeight),
+          start,
+          start + contentLength,
+          android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+      }
+
       val marginBottom = getMarginBottomForParagraph(paragraph, paragraphStyle, config.style)
       applyMarginBottom(builder, start, marginBottom)
     }
@@ -120,6 +133,14 @@ class HeadingRenderer(
           heading.level,
           config.style,
         ),
+        start,
+        start + contentLength,
+        android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
+      )
+
+      // Apply lineHeight span for headings (headings don't contain images, so no conflict check needed)
+      builder.setSpan(
+        createLineHeightSpan(headingStyle.lineHeight),
         start,
         start + contentLength,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,

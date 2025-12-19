@@ -2,13 +2,16 @@ package com.richtext.utils
 
 import android.content.Context
 import android.graphics.Typeface
+import android.os.Build
 import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.TextPaint
+import android.text.style.LineHeightSpan
 import com.facebook.react.common.ReactConstants
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.richtext.renderer.BlockStyle
+import com.richtext.spans.RichTextLineHeightSpan
 import com.richtext.spans.RichTextMarginBottomSpan
 import com.richtext.styles.ParagraphStyle
 import com.richtext.styles.RichTextStyle
@@ -170,6 +173,32 @@ fun getMarginBottomForParagraph(
   // Default: use paragraph's marginBottom
   return paragraphStyle.marginBottom
 }
+
+/**
+ * Determines if a paragraph contains a block image.
+ * A block image is when a paragraph contains only a single Image node.
+ * Inline images are part of text flow and should allow lineHeight to be applied.
+ */
+fun Paragraph.containsBlockImage(): Boolean {
+  val firstChild = firstChild
+  return firstChild != null && firstChild.next == null && firstChild is Image
+}
+
+/**
+ * Creates an appropriate LineHeightSpan based on the Android API level.
+ * Uses LineHeightSpan.Standard for API 29+ and RichTextLineHeightSpan for older APIs.
+ *
+ * @param lineHeight The desired line height in pixels (Float)
+ * @return A LineHeightSpan instance appropriate for the current API level
+ */
+fun createLineHeightSpan(lineHeight: Float): LineHeightSpan =
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    // Use standard LineHeightSpan for API 29+
+    LineHeightSpan.Standard(lineHeight.toInt())
+  } else {
+    // Use custom implementation for older APIs
+    RichTextLineHeightSpan(lineHeight)
+  }
 
 /**
  * Applies marginBottom spacing to a block element.

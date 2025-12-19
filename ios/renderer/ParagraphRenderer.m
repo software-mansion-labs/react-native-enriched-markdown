@@ -46,13 +46,10 @@
 
   NSUInteger paragraphEnd = output.length;
 
-  // Check if paragraph contains a block image (single child that is an image)
-  // Block images should not have lineHeight applied, as it creates unwanted spacing above the image
+  // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
   BOOL containsBlockImage =
       (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
 
-  // Apply lineHeight to paragraph content, then add spacing
-  // Skip lineHeight for paragraphs containing block images to prevent extra spacing above image
   if (!containsBlockImage) {
     CGFloat lineHeight = [config paragraphLineHeight];
     NSRange paragraphContentRange = NSMakeRange(paragraphStart, paragraphEnd - paragraphStart);

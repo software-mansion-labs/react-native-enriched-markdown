@@ -19,18 +19,23 @@ void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, 
     style.lineHeightMultiple = 1.0;
   }
 
-  [output addAttribute:NSParagraphStyleAttributeName value:style range:NSMakeRange(start, output.length - start)];
+  NSRange range = NSMakeRange(start, output.length - start);
+  [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
 }
 
 void applyLineHeight(NSMutableAttributedString *output, NSRange range, CGFloat lineHeight)
 {
-  if (lineHeight <= 0)
+  if (lineHeight <= 0) {
     return;
+  }
 
   NSMutableParagraphStyle *style = getOrCreateParagraphStyle(output, range.location);
   UIFont *font = [output attribute:NSFontAttributeName atIndex:range.location effectiveRange:NULL];
+  if (!font) {
+    return;
+  }
 
-  style.lineHeightMultiple = lineHeight / (font.pointSize ?: 16.0);
+  style.lineHeightMultiple = lineHeight / font.pointSize;
   style.minimumLineHeight = 0;
   style.maximumLineHeight = 0;
   style.lineSpacing = 0;

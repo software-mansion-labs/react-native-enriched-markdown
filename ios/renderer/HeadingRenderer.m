@@ -1,8 +1,8 @@
 #import "HeadingRenderer.h"
+#import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
 #import "RichTextConfig.h"
-#import "SpacingUtils.h"
 
 @implementation HeadingRenderer {
   RendererFactory *_rendererFactory;
@@ -54,6 +54,7 @@
     headingFont = [UIFont fontWithDescriptor:font.fontDescriptor size:fontSize];
   }
 
+  NSUInteger headingStart = output.length;
   @try {
     [_rendererFactory renderChildrenOfNode:node
                                       into:output
@@ -64,8 +65,8 @@
     [context clearBlockStyle];
   }
 
-  NSAttributedString *spacing = createSpacing();
-  [output appendAttributedString:spacing];
+  CGFloat marginBottom = [self getMarginBottomForLevel:level config:config];
+  applyParagraphSpacing(output, headingStart, marginBottom);
 }
 
 - (CGFloat)getFontSizeForLevel:(NSInteger)level config:(RichTextConfig *)config
@@ -156,6 +157,29 @@
       // Should never happen - JS always provides all 6 levels
       NSLog(@"Warning: Invalid heading level %ld, using H1 color", (long)level);
       return [config h1Color];
+    }
+  }
+}
+
+- (CGFloat)getMarginBottomForLevel:(NSInteger)level config:(RichTextConfig *)config
+{
+  switch (level) {
+    case 1:
+      return [config h1MarginBottom];
+    case 2:
+      return [config h2MarginBottom];
+    case 3:
+      return [config h3MarginBottom];
+    case 4:
+      return [config h4MarginBottom];
+    case 5:
+      return [config h5MarginBottom];
+    case 6:
+      return [config h6MarginBottom];
+    default: {
+      // Should never happen - JS always provides all 6 levels
+      NSLog(@"Warning: Invalid heading level %ld, using H1 marginBottom", (long)level);
+      return [config h1MarginBottom];
     }
   }
 }

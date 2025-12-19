@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.text.Layout
 import android.text.Spanned
 import com.richtext.spans.RichTextCodeStyleSpan
+import com.richtext.spans.RichTextMarginBottomSpan
 import com.richtext.styles.RichTextStyle
 import kotlin.math.max
 import kotlin.math.min
@@ -51,9 +52,9 @@ class CodeBackground(
       val endOffset = layout.getPrimaryHorizontal(spanEnd).toInt()
 
       if (startLine == endLine) {
-        drawSingleLine(canvas, layout, startLine, startOffset, endOffset, backgroundColor, borderColor)
+        drawSingleLine(canvas, layout, startLine, startOffset, endOffset, backgroundColor, borderColor, text)
       } else {
-        drawMultiLine(canvas, layout, startLine, endLine, spanStart, spanEnd, backgroundColor, borderColor)
+        drawMultiLine(canvas, layout, startLine, endLine, spanStart, spanEnd, backgroundColor, borderColor, text)
       }
     }
   }
@@ -61,11 +62,27 @@ class CodeBackground(
   private fun getLineBounds(
     layout: Layout,
     line: Int,
-  ): Pair<Int, Int> =
-    Pair(
-      layout.getLineTopWithoutPadding(line),
-      layout.getLineBottomWithoutPadding(line),
-    )
+    text: Spanned? = null,
+  ): Pair<Int, Int> {
+    val top = layout.getLineTopWithoutPadding(line)
+    var bottom = layout.getLineBottomWithoutPadding(line)
+
+    // If this line has a RichTextMarginBottomSpan ending at the newline,
+    // exclude the margin from the bottom to prevent code background from extending into margin space
+    if (text != null && line < layout.lineCount - 1) {
+      val lineEnd = layout.getLineEnd(line)
+      // Check if there's a margin span at the end of this line (newline position)
+      text
+        .getSpans(lineEnd - 1, lineEnd, RichTextMarginBottomSpan::class.java)
+        .forEach { span ->
+          // If the span ends at the newline character, subtract the margin
+          if (text.getSpanEnd(span) == lineEnd && text[lineEnd - 1] == '\n') {
+            bottom -= span.marginBottom.toInt()
+          }
+        }
+    }
+    return Pair(top, bottom)
+  }
 
   private fun createPaint(
     style: Paint.Style,
@@ -89,8 +106,9 @@ class CodeBackground(
     endOffset: Int,
     backgroundColor: Int,
     borderColor: Int,
+    text: Spanned,
   ) {
-    val (top, bottom) = getLineBounds(layout, line)
+    val (top, bottom) = getLineBounds(layout, line, text)
     val rect =
       RectF(
         min(startOffset, endOffset).toFloat(),
@@ -116,19 +134,20 @@ class CodeBackground(
     spanEnd: Int,
     backgroundColor: Int,
     borderColor: Int,
+    text: Spanned,
   ) {
     val referenceHeight = findReferenceHeight(layout, startLine, endLine, spanStart, spanEnd)
 
     // Draw start line (rounded left, no right border)
     val startOffset = layout.getPrimaryHorizontal(spanStart).toInt()
     val lineEndOffset = layout.getLineRight(startLine).toInt()
-    val (startTop, startBottom) = getLineBounds(layout, startLine)
+    val (startTop, startBottom) = getLineBounds(layout, startLine, text)
     drawRoundedEdge(canvas, startOffset, startTop, lineEndOffset, startBottom, backgroundColor, borderColor, isLeft = true)
 
     // Draw middle lines (no left or right borders, only top and bottom)
     var previousBottom = startBottom
     for (line in startLine + 1 until endLine) {
-      val (top, bottom) = getLineBounds(layout, line)
+      val (top, bottom) = getLineBounds(layout, line, text)
       val (adjustedTop, adjustedBottom) = adjustLineHeight(top, bottom, referenceHeight, previousBottom)
 
       val rect = RectF(layout.getLineLeft(line), adjustedTop.toFloat(), layout.getLineRight(line), adjustedBottom.toFloat())
@@ -141,7 +160,7 @@ class CodeBackground(
     // Draw end line (rounded right, no left border)
     val endOffset = layout.getPrimaryHorizontal(spanEnd).toInt()
     val lineStartOffset = layout.getLineLeft(endLine).toInt()
-    val (endTop, endBottom) = getLineBounds(layout, endLine)
+    val (endTop, endBottom) = getLineBounds(layout, endLine, text)
     drawRoundedEdge(canvas, lineStartOffset, endTop, endOffset, endBottom, backgroundColor, borderColor, isLeft = false)
   }
 
@@ -171,8 +190,9 @@ class CodeBackground(
   private fun getLineHeight(
     layout: Layout,
     line: Int,
+    text: Spanned? = null,
   ): Int {
-    val (top, bottom) = getLineBounds(layout, line)
+    val (top, bottom) = getLineBounds(layout, line, text)
     return bottom - top
   }
 

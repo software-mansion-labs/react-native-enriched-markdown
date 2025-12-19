@@ -1,7 +1,8 @@
 #import "ParagraphRenderer.h"
+#import "MarkdownASTNode.h"
+#import "ParagraphStyleUtils.h"
 #import "RendererFactory.h"
 #import "RichTextConfig.h"
-#import "SpacingUtils.h"
 
 @implementation ParagraphRenderer {
   RendererFactory *_rendererFactory;
@@ -36,11 +37,38 @@
               fontWeight:fontWeight
                    color:paragraphColor];
 
+  NSUInteger paragraphStart = output.length;
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output withFont:font color:color context:context];
   } @finally {
     [context clearBlockStyle];
   }
+
+  CGFloat marginBottom = [self getMarginBottomForParagraph:node config:config];
+  applyParagraphSpacing(output, paragraphStart, marginBottom);
+}
+
+- (CGFloat)getMarginBottomForParagraph:(MarkdownASTNode *)node config:(RichTextConfig *)config
+{
+  // If paragraph contains only a single block-level element, use that element's marginBottom
+  // Otherwise, use paragraph's marginBottom
+  if (node.children.count == 1) {
+    MarkdownASTNode *child = node.children[0];
+
+    // Image: use image's marginBottom
+    if (child.type == MarkdownNodeTypeImage) {
+      return [config imageMarginBottom];
+    }
+
+    // Future: Add other block elements here as they're implemented
+    // Example:
+    // if (child.type == MarkdownNodeTypeBlockquote) {
+    //   return [config blockquoteMarginBottom];
+    // }
+  }
+
+  // Default: use paragraph's marginBottom
+  return [config paragraphMarginBottom];
 }
 
 @end

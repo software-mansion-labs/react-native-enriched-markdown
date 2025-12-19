@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.text.Spannable
 import android.text.style.ImageSpan
+import android.text.style.LineHeightSpan
 import androidx.core.graphics.withSave
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -31,7 +32,8 @@ class RichTextImageSpan(
   private val imageUrl: String,
   private val style: RichTextStyle,
   private val isInline: Boolean = false,
-) : ImageSpan(createPlaceholderDrawable(context, style, isInline), imageUrl, ALIGN_CENTER) {
+) : ImageSpan(createPlaceholderDrawable(context, style, isInline), imageUrl, ALIGN_CENTER),
+  LineHeightSpan {
   private val reactContext: ReactContext =
     requireNotNull(context as? ReactContext) {
       "RichTextImageSpan requires ReactContext, but received: ${context::class.java.name}"
@@ -123,6 +125,38 @@ class RichTextImageSpan(
       height
     }
 
+  override fun getSize(
+    paint: Paint,
+    text: CharSequence?,
+    start: Int,
+    end: Int,
+    fm: Paint.FontMetricsInt?,
+  ): Int = getDrawable().bounds.right
+
+  /**
+   * Ensures the line height matches the image height for non-inline images.
+   * Expands the line downward to create space at the bottom.
+   */
+  override fun chooseHeight(
+    text: CharSequence,
+    start: Int,
+    end: Int,
+    spanstartv: Int,
+    lineHeight: Int,
+    fm: Paint.FontMetricsInt,
+  ) {
+    if (!isInline) {
+      val targetImageHeight = height
+      val currentLineHeight = fm.descent - fm.ascent
+
+      if (targetImageHeight > currentLineHeight) {
+        val extraHeight = targetImageHeight - currentLineHeight
+        fm.descent += extraHeight
+        fm.bottom += extraHeight
+      }
+    }
+  }
+
   override fun draw(
     canvas: Canvas,
     text: CharSequence?,
@@ -136,9 +170,16 @@ class RichTextImageSpan(
   ) {
     val drawable = getDrawable()
     canvas.withSave {
-      val lineCenter = (top + bottom) / CENTERING_DIVISOR.toFloat()
-      val drawableCenter = drawable.bounds.exactCenterY()
-      translate(x, lineCenter - drawableCenter)
+      if (isInline) {
+        // For inline images, center vertically with the text baseline
+        val lineCenter = (top + bottom) / CENTERING_DIVISOR.toFloat()
+        val drawableCenter = drawable.bounds.exactCenterY()
+        translate(x, lineCenter - drawableCenter)
+      } else {
+        // For block images, align image top to line top, leaving empty space at the bottom
+        val transY = top.toFloat() - drawable.bounds.top
+        translate(x, transY)
+      }
       drawable.draw(this)
     }
   }

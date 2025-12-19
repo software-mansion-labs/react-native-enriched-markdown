@@ -3,7 +3,6 @@
 #import "NodeRenderer.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
-#import "SpacingUtils.h"
 
 @interface AttributedRenderer (Helpers)
 - (NSAttributedString *)createTextString:(NSString *)text withFont:(UIFont *)font color:(UIColor *)color;
@@ -58,14 +57,10 @@
     [renderer renderNode:node into:out withFont:font color:color context:context];
     return;
   }
-  // Fallback: render children
+
   for (NSUInteger i = 0; i < node.children.count; i++) {
     MarkdownASTNode *child = node.children[i];
     [self renderNodeRecursive:child into:out font:font color:color context:context isTopLevel:NO];
-    if (child.type == MarkdownNodeTypeParagraph && i < node.children.count - 1) {
-      NSAttributedString *spacing = createSpacing();
-      [out appendAttributedString:spacing];
-    }
   }
 }
 

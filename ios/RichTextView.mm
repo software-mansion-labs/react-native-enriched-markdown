@@ -237,6 +237,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.paragraph.marginBottom != oldViewProps.richTextStyle.paragraph.marginBottom) {
+    [_config setParagraphMarginBottom:newViewProps.richTextStyle.paragraph.marginBottom];
+    stylePropChanged = YES;
+  }
+
   // H1 style
   if (newViewProps.richTextStyle.h1.fontSize != oldViewProps.richTextStyle.h1.fontSize) {
     [_config setH1FontSize:newViewProps.richTextStyle.h1.fontSize];
@@ -270,6 +275,11 @@ static const CGFloat kLabelPadding = 10.0;
     } else {
       [_config setH1Color:nullptr];
     }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.h1.marginBottom != oldViewProps.richTextStyle.h1.marginBottom) {
+    [_config setH1MarginBottom:newViewProps.richTextStyle.h1.marginBottom];
     stylePropChanged = YES;
   }
 
@@ -309,6 +319,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.h2.marginBottom != oldViewProps.richTextStyle.h2.marginBottom) {
+    [_config setH2MarginBottom:newViewProps.richTextStyle.h2.marginBottom];
+    stylePropChanged = YES;
+  }
+
   // H3 style
   if (newViewProps.richTextStyle.h3.fontSize != oldViewProps.richTextStyle.h3.fontSize) {
     [_config setH3FontSize:newViewProps.richTextStyle.h3.fontSize];
@@ -342,6 +357,11 @@ static const CGFloat kLabelPadding = 10.0;
     } else {
       [_config setH3Color:nullptr];
     }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.h3.marginBottom != oldViewProps.richTextStyle.h3.marginBottom) {
+    [_config setH3MarginBottom:newViewProps.richTextStyle.h3.marginBottom];
     stylePropChanged = YES;
   }
 
@@ -381,6 +401,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.h4.marginBottom != oldViewProps.richTextStyle.h4.marginBottom) {
+    [_config setH4MarginBottom:newViewProps.richTextStyle.h4.marginBottom];
+    stylePropChanged = YES;
+  }
+
   // H5 style
   if (newViewProps.richTextStyle.h5.fontSize != oldViewProps.richTextStyle.h5.fontSize) {
     [_config setH5FontSize:newViewProps.richTextStyle.h5.fontSize];
@@ -417,6 +442,11 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.richTextStyle.h5.marginBottom != oldViewProps.richTextStyle.h5.marginBottom) {
+    [_config setH5MarginBottom:newViewProps.richTextStyle.h5.marginBottom];
+    stylePropChanged = YES;
+  }
+
   // H6 style
   if (newViewProps.richTextStyle.h6.fontSize != oldViewProps.richTextStyle.h6.fontSize) {
     [_config setH6FontSize:newViewProps.richTextStyle.h6.fontSize];
@@ -450,6 +480,11 @@ static const CGFloat kLabelPadding = 10.0;
     } else {
       [_config setH6Color:nullptr];
     }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.h6.marginBottom != oldViewProps.richTextStyle.h6.marginBottom) {
+    [_config setH6MarginBottom:newViewProps.richTextStyle.h6.marginBottom];
     stylePropChanged = YES;
   }
 
@@ -521,6 +556,11 @@ static const CGFloat kLabelPadding = 10.0;
 
   if (newViewProps.richTextStyle.image.borderRadius != oldViewProps.richTextStyle.image.borderRadius) {
     [_config setImageBorderRadius:newViewProps.richTextStyle.image.borderRadius];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.image.marginBottom != oldViewProps.richTextStyle.image.marginBottom) {
+    [_config setImageMarginBottom:newViewProps.richTextStyle.image.marginBottom];
     stylePropChanged = YES;
   }
 

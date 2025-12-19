@@ -40,6 +40,9 @@ static const unichar kZeroWidthSpace = 0x200B;
                                                                                  isInline:isInline];
 
   [output appendAttributedString:[NSAttributedString attributedStringWithAttachment:attachment]];
+
+  // Note: marginBottom for images is handled by ParagraphRenderer when the paragraph contains only an image
+  // This ensures consistent spacing behavior and prevents paragraph's marginBottom from affecting images
 }
 
 #pragma mark - Private Helpers

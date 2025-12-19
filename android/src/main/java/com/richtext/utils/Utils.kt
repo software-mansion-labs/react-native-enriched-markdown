@@ -9,17 +9,11 @@ import com.facebook.react.common.ReactConstants
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.richtext.renderer.BlockStyle
-
-/**
- * Adds Zero Width Space spacing between markdown elements.
- *
- * Uses \u200B (Zero Width Space) characters for spacing because:
- * - Invisible but takes up space, providing consistent visual spacing
- * - Doesn't interfere with text rendering or font metrics
- */
-fun SpannableStringBuilder.addSpacing() {
-  append("\u200B\n\u200B\n")
-}
+import com.richtext.spans.RichTextMarginBottomSpan
+import com.richtext.styles.ParagraphStyle
+import com.richtext.styles.RichTextStyle
+import org.commonmark.node.Image
+import org.commonmark.node.Paragraph
 
 /**
  * Determines if an image should be rendered inline (within text) or as a block element.
@@ -143,4 +137,60 @@ fun Layout.getLineBottomWithoutPadding(line: Int): Int {
     return lineBottom - bottomPadding
   }
   return lineBottom
+}
+
+/**
+ * Determines the appropriate marginBottom for a paragraph.
+ * If paragraph contains only a single block-level element (e.g., image), uses that element's marginBottom.
+ * Otherwise, uses paragraph's marginBottom.
+ */
+fun getMarginBottomForParagraph(
+  paragraph: Paragraph,
+  paragraphStyle: ParagraphStyle,
+  style: RichTextStyle,
+): Float {
+  // If paragraph contains only a single block-level element, use that element's marginBottom
+  // Otherwise, use paragraph's marginBottom
+  val firstChild = paragraph.firstChild
+  if (firstChild != null && firstChild.next == null) {
+    // Paragraph has exactly one child
+    when (firstChild) {
+      is Image -> {
+        // Image: use image's marginBottom
+        return style.getImageStyle().marginBottom
+      }
+      // Future: Add other block elements here as they're implemented
+      // Example:
+      // is Blockquote -> {
+      //   return style.getBlockquoteStyle().marginBottom
+      // }
+    }
+  }
+
+  // Default: use paragraph's marginBottom
+  return paragraphStyle.marginBottom
+}
+
+/**
+ * Applies marginBottom spacing to a block element.
+ * Appends a newline and applies RichTextMarginBottomSpan if marginBottom > 0.
+ *
+ * @param builder The SpannableStringBuilder to modify
+ * @param start The start position of the block content (before appending newline)
+ * @param marginBottom The spacing value to apply after the block
+ */
+fun applyMarginBottom(
+  builder: SpannableStringBuilder,
+  start: Int,
+  marginBottom: Float,
+) {
+  builder.append("\n")
+  if (marginBottom > 0) {
+    builder.setSpan(
+      RichTextMarginBottomSpan(marginBottom),
+      start,
+      builder.length, // Includes the newline we just appended
+      android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
+    )
+  }
 }

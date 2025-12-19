@@ -19,6 +19,7 @@ const paragraphDefaultStyles: RichTextStyleInternal['paragraph'] = {
   fontFamily: '',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 16,
 };
 
 const defaultH1Style: RichTextStyleInternal['h1'] = {
@@ -26,6 +27,7 @@ const defaultH1Style: RichTextStyleInternal['h1'] = {
   fontFamily: 'Helvetica-Bold',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 24,
 };
 
 const defaultH2Style: RichTextStyleInternal['h2'] = {
@@ -33,6 +35,7 @@ const defaultH2Style: RichTextStyleInternal['h2'] = {
   fontFamily: 'Helvetica-Bold',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 24,
 };
 
 const defaultH3Style: RichTextStyleInternal['h3'] = {
@@ -40,6 +43,7 @@ const defaultH3Style: RichTextStyleInternal['h3'] = {
   fontFamily: 'Helvetica-Bold',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 20,
 };
 
 const defaultH4Style: RichTextStyleInternal['h4'] = {
@@ -47,6 +51,7 @@ const defaultH4Style: RichTextStyleInternal['h4'] = {
   fontFamily: 'Helvetica-Bold',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 18,
 };
 
 const defaultH5Style: RichTextStyleInternal['h5'] = {
@@ -54,6 +59,7 @@ const defaultH5Style: RichTextStyleInternal['h5'] = {
   fontFamily: 'Helvetica-Bold',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 16,
 };
 
 const defaultH6Style: RichTextStyleInternal['h6'] = {
@@ -61,6 +67,7 @@ const defaultH6Style: RichTextStyleInternal['h6'] = {
   fontFamily: 'Helvetica-Bold',
   fontWeight: 'normal',
   color: defaultColor,
+  marginBottom: 16,
 };
 
 const defaultLinkColor = processColor('#007AFF') as ColorValue;
@@ -83,6 +90,7 @@ const defaultCodeStyle: RichTextStyleInternal['code'] = {
 const defaultImageStyle: RichTextStyleInternal['image'] = {
   height: 200,
   borderRadius: 10,
+  marginBottom: 16,
 };
 
 const defaultInlineImageStyle: RichTextStyleInternal['inlineImage'] = {
@@ -100,6 +108,8 @@ export const normalizeRichTextStyle = (
       style.paragraph?.fontWeight ?? paragraphDefaultStyles.fontWeight,
     color:
       normalizeColor(style.paragraph?.color) ?? paragraphDefaultStyles.color,
+    marginBottom:
+      style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom,
   };
 
   const h1: RichTextStyleInternal['h1'] = {
@@ -107,6 +117,7 @@ export const normalizeRichTextStyle = (
     fontFamily: style.h1?.fontFamily ?? defaultH1Style.fontFamily,
     fontWeight: style.h1?.fontWeight ?? defaultH1Style.fontWeight,
     color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
+    marginBottom: style.h1?.marginBottom ?? defaultH1Style.marginBottom,
   };
 
   const h2: RichTextStyleInternal['h2'] = {
@@ -114,6 +125,7 @@ export const normalizeRichTextStyle = (
     fontFamily: style.h2?.fontFamily ?? defaultH2Style.fontFamily,
     fontWeight: style.h2?.fontWeight ?? defaultH2Style.fontWeight,
     color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
+    marginBottom: style.h2?.marginBottom ?? defaultH2Style.marginBottom,
   };
 
   const h3: RichTextStyleInternal['h3'] = {
@@ -121,6 +133,7 @@ export const normalizeRichTextStyle = (
     fontFamily: style.h3?.fontFamily ?? defaultH3Style.fontFamily,
     fontWeight: style.h3?.fontWeight ?? defaultH3Style.fontWeight,
     color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
+    marginBottom: style.h3?.marginBottom ?? defaultH3Style.marginBottom,
   };
 
   const h4: RichTextStyleInternal['h4'] = {
@@ -128,6 +141,7 @@ export const normalizeRichTextStyle = (
     fontFamily: style.h4?.fontFamily ?? defaultH4Style.fontFamily,
     fontWeight: style.h4?.fontWeight ?? defaultH4Style.fontWeight,
     color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
+    marginBottom: style.h4?.marginBottom ?? defaultH4Style.marginBottom,
   };
 
   const h5: RichTextStyleInternal['h5'] = {
@@ -135,6 +149,7 @@ export const normalizeRichTextStyle = (
     fontFamily: style.h5?.fontFamily ?? defaultH5Style.fontFamily,
     fontWeight: style.h5?.fontWeight ?? defaultH5Style.fontWeight,
     color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
+    marginBottom: style.h5?.marginBottom ?? defaultH5Style.marginBottom,
   };
 
   const h6: RichTextStyleInternal['h6'] = {
@@ -142,6 +157,7 @@ export const normalizeRichTextStyle = (
     fontFamily: style.h6?.fontFamily ?? defaultH6Style.fontFamily,
     fontWeight: style.h6?.fontWeight ?? defaultH6Style.fontWeight,
     color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
+    marginBottom: style.h6?.marginBottom ?? defaultH6Style.marginBottom,
   };
 
   return {
@@ -176,6 +192,7 @@ export const normalizeRichTextStyle = (
       ...defaultImageStyle,
       height: style.image?.height ?? defaultImageStyle.height,
       borderRadius: style.image?.borderRadius ?? defaultImageStyle.borderRadius,
+      marginBottom: style.image?.marginBottom ?? defaultImageStyle.marginBottom,
     },
     inlineImage: {
       ...defaultInlineImageStyle,

@@ -11,6 +11,7 @@ interface BaseBlockStyleInternal {
   fontFamily: string;
   fontWeight: string;
   color: ColorValue;
+  marginBottom: CodegenTypes.Float;
 }
 
 interface ParagraphStyleInternal extends BaseBlockStyleInternal {}
@@ -39,6 +40,7 @@ interface CodeStyleInternal {
 interface ImageStyleInternal {
   height: CodegenTypes.Float;
   borderRadius: CodegenTypes.Float;
+  marginBottom: CodegenTypes.Float;
 }
 
 interface InlineImageStyleInternal {

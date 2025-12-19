@@ -10,6 +10,7 @@ export interface ParagraphStyle {
   fontFamily?: string;
   fontWeight?: string;
   color?: string;
+  marginBottom?: number;
 }
 
 export interface HeadingStyle {
@@ -17,6 +18,7 @@ export interface HeadingStyle {
   fontFamily?: string;
   fontWeight?: string;
   color?: string;
+  marginBottom?: number;
 }
 
 export interface LinkStyle {
@@ -41,6 +43,7 @@ export interface CodeStyle {
 export interface ImageStyle {
   height?: number;
   borderRadius?: number;
+  marginBottom?: number;
 }
 
 export interface InlineImageStyle {

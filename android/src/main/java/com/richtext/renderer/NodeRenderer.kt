@@ -7,11 +7,14 @@ import com.richtext.spans.RichTextEmphasisSpan
 import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextImageSpan
 import com.richtext.spans.RichTextLinkSpan
+import com.richtext.spans.RichTextMarginBottomSpan
 import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextTextSpan
+import com.richtext.styles.ParagraphStyle
 import com.richtext.styles.RichTextStyle
-import com.richtext.utils.addSpacing
+import com.richtext.utils.applyMarginBottom
+import com.richtext.utils.getMarginBottomForParagraph
 import com.richtext.utils.isInlineImage
 import org.commonmark.node.Code
 import org.commonmark.node.Document
@@ -82,9 +85,10 @@ class ParagraphRenderer(
         start + contentLength,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
-    }
 
-    builder.addSpacing()
+      val marginBottom = getMarginBottomForParagraph(paragraph, paragraphStyle, config.style)
+      applyMarginBottom(builder, start, marginBottom)
+    }
   }
 }
 
@@ -120,9 +124,9 @@ class HeadingRenderer(
         start + contentLength,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
-    }
 
-    builder.addSpacing()
+      applyMarginBottom(builder, start, headingStyle.marginBottom)
+    }
   }
 }
 
@@ -288,6 +292,8 @@ class ImageRenderer(
       start + 1,
       android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
     )
+    // Note: marginBottom for images is handled by ParagraphRenderer when the paragraph contains only an image
+    // This ensures consistent spacing behavior and prevents paragraph's marginBottom from affecting images
   }
 }
 

@@ -175,9 +175,7 @@ fun getMarginBottomForParagraph(
 }
 
 /**
- * Determines if a paragraph contains a block image.
- * A block image is when a paragraph contains only a single Image node.
- * Inline images are part of text flow and should allow lineHeight to be applied.
+ * Determines if a paragraph contains only a single block image.
  */
 fun Paragraph.containsBlockImage(): Boolean {
   val firstChild = firstChild
@@ -185,18 +183,14 @@ fun Paragraph.containsBlockImage(): Boolean {
 }
 
 /**
- * Creates an appropriate LineHeightSpan based on the Android API level.
- * Uses LineHeightSpan.Standard for API 29+ and RichTextLineHeightSpan for older APIs.
+ * Creates a LineHeightSpan appropriate for the current API level.
  *
- * @param lineHeight The desired line height in pixels (Float)
- * @return A LineHeightSpan instance appropriate for the current API level
+ * @param lineHeight The desired line height in pixels
  */
 fun createLineHeightSpan(lineHeight: Float): LineHeightSpan =
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-    // Use standard LineHeightSpan for API 29+
     LineHeightSpan.Standard(lineHeight.toInt())
   } else {
-    // Use custom implementation for older APIs
     RichTextLineHeightSpan(lineHeight)
   }
 

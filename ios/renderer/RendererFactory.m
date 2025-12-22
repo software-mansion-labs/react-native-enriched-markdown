@@ -1,4 +1,5 @@
 #import "RendererFactory.h"
+#import "BlockquoteRenderer.h"
 #import "CodeRenderer.h"
 #import "EmphasisRenderer.h"
 #import "HeadingRenderer.h"
@@ -19,6 +20,7 @@
   CodeRenderer *_sharedCodeRenderer;
   ImageRenderer *_sharedImageRenderer;
   ParagraphRenderer *_sharedParagraphRenderer;
+  BlockquoteRenderer *_sharedBlockquoteRenderer;
 }
 
 - (instancetype)initWithConfig:(id)config
@@ -34,6 +36,7 @@
     _sharedLinkRenderer = [[LinkRenderer alloc] initWithRendererFactory:self config:config];
     _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithRendererFactory:self config:config];
     _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithRendererFactory:self config:config];
+    _sharedBlockquoteRenderer = [[BlockquoteRenderer alloc] initWithRendererFactory:self config:config];
   }
   return self;
 }
@@ -57,6 +60,8 @@
       return _sharedCodeRenderer;
     case MarkdownNodeTypeImage:
       return _sharedImageRenderer;
+    case MarkdownNodeTypeBlockquote:
+      return _sharedBlockquoteRenderer;
     default:
       return nil;
   }

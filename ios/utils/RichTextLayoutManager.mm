@@ -1,4 +1,5 @@
 #import "RichTextLayoutManager.h"
+#import "BlockquoteBorder.h"
 #import "CodeBackground.h"
 #import "RichTextConfig.h"
 #import "RichTextRuntimeKeys.h"
@@ -34,11 +35,17 @@
                                  textContainer:textContainer
                                        atPoint:origin];
 
-  // Add other element drawing here:
-  // [self drawBlockquoteBackgroundsForGlyphRange:glyphsToShow
-  //                                 textContainer:textContainer
-  //                                        atPoint:origin
-  //                                          config:config];
+  // Draw blockquote borders
+  BlockquoteBorder *blockquoteBorder = objc_getAssociatedObject(self, kRichTextBlockquoteBorderKey);
+  if (!blockquoteBorder) {
+    blockquoteBorder = [[BlockquoteBorder alloc] initWithConfig:config];
+    objc_setAssociatedObject(self, kRichTextBlockquoteBorderKey, blockquoteBorder, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  }
+
+  [blockquoteBorder drawBordersForGlyphRange:glyphsToShow
+                               layoutManager:self
+                               textContainer:textContainer
+                                     atPoint:origin];
 }
 
 - (RichTextConfig *)config
@@ -51,6 +58,7 @@
   objc_setAssociatedObject(self, kRichTextConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   // Reset all drawing objects when config changes (they'll be recreated on next draw)
   objc_setAssociatedObject(self, kRichTextCodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, kRichTextBlockquoteBorderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   // Add more resets here for other element types
 }
 

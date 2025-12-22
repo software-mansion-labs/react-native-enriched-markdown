@@ -20,4 +20,8 @@ extern void *kRichTextConfigKey;
 // Used by RichTextLayoutManager for code background drawing
 extern void *kRichTextCodeBackgroundKey;
 
+// Key for storing BlockquoteBorder instance on NSLayoutManager
+// Used by RichTextLayoutManager for blockquote border drawing
+extern void *kRichTextBlockquoteBorderKey;
+
 NS_ASSUME_NONNULL_END

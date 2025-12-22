@@ -132,5 +132,28 @@
 // Inline image properties
 - (CGFloat)inlineImageSize;
 - (void)setInlineImageSize:(CGFloat)newValue;
+// Blockquote properties
+- (CGFloat)blockquoteFontSize;
+- (void)setBlockquoteFontSize:(CGFloat)newValue;
+- (NSString *)blockquoteFontFamily;
+- (void)setBlockquoteFontFamily:(NSString *)newValue;
+- (NSString *)blockquoteFontWeight;
+- (void)setBlockquoteFontWeight:(NSString *)newValue;
+- (UIColor *)blockquoteColor;
+- (void)setBlockquoteColor:(UIColor *)newValue;
+- (CGFloat)blockquoteMarginBottom;
+- (void)setBlockquoteMarginBottom:(CGFloat)newValue;
+- (CGFloat)blockquoteNestedMarginBottom;
+- (void)setBlockquoteNestedMarginBottom:(CGFloat)newValue;
+- (CGFloat)blockquoteLineHeight;
+- (void)setBlockquoteLineHeight:(CGFloat)newValue;
+- (UIColor *)blockquoteBorderColor;
+- (void)setBlockquoteBorderColor:(UIColor *)newValue;
+- (CGFloat)blockquoteBorderWidth;
+- (void)setBlockquoteBorderWidth:(CGFloat)newValue;
+- (CGFloat)blockquoteGapWidth;
+- (void)setBlockquoteGapWidth:(CGFloat)newValue;
+- (UIColor *)blockquoteBackgroundColor;
+- (void)setBlockquoteBackgroundColor:(UIColor *)newValue;
 
 @end

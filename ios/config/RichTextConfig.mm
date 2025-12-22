@@ -75,6 +75,18 @@
   CGFloat _imageMarginBottom;
   // Inline image properties
   CGFloat _inlineImageSize;
+  // Blockquote properties
+  CGFloat _blockquoteFontSize;
+  NSString *_blockquoteFontFamily;
+  NSString *_blockquoteFontWeight;
+  UIColor *_blockquoteColor;
+  CGFloat _blockquoteMarginBottom;
+  CGFloat _blockquoteNestedMarginBottom;
+  CGFloat _blockquoteLineHeight;
+  UIColor *_blockquoteBorderColor;
+  CGFloat _blockquoteBorderWidth;
+  CGFloat _blockquoteGapWidth;
+  UIColor *_blockquoteBackgroundColor;
 }
 
 - (instancetype)init
@@ -147,6 +159,16 @@
   copy->_imageBorderRadius = _imageBorderRadius;
   copy->_imageMarginBottom = _imageMarginBottom;
   copy->_inlineImageSize = _inlineImageSize;
+  copy->_blockquoteFontSize = _blockquoteFontSize;
+  copy->_blockquoteFontFamily = [_blockquoteFontFamily copy];
+  copy->_blockquoteFontWeight = [_blockquoteFontWeight copy];
+  copy->_blockquoteColor = [_blockquoteColor copy];
+  copy->_blockquoteMarginBottom = _blockquoteMarginBottom;
+  copy->_blockquoteLineHeight = _blockquoteLineHeight;
+  copy->_blockquoteBorderColor = [_blockquoteBorderColor copy];
+  copy->_blockquoteBorderWidth = _blockquoteBorderWidth;
+  copy->_blockquoteGapWidth = _blockquoteGapWidth;
+  copy->_blockquoteBackgroundColor = [_blockquoteBackgroundColor copy];
 
   return copy;
 }
@@ -738,6 +760,117 @@
 - (void)setInlineImageSize:(CGFloat)newValue
 {
   _inlineImageSize = newValue;
+}
+
+// Blockquote properties
+- (CGFloat)blockquoteFontSize
+{
+  return _blockquoteFontSize > 0 ? _blockquoteFontSize : 16;
+}
+
+- (void)setBlockquoteFontSize:(CGFloat)newValue
+{
+  _blockquoteFontSize = newValue;
+}
+
+- (NSString *)blockquoteFontFamily
+{
+  return _blockquoteFontFamily ?: @"";
+}
+
+- (void)setBlockquoteFontFamily:(NSString *)newValue
+{
+  _blockquoteFontFamily = newValue;
+}
+
+- (NSString *)blockquoteFontWeight
+{
+  return _blockquoteFontWeight ?: @"normal";
+}
+
+- (void)setBlockquoteFontWeight:(NSString *)newValue
+{
+  _blockquoteFontWeight = newValue;
+}
+
+- (UIColor *)blockquoteColor
+{
+  return _blockquoteColor ?: [UIColor blackColor];
+}
+
+- (void)setBlockquoteColor:(UIColor *)newValue
+{
+  _blockquoteColor = newValue;
+}
+
+- (CGFloat)blockquoteMarginBottom
+{
+  return _blockquoteMarginBottom;
+}
+
+- (void)setBlockquoteMarginBottom:(CGFloat)newValue
+{
+  _blockquoteMarginBottom = newValue;
+}
+
+- (CGFloat)blockquoteNestedMarginBottom
+{
+  return _blockquoteNestedMarginBottom;
+}
+
+- (void)setBlockquoteNestedMarginBottom:(CGFloat)newValue
+{
+  _blockquoteNestedMarginBottom = newValue;
+}
+
+- (CGFloat)blockquoteLineHeight
+{
+  return _blockquoteLineHeight;
+}
+
+- (void)setBlockquoteLineHeight:(CGFloat)newValue
+{
+  _blockquoteLineHeight = newValue;
+}
+
+- (UIColor *)blockquoteBorderColor
+{
+  return _blockquoteBorderColor;
+}
+
+- (void)setBlockquoteBorderColor:(UIColor *)newValue
+{
+  _blockquoteBorderColor = newValue;
+}
+
+- (CGFloat)blockquoteBorderWidth
+{
+  return _blockquoteBorderWidth;
+}
+
+- (void)setBlockquoteBorderWidth:(CGFloat)newValue
+{
+  _blockquoteBorderWidth = newValue;
+}
+
+- (CGFloat)blockquoteGapWidth
+{
+  return _blockquoteGapWidth;
+}
+
+- (void)setBlockquoteGapWidth:(CGFloat)newValue
+{
+  _blockquoteGapWidth = newValue;
+}
+
+- (UIColor *)blockquoteBackgroundColor
+{
+  return _blockquoteBackgroundColor;
+}
+
+- (void)setBlockquoteBackgroundColor:(UIColor *)newValue
+{
+  _blockquoteBackgroundColor = newValue;
 }
 
 @end

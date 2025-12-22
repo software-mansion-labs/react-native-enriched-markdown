@@ -50,22 +50,14 @@
   // Get emphasisColor from config if explicitly set
   RichTextConfig *config = (RichTextConfig *)_config;
   UIColor *configEmphasisColor = [config emphasisColor];
-  UIColor *configStrongColor = [config strongColor];
 
-  UIFont *emphasisFont;
-  UIColor *emphasisColor;
+  // Inherit font from blockStyle if available, otherwise use passed font
+  UIFont *baseFont = fontFromBlockStyle(blockStyle) ?: font;
+  UIFont *emphasisFont = [self ensureFontIsItalic:baseFont];
 
-  // Inherit fontSize, fontFamily, fontWeight from block style
-  UIFont *blockFont = fontFromBlockStyle(blockStyle);
-  emphasisFont = [self ensureFontIsItalic:blockFont];
-
-  // If nested inside strong (block color matches strongColor), preserve strong color
-  if (configStrongColor && [blockStyle.color isEqual:configStrongColor]) {
-    emphasisColor = configStrongColor;
-  } else {
-    // Override color with emphasisColor from config if explicitly set, otherwise use block color
-    emphasisColor = configEmphasisColor ?: blockStyle.color;
-  }
+  // Inherit color: use configEmphasisColor if set, otherwise blockStyle.color, otherwise passed color
+  // Always inherit from blockStyle when available (blockquote, list, etc.)
+  UIColor *emphasisColor = configEmphasisColor ?: (blockStyle.color ?: color);
 
   [_rendererFactory renderChildrenOfNode:node into:output withFont:emphasisFont color:emphasisColor context:context];
 

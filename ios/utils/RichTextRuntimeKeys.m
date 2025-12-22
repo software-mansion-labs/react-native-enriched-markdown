@@ -3,3 +3,4 @@
 void *kRichTextTextViewKey = &kRichTextTextViewKey;
 void *kRichTextConfigKey = &kRichTextConfigKey;
 void *kRichTextCodeBackgroundKey = &kRichTextCodeBackgroundKey;
+void *kRichTextBlockquoteBorderKey = &kRichTextBlockquoteBorderKey;

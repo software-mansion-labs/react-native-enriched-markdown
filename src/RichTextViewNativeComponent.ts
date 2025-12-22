@@ -19,6 +19,14 @@ interface ParagraphStyleInternal extends BaseBlockStyleInternal {}
 
 interface HeadingStyleInternal extends BaseBlockStyleInternal {}
 
+interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
+  nestedMarginBottom: CodegenTypes.Float;
+  borderColor: ColorValue;
+  borderWidth: CodegenTypes.Float;
+  gapWidth: CodegenTypes.Float;
+  backgroundColor: ColorValue;
+}
+
 interface LinkStyleInternal {
   color: ColorValue;
   underline: boolean;
@@ -56,6 +64,7 @@ export interface RichTextStyleInternal {
   h4: HeadingStyleInternal;
   h5: HeadingStyleInternal;
   h6: HeadingStyleInternal;
+  blockquote: BlockquoteStyleInternal;
   link: LinkStyleInternal;
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;

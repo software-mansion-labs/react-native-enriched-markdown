@@ -15,6 +15,7 @@
     _currentBlockType = BlockTypeNone;
     _currentBlockStyle = nil;
     _currentHeadingLevel = 0;
+    _blockquoteDepth = 0;
   }
   return self;
 }

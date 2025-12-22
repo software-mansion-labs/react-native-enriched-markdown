@@ -70,6 +70,9 @@ static int md4c_enter_block_callback(MD_BLOCKTYPE type, void *detail, void *user
       }
       break;
     }
+    case MD_BLOCK_QUOTE:
+      node = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeBlockquote];
+      break;
     default:
       return 0;
   }

@@ -104,6 +104,25 @@ const defaultInlineImageStyle: RichTextStyleInternal['inlineImage'] = {
   size: 16,
 };
 
+const defaultBlockquoteBorderColor = processColor('#CCCCCC') as ColorValue;
+const defaultBlockquoteBackgroundColor = processColor(
+  'transparent'
+) as ColorValue;
+
+const defaultBlockquoteStyle: RichTextStyleInternal['blockquote'] = {
+  fontSize: paragraphDefaultStyles.fontSize,
+  fontFamily: paragraphDefaultStyles.fontFamily,
+  fontWeight: paragraphDefaultStyles.fontWeight,
+  color: paragraphDefaultStyles.color,
+  marginBottom: paragraphDefaultStyles.marginBottom,
+  nestedMarginBottom: paragraphDefaultStyles.marginBottom,
+  lineHeight: paragraphDefaultStyles.lineHeight,
+  borderColor: defaultBlockquoteBorderColor,
+  borderWidth: 4,
+  gapWidth: 16,
+  backgroundColor: defaultBlockquoteBackgroundColor,
+};
+
 export const normalizeRichTextStyle = (
   style: RichTextStyle
 ): RichTextStyleInternal => {
@@ -174,6 +193,32 @@ export const normalizeRichTextStyle = (
     lineHeight: style.h6?.lineHeight ?? defaultH6Style.lineHeight,
   };
 
+  const blockquote: RichTextStyleInternal['blockquote'] = {
+    fontSize: style.blockquote?.fontSize ?? defaultBlockquoteStyle.fontSize,
+    fontFamily:
+      style.blockquote?.fontFamily ?? defaultBlockquoteStyle.fontFamily,
+    fontWeight:
+      style.blockquote?.fontWeight ?? defaultBlockquoteStyle.fontWeight,
+    color:
+      normalizeColor(style.blockquote?.color) ?? defaultBlockquoteStyle.color,
+    marginBottom:
+      style.blockquote?.marginBottom ?? defaultBlockquoteStyle.marginBottom,
+    nestedMarginBottom:
+      style.blockquote?.nestedMarginBottom ??
+      defaultBlockquoteStyle.nestedMarginBottom,
+    lineHeight:
+      style.blockquote?.lineHeight ?? defaultBlockquoteStyle.lineHeight,
+    borderColor:
+      normalizeColor(style.blockquote?.borderColor) ??
+      defaultBlockquoteStyle.borderColor,
+    borderWidth:
+      style.blockquote?.borderWidth ?? defaultBlockquoteStyle.borderWidth,
+    gapWidth: style.blockquote?.gapWidth ?? defaultBlockquoteStyle.gapWidth,
+    backgroundColor:
+      (normalizeColor(style.blockquote?.backgroundColor) as ColorValue) ??
+      defaultBlockquoteStyle.backgroundColor,
+  };
+
   return {
     paragraph,
     h1,
@@ -182,6 +227,7 @@ export const normalizeRichTextStyle = (
     h4,
     h5,
     h6,
+    blockquote,
     link: {
       ...defaultLinkStyle,
       ...style.link,

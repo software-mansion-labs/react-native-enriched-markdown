@@ -1,6 +1,6 @@
 #import "ParagraphStyleUtils.h"
 
-static NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *output, NSUInteger index)
+NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *output, NSUInteger index)
 {
   NSParagraphStyle *existing = [output attribute:NSParagraphStyleAttributeName atIndex:index effectiveRange:NULL];
   return existing ? [existing mutableCopy] : [[NSMutableParagraphStyle alloc] init];
@@ -21,6 +21,19 @@ void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, 
 
   NSRange range = NSMakeRange(start, output.length - start);
   [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
+}
+
+void applyBlockquoteSpacing(NSMutableAttributedString *output, CGFloat marginBottom)
+{
+  NSUInteger spacerLocation = output.length;
+  [output appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
+
+  NSMutableParagraphStyle *spacerStyle = [[NSMutableParagraphStyle alloc] init];
+  spacerStyle.minimumLineHeight = marginBottom;
+  spacerStyle.maximumLineHeight = marginBottom;
+  spacerStyle.headIndent = 0;
+
+  [output addAttribute:NSParagraphStyleAttributeName value:spacerStyle range:NSMakeRange(spacerLocation, 1)];
 }
 
 void applyLineHeight(NSMutableAttributedString *output, NSRange range, CGFloat lineHeight)

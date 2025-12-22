@@ -523,6 +523,71 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  // Blockquote style
+  if (newViewProps.richTextStyle.blockquote.fontSize != oldViewProps.richTextStyle.blockquote.fontSize) {
+    [_config setBlockquoteFontSize:newViewProps.richTextStyle.blockquote.fontSize];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.fontFamily != oldViewProps.richTextStyle.blockquote.fontFamily) {
+    NSString *fontFamily =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.blockquote.fontFamily.c_str()];
+    [_config setBlockquoteFontFamily:fontFamily];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.fontWeight != oldViewProps.richTextStyle.blockquote.fontWeight) {
+    NSString *fontWeight =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.blockquote.fontWeight.c_str()];
+    [_config setBlockquoteFontWeight:fontWeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.color != oldViewProps.richTextStyle.blockquote.color) {
+    UIColor *blockquoteColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.blockquote.color);
+    [_config setBlockquoteColor:blockquoteColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.marginBottom != oldViewProps.richTextStyle.blockquote.marginBottom) {
+    [_config setBlockquoteMarginBottom:newViewProps.richTextStyle.blockquote.marginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.nestedMarginBottom !=
+      oldViewProps.richTextStyle.blockquote.nestedMarginBottom) {
+    [_config setBlockquoteNestedMarginBottom:newViewProps.richTextStyle.blockquote.nestedMarginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.lineHeight != oldViewProps.richTextStyle.blockquote.lineHeight) {
+    [_config setBlockquoteLineHeight:newViewProps.richTextStyle.blockquote.lineHeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.borderColor != oldViewProps.richTextStyle.blockquote.borderColor) {
+    UIColor *blockquoteBorderColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.blockquote.borderColor);
+    [_config setBlockquoteBorderColor:blockquoteBorderColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.borderWidth != oldViewProps.richTextStyle.blockquote.borderWidth) {
+    [_config setBlockquoteBorderWidth:newViewProps.richTextStyle.blockquote.borderWidth];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.gapWidth != oldViewProps.richTextStyle.blockquote.gapWidth) {
+    [_config setBlockquoteGapWidth:newViewProps.richTextStyle.blockquote.gapWidth];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.blockquote.backgroundColor != oldViewProps.richTextStyle.blockquote.backgroundColor) {
+    UIColor *blockquoteBackgroundColor =
+        RCTUIColorFromSharedColor(newViewProps.richTextStyle.blockquote.backgroundColor);
+    [_config setBlockquoteBackgroundColor:blockquoteBackgroundColor];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.richTextStyle.link.color != oldViewProps.richTextStyle.link.color) {
     UIColor *linkColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.link.color);
     [_config setLinkColor:linkColor];

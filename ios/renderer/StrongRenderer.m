@@ -49,9 +49,12 @@
   RichTextConfig *config = (RichTextConfig *)_config;
   UIColor *configStrongColor = [config strongColor];
 
-  UIFont *blockFont = fontFromBlockStyle(blockStyle);
-  UIFont *strongFont = [self ensureFontIsBold:blockFont];
-  UIColor *strongColor = configStrongColor ?: blockStyle.color;
+  // Inherit font from blockStyle if available, otherwise use passed font
+  UIFont *baseFont = fontFromBlockStyle(blockStyle) ?: font;
+  UIFont *strongFont = [self ensureFontIsBold:baseFont];
+
+  // Inherit color: use configStrongColor if set, otherwise blockStyle.color, otherwise passed color
+  UIColor *strongColor = configStrongColor ?: (blockStyle.color ?: color);
 
   [_rendererFactory renderChildrenOfNode:node into:output withFont:strongFont color:strongColor context:context];
 

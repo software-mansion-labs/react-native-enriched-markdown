@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, BlockTypeHeading };
+typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, BlockTypeHeading, BlockTypeBlockquote };
 
 @interface BlockStyle : NSObject
 @property (nonatomic, assign) CGFloat fontSize;
@@ -16,6 +16,7 @@ typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, Block
 @property (nonatomic, assign) BlockType currentBlockType;
 @property (nonatomic, strong) BlockStyle *currentBlockStyle;
 @property (nonatomic, assign) NSInteger currentHeadingLevel;
+@property (nonatomic, assign) NSInteger blockquoteDepth;
 
 - (instancetype)init;
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url;

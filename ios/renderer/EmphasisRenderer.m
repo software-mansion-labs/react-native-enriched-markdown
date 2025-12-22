@@ -44,19 +44,14 @@
 {
   NSUInteger start = output.length;
 
-  // Read block style from context to inherit base properties
   BlockStyle *blockStyle = [context getBlockStyle];
-
-  // Get emphasisColor from config if explicitly set
   RichTextConfig *config = (RichTextConfig *)_config;
   UIColor *configEmphasisColor = [config emphasisColor];
 
-  // Inherit font from blockStyle if available, otherwise use passed font
   UIFont *baseFont = fontFromBlockStyle(blockStyle) ?: font;
   UIFont *emphasisFont = [self ensureFontIsItalic:baseFont];
 
-  // Inherit color: use configEmphasisColor if set, otherwise blockStyle.color, otherwise passed color
-  // Always inherit from blockStyle when available (blockquote, list, etc.)
+  // Inherit color from blockStyle when available (blockquote, list, etc.) to maintain context styling
   UIColor *emphasisColor = configEmphasisColor ?: (blockStyle.color ?: color);
 
   [_rendererFactory renderChildrenOfNode:node into:output withFont:emphasisFont color:emphasisColor context:context];

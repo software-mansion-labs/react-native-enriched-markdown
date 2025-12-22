@@ -110,13 +110,13 @@ const defaultBlockquoteBackgroundColor = processColor(
 ) as ColorValue;
 
 const defaultBlockquoteStyle: RichTextStyleInternal['blockquote'] = {
-  fontSize: paragraphDefaultStyles.fontSize,
-  fontFamily: paragraphDefaultStyles.fontFamily,
-  fontWeight: paragraphDefaultStyles.fontWeight,
-  color: paragraphDefaultStyles.color,
-  marginBottom: paragraphDefaultStyles.marginBottom,
-  nestedMarginBottom: paragraphDefaultStyles.marginBottom,
-  lineHeight: paragraphDefaultStyles.lineHeight,
+  fontSize: 16,
+  fontFamily: '',
+  fontWeight: 'normal',
+  color: defaultColor,
+  marginBottom: 16,
+  nestedMarginBottom: 16,
+  lineHeight: 16 * 1.4,
   borderColor: defaultBlockquoteBorderColor,
   borderWidth: 4,
   gapWidth: 16,

@@ -22,30 +22,29 @@
   if (!textContainer)
     return;
 
-  // Draw code backgrounds
   RichTextConfig *config = self.config;
-  CodeBackground *codeBackground = objc_getAssociatedObject(self, kRichTextCodeBackgroundKey);
-  if (!codeBackground) {
-    codeBackground = [[CodeBackground alloc] initWithConfig:config];
-    objc_setAssociatedObject(self, kRichTextCodeBackgroundKey, codeBackground, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-  }
 
+  CodeBackground *codeBackground =
+      [self getOrCreateAssociatedObject:kRichTextCodeBackgroundKey
+                                factory:^id { return [[CodeBackground alloc] initWithConfig:config]; }];
   [codeBackground drawBackgroundsForGlyphRange:glyphsToShow
                                  layoutManager:self
                                  textContainer:textContainer
                                        atPoint:origin];
 
-  // Draw blockquote borders
-  BlockquoteBorder *blockquoteBorder = objc_getAssociatedObject(self, kRichTextBlockquoteBorderKey);
-  if (!blockquoteBorder) {
-    blockquoteBorder = [[BlockquoteBorder alloc] initWithConfig:config];
-    objc_setAssociatedObject(self, kRichTextBlockquoteBorderKey, blockquoteBorder, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-  }
-
+  BlockquoteBorder *blockquoteBorder =
+      [self getOrCreateAssociatedObject:kRichTextBlockquoteBorderKey
+                                factory:^id { return [[BlockquoteBorder alloc] initWithConfig:config]; }];
   [blockquoteBorder drawBordersForGlyphRange:glyphsToShow
                                layoutManager:self
                                textContainer:textContainer
                                      atPoint:origin];
+
+  // Add other element drawing here:
+  // [self drawBlockquoteBackgroundsForGlyphRange:glyphsToShow
+  //                                 textContainer:textContainer
+  //                                        atPoint:origin
+  //                                          config:config];
 }
 
 - (RichTextConfig *)config
@@ -60,6 +59,18 @@
   objc_setAssociatedObject(self, kRichTextCodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kRichTextBlockquoteBorderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   // Add more resets here for other element types
+}
+
+#pragma mark - Helper Methods
+
+- (id)getOrCreateAssociatedObject:(void *)key factory:(id (^)(void))factory
+{
+  id object = objc_getAssociatedObject(self, key);
+  if (!object) {
+    object = factory();
+    objc_setAssociatedObject(self, key, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  }
+  return object;
 }
 
 @end

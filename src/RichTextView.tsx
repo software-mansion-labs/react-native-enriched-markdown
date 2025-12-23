@@ -34,6 +34,10 @@ export interface BlockquoteStyle {
   borderColor?: string;
   borderWidth?: number;
   gapWidth?: number;
+  /**
+   * Background color for blockquotes. Defaults to transparent.
+   * Note: When a non-transparent backgroundColor is set, text selection within blockquotes will not be visible (iOS only).
+   */
   backgroundColor?: string;
 }
 

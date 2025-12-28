@@ -46,4 +46,10 @@ typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, Block
  * Uses strongColor if explicitly set (different from block color), otherwise uses block color.
  */
 + (UIColor *)calculateStrongColor:(UIColor *)configStrongColor blockColor:(UIColor *)blockColor;
+
+/**
+ * Calculates the range for content rendered between start and current output length.
+ * Returns a range with length 0 if no content was rendered.
+ */
++ (NSRange)rangeForRenderedContent:(NSMutableAttributedString *)output start:(NSUInteger)start;
 @end

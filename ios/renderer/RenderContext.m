@@ -85,4 +85,10 @@
   return blockColor;
 }
 
++ (NSRange)rangeForRenderedContent:(NSMutableAttributedString *)output start:(NSUInteger)start
+{
+  NSUInteger length = output.length - start;
+  return NSMakeRange(start, length);
+}
+
 @end

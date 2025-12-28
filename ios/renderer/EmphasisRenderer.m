@@ -51,9 +51,8 @@
 
   [_rendererFactory renderChildrenOfNode:node into:output context:context];
 
-  NSUInteger len = output.length - start;
-  if (len > 0) {
-    NSRange range = NSMakeRange(start, len);
+  NSRange range = [RenderContext rangeForRenderedContent:output start:start];
+  if (range.length > 0) {
     NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
     UIFont *currentFont = existingAttributes[NSFontAttributeName];
     UIFont *verifiedItalicFont = [self ensureFontIsItalic:currentFont ?: emphasisFont];

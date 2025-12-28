@@ -42,7 +42,9 @@
 
   NSRange range = [RenderContext rangeForRenderedContent:output start:start];
   if (range.length > 0) {
-    NSMutableDictionary *codeAttributes = [NSMutableDictionary dictionary];
+    NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
+    NSMutableDictionary *codeAttributes = [existingAttributes ?: @{} mutableCopy];
+
     codeAttributes[NSFontAttributeName] = monospacedFont;
     if (codeColor) {
       codeAttributes[NSForegroundColorAttributeName] = codeColor;
@@ -52,7 +54,7 @@
     // Store block line height directly for CodeBackground to use
     codeAttributes[@"RichTextBlockLineHeight"] = @(blockFont.lineHeight);
 
-    [output addAttributes:codeAttributes range:range];
+    [output setAttributes:codeAttributes range:range];
   }
 }
 

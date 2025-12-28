@@ -7,7 +7,7 @@
 
 @implementation EmphasisRenderer {
   RendererFactory *_rendererFactory;
-  id _config;
+  RichTextConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -15,7 +15,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    _config = config;
+    _config = (RichTextConfig *)config;
   }
   return self;
 }
@@ -41,9 +41,8 @@
   NSUInteger start = output.length;
 
   BlockStyle *blockStyle = [context getBlockStyle];
-  RichTextConfig *config = (RichTextConfig *)_config;
-  UIColor *configEmphasisColor = [config emphasisColor];
-  UIColor *configStrongColor = [config strongColor];
+  UIColor *configEmphasisColor = [_config emphasisColor];
+  UIColor *configStrongColor = [_config strongColor];
 
   UIFont *baseFont = fontFromBlockStyle(blockStyle);
   UIFont *emphasisFont = [self ensureFontIsItalic:baseFont];

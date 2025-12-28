@@ -7,6 +7,7 @@
 
 @implementation HeadingRenderer {
   RendererFactory *_rendererFactory;
+  RichTextConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -14,7 +15,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    self.config = config;
+    _config = (RichTextConfig *)config;
   }
   return self;
 }
@@ -28,11 +29,10 @@
     level = [levelString integerValue];
   }
 
-  RichTextConfig *config = (RichTextConfig *)self.config;
-  CGFloat fontSize = [self getFontSizeForLevel:level config:config];
-  NSString *fontFamily = [self getFontFamilyForLevel:level config:config];
-  NSString *fontWeight = [self getFontWeightForLevel:level config:config];
-  UIColor *headingColor = [self getColorForLevel:level config:config];
+  CGFloat fontSize = [self getFontSizeForLevel:level config:_config];
+  NSString *fontFamily = [self getFontFamilyForLevel:level config:_config];
+  NSString *fontWeight = [self getFontWeightForLevel:level config:_config];
+  UIColor *headingColor = [self getColorForLevel:level config:_config];
 
   [context setBlockStyle:BlockTypeHeading
                 fontSize:fontSize
@@ -54,11 +54,11 @@
   NSUInteger headingEnd = output.length;
 
   // Apply lineHeight to heading content, then add spacing
-  CGFloat lineHeight = [self getLineHeightForLevel:level config:config];
+  CGFloat lineHeight = [self getLineHeightForLevel:level config:_config];
   NSRange headingContentRange = NSMakeRange(headingStart, headingEnd - headingStart);
   applyLineHeight(output, headingContentRange, lineHeight);
 
-  CGFloat marginBottom = [self getMarginBottomForLevel:level config:config];
+  CGFloat marginBottom = [self getMarginBottomForLevel:level config:_config];
   applyParagraphSpacing(output, headingStart, marginBottom);
 }
 

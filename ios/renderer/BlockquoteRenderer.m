@@ -11,28 +11,28 @@ static NSString *const kNestedInfoRangeKey = @"range";
 
 @implementation BlockquoteRenderer {
   RendererFactory *_rendererFactory;
+  RichTextConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
 {
   if (self = [super init]) {
     _rendererFactory = rendererFactory;
-    self.config = config;
+    _config = (RichTextConfig *)config;
   }
   return self;
 }
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
-  RichTextConfig *config = (RichTextConfig *)self.config;
   NSInteger currentDepth = context.blockquoteDepth;
   context.blockquoteDepth = currentDepth + 1;
 
   [context setBlockStyle:BlockTypeBlockquote
-                fontSize:[config blockquoteFontSize]
-              fontFamily:[config blockquoteFontFamily]
-              fontWeight:[config blockquoteFontWeight]
-                   color:[config blockquoteColor]];
+                fontSize:[_config blockquoteFontSize]
+              fontFamily:[_config blockquoteFontFamily]
+              fontWeight:[_config blockquoteFontWeight]
+                   color:[_config blockquoteColor]];
 
   NSUInteger blockquoteStart = output.length;
   @try {
@@ -48,7 +48,6 @@ static NSString *const kNestedInfoRangeKey = @"range";
   }
 
   [self applyStylingAndSpacing:output
-                        config:config
                blockquoteStart:blockquoteStart
                  blockquoteEnd:blockquoteEnd
                   currentDepth:currentDepth];
@@ -57,13 +56,12 @@ static NSString *const kNestedInfoRangeKey = @"range";
 #pragma mark - Styling and Spacing
 
 - (void)applyStylingAndSpacing:(NSMutableAttributedString *)output
-                        config:(RichTextConfig *)config
                blockquoteStart:(NSUInteger)blockquoteStart
                  blockquoteEnd:(NSUInteger)blockquoteEnd
                   currentDepth:(NSInteger)currentDepth
 {
   NSRange blockquoteRange = NSMakeRange(blockquoteStart, blockquoteEnd - blockquoteStart);
-  CGFloat levelSpacing = [config blockquoteBorderWidth] + [config blockquoteGapWidth];
+  CGFloat levelSpacing = [_config blockquoteBorderWidth] + [_config blockquoteGapWidth];
   NSArray<NSDictionary *> *nestedInfo = [self collectNestedBlockquotes:output range:blockquoteRange depth:currentDepth];
 
   // Apply base styling (indentation, depth, background, line height)
@@ -71,11 +69,11 @@ static NSString *const kNestedInfoRangeKey = @"range";
                            range:blockquoteRange
                            depth:currentDepth
                     levelSpacing:levelSpacing
-                 backgroundColor:[config blockquoteBackgroundColor]
-                      lineHeight:[config blockquoteLineHeight]];
+                 backgroundColor:[_config blockquoteBackgroundColor]
+                      lineHeight:[_config blockquoteLineHeight]];
 
   // Apply nested spacing only when there are nested blockquotes
-  CGFloat nestedSpacing = [config blockquoteNestedMarginBottom];
+  CGFloat nestedSpacing = [_config blockquoteNestedMarginBottom];
   if (nestedSpacing > 0 && nestedInfo.count > 0) {
     [self applyNestedSpacing:output nestedInfo:nestedInfo spacing:nestedSpacing];
 
@@ -91,7 +89,7 @@ static NSString *const kNestedInfoRangeKey = @"range";
 
   // Apply bottom margin for top-level blockquotes only
   if (currentDepth == 0) {
-    CGFloat marginBottom = [config blockquoteMarginBottom];
+    CGFloat marginBottom = [_config blockquoteMarginBottom];
     if (marginBottom > 0) {
       applyBlockquoteSpacing(output, marginBottom);
     }

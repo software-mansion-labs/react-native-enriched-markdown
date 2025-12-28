@@ -3,7 +3,5 @@
 #import "RenderContext.h"
 
 @interface HeadingRenderer : NSObject <NodeRenderer>
-@property (nonatomic, strong) id config;
-
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
 @end

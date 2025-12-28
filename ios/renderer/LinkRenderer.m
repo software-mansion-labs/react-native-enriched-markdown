@@ -6,6 +6,7 @@
 
 @implementation LinkRenderer {
   RendererFactory *_rendererFactory;
+  RichTextConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -13,7 +14,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    self.config = config;
+    _config = (RichTextConfig *)config;
   }
   return self;
 }
@@ -22,8 +23,7 @@
 {
   NSUInteger start = output.length;
 
-  RichTextConfig *config = (RichTextConfig *)self.config;
-  UIColor *linkColor = [config linkColor];
+  UIColor *linkColor = [_config linkColor];
 
   [_rendererFactory renderChildrenOfNode:node into:output context:context];
 
@@ -39,7 +39,7 @@
     linkAttributes[NSForegroundColorAttributeName] = linkColor;
     linkAttributes[NSUnderlineColorAttributeName] = linkColor;
 
-    BOOL shouldUnderline = [config linkUnderline];
+    BOOL shouldUnderline = [_config linkUnderline];
     linkAttributes[NSUnderlineStyleAttributeName] =
         shouldUnderline ? @(NSUnderlineStyleSingle) : @(NSUnderlineStyleNone);
 

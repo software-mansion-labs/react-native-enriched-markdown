@@ -7,6 +7,7 @@
 
 @implementation ParagraphRenderer {
   RendererFactory *_rendererFactory;
+  RichTextConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -14,7 +15,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    self.config = config;
+    _config = (RichTextConfig *)config;
   }
   return self;
 }
@@ -22,16 +23,14 @@
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
 
-  RichTextConfig *config = (RichTextConfig *)self.config;
-
   // Only set paragraph blockStyle if no other block element has already set one
   // This allows strong/emphasis elements inside blockquotes, lists, etc. to inherit parent styles
   BOOL shouldSetParagraphStyle = (context.currentBlockType == BlockTypeNone);
   if (shouldSetParagraphStyle) {
-    CGFloat fontSize = [config paragraphFontSize];
-    NSString *fontFamily = [config paragraphFontFamily];
-    NSString *fontWeight = [config paragraphFontWeight];
-    UIColor *paragraphColor = [config paragraphColor];
+    CGFloat fontSize = [_config paragraphFontSize];
+    NSString *fontFamily = [_config paragraphFontFamily];
+    NSString *fontWeight = [_config paragraphFontWeight];
+    UIColor *paragraphColor = [_config paragraphColor];
 
     [context setBlockStyle:BlockTypeParagraph
                   fontSize:fontSize
@@ -57,7 +56,7 @@
       (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
 
   if (!containsBlockImage) {
-    CGFloat lineHeight = [config paragraphLineHeight];
+    CGFloat lineHeight = [_config paragraphLineHeight];
     NSRange paragraphContentRange = NSMakeRange(paragraphStart, paragraphEnd - paragraphStart);
     applyLineHeight(output, paragraphContentRange, lineHeight);
   }
@@ -66,7 +65,7 @@
   // Block elements (blockquote, list, etc.) handle their own spacing
   CGFloat marginBottom = 0;
   if (shouldSetParagraphStyle) {
-    marginBottom = [self getMarginBottomForParagraph:node config:config];
+    marginBottom = [self getMarginBottomForParagraph:node config:_config];
   }
   applyParagraphSpacing(output, paragraphStart, marginBottom);
 }

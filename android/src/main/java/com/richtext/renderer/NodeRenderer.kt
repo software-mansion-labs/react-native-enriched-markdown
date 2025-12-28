@@ -183,17 +183,12 @@ class TextRenderer : NodeRenderer {
   ) {
     val text = node as Text
     val content = text.literal ?: ""
-    val start = builder.length
 
-    builder.append(content)
-
-    val contentLength = builder.length - start
-    val blockStyle = factory.blockStyleContext.getBlockStyle()
-    if (contentLength > 0 && blockStyle != null) {
+    factory.renderWithSpan(builder, { builder.append(content) }) { start, end, blockStyle ->
       builder.setSpan(
         RichTextTextSpan(blockStyle, factory.context),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
     }
@@ -210,18 +205,13 @@ class LinkRenderer(
     factory: RendererFactory,
   ) {
     val link = node as Link
-    val start = builder.length
     val url = link.destination ?: ""
 
-    factory.renderChildren(link, builder, onLinkPress)
-
-    val contentLength = builder.length - start
-    val blockStyle = factory.blockStyleContext.getBlockStyle()
-    if (contentLength > 0 && blockStyle != null) {
+    factory.renderWithSpan(builder, { factory.renderChildren(link, builder, onLinkPress) }) { start, end, blockStyle ->
       builder.setSpan(
         RichTextLinkSpan(url, onLinkPress, config.style, blockStyle, factory.context),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
     }
@@ -238,17 +228,12 @@ class StrongRenderer(
     factory: RendererFactory,
   ) {
     val strongEmphasis = node as StrongEmphasis
-    val start = builder.length
 
-    factory.renderChildren(strongEmphasis, builder, onLinkPress)
-
-    val contentLength = builder.length - start
-    val blockStyle = factory.blockStyleContext.getBlockStyle()
-    if (contentLength > 0 && blockStyle != null) {
+    factory.renderWithSpan(builder, { factory.renderChildren(strongEmphasis, builder, onLinkPress) }) { start, end, blockStyle ->
       builder.setSpan(
         RichTextStrongSpan(config.style, blockStyle),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
     }
@@ -265,17 +250,12 @@ class EmphasisRenderer(
     factory: RendererFactory,
   ) {
     val emphasis = node as Emphasis
-    val start = builder.length
 
-    factory.renderChildren(emphasis, builder, onLinkPress)
-
-    val contentLength = builder.length - start
-    val blockStyle = factory.blockStyleContext.getBlockStyle()
-    if (contentLength > 0 && blockStyle != null) {
+    factory.renderWithSpan(builder, { factory.renderChildren(emphasis, builder, onLinkPress) }) { start, end, blockStyle ->
       builder.setSpan(
         RichTextEmphasisSpan(config.style, blockStyle),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
     }
@@ -292,18 +272,13 @@ class CodeRenderer(
     factory: RendererFactory,
   ) {
     val code = node as Code
-    val start = builder.length
     val codeText = code.literal ?: ""
 
-    builder.append(codeText)
-
-    val contentLength = builder.length - start
-    val blockStyle = factory.blockStyleContext.getBlockStyle()
-    if (contentLength > 0 && blockStyle != null) {
+    factory.renderWithSpan(builder, { builder.append(codeText) }) { start, end, blockStyle ->
       builder.setSpan(
         RichTextCodeStyleSpan(config.style, blockStyle),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
     }
@@ -560,6 +535,29 @@ class RendererFactory(
     while (child != null) {
       getRenderer(child).render(child, builder, onLinkPress, this)
       child = child.next
+    }
+  }
+
+  /**
+   * Helper method to reduce repetitive start/length pattern in renderers.
+   * Tracks the start position, executes rendering logic, and applies a span if content was rendered.
+   *
+   * @param builder The SpannableStringBuilder to append to
+   * @param renderContent Lambda that performs the actual rendering (appends content)
+   * @param applySpan Lambda that applies the span to the rendered range (start, end, blockStyle)
+   */
+  fun renderWithSpan(
+    builder: SpannableStringBuilder,
+    renderContent: () -> Unit,
+    applySpan: (start: Int, end: Int, blockStyle: BlockStyle) -> Unit,
+  ) {
+    val start = builder.length
+    renderContent()
+    val end = builder.length
+    val contentLength = end - start
+    val blockStyle = blockStyleContext.getBlockStyle()
+    if (contentLength > 0 && blockStyle != null) {
+      applySpan(start, end, blockStyle)
     }
   }
 }

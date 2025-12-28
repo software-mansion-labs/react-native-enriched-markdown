@@ -10,7 +10,6 @@ import com.richtext.spans.RichTextHeadingSpan
 import com.richtext.spans.RichTextImageSpan
 import com.richtext.spans.RichTextLinkSpan
 import com.richtext.spans.RichTextMarginBottomSpan
-import com.richtext.spans.RichTextParagraphSpan
 import com.richtext.spans.RichTextStrongSpan
 import com.richtext.spans.RichTextTextSpan
 import com.richtext.styles.BlockquoteStyle
@@ -92,13 +91,6 @@ class ParagraphRenderer(
 
     val contentLength = builder.length - start
     if (contentLength > 0) {
-      builder.setSpan(
-        RichTextParagraphSpan(),
-        start,
-        start + contentLength,
-        android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
-      )
-
       // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
       if (!paragraph.containsBlockImage()) {
         builder.setSpan(

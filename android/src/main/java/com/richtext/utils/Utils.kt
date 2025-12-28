@@ -18,15 +18,9 @@ import com.richtext.styles.RichTextStyle
 import org.commonmark.node.Image
 import org.commonmark.node.Paragraph
 
-/**
- * Determines if an image should be rendered inline (within text) or as a block element.
- * An image is inline if it's not preceded by a line break or zero-width space.
- */
-fun SpannableStringBuilder.isInlineImage(): Boolean {
-  if (isEmpty()) return false
-  val lastChar = last()
-  return lastChar != '\n' && lastChar != '\u200B'
-}
+// ============================================================================
+// TextPaint Extensions
+// ============================================================================
 
 /**
  * Applies a color to TextPaint while preserving priority colors (e.g., link color).
@@ -89,6 +83,10 @@ fun TextPaint.applyBlockStyleFont(
     )
 }
 
+// ============================================================================
+// Layout Extensions
+// ============================================================================
+
 private const val DEFAULT_LINESPACING_EXTRA = 0f
 private const val DEFAULT_LINESPACING_MULTIPLIER = 1f
 
@@ -142,6 +140,18 @@ fun Layout.getLineBottomWithoutPadding(line: Int): Int {
   return lineBottom
 }
 
+// ============================================================================
+// Paragraph/Node Utilities
+// ============================================================================
+
+/**
+ * Determines if a paragraph contains only a single block image.
+ */
+fun Paragraph.containsBlockImage(): Boolean {
+  val firstChild = firstChild
+  return firstChild != null && firstChild.next == null && firstChild is Image
+}
+
 /**
  * Determines the appropriate marginBottom for a paragraph.
  * If paragraph contains only a single block-level element (e.g., image), uses that element's marginBottom.
@@ -174,13 +184,23 @@ fun getMarginBottomForParagraph(
   return paragraphStyle.marginBottom
 }
 
+// ============================================================================
+// SpannableStringBuilder Extensions
+// ============================================================================
+
 /**
- * Determines if a paragraph contains only a single block image.
+ * Determines if an image should be rendered inline (within text) or as a block element.
+ * An image is inline if it's not preceded by a line break or zero-width space.
  */
-fun Paragraph.containsBlockImage(): Boolean {
-  val firstChild = firstChild
-  return firstChild != null && firstChild.next == null && firstChild is Image
+fun SpannableStringBuilder.isInlineImage(): Boolean {
+  if (isEmpty()) return false
+  val lastChar = last()
+  return lastChar != '\n' && lastChar != '\u200B'
 }
+
+// ============================================================================
+// Span Creation Utilities
+// ============================================================================
 
 /**
  * Creates a LineHeightSpan appropriate for the current API level.

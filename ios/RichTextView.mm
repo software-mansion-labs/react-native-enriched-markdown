@@ -30,6 +30,7 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
 - (void)setupLayoutManager;
+- (MarkdownASTNode *)getOrParseAST:(NSString *)markdownString;
 @end
 
 @implementation RichTextView {
@@ -37,6 +38,8 @@ static const CGFloat kLabelPadding = 10.0;
   MarkdownParser *_parser;
   AttributedRenderer *_attributedRenderer;
   RenderContext *_renderContext;
+  MarkdownASTNode *_cachedAST;
+  NSString *_cachedMarkdown;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -138,11 +141,28 @@ static const CGFloat kLabelPadding = 10.0;
   ]];
 }
 
-- (void)renderMarkdownContent:(NSString *)markdownString
+- (MarkdownASTNode *)getOrParseAST:(NSString *)markdownString
 {
+  if (_cachedAST && _cachedMarkdown && [_cachedMarkdown isEqualToString:markdownString]) {
+    return _cachedAST;
+  }
+
   MarkdownASTNode *ast = [_parser parseMarkdown:markdownString];
   if (!ast) {
     NSLog(@"RichTextView: Failed to parse markdown");
+    return nil;
+  }
+
+  _cachedAST = ast;
+  _cachedMarkdown = [markdownString copy];
+
+  return ast;
+}
+
+- (void)renderMarkdownContent:(NSString *)markdownString
+{
+  MarkdownASTNode *ast = [self getOrParseAST:markdownString];
+  if (!ast) {
     return;
   }
 
@@ -690,12 +710,14 @@ static const CGFloat kLabelPadding = 10.0;
     _textView.selectable = newViewProps.isSelectable;
   }
 
-  if (stylePropChanged) {
-    NSString *currentMarkdown = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
-    [self renderMarkdownContent:currentMarkdown];
+  BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
+
+  if (markdownChanged) {
+    _cachedAST = nil;
+    _cachedMarkdown = nil;
   }
 
-  if (oldViewProps.markdown != newViewProps.markdown && !stylePropChanged) {
+  if (markdownChanged || stylePropChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
   }

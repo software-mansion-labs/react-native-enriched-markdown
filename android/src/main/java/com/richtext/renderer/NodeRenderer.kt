@@ -89,14 +89,15 @@ class ParagraphRenderer(
       factory.blockStyleContext.clearBlockStyle()
     }
 
-    val contentLength = builder.length - start
+    val end = builder.length
+    val contentLength = end - start
     if (contentLength > 0) {
       // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
       if (!paragraph.containsBlockImage()) {
         builder.setSpan(
           createLineHeightSpan(paragraphStyle.lineHeight),
           start,
-          start + contentLength,
+          end,
           android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
         )
       }
@@ -142,7 +143,8 @@ class HeadingRenderer(
       factory.blockStyleContext.clearBlockStyle()
     }
 
-    val contentLength = builder.length - start
+    val end = builder.length
+    val contentLength = end - start
     if (contentLength > 0) {
       builder.setSpan(
         RichTextHeadingSpan(
@@ -150,14 +152,14 @@ class HeadingRenderer(
           config.style,
         ),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
 
       builder.setSpan(
         createLineHeightSpan(headingStyle.lineHeight),
         start,
-        start + contentLength,
+        end,
         android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
       )
 
@@ -297,10 +299,13 @@ class ImageRenderer(
     // ImageSpan will replace this placeholder with the actual image during rendering.
     builder.append("\uFFFC")
 
+    val end = builder.length
+    val contentLength = end - start
+
     builder.setSpan(
       RichTextImageSpan(context, imageUrl, config.style, isInline),
       start,
-      start + 1,
+      end,
       android.text.SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE,
     )
     // Note: marginBottom for images is handled by ParagraphRenderer when the paragraph contains only an image

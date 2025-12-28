@@ -62,142 +62,74 @@
   applyParagraphSpacing(output, headingStart, marginBottom);
 }
 
+#pragma mark - Heading Style Helpers
+
+- (NSInteger)validatedLevel:(NSInteger)level propertyName:(NSString *)propertyName
+{
+  if (level >= 1 && level <= 6) {
+    return level - 1; // Convert to 0-based index
+  }
+  // Should never happen - JS always provides all 6 levels
+  NSLog(@"Warning: Invalid heading level %ld for %@, using H1", (long)level, propertyName);
+  return 0; // Return index for H1
+}
+
 - (CGFloat)getFontSizeForLevel:(NSInteger)level config:(RichTextConfig *)config
 {
-  switch (level) {
-    case 1:
-      return [config h1FontSize];
-    case 2:
-      return [config h2FontSize];
-    case 3:
-      return [config h3FontSize];
-    case 4:
-      return [config h4FontSize];
-    case 5:
-      return [config h5FontSize];
-    case 6:
-      return [config h6FontSize];
-    default: {
-      // Should never happen - JS always provides all 6 levels
-      NSLog(@"Warning: Invalid heading level %ld, using H1 size", (long)level);
-      return [config h1FontSize];
-    }
-  }
+  NSInteger index = [self validatedLevel:level propertyName:@"fontSize"];
+  NSArray<NSNumber *> *sizes = @[
+    @([config h1FontSize]), @([config h2FontSize]), @([config h3FontSize]), @([config h4FontSize]),
+    @([config h5FontSize]), @([config h6FontSize])
+  ];
+  return [sizes[index] doubleValue];
 }
 
 - (NSString *)getFontFamilyForLevel:(NSInteger)level config:(RichTextConfig *)config
 {
-  switch (level) {
-    case 1:
-      return [config h1FontFamily];
-    case 2:
-      return [config h2FontFamily];
-    case 3:
-      return [config h3FontFamily];
-    case 4:
-      return [config h4FontFamily];
-    case 5:
-      return [config h5FontFamily];
-    case 6:
-      return [config h6FontFamily];
-    default: {
-      // Should never happen - JS always provides all 6 levels
-      NSLog(@"Warning: Invalid heading level %ld, using H1 family", (long)level);
-      return [config h1FontFamily];
-    }
-  }
+  NSInteger index = [self validatedLevel:level propertyName:@"fontFamily"];
+  NSArray<NSString *> *families = @[
+    [config h1FontFamily], [config h2FontFamily], [config h3FontFamily], [config h4FontFamily], [config h5FontFamily],
+    [config h6FontFamily]
+  ];
+  return families[index];
 }
 
 - (NSString *)getFontWeightForLevel:(NSInteger)level config:(RichTextConfig *)config
 {
-  switch (level) {
-    case 1:
-      return [config h1FontWeight];
-    case 2:
-      return [config h2FontWeight];
-    case 3:
-      return [config h3FontWeight];
-    case 4:
-      return [config h4FontWeight];
-    case 5:
-      return [config h5FontWeight];
-    case 6:
-      return [config h6FontWeight];
-    default: {
-      // Should never happen - JS always provides all 6 levels
-      NSLog(@"Warning: Invalid heading level %ld, using H1 weight", (long)level);
-      return [config h1FontWeight];
-    }
-  }
+  NSInteger index = [self validatedLevel:level propertyName:@"fontWeight"];
+  NSArray<NSString *> *weights = @[
+    [config h1FontWeight], [config h2FontWeight], [config h3FontWeight], [config h4FontWeight], [config h5FontWeight],
+    [config h6FontWeight]
+  ];
+  return weights[index];
 }
 
 - (UIColor *)getColorForLevel:(NSInteger)level config:(RichTextConfig *)config
 {
-  switch (level) {
-    case 1:
-      return [config h1Color];
-    case 2:
-      return [config h2Color];
-    case 3:
-      return [config h3Color];
-    case 4:
-      return [config h4Color];
-    case 5:
-      return [config h5Color];
-    case 6:
-      return [config h6Color];
-    default: {
-      // Should never happen - JS always provides all 6 levels
-      NSLog(@"Warning: Invalid heading level %ld, using H1 color", (long)level);
-      return [config h1Color];
-    }
-  }
+  NSInteger index = [self validatedLevel:level propertyName:@"color"];
+  NSArray<UIColor *> *colors =
+      @[ [config h1Color], [config h2Color], [config h3Color], [config h4Color], [config h5Color], [config h6Color] ];
+  return colors[index];
 }
 
 - (CGFloat)getMarginBottomForLevel:(NSInteger)level config:(RichTextConfig *)config
 {
-  switch (level) {
-    case 1:
-      return [config h1MarginBottom];
-    case 2:
-      return [config h2MarginBottom];
-    case 3:
-      return [config h3MarginBottom];
-    case 4:
-      return [config h4MarginBottom];
-    case 5:
-      return [config h5MarginBottom];
-    case 6:
-      return [config h6MarginBottom];
-    default: {
-      // Should never happen - JS always provides all 6 levels
-      NSLog(@"Warning: Invalid heading level %ld, using H1 marginBottom", (long)level);
-      return [config h1MarginBottom];
-    }
-  }
+  NSInteger index = [self validatedLevel:level propertyName:@"marginBottom"];
+  NSArray<NSNumber *> *margins = @[
+    @([config h1MarginBottom]), @([config h2MarginBottom]), @([config h3MarginBottom]), @([config h4MarginBottom]),
+    @([config h5MarginBottom]), @([config h6MarginBottom])
+  ];
+  return [margins[index] doubleValue];
 }
 
 - (CGFloat)getLineHeightForLevel:(NSInteger)level config:(RichTextConfig *)config
 {
-  switch (level) {
-    case 1:
-      return [config h1LineHeight];
-    case 2:
-      return [config h2LineHeight];
-    case 3:
-      return [config h3LineHeight];
-    case 4:
-      return [config h4LineHeight];
-    case 5:
-      return [config h5LineHeight];
-    case 6:
-      return [config h6LineHeight];
-    default: {
-      // Should never happen - JS always provides all 6 levels
-      NSLog(@"Warning: Invalid heading level %ld, using H1 lineHeight", (long)level);
-      return [config h1LineHeight];
-    }
-  }
+  NSInteger index = [self validatedLevel:level propertyName:@"lineHeight"];
+  NSArray<NSNumber *> *lineHeights = @[
+    @([config h1LineHeight]), @([config h2LineHeight]), @([config h3LineHeight]), @([config h4LineHeight]),
+    @([config h5LineHeight]), @([config h6LineHeight])
+  ];
+  return [lineHeights[index] doubleValue];
 }
 
 @end

@@ -71,11 +71,10 @@ class ParagraphRenderer(
   ) {
     val paragraph = node as Paragraph
 
-    // Skip paragraph-specific rendering when inside a block element (parent handles spacing)
+    // When inside a block element, render content without paragraph-specific spans
+    // The parent block element (blockquote, list, etc.) handles spacing and styling
     if (factory.blockStyleContext.isInsideBlockElement()) {
-      factory.renderChildren(paragraph, builder, onLinkPress)
-      // Append newline for separation without applying marginBottom span
-      builder.append("\n")
+      renderParagraphContent(paragraph, builder, onLinkPress, factory)
       return
     }
 
@@ -112,6 +111,20 @@ class ParagraphRenderer(
       val marginBottom = getMarginBottomForParagraph(paragraph, paragraphStyle, config.style)
       applyMarginBottom(builder, start, marginBottom)
     }
+  }
+
+  /**
+   * Renders paragraph content (children + newline) without applying paragraph-specific spans.
+   * Used when paragraph is inside a block element that handles its own spacing.
+   */
+  private fun renderParagraphContent(
+    paragraph: Paragraph,
+    builder: SpannableStringBuilder,
+    onLinkPress: ((String) -> Unit)?,
+    factory: RendererFactory,
+  ) {
+    factory.renderChildren(paragraph, builder, onLinkPress)
+    builder.append("\n")
   }
 }
 

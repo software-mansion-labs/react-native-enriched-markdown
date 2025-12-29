@@ -7,6 +7,8 @@ import com.facebook.react.views.text.ReactTypefaceUtils
 import com.richtext.renderer.BlockStyle
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.applyColorPreserving
+import com.richtext.utils.calculateStrongColor
+import com.richtext.utils.getColorsToPreserveForInlineStyle
 
 class StrongSpan(
   private val style: RichTextStyle,
@@ -46,19 +48,7 @@ class StrongSpan(
   }
 
   private fun applyStrongColor(tp: TextPaint) {
-    val strongColor = style.getStrongColor()
-    // Use strongColor if explicitly set (different from block color), otherwise use block color
-    val colorToUse =
-      if (strongColor != null && strongColor != blockStyle.color) {
-        strongColor
-      } else {
-        blockStyle.color
-      }
-
-    tp.applyColorPreserving(
-      colorToUse,
-      style.getCodeStyle().color,
-      style.getLinkColor(),
-    )
+    val colorToUse = calculateStrongColor(style, blockStyle)
+    tp.applyColorPreserving(colorToUse, *getColorsToPreserveForInlineStyle(style))
   }
 }

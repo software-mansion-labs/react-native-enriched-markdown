@@ -46,6 +46,32 @@ fun TextPaint.applyColorPreserving(
 }
 
 /**
+ * Calculates the color that should be used for strong text.
+ * Uses strongColor if explicitly set (different from block color), otherwise uses block color.
+ */
+fun calculateStrongColor(
+  style: RichTextStyle,
+  blockStyle: BlockStyle,
+): Int {
+  val strongColor = style.getStrongColor()
+  return if (strongColor != null && strongColor != blockStyle.color) {
+    strongColor
+  } else {
+    blockStyle.color
+  }
+}
+
+/**
+ * Gets the list of colors that should be preserved when applying strong or emphasis colors.
+ * These are colors from inline elements (code, links) that take priority over strong/emphasis colors.
+ */
+fun getColorsToPreserveForInlineStyle(style: RichTextStyle): IntArray =
+  intArrayOf(
+    style.getCodeStyle().color,
+    style.getLinkColor(),
+  )
+
+/**
  * Applies a typeface while preserving existing style traits (e.g., BOLD from StrongSpan).
  * Useful when applying a base typeface (e.g., heading font) that should preserve styles.
  */

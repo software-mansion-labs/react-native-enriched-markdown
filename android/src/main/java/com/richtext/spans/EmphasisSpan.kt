@@ -6,6 +6,8 @@ import android.text.style.MetricAffectingSpan
 import com.richtext.renderer.BlockStyle
 import com.richtext.styles.RichTextStyle
 import com.richtext.utils.applyColorPreserving
+import com.richtext.utils.calculateStrongColor
+import com.richtext.utils.getColorsToPreserveForInlineStyle
 
 class EmphasisSpan(
   private val style: RichTextStyle,
@@ -38,10 +40,7 @@ class EmphasisSpan(
 
   private fun applyEmphasisColor(tp: TextPaint) {
     val configEmphasisColor = style.getEmphasisColor()
-    val configStrongColor = style.getStrongColor()
-
-    // Calculate what color strong would use (same logic as StrongSpan)
-    val strongColorToUse = configStrongColor?.takeIf { it != blockStyle.color } ?: blockStyle.color
+    val strongColorToUse = calculateStrongColor(style, blockStyle)
 
     // Check if nested inside strong: text is bold and color matches strong color
     val isNestedInStrong =
@@ -51,10 +50,6 @@ class EmphasisSpan(
     // If nested inside strong, preserve strong color; otherwise use emphasis color or block color
     val colorToUse = if (isNestedInStrong) tp.color else (configEmphasisColor ?: blockStyle.color)
 
-    tp.applyColorPreserving(
-      colorToUse,
-      style.getCodeStyle().color,
-      style.getLinkColor(),
-    )
+    tp.applyColorPreserving(colorToUse, *getColorsToPreserveForInlineStyle(style))
   }
 }

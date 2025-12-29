@@ -1,6 +1,7 @@
 package com.richtext.renderer
 
 import android.text.SpannableStringBuilder
+import com.richtext.spans.InlineCodeBackgroundSpan
 import com.richtext.spans.InlineCodeSpan
 import com.richtext.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 import org.commonmark.node.Code
@@ -21,6 +22,12 @@ class CodeRenderer(
     factory.renderWithSpan(builder, { builder.append(codeText) }) { start, end, blockStyle ->
       builder.setSpan(
         InlineCodeSpan(config.style, blockStyle),
+        start,
+        end,
+        SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+      )
+      builder.setSpan(
+        InlineCodeBackgroundSpan(config.style),
         start,
         end,
         SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,

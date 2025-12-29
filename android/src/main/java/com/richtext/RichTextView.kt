@@ -1,7 +1,6 @@
 package com.richtext
 
 import android.content.Context
-import android.graphics.Canvas
 import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString
@@ -14,7 +13,6 @@ import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
 import com.richtext.spans.ImageSpan
 import com.richtext.styles.RichTextStyle
-import com.richtext.utils.CodeBackground
 
 class RichTextView : AppCompatTextView {
   private val parser = Parser.shared
@@ -23,7 +21,6 @@ class RichTextView : AppCompatTextView {
 
   var richTextStyle: RichTextStyle? = null
   private var currentMarkdown: String = ""
-  private var codeBackground: CodeBackground? = null
 
   constructor(context: Context) : super(context) {
     prepareComponent()
@@ -63,21 +60,15 @@ class RichTextView : AppCompatTextView {
           }
         renderer.configure(currentStyle, context)
         val styledText = renderer.renderDocument(document, onLinkPressCallback)
-        codeBackground = CodeBackground(currentStyle)
         text = styledText
         registerImageSpans(styledText)
         movementMethod = LinkMovementMethod.getInstance()
-
-        // Invalidate after layout is calculated to ensure code backgrounds are drawn
-        invalidateCodeBackgrounds()
       } else {
         android.util.Log.e("RichTextView", "Failed to parse markdown - Document is null")
-        codeBackground = null
         text = ""
       }
     } catch (e: Exception) {
       android.util.Log.e("RichTextView", "Error parsing markdown: ${e.message}")
-      codeBackground = null
       text = ""
     }
   }
@@ -149,19 +140,6 @@ class RichTextView : AppCompatTextView {
     }
   }
 
-  override fun onDraw(canvas: Canvas) {
-    val currentLayout = layout ?: return super.onDraw(canvas)
-    val currentText = text as? Spanned ?: return super.onDraw(canvas)
-    val codeBg = codeBackground ?: return super.onDraw(canvas)
-
-    canvas.save()
-    canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
-    codeBg.draw(canvas, currentText, currentLayout)
-    canvas.restore()
-
-    super.onDraw(canvas)
-  }
-
   /**
    * Scans the text for ImageSpans and registers this TextView with them
    * so they can trigger redraws when images load.
@@ -170,20 +148,6 @@ class RichTextView : AppCompatTextView {
     val imageSpans = text.getSpans(0, text.length, ImageSpan::class.java)
     for (span in imageSpans) {
       span.registerTextView(this)
-    }
-  }
-
-  /**
-   * Invalidates the view to redraw code backgrounds after layout is calculated.
-   * setText() triggers a layout pass. Using post() defers invalidation until
-   * after the current message queue processes, which includes layout calculation.
-   * postInvalidateOnAnimation() syncs with VSync to minimize flickering.
-   */
-  private fun invalidateCodeBackgrounds() {
-    if (codeBackground != null) {
-      post {
-        postInvalidateOnAnimation()
-      }
     }
   }
 }

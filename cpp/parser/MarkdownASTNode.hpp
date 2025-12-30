@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 namespace RichText {
 
@@ -24,7 +24,7 @@ enum class NodeType {
 struct MarkdownASTNode {
     NodeType type;
     std::string content;
-    std::map<std::string, std::string> attributes;
+    std::unordered_map<std::string, std::string> attributes;
     std::vector<std::shared_ptr<MarkdownASTNode>> children;
 
     explicit MarkdownASTNode(NodeType t) : type(t) {}

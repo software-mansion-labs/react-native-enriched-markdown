@@ -1,22 +1,29 @@
 #include "MD4CParser.hpp"
 #include "../md4c/md4c.h"
 #include <cstring>
-#include <stack>
+#include <vector>
 
 namespace RichText {
 
 class MD4CParser::Impl {
 public:
   std::shared_ptr<MarkdownASTNode> root;
-  std::stack<std::shared_ptr<MarkdownASTNode>> nodeStack;
+  std::vector<std::shared_ptr<MarkdownASTNode>> nodeStack;
   std::string currentText;
   const char *inputText = nullptr;
 
-  void reset() {
+  static const std::string ATTR_LEVEL;
+  static const std::string ATTR_URL;
+  static const std::string ATTR_TITLE;
+
+  void reset(size_t estimatedDepth) {
     root = std::make_shared<MarkdownASTNode>(NodeType::Document);
-    while (!nodeStack.empty())
-      nodeStack.pop();
-    nodeStack.push(root);
+    nodeStack.clear();
+    // Reserve based on estimated depth, with reasonable bounds
+    // Typical markdown has 5-15 levels, but can go deeper with nested structures
+    // Cap at 128 to avoid excessive memory for extreme cases
+    nodeStack.reserve(std::min(estimatedDepth, static_cast<size_t>(128)));
+    nodeStack.push_back(root);
     currentText.clear();
     currentText.reserve(256);
   }
@@ -25,7 +32,7 @@ public:
     if (!currentText.empty() && !nodeStack.empty()) {
       auto textNode = std::make_shared<MarkdownASTNode>(NodeType::Text);
       textNode->content = std::move(currentText);
-      nodeStack.top()->addChild(std::move(textNode));
+      nodeStack.back()->addChild(std::move(textNode));
       currentText.clear();
     }
   }
@@ -33,35 +40,31 @@ public:
   void pushNode(std::shared_ptr<MarkdownASTNode> node) {
     flushText();
     if (node && !nodeStack.empty()) {
-      nodeStack.top()->addChild(node);
-      nodeStack.push(std::move(node));
+      nodeStack.back()->addChild(node);
+      nodeStack.push_back(std::move(node));
     }
   }
 
   void popNode() {
     flushText();
     if (nodeStack.size() > 1) {
-      nodeStack.pop();
+      nodeStack.pop_back();
     }
   }
 
   void addInlineNode(std::shared_ptr<MarkdownASTNode> node) {
     if (node && !nodeStack.empty()) {
-      nodeStack.top()->addChild(node);
+      nodeStack.back()->addChild(node);
     }
   }
 
   std::string getAttributeText(const MD_ATTRIBUTE *attr) {
-    if (!attr || attr->size == 0)
-      return "";
+    if (!attr || attr->size == 0 || !attr->text)
+      return {};
 
-    // Simple approach: use attr->text directly (matches iOS implementation)
-    // MD4C provides the text field with the full attribute text
-    if (attr->text && attr->size > 0) {
-      return std::string(attr->text, attr->size);
-    }
-
-    return "";
+    // Use string constructor directly - let SSO handle small strings efficiently
+    // Empty return {} avoids allocating empty string object
+    return std::string(attr->text, attr->size);
   }
 
   static int enterBlock(MD_BLOCKTYPE type, void *detail, void *userdata) {
@@ -86,7 +89,10 @@ public:
           int level = static_cast<int>(h->level);
           // Clamp level to valid range (1-6)
           level = (level < 1) ? 1 : (level > 6) ? 6 : level;
-          node->setAttribute("level", std::to_string(level));
+          // Use char conversion for small integers (1-6)
+          // Avoids std::to_string() allocation overhead
+          char levelStr[2] = {static_cast<char>('0' + level), '\0'};
+          node->setAttribute(ATTR_LEVEL, levelStr);
         }
         impl->pushNode(node);
         break;
@@ -130,7 +136,7 @@ public:
           auto *linkDetail = static_cast<MD_SPAN_A_DETAIL *>(detail);
           std::string url = impl->getAttributeText(&linkDetail->href);
           if (!url.empty()) {
-            node->setAttribute("url", url);
+            node->setAttribute(ATTR_URL, url);
           }
         }
         impl->pushNode(node);
@@ -158,11 +164,11 @@ public:
           auto *imgDetail = static_cast<MD_SPAN_IMG_DETAIL *>(detail);
           std::string url = impl->getAttributeText(&imgDetail->src);
           if (!url.empty()) {
-            node->setAttribute("url", url);
+            node->setAttribute(ATTR_URL, url);
           }
           std::string title = impl->getAttributeText(&imgDetail->title);
           if (!title.empty()) {
-            node->setAttribute("title", title);
+            node->setAttribute(ATTR_TITLE, title);
           }
         }
         impl->pushNode(node);
@@ -219,7 +225,17 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) 
     return std::make_shared<MarkdownASTNode>(NodeType::Document);
   }
 
-  impl_->reset();
+  // Estimate stack depth based on markdown size
+  // Heuristic: ~1 nesting level per 500-1000 characters for typical markdown
+  // This is a rough estimate - actual depth depends on structure, not just size
+  // Base depth of 12 covers typical nested structures (blockquotes, future lists)
+  size_t estimatedDepth = 12; // Base depth for small documents
+  if (markdown.size() > 1000) {
+    // Scale up for larger documents, but cap the growth
+    estimatedDepth = std::min(static_cast<size_t>(12 + (markdown.size() / 1000)), static_cast<size_t>(64));
+  }
+
+  impl_->reset(estimatedDepth);
   impl_->inputText = markdown.c_str();
 
   // Configure MD4C parser with callbacks
@@ -246,5 +262,10 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) 
   impl_->flushText();
   return impl_->root ? impl_->root : std::make_shared<MarkdownASTNode>(NodeType::Document);
 }
+
+// Static member definitions
+const std::string MD4CParser::Impl::ATTR_LEVEL = "level";
+const std::string MD4CParser::Impl::ATTR_URL = "url";
+const std::string MD4CParser::Impl::ATTR_TITLE = "title";
 
 } // namespace RichText

@@ -5,8 +5,6 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
-static const CGFloat kMinimumValidDimension = 0.0;
-
 @interface RichTextImageAttachment ()
 
 @property (nonatomic, strong) NSString *imageURL;
@@ -50,7 +48,7 @@ static const CGFloat kMinimumValidDimension = 0.0;
     return CGRectMake(0, 0, height, height);
   }
 
-  CGFloat width = lineFrag.size.width > kMinimumValidDimension ? lineFrag.size.width : height;
+  CGFloat width = lineFrag.size.width > 0 ? lineFrag.size.width : height;
   return CGRectMake(0, 0, width, height);
 }
 
@@ -85,7 +83,7 @@ static const CGFloat kMinimumValidDimension = 0.0;
     return self.loadedImage;
   }
 
-  if (self.originalImage && imageBounds.size.width > kMinimumValidDimension) {
+  if (self.originalImage && imageBounds.size.width > 0) {
     return [self scaleAndCacheImageForBounds:imageBounds];
   }
 
@@ -94,7 +92,7 @@ static const CGFloat kMinimumValidDimension = 0.0;
 
 - (UIImage *)scaleAndCacheImageForBounds:(CGRect)imageBounds
 {
-  if (!self.originalImage || imageBounds.size.width <= kMinimumValidDimension) {
+  if (!self.originalImage || imageBounds.size.width <= 0) {
     return nil;
   }
 
@@ -215,7 +213,7 @@ static const CGFloat kMinimumValidDimension = 0.0;
     return nil;
 
   CGSize originalSize = image.size;
-  if (originalSize.width <= kMinimumValidDimension || originalSize.height <= kMinimumValidDimension) {
+  if (originalSize.width <= 0 || originalSize.height <= 0) {
     return nil;
   }
 
@@ -230,7 +228,7 @@ static const CGFloat kMinimumValidDimension = 0.0;
   return [renderer imageWithActions:^(UIGraphicsImageRendererContext *_Nonnull rendererContext) {
     CGContextRef context = rendererContext.CGContext;
 
-    if (borderRadius > kMinimumValidDimension) {
+    if (borderRadius > 0) {
       UIBezierPath *roundedPath =
           [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, targetSize.width, targetSize.height)
                                      cornerRadius:borderRadius];

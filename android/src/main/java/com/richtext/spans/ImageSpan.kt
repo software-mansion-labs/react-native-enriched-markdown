@@ -50,7 +50,7 @@ class ImageSpan(
     if (isInline && initialDrawable !is AsyncDrawable) {
       val isPlaceholder = initialDrawable.intrinsicWidth <= 0 && initialDrawable.intrinsicHeight <= 0
       if (!isPlaceholder) {
-        loadedDrawable = ScaledImageDrawable(initialDrawable, height, height, borderRadiusPx)
+        loadedDrawable = ScaledImageDrawable(initialDrawable, height, height, borderRadiusPx, isBlockImage = false)
       }
     }
   }
@@ -63,13 +63,13 @@ class ImageSpan(
     if (!isInline) {
       cachedWidth = Companion.MINIMUM_VALID_DIMENSION
 
-      val immediateWidth = view.width
-      if (immediateWidth > Companion.MINIMUM_VALID_DIMENSION) {
-        updateCachedWidth(immediateWidth, view)
+      val availableWidth = getAvailableWidth(view)
+      if (availableWidth > Companion.MINIMUM_VALID_DIMENSION) {
+        updateCachedWidth(availableWidth, view)
       }
 
       view.post {
-        val textViewWidth = view.width
+        val textViewWidth = getAvailableWidth(view)
         if (textViewWidth > Companion.MINIMUM_VALID_DIMENSION) {
           updateCachedWidth(textViewWidth, view)
         }
@@ -77,11 +77,19 @@ class ImageSpan(
     }
   }
 
+  private fun getAvailableWidth(view: RichTextView): Int {
+    // Use layout width if available (most accurate), otherwise fallback to view width
+    // Since RichTextView has padding set to 0, view.width should match layout.width
+    return view.layout?.width ?: view.width
+  }
+
   private fun updateCachedWidth(
     newWidth: Int,
     view: RichTextView,
   ) {
-    if (newWidth <= Companion.MINIMUM_VALID_DIMENSION) return
+    if (newWidth <= Companion.MINIMUM_VALID_DIMENSION) {
+      return
+    }
 
     val widthChanged = cachedWidth != newWidth
     cachedWidth = newWidth
@@ -90,7 +98,7 @@ class ImageSpan(
     val needsRecreation = widthChanged || (underlyingLoadedDrawable != null && loadedDrawable == null)
 
     if (needsRecreation && underlyingLoadedDrawable != null) {
-      loadedDrawable = ScaledImageDrawable(underlyingLoadedDrawable!!, cachedWidth, height, borderRadiusPx)
+      loadedDrawable = ScaledImageDrawable(underlyingLoadedDrawable!!, cachedWidth, height, borderRadiusPx, isBlockImage = true)
       forceRedraw(view)
     } else if (underlyingLoadedDrawable == null) {
       // Try to wrap local file drawable
@@ -98,7 +106,7 @@ class ImageSpan(
         val isPlaceholder = initialDrawable.intrinsicWidth <= 0 && initialDrawable.intrinsicHeight <= 0
         if (!isPlaceholder) {
           underlyingLoadedDrawable = initialDrawable
-          loadedDrawable = ScaledImageDrawable(initialDrawable, cachedWidth, height, borderRadiusPx)
+          loadedDrawable = ScaledImageDrawable(initialDrawable, cachedWidth, height, borderRadiusPx, isBlockImage = true)
           forceRedraw(view)
         }
       }
@@ -169,6 +177,7 @@ class ImageSpan(
         val transY = y - imageHeight + raiseAmount
         translate(x, transY)
       } else {
+        // For block images, use x parameter which is already positioned correctly by the layout
         val transY = top.toFloat() - drawable.bounds.top
         translate(x, transY)
       }
@@ -200,19 +209,19 @@ class ImageSpan(
       underlyingLoadedDrawable = loadedBitmapDrawable
 
       if (!isInline) {
-        val viewWidth = view.width
-        if (viewWidth > Companion.MINIMUM_VALID_DIMENSION) {
-          updateCachedWidth(viewWidth, view)
+        val availableWidth = getAvailableWidth(view)
+        if (availableWidth > Companion.MINIMUM_VALID_DIMENSION) {
+          updateCachedWidth(availableWidth, view)
         } else {
           val finalWidth =
             getWidth().takeIf { it > Companion.MINIMUM_VALID_DIMENSION }
               ?: loadedBitmapDrawable.intrinsicWidth.takeIf { it > Companion.MINIMUM_VALID_DIMENSION }
               ?: Companion.MINIMUM_VALID_DIMENSION
-          loadedDrawable = ScaledImageDrawable(loadedBitmapDrawable, finalWidth, height, borderRadiusPx)
+          loadedDrawable = ScaledImageDrawable(loadedBitmapDrawable, finalWidth, height, borderRadiusPx, isBlockImage = true)
           forceRedraw(view)
         }
       } else {
-        loadedDrawable = ScaledImageDrawable(loadedBitmapDrawable, height, height, borderRadiusPx)
+        loadedDrawable = ScaledImageDrawable(loadedBitmapDrawable, height, height, borderRadiusPx, isBlockImage = false)
         forceRedraw(view)
       }
     }
@@ -249,6 +258,7 @@ class ImageSpan(
     private val targetWidth: Int,
     private val targetHeight: Int,
     private val borderRadius: Int = 0,
+    private val isBlockImage: Boolean = false,
   ) : Drawable() {
     private val roundedRectPath: Path? =
       if (borderRadius > ImageSpan.MINIMUM_VALID_DIMENSION) {
@@ -274,22 +284,12 @@ class ImageSpan(
       val intrinsicHeight = imageDrawable.intrinsicHeight
 
       val (scaledWidth, scaledHeight) =
-        if (
-          intrinsicWidth > ImageSpan.MINIMUM_VALID_DIMENSION &&
-          intrinsicHeight > ImageSpan.MINIMUM_VALID_DIMENSION
-        ) {
-          val scale =
-            minOf(
-              targetWidth.toFloat() / intrinsicWidth,
-              targetHeight.toFloat() / intrinsicHeight,
-            )
-          Pair(
-            (intrinsicWidth * scale).toInt(),
-            (intrinsicHeight * scale).toInt(),
-          )
-        } else {
-          Pair(targetWidth, targetHeight)
-        }
+        calculateScaledDimensions(
+          intrinsicWidth,
+          intrinsicHeight,
+          targetWidth,
+          targetHeight,
+        )
 
       val centeredLeft = (targetWidth - scaledWidth) / ImageSpan.CENTERING_DIVISOR
       val centeredTop = (targetHeight - scaledHeight) / ImageSpan.CENTERING_DIVISOR
@@ -300,6 +300,38 @@ class ImageSpan(
         centeredLeft + scaledWidth,
         centeredTop + scaledHeight,
       )
+    }
+
+    private fun calculateScaledDimensions(
+      intrinsicWidth: Int,
+      intrinsicHeight: Int,
+      targetWidth: Int,
+      targetHeight: Int,
+    ): Pair<Int, Int> {
+      val hasValidDimensions =
+        intrinsicWidth > ImageSpan.MINIMUM_VALID_DIMENSION &&
+          intrinsicHeight > ImageSpan.MINIMUM_VALID_DIMENSION
+
+      if (!hasValidDimensions) {
+        return Pair(targetWidth, targetHeight)
+      }
+
+      return if (isBlockImage) {
+        // Block images: scale to fill width (aspect fill)
+        val widthScale = targetWidth.toFloat() / intrinsicWidth
+        Pair(targetWidth, (intrinsicHeight * widthScale).toInt())
+      } else {
+        // Inline images: scale to fit (aspect fit)
+        val scale =
+          minOf(
+            targetWidth.toFloat() / intrinsicWidth,
+            targetHeight.toFloat() / intrinsicHeight,
+          )
+        Pair(
+          (intrinsicWidth * scale).toInt(),
+          (intrinsicHeight * scale).toInt(),
+        )
+      }
     }
 
     override fun draw(canvas: Canvas) {

@@ -2,71 +2,12 @@ package com.richtext.styles
 
 import android.content.Context
 import android.graphics.Typeface
-import com.facebook.react.bridge.ColorPropConverter
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.uimanager.PixelUtil
 
-data class ParagraphStyle(
-  val fontSize: Float,
-  val fontFamily: String,
-  val fontWeight: String,
-  val color: Int,
-  val marginBottom: Float,
-  val lineHeight: Float,
-)
-
-data class HeadingStyle(
-  val fontSize: Float,
-  val fontFamily: String,
-  val fontWeight: String,
-  val color: Int,
-  val marginBottom: Float,
-  val lineHeight: Float,
-)
-
-data class LinkStyle(
-  val color: Int,
-  val underline: Boolean,
-)
-
-data class StrongStyle(
-  val color: Int?,
-)
-
-data class EmphasisStyle(
-  val color: Int?,
-)
-
-data class CodeStyle(
-  val color: Int,
-  val backgroundColor: Int,
-  val borderColor: Int,
-)
-
-data class ImageStyle(
-  val height: Float,
-  val borderRadius: Float,
-  val marginBottom: Float,
-)
-
-data class InlineImageStyle(
-  val size: Float,
-)
-
-data class BlockquoteStyle(
-  val fontSize: Float,
-  val fontFamily: String,
-  val fontWeight: String,
-  val color: Int,
-  val marginBottom: Float,
-  val nestedMarginBottom: Float,
-  val lineHeight: Float,
-  val borderColor: Int,
-  val borderWidth: Float,
-  val gapWidth: Float,
-  val backgroundColor: Int?,
-)
-
+/**
+ * Main style configuration class that parses and caches all markdown element styles.
+ * Each style type is defined in its own file and has its own parsing logic.
+ */
 class StyleConfig(
   style: ReadableMap,
   private val context: Context,
@@ -83,6 +24,8 @@ class StyleConfig(
   private lateinit var imageStyle: ImageStyle
   private lateinit var inlineImageStyle: InlineImageStyle
   private lateinit var blockquoteStyle: BlockquoteStyle
+
+  private val styleParser = StyleParser(context)
 
   init {
     parseStyles(style)
@@ -138,57 +81,13 @@ class StyleConfig(
     }
   }
 
-  private fun parseOptionalColor(
-    map: ReadableMap,
-    key: String,
-  ): Int? {
-    if (!map.hasKey(key) || map.isNull(key)) {
-      return null
-    }
-    val colorValue = map.getDouble(key)
-    return ColorPropConverter.getColor(colorValue, context)
-  }
-
-  private fun parseColor(
-    map: ReadableMap,
-    key: String,
-  ): Int =
-    parseOptionalColor(map, key)
-      ?: throw IllegalArgumentException("Color key '$key' is missing, null, or invalid")
-
-  private fun parseOptionalDouble(
-    map: ReadableMap,
-    key: String,
-    default: Double = 0.0,
-  ): Double =
-    if (map.hasKey(key) && !map.isNull(key)) {
-      map.getDouble(key)
-    } else {
-      default
-    }
-
   private fun parseStyles(style: ReadableMap) {
     // Parse paragraph style
     val paragraphStyleMap =
       requireNotNull(style.getMap("paragraph")) {
         "Paragraph style not found. JS should always provide defaults."
       }
-    val paragraphFontSize = PixelUtil.toPixelFromSP(paragraphStyleMap.getDouble("fontSize").toFloat())
-    val paragraphFontFamily = paragraphStyleMap.getString("fontFamily") ?: ""
-    val paragraphFontWeight = paragraphStyleMap.getString("fontWeight") ?: "normal"
-    val paragraphColor = parseColor(paragraphStyleMap, "color")
-    val paragraphMarginBottom = PixelUtil.toPixelFromDIP(parseOptionalDouble(paragraphStyleMap, "marginBottom", 16.0).toFloat())
-    val paragraphLineHeightRaw = parseOptionalDouble(paragraphStyleMap, "lineHeight", 0.0).toFloat()
-    val paragraphLineHeight = PixelUtil.toPixelFromSP(paragraphLineHeightRaw)
-    paragraphStyle =
-      ParagraphStyle(
-        paragraphFontSize,
-        paragraphFontFamily,
-        paragraphFontWeight,
-        paragraphColor,
-        paragraphMarginBottom,
-        paragraphLineHeight,
-      )
+    paragraphStyle = ParagraphStyle.fromReadableMap(paragraphStyleMap, styleParser)
 
     // Parse heading styles
     (1..6).forEach { level ->
@@ -197,114 +96,57 @@ class StyleConfig(
         requireNotNull(style.getMap(levelKey)) {
           "Style for $levelKey not found. JS should always provide defaults."
         }
-
-      val fontSize = PixelUtil.toPixelFromSP(levelStyle.getDouble("fontSize").toFloat())
-      val fontFamily = levelStyle.getString("fontFamily") ?: ""
-      val fontWeight = levelStyle.getString("fontWeight") ?: "normal"
-      val color = parseColor(levelStyle, "color")
-      // Default marginBottom: h1=0, h2-h6=24, but we'll use 24 for all as a safe default
-      val defaultMarginBottom = if (level == 1) 0.0 else 24.0
-      val marginBottom = PixelUtil.toPixelFromDIP(parseOptionalDouble(levelStyle, "marginBottom", defaultMarginBottom).toFloat())
-      val lineHeightRaw = parseOptionalDouble(levelStyle, "lineHeight", 0.0).toFloat()
-      val lineHeight = PixelUtil.toPixelFromSP(lineHeightRaw)
-
-      headingStyles[level] = HeadingStyle(fontSize, fontFamily, fontWeight, color, marginBottom, lineHeight)
+      headingStyles[level] = HeadingStyle.fromReadableMap(levelStyle, styleParser, level)
     }
 
+    // Parse link style
     val linkStyleMap =
       requireNotNull(style.getMap("link")) {
         "Link style not found. JS should always provide defaults."
       }
+    linkStyle = LinkStyle.fromReadableMap(linkStyleMap, styleParser)
 
-    val color = parseColor(linkStyleMap, "color")
-    val underline = linkStyleMap.getBoolean("underline")
-
-    linkStyle = LinkStyle(color, underline)
-
+    // Parse strong style
     val strongStyleMap =
       requireNotNull(style.getMap("strong")) {
         "Strong style not found. JS should always provide defaults."
       }
+    strongStyle = StrongStyle.fromReadableMap(strongStyleMap, styleParser)
 
-    val strongColor = parseOptionalColor(strongStyleMap, "color")
-
-    strongStyle = StrongStyle(strongColor)
-
+    // Parse emphasis style
     val emphasisStyleMap =
       requireNotNull(style.getMap("em")) {
         "Emphasis style not found. JS should always provide defaults."
       }
+    emphasisStyle = EmphasisStyle.fromReadableMap(emphasisStyleMap, styleParser)
 
-    val emphasisColor = parseOptionalColor(emphasisStyleMap, "color")
-
-    emphasisStyle = EmphasisStyle(emphasisColor)
-
+    // Parse code style
     val codeStyleMap =
       requireNotNull(style.getMap("code")) {
         "Code style not found. JS should always provide defaults."
       }
+    codeStyle = CodeStyle.fromReadableMap(codeStyleMap, styleParser)
 
-    val codeColor = parseColor(codeStyleMap, "color")
-    val codeBackgroundColor = parseColor(codeStyleMap, "backgroundColor")
-    val codeBorderColor = parseColor(codeStyleMap, "borderColor")
-
-    codeStyle = CodeStyle(codeColor, codeBackgroundColor, codeBorderColor)
-
+    // Parse image style
     val imageStyleMap =
       requireNotNull(style.getMap("image")) {
         "Image style not found. JS should always provide defaults."
       }
+    imageStyle = ImageStyle.fromReadableMap(imageStyleMap, styleParser)
 
-    val imageHeight = PixelUtil.toPixelFromDIP(imageStyleMap.getDouble("height").toFloat())
-    val imageBorderRadius = PixelUtil.toPixelFromDIP(imageStyleMap.getDouble("borderRadius").toFloat())
-    val imageMarginBottom = PixelUtil.toPixelFromDIP(parseOptionalDouble(imageStyleMap, "marginBottom", 16.0).toFloat())
-
-    imageStyle = ImageStyle(imageHeight, imageBorderRadius, imageMarginBottom)
-
+    // Parse inline image style
     val inlineImageStyleMap =
       requireNotNull(style.getMap("inlineImage")) {
         "InlineImage style not found. JS should always provide defaults."
       }
-
-    val inlineImageSize = PixelUtil.toPixelFromDIP(inlineImageStyleMap.getInt("size").toFloat())
-
-    inlineImageStyle = InlineImageStyle(inlineImageSize)
+    inlineImageStyle = InlineImageStyle.fromReadableMap(inlineImageStyleMap, styleParser)
 
     // Parse blockquote style
     val blockquoteStyleMap =
       requireNotNull(style.getMap("blockquote")) {
         "Blockquote style not found. JS should always provide defaults."
       }
-    val blockquoteFontSize = PixelUtil.toPixelFromSP(blockquoteStyleMap.getDouble("fontSize").toFloat())
-    val blockquoteFontFamily = blockquoteStyleMap.getString("fontFamily") ?: ""
-    val blockquoteFontWeight = blockquoteStyleMap.getString("fontWeight") ?: "normal"
-    val blockquoteColor = parseColor(blockquoteStyleMap, "color")
-    val blockquoteMarginBottom = PixelUtil.toPixelFromDIP(parseOptionalDouble(blockquoteStyleMap, "marginBottom", 16.0).toFloat())
-    val blockquoteNestedMarginBottom =
-      PixelUtil.toPixelFromDIP(
-        parseOptionalDouble(blockquoteStyleMap, "nestedMarginBottom", 16.0).toFloat(),
-      )
-    val blockquoteLineHeightRaw = parseOptionalDouble(blockquoteStyleMap, "lineHeight", 0.0).toFloat()
-    val blockquoteLineHeight = PixelUtil.toPixelFromSP(blockquoteLineHeightRaw)
-    val blockquoteBorderColor = parseColor(blockquoteStyleMap, "borderColor")
-    val blockquoteBorderWidth = PixelUtil.toPixelFromDIP(parseOptionalDouble(blockquoteStyleMap, "borderWidth", 4.0).toFloat())
-    val blockquoteGapWidth = PixelUtil.toPixelFromDIP(parseOptionalDouble(blockquoteStyleMap, "gapWidth", 16.0).toFloat())
-    val blockquoteBackgroundColor = parseOptionalColor(blockquoteStyleMap, "backgroundColor")
-
-    blockquoteStyle =
-      BlockquoteStyle(
-        blockquoteFontSize,
-        blockquoteFontFamily,
-        blockquoteFontWeight,
-        blockquoteColor,
-        blockquoteMarginBottom,
-        blockquoteNestedMarginBottom,
-        blockquoteLineHeight,
-        blockquoteBorderColor,
-        blockquoteBorderWidth,
-        blockquoteGapWidth,
-        blockquoteBackgroundColor,
-      )
+    blockquoteStyle = BlockquoteStyle.fromReadableMap(blockquoteStyleMap, styleParser)
   }
 
   override fun equals(other: Any?): Boolean {

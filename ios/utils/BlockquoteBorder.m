@@ -1,5 +1,5 @@
 #import "BlockquoteBorder.h"
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 
 NSString *const RichTextBlockquoteDepthAttributeName = @"RichTextBlockquoteDepth";
 NSString *const RichTextBlockquoteBackgroundColorAttributeName = @"RichTextBlockquoteBackgroundColor";
@@ -10,10 +10,10 @@ static NSString *const kFragmentDepthLocationKey = @"depthLocation";
 static NSString *const kFragmentIsSpacerKey = @"isSpacer";
 
 @implementation BlockquoteBorder {
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
-- (instancetype)initWithConfig:(RichTextConfig *)config
+- (instancetype)initWithConfig:(StyleConfig *)config
 {
   if (self = [super init]) {
     _config = config;

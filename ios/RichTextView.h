@@ -1,4 +1,4 @@
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 #import <React/RCTViewComponentView.h>
 #import <UIKit/UIKit.h>
 
@@ -8,7 +8,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface RichTextView : RCTViewComponentView
-@property (nonatomic, strong) RichTextConfig *config;
+@property (nonatomic, strong) StyleConfig *config;
 @end
 
 NS_ASSUME_NONNULL_END

@@ -1,5 +1,5 @@
 #pragma once
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 #import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
@@ -8,7 +8,7 @@ extern NSString *const RichTextCodeAttributeName;
 
 @interface CodeBackground : NSObject
 
-- (instancetype)initWithConfig:(RichTextConfig *)config;
+- (instancetype)initWithConfig:(StyleConfig *)config;
 - (void)drawBackgroundsForGlyphRange:(NSRange)glyphsToShow
                        layoutManager:(NSLayoutManager *)layoutManager
                        textContainer:(NSTextContainer *)textContainer

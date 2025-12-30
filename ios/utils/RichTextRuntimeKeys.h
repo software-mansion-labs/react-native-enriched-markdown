@@ -12,9 +12,9 @@ NS_ASSUME_NONNULL_BEGIN
 // Used by attachments to retrieve the text view when needed
 extern void *kRichTextTextViewKey;
 
-// Key for storing RichTextConfig on NSLayoutManager
+// Key for storing StyleConfig on NSLayoutManager
 // Used by RichTextLayoutManager to access configuration
-extern void *kRichTextConfigKey;
+extern void *kStyleConfigKey;
 
 // Key for storing CodeBackground instance on NSLayoutManager
 // Used by RichTextLayoutManager for code background drawing

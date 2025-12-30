@@ -1,7 +1,7 @@
 #pragma once
 #import <UIKit/UIKit.h>
 
-@class RichTextConfig;
+@class StyleConfig;
 @class UITextView;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface RichTextImageAttachment : NSTextAttachment
 
-- (instancetype)initWithImageURL:(NSString *)imageURL config:(RichTextConfig *)config isInline:(BOOL)isInline;
+- (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline;
 
 @end
 

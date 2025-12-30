@@ -1,7 +1,7 @@
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 #import <React/RCTFont.h>
 
-@implementation RichTextConfig {
+@implementation StyleConfig {
   // Primary font properties
   UIColor *_primaryColor;
   NSNumber *_primaryFontSize;
@@ -99,7 +99,7 @@
 
 - (id)copyWithZone:(NSZone *)zone
 {
-  RichTextConfig *copy = [[[self class] allocWithZone:zone] init];
+  StyleConfig *copy = [[[self class] allocWithZone:zone] init];
   copy->_primaryColor = [_primaryColor copy];
   copy->_primaryFontSize = [_primaryFontSize copy];
   copy->_primaryFontWeight = [_primaryFontWeight copy];

@@ -1,5 +1,5 @@
 #pragma once
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 #import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
@@ -9,7 +9,7 @@ extern NSString *const RichTextBlockquoteBackgroundColorAttributeName;
 
 @interface BlockquoteBorder : NSObject
 
-- (instancetype)initWithConfig:(RichTextConfig *)config;
+- (instancetype)initWithConfig:(StyleConfig *)config;
 - (void)drawBordersForGlyphRange:(NSRange)glyphsToShow
                    layoutManager:(NSLayoutManager *)layoutManager
                    textContainer:(NSTextContainer *)textContainer

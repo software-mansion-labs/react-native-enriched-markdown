@@ -4,21 +4,21 @@
 #import "MarkdownASTNode.h"
 #import "ParagraphStyleUtils.h"
 #import "RendererFactory.h"
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 
 static NSString *const kNestedInfoDepthKey = @"depth";
 static NSString *const kNestedInfoRangeKey = @"range";
 
 @implementation BlockquoteRenderer {
   RendererFactory *_rendererFactory;
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
 {
   if (self = [super init]) {
     _rendererFactory = rendererFactory;
-    _config = (RichTextConfig *)config;
+    _config = (StyleConfig *)config;
   }
   return self;
 }

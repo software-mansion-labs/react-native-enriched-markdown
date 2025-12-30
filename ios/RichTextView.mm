@@ -4,10 +4,10 @@
 #import "MarkdownASTNode.h"
 #import "MarkdownParser.h"
 #import "RenderContext.h"
-#import "RichTextConfig.h"
 #import "RichTextImageAttachment.h"
 #import "RichTextLayoutManager.h"
 #import "RichTextRuntimeKeys.h"
+#import "StyleConfig.h"
 #import <objc/runtime.h>
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
@@ -220,7 +220,7 @@ static const CGFloat kLabelPadding = 10.0;
   BOOL stylePropChanged = NO;
 
   if (_config == nil) {
-    _config = [[RichTextConfig alloc] init];
+    _config = [[StyleConfig alloc] init];
   }
 
   // Paragraph style
@@ -696,7 +696,7 @@ static const CGFloat kLabelPadding = 10.0;
   // Update config reference on layout manager if it's not already set
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[RichTextLayoutManager class]]) {
-    RichTextConfig *currentConfig = [layoutManager valueForKey:@"config"];
+    StyleConfig *currentConfig = [layoutManager valueForKey:@"config"];
     if (currentConfig != _config) {
       // Only update reference if it's different (first time setup)
       [layoutManager setValue:_config forKey:@"config"];

@@ -2,11 +2,11 @@
 #import "FontUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 
 @implementation LinkRenderer {
   RendererFactory *_rendererFactory;
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -14,7 +14,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    _config = (RichTextConfig *)config;
+    _config = (StyleConfig *)config;
   }
   return self;
 }

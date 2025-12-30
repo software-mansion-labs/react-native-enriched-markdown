@@ -3,11 +3,11 @@
 #import "MarkdownASTNode.h"
 #import "ParagraphStyleUtils.h"
 #import "RendererFactory.h"
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 
 @implementation ParagraphRenderer {
   RendererFactory *_rendererFactory;
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -15,7 +15,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    _config = (RichTextConfig *)config;
+    _config = (StyleConfig *)config;
   }
   return self;
 }
@@ -74,7 +74,7 @@
 
 #pragma mark - Helper Methods
 
-- (CGFloat)getMarginBottomForParagraph:(MarkdownASTNode *)node config:(RichTextConfig *)config
+- (CGFloat)getMarginBottomForParagraph:(MarkdownASTNode *)node config:(StyleConfig *)config
 {
   // TODO: Refactor - each block element (image, blockquote, list) should handle its own spacing
   // Currently images are handled here, but blockquotes handle their own spacing (inconsistent)

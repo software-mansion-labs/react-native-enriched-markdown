@@ -3,11 +3,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RichTextConfig;
+@class StyleConfig;
 
 @interface RichTextLayoutManager : NSLayoutManager
 
-@property (nonatomic, strong) RichTextConfig *config;
+@property (nonatomic, strong) StyleConfig *config;
 
 @end
 

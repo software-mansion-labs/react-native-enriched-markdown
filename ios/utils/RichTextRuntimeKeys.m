@@ -1,6 +1,6 @@
 #import "RichTextRuntimeKeys.h"
 
 void *kRichTextTextViewKey = &kRichTextTextViewKey;
-void *kRichTextConfigKey = &kRichTextConfigKey;
+void *kStyleConfigKey = &kStyleConfigKey;
 void *kRichTextCodeBackgroundKey = &kRichTextCodeBackgroundKey;
 void *kRichTextBlockquoteBorderKey = &kRichTextBlockquoteBorderKey;

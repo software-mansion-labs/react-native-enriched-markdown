@@ -2,15 +2,15 @@
 #import "MarkdownASTNode.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
-#import "RichTextConfig.h"
 #import "RichTextImageAttachment.h"
+#import "StyleConfig.h"
 
 static const unichar kLineBreak = '\n';
 static const unichar kZeroWidthSpace = 0x200B;
 
 @implementation ImageRenderer {
   RendererFactory *_rendererFactory;
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -18,7 +18,7 @@ static const unichar kZeroWidthSpace = 0x200B;
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    _config = (RichTextConfig *)config;
+    _config = (StyleConfig *)config;
   }
   return self;
 }

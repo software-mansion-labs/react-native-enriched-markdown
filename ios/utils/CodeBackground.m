@@ -17,10 +17,10 @@ static inline CGFloat HalfStroke(void)
  * Handles both single-line and multi-line code blocks with proper border rendering.
  */
 @implementation CodeBackground {
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
-- (instancetype)initWithConfig:(RichTextConfig *)config
+- (instancetype)initWithConfig:(StyleConfig *)config
 {
   self = [super init];
   if (self) {

@@ -3,7 +3,7 @@
 #import "NodeRenderer.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 
 @implementation AttributedRenderer {
   id _config;
@@ -24,7 +24,7 @@
 {
   // Set default paragraph block style as fallback for any content that doesn't have a block style
   // This ensures TextRenderer and other elements always have a block style available
-  RichTextConfig *config = (RichTextConfig *)_config;
+  StyleConfig *config = (StyleConfig *)_config;
   [context setBlockStyle:BlockTypeParagraph
                 fontSize:[config paragraphFontSize]
               fontFamily:[config paragraphFontFamily]

@@ -1,8 +1,8 @@
 #import "RichTextLayoutManager.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
-#import "RichTextConfig.h"
 #import "RichTextRuntimeKeys.h"
+#import "StyleConfig.h"
 #import <objc/runtime.h>
 
 @implementation RichTextLayoutManager
@@ -22,7 +22,7 @@
   if (!textContainer)
     return;
 
-  RichTextConfig *config = self.config;
+  StyleConfig *config = self.config;
 
   CodeBackground *codeBackground =
       [self getOrCreateAssociatedObject:kRichTextCodeBackgroundKey
@@ -47,14 +47,14 @@
   //                                          config:config];
 }
 
-- (RichTextConfig *)config
+- (StyleConfig *)config
 {
-  return objc_getAssociatedObject(self, kRichTextConfigKey);
+  return objc_getAssociatedObject(self, kStyleConfigKey);
 }
 
-- (void)setConfig:(RichTextConfig *)config
+- (void)setConfig:(StyleConfig *)config
 {
-  objc_setAssociatedObject(self, kRichTextConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, kStyleConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   // Reset all drawing objects when config changes (they'll be recreated on next draw)
   objc_setAssociatedObject(self, kRichTextCodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kRichTextBlockquoteBorderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);

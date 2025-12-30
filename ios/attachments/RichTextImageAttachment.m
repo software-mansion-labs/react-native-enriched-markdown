@@ -1,6 +1,6 @@
 #import "RichTextImageAttachment.h"
-#import "RichTextConfig.h"
 #import "RichTextRuntimeKeys.h"
+#import "StyleConfig.h"
 #import <React/RCTLog.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -8,7 +8,7 @@
 @interface RichTextImageAttachment ()
 
 @property (nonatomic, strong) NSString *imageURL;
-@property (nonatomic, weak) RichTextConfig *config;
+@property (nonatomic, weak) StyleConfig *config;
 @property (nonatomic, assign) BOOL isInline;
 @property (nonatomic, assign) CGFloat cachedHeight;
 @property (nonatomic, assign) CGFloat cachedBorderRadius;
@@ -22,7 +22,7 @@
 
 @implementation RichTextImageAttachment
 
-- (instancetype)initWithImageURL:(NSString *)imageURL config:(RichTextConfig *)config isInline:(BOOL)isInline
+- (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline
 {
   self = [super init];
   if (self) {

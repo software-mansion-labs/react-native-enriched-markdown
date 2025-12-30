@@ -3,11 +3,11 @@
 #import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
-#import "RichTextConfig.h"
+#import "StyleConfig.h"
 
 @implementation HeadingRenderer {
   RendererFactory *_rendererFactory;
-  RichTextConfig *_config;
+  StyleConfig *_config;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
@@ -15,7 +15,7 @@
   self = [super init];
   if (self) {
     _rendererFactory = rendererFactory;
-    _config = (RichTextConfig *)config;
+    _config = (StyleConfig *)config;
   }
   return self;
 }
@@ -76,7 +76,7 @@
   return 0; // Return index for H1
 }
 
-- (CGFloat)getFontSizeForLevel:(NSInteger)level config:(RichTextConfig *)config
+- (CGFloat)getFontSizeForLevel:(NSInteger)level config:(StyleConfig *)config
 {
   NSInteger index = [self validatedLevel:level propertyName:@"fontSize"];
   NSArray<NSNumber *> *sizes = @[
@@ -86,7 +86,7 @@
   return [sizes[index] doubleValue];
 }
 
-- (NSString *)getFontFamilyForLevel:(NSInteger)level config:(RichTextConfig *)config
+- (NSString *)getFontFamilyForLevel:(NSInteger)level config:(StyleConfig *)config
 {
   NSInteger index = [self validatedLevel:level propertyName:@"fontFamily"];
   NSArray<NSString *> *families = @[
@@ -96,7 +96,7 @@
   return families[index];
 }
 
-- (NSString *)getFontWeightForLevel:(NSInteger)level config:(RichTextConfig *)config
+- (NSString *)getFontWeightForLevel:(NSInteger)level config:(StyleConfig *)config
 {
   NSInteger index = [self validatedLevel:level propertyName:@"fontWeight"];
   NSArray<NSString *> *weights = @[
@@ -106,7 +106,7 @@
   return weights[index];
 }
 
-- (UIColor *)getColorForLevel:(NSInteger)level config:(RichTextConfig *)config
+- (UIColor *)getColorForLevel:(NSInteger)level config:(StyleConfig *)config
 {
   NSInteger index = [self validatedLevel:level propertyName:@"color"];
   NSArray<UIColor *> *colors =
@@ -114,7 +114,7 @@
   return colors[index];
 }
 
-- (CGFloat)getMarginBottomForLevel:(NSInteger)level config:(RichTextConfig *)config
+- (CGFloat)getMarginBottomForLevel:(NSInteger)level config:(StyleConfig *)config
 {
   NSInteger index = [self validatedLevel:level propertyName:@"marginBottom"];
   NSArray<NSNumber *> *margins = @[
@@ -124,7 +124,7 @@
   return [margins[index] doubleValue];
 }
 
-- (CGFloat)getLineHeightForLevel:(NSInteger)level config:(RichTextConfig *)config
+- (CGFloat)getLineHeightForLevel:(NSInteger)level config:(StyleConfig *)config
 {
   NSInteger index = [self validatedLevel:level propertyName:@"lineHeight"];
   NSArray<NSNumber *> *lineHeights = @[

@@ -13,15 +13,15 @@ NS_ASSUME_NONNULL_BEGIN
 extern void *kTextViewKey;
 
 // Key for storing StyleConfig on NSLayoutManager
-// Used by RichTextLayoutManager to access configuration
+// Used by TextViewLayoutManager to access configuration
 extern void *kStyleConfigKey;
 
 // Key for storing CodeBackground instance on NSLayoutManager
-// Used by RichTextLayoutManager for code background drawing
+// Used by TextViewLayoutManager for code background drawing
 extern void *kCodeBackgroundKey;
 
 // Key for storing BlockquoteBorder instance on NSLayoutManager
-// Used by RichTextLayoutManager for blockquote border drawing
+// Used by TextViewLayoutManager for blockquote border drawing
 extern void *kBlockquoteBorderKey;
 
 NS_ASSUME_NONNULL_END

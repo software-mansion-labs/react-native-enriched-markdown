@@ -1,11 +1,11 @@
-#import "RichTextLayoutManager.h"
+#import "TextViewLayoutManager.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import <objc/runtime.h>
 
-@implementation RichTextLayoutManager
+@implementation TextViewLayoutManager
 
 - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
 {

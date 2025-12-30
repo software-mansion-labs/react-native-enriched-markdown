@@ -5,9 +5,9 @@
 #import "MarkdownASTNode.h"
 #import "MarkdownParser.h"
 #import "RenderContext.h"
-#import "RichTextLayoutManager.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
+#import "TextViewLayoutManager.h"
 #import <objc/runtime.h>
 
 #import <react/renderer/components/RichTextViewSpec/ComponentDescriptors.h>
@@ -106,7 +106,7 @@ static const CGFloat kLabelPadding = 10.0;
   // Clean up layout manager when text view is removed
   if (subview == _textView && _textView.layoutManager != nil) {
     NSLayoutManager *layoutManager = _textView.layoutManager;
-    if ([object_getClass(layoutManager) isEqual:[RichTextLayoutManager class]]) {
+    if ([object_getClass(layoutManager) isEqual:[TextViewLayoutManager class]]) {
       [layoutManager setValue:nil forKey:@"config"];
       object_setClass(layoutManager, [NSLayoutManager class]);
     }
@@ -121,7 +121,7 @@ static const CGFloat kLabelPadding = 10.0;
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if (layoutManager != nil) {
     layoutManager.allowsNonContiguousLayout = NO; // workaround for onScroll issue (like react-native-live-markdown)
-    object_setClass(layoutManager, [RichTextLayoutManager class]);
+    object_setClass(layoutManager, [TextViewLayoutManager class]);
 
     // Set config on layout manager (like react-native-live-markdown sets markdownUtils)
     if (_config != nil) {
@@ -193,7 +193,7 @@ static const CGFloat kLabelPadding = 10.0;
   // Set config on the layout manager
   // Use setValue:forKey: for runtime class changes (more reliable than direct property access)
   NSLayoutManager *layoutManager = _textView.layoutManager;
-  if ([layoutManager isKindOfClass:[RichTextLayoutManager class]]) {
+  if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {
     [layoutManager setValue:_config forKey:@"config"];
   }
 
@@ -695,7 +695,7 @@ static const CGFloat kLabelPadding = 10.0;
 
   // Update config reference on layout manager if it's not already set
   NSLayoutManager *layoutManager = _textView.layoutManager;
-  if ([layoutManager isKindOfClass:[RichTextLayoutManager class]]) {
+  if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {
     StyleConfig *currentConfig = [layoutManager valueForKey:@"config"];
     if (currentConfig != _config) {
       // Only update reference if it's different (first time setup)

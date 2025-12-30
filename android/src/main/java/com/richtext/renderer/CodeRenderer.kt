@@ -15,14 +15,7 @@ class CodeRenderer(
     onLinkPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    // For code nodes, content might be in node.content or in children (Text nodes)
-    val codeText =
-      if (node.content.isNotEmpty()) {
-        node.content
-      } else {
-        // Collect text from children
-        node.children.joinToString("") { it.content }
-      }
+    val codeText = node.children.joinToString("") { it.content }
 
     if (codeText.isEmpty()) return
 

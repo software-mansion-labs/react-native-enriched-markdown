@@ -14,7 +14,7 @@ data class ImageStyle(
     ): ImageStyle {
       val height = parser.toPixelFromDIP(map.getDouble("height").toFloat())
       val borderRadius = parser.toPixelFromDIP(map.getDouble("borderRadius").toFloat())
-      val marginBottom = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "marginBottom", 16.0).toFloat())
+      val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
       return ImageStyle(height, borderRadius, marginBottom)
     }
   }

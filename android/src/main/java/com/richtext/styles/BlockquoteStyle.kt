@@ -24,13 +24,13 @@ data class BlockquoteStyle(
       val fontFamily = parser.parseString(map, "fontFamily")
       val fontWeight = parser.parseString(map, "fontWeight", "normal")
       val color = parser.parseColor(map, "color")
-      val marginBottom = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "marginBottom", 16.0).toFloat())
-      val nestedMarginBottom = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "nestedMarginBottom", 16.0).toFloat())
-      val lineHeightRaw = parser.parseOptionalDouble(map, "lineHeight", 0.0).toFloat()
+      val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
+      val nestedMarginBottom = parser.toPixelFromDIP(map.getDouble("nestedMarginBottom").toFloat())
+      val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
       val borderColor = parser.parseColor(map, "borderColor")
-      val borderWidth = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "borderWidth", 4.0).toFloat())
-      val gapWidth = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "gapWidth", 16.0).toFloat())
+      val borderWidth = parser.toPixelFromDIP(map.getDouble("borderWidth").toFloat())
+      val gapWidth = parser.toPixelFromDIP(map.getDouble("gapWidth").toFloat())
       val backgroundColor = parser.parseOptionalColor(map, "backgroundColor")
 
       return BlockquoteStyle(

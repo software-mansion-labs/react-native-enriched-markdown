@@ -12,7 +12,7 @@ data class LinkStyle(
       parser: StyleParser,
     ): LinkStyle {
       val color = parser.parseColor(map, "color")
-      val underline = parser.parseBoolean(map, "underline")
+      val underline = map.getBoolean("underline")
       return LinkStyle(color, underline)
     }
   }

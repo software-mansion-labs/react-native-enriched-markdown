@@ -19,8 +19,8 @@ data class ParagraphStyle(
       val fontFamily = parser.parseString(map, "fontFamily")
       val fontWeight = parser.parseString(map, "fontWeight", "normal")
       val color = parser.parseColor(map, "color")
-      val marginBottom = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "marginBottom", 16.0).toFloat())
-      val lineHeightRaw = parser.parseOptionalDouble(map, "lineHeight", 0.0).toFloat()
+      val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
+      val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
 
       return ParagraphStyle(fontSize, fontFamily, fontWeight, color, marginBottom, lineHeight)

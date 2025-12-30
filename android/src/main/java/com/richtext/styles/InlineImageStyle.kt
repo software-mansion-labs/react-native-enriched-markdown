@@ -10,7 +10,7 @@ data class InlineImageStyle(
       map: ReadableMap,
       parser: StyleParser,
     ): InlineImageStyle {
-      val size = parser.toPixelFromDIP(map.getInt("size").toFloat())
+      val size = parser.toPixelFromDIP(map.getDouble("size").toFloat())
       return InlineImageStyle(size)
     }
   }

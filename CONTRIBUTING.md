@@ -15,24 +15,14 @@ To get started with the project, make sure you have the correct version of [Node
 
 ### Cloning the Repository
 
-When cloning this repository, make sure to include submodules:
-
 ```sh
-# Clone with submodules (recommended)
-git clone --recurse-submodules https://github.com/software-mansion-labs/react-native-rich-text.git
-
-# Or if you've already cloned without submodules:
 git clone https://github.com/software-mansion-labs/react-native-rich-text.git
 cd react-native-rich-text
-git submodule add https://github.com/mity/md4c.git shared/MD4C
 ```
 
 ## Initial Setup
 
-This project uses git submodules for native dependencies. You need to initialize the submodules before installing dependencies:
-
 ```sh
-
 # Install dependencies
 yarn
 ```
@@ -94,20 +84,6 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-### Testing MD4C Integration
-
-This project includes native markdown parsing capabilities using the MD4C library. To test the MD4C integration:
-
-```sh
-# Run MD4C integration tests
-./scripts/test-md4c.sh
-```
-
-This will test:
-
-- MD4C compilation and execution
-- iOS podspec configuration
-
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
@@ -150,10 +126,6 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
-
-Additional scripts for native development:
-
-- `./scripts/test-md4c.sh`: test MD4C integration and native setup.
 
 ### Sending a pull request
 

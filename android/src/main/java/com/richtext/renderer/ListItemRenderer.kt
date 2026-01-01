@@ -18,7 +18,6 @@ class ListItemRenderer(
     val start = builder.length
     val listType = factory.blockStyleContext.listType
 
-    // Ensure block style (simplified)
     if (factory.blockStyleContext.getBlockStyle() == null) {
       when (listType) {
         BlockStyleContext.ListType.UNORDERED -> {
@@ -30,13 +29,11 @@ class ListItemRenderer(
         }
 
         null -> {
-          // Fallback: parent list renderer should have set block style
           factory.blockStyleContext.setParagraphStyle(config.style.getParagraphStyle())
         }
       }
     }
 
-    // Increment counter for ordered lists
     if (listType == BlockStyleContext.ListType.ORDERED) {
       factory.blockStyleContext.incrementListItemNumber()
     }
@@ -46,7 +43,6 @@ class ListItemRenderer(
     val end = builder.length
     if (end == start || builder.substring(start, end).isBlank()) return
 
-    // Prepare content: remove trailing newlines and add one
     var contentEnd = builder.length
     while (contentEnd > start && builder[contentEnd - 1] == '\n') {
       contentEnd--
@@ -56,7 +52,9 @@ class ListItemRenderer(
     }
     builder.append("\n")
 
-    // Apply list span
+    // Depth calculation: listDepth represents the current nesting level (1-based).
+    // We subtract 1 to get the visual depth (0-based) for margin/indentation calculations.
+    // Example: listDepth=1 (top-level) -> depth=0, listDepth=2 (nested) -> depth=1
     val depth = factory.blockStyleContext.listDepth - 1
     val span =
       when (listType) {

@@ -41,10 +41,11 @@ abstract class BaseListSpan(
 
   override fun getLeadingMargin(first: Boolean): Int {
     // Android accumulates leading margins when multiple LeadingMarginSpan instances
-    // are applied to the same text. To prevent incorrect spacing for nested lists,
-    // we need to return the incremental margin:
-    // - For depth=0: return marginLeft + gapWidth (no parent to subtract)
-    // - For depth>0: return marginLeft only (parent already contributed gapWidth)
+    // are applied to the same text. To prevent double-counting for nested lists,
+    // we return incremental margins:
+    // - depth=0: marginLeft + gapWidth (no parent, need full spacing)
+    // - depth>0: marginLeft only (parent already contributed gapWidth)
+    // This ensures nested lists have correct indentation without excessive spacing.
     return if (depth == 0) {
       (marginLeft + gapWidth).toInt()
     } else {
@@ -173,8 +174,9 @@ abstract class BaseListSpan(
   ): Boolean {
     if (text !is Spanned) return false
 
-    // Check for deeper nested list spans at this position
-    // We check both UnorderedListSpan and OrderedListSpan to find the maximum depth
+    // Skip drawing if there's a deeper nested list span at this position.
+    // When multiple list spans overlap (nested lists), only the deepest one should draw its marker.
+    // This prevents parent list markers from appearing on lines that contain nested list items.
     val allListSpans = text.getSpans(start, start + 1, BaseListSpan::class.java)
     val maxDepth = allListSpans.maxOfOrNull { it.depth } ?: -1
     return maxDepth > depth

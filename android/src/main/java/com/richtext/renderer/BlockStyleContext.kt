@@ -29,11 +29,29 @@ class BlockStyleContext {
   private var currentBlockStyle: BlockStyle? = null
   private var currentHeadingLevel: Int = 0
   var blockquoteDepth: Int = 0
+
+  /**
+   * Tracks the current nesting depth of lists (0 = no list, 1 = top-level list, 2 = first nested, etc.).
+   * This is incremented when entering a list and decremented when exiting.
+   * Note: This is 1-based. For visual depth (used in spans), subtract 1.
+   */
   var listDepth: Int = 0
   var listType: ListType? = null
   var listItemNumber: Int = 0
 
-  // Stack to track item numbers per depth level for ordered lists
+  /**
+   * Stack to track item numbers per depth level for ordered lists.
+   *
+   * **Why a stack?**
+   * When we have nested ordered lists, each level maintains its own counter:
+   * ```
+   * 1. First item (listItemNumber = 1)
+   *    a. Nested item (listItemNumber reset to 1, parent's 1 saved to stack)
+   *    b. Another nested (listItemNumber = 2)
+   * 2. Second item (listItemNumber restored from stack = 1, then incremented to 2)
+   * ```
+   * We push before entering nested lists and pop when exiting to restore the parent's counter.
+   */
   private val orderedListItemNumbers: MutableList<Int> = mutableListOf()
   // TODO: Add codeBlockDepth when implementing code blocks
   // var codeBlockDepth: Int = 0
@@ -134,7 +152,8 @@ class BlockStyleContext {
 
   /**
    * Pushes the current item number to the stack before entering a nested list.
-   * This preserves the parent list's item number.
+   * This preserves the parent list's item number so it can be restored when exiting.
+   * Called by ListContextManager when entering a nested ordered list.
    */
   fun pushOrderedListItemNumber() {
     orderedListItemNumbers.add(listItemNumber)
@@ -142,7 +161,8 @@ class BlockStyleContext {
 
   /**
    * Pops the parent list's item number from the stack after exiting a nested list.
-   * This restores the parent list's item number.
+   * Restores the parent list's item number so it continues counting correctly.
+   * Called by ListContextManager when exiting a nested ordered list.
    */
   fun popOrderedListItemNumber() {
     if (orderedListItemNumbers.isNotEmpty()) {
@@ -152,7 +172,8 @@ class BlockStyleContext {
 
   /**
    * Clears list style when exiting the top-level list (listDepth == 0).
-   * When exiting nested lists, we should still have the parent list's context.
+   * Only clears when exiting the outermost list. When exiting nested lists,
+   * we preserve the parent list's context so subsequent items render correctly.
    */
   fun clearListStyle() {
     if (listDepth == 0 && (currentBlockType == BlockType.UNORDERED_LIST || currentBlockType == BlockType.ORDERED_LIST)) {
@@ -162,7 +183,7 @@ class BlockStyleContext {
 
   /**
    * Resets all list-related state to initial values.
-   * This is called when exiting the top-level list.
+   * Called when exiting the top-level list to ensure clean state for the next list.
    */
   private fun reset() {
     currentBlockType = BlockType.NONE

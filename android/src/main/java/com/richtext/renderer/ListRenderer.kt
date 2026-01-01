@@ -30,7 +30,6 @@ class ListRenderer(
         BlockStyleContext.ListType.UNORDERED
       }
 
-    // Get the list style and create context manager
     val listStyle: com.richtext.styles.BaseBlockStyle =
       if (isOrdered) {
         config.style.getOrderedListStyle()
@@ -56,8 +55,8 @@ class ListRenderer(
   }
 
   /**
-   * Ensures nested lists start on a new line (without spacing).
-   * This prevents list items from being concatenated on the same line.
+   * Ensures nested lists start on a new line to prevent concatenation.
+   * Only needed for nested lists (previousDepth > 0), not top-level lists.
    */
   private fun ensureNestedListNewline(
     builder: SpannableStringBuilder,
@@ -70,8 +69,11 @@ class ListRenderer(
 
   /**
    * Applies line height and margin bottom styling to the list.
-   * Line height is applied to the entire list range.
-   * Margin bottom is only applied to top-level lists (depth 0).
+   *
+   * **Depth-based margin logic:**
+   * - Line height: Applied to entire list regardless of depth
+   * - Margin bottom: Only applied to top-level lists (depth 0)
+   *   The parent list's margin bottom handles spacing after the entire nested structure.
    */
   private fun applyStylingAndSpacing(
     builder: SpannableStringBuilder,

@@ -148,9 +148,7 @@ const defaultOrderedListStyle: RichTextStyleInternal['orderedList'] = {
   marginBottom: 16,
   lineHeight: 16 * 1.4,
   markerColor: defaultOrderedListMarkerColor,
-  markerFontSize: 16,
-  markerFontFamily: '',
-  markerFontWeight: 'normal',
+  markerFontWeight: 'bold',
   gapWidth: 16,
   marginLeft: 16,
 };
@@ -292,12 +290,6 @@ export const normalizeRichTextStyle = (
     markerColor:
       normalizeColor(style.orderedList?.markerColor) ??
       defaultOrderedListStyle.markerColor,
-    markerFontSize:
-      style.orderedList?.markerFontSize ??
-      defaultOrderedListStyle.markerFontSize,
-    markerFontFamily:
-      style.orderedList?.markerFontFamily ??
-      defaultOrderedListStyle.markerFontFamily,
     markerFontWeight:
       style.orderedList?.markerFontWeight ??
       defaultOrderedListStyle.markerFontWeight,

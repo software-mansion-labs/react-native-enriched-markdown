@@ -36,8 +36,6 @@ interface UnorderedListStyleInternal extends BaseBlockStyleInternal {
 
 interface OrderedListStyleInternal extends BaseBlockStyleInternal {
   markerColor: ColorValue;
-  markerFontSize: CodegenTypes.Float;
-  markerFontFamily: string;
   markerFontWeight: string;
   gapWidth: CodegenTypes.Float;
   marginLeft: CodegenTypes.Float;

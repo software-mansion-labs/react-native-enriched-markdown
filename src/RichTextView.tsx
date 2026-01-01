@@ -62,8 +62,6 @@ export interface OrderedListStyle {
   marginBottom?: number;
   lineHeight?: number;
   markerColor?: string;
-  markerFontSize?: number;
-  markerFontFamily?: string;
   markerFontWeight?: string;
   gapWidth?: number;
   marginLeft?: number;

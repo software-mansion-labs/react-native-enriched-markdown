@@ -106,8 +106,6 @@
   CGFloat _orderedListMarginBottom;
   CGFloat _orderedListLineHeight;
   UIColor *_orderedListMarkerColor;
-  CGFloat _orderedListMarkerFontSize;
-  NSString *_orderedListMarkerFontFamily;
   NSString *_orderedListMarkerFontWeight;
   CGFloat _orderedListGapWidth;
   CGFloat _orderedListMarginLeft;
@@ -210,8 +208,6 @@
   copy->_orderedListMarginBottom = _orderedListMarginBottom;
   copy->_orderedListLineHeight = _orderedListLineHeight;
   copy->_orderedListMarkerColor = [_orderedListMarkerColor copy];
-  copy->_orderedListMarkerFontSize = _orderedListMarkerFontSize;
-  copy->_orderedListMarkerFontFamily = [_orderedListMarkerFontFamily copy];
   copy->_orderedListMarkerFontWeight = [_orderedListMarkerFontWeight copy];
   copy->_orderedListGapWidth = _orderedListGapWidth;
   copy->_orderedListMarginLeft = _orderedListMarginLeft;
@@ -1089,26 +1085,6 @@
 - (void)setOrderedListMarkerColor:(UIColor *)newValue
 {
   _orderedListMarkerColor = newValue;
-}
-
-- (CGFloat)orderedListMarkerFontSize
-{
-  return _orderedListMarkerFontSize;
-}
-
-- (void)setOrderedListMarkerFontSize:(CGFloat)newValue
-{
-  _orderedListMarkerFontSize = newValue;
-}
-
-- (NSString *)orderedListMarkerFontFamily
-{
-  return _orderedListMarkerFontFamily;
-}
-
-- (void)setOrderedListMarkerFontFamily:(NSString *)newValue
-{
-  _orderedListMarkerFontFamily = newValue;
 }
 
 - (NSString *)orderedListMarkerFontWeight

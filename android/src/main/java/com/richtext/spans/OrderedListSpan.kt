@@ -37,16 +37,16 @@ class OrderedListSpan(
   private var itemNumber: Int = 1
 
   init {
-    val markerFontSize = style.markerFontSize
     val markerColor = style.markerColor
-    val markerFontFamily = style.markerFontFamily
     val markerFontWeight = style.markerFontWeight
+    val fontSize = style.fontSize
+    val fontFamily = style.fontFamily
 
     markerPaint =
       TextPaint().apply {
-        textSize = markerFontSize
+        textSize = fontSize
         color = markerColor
-        typeface = Typeface.create(markerFontFamily, getTypefaceStyleFromString(markerFontWeight))
+        typeface = Typeface.create(fontFamily, getTypefaceStyleFromString(markerFontWeight))
         isAntiAlias = true
       }
   }

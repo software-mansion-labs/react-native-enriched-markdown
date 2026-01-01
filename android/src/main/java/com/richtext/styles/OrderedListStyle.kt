@@ -10,8 +10,6 @@ data class OrderedListStyle(
   override val marginBottom: Float,
   override val lineHeight: Float,
   val markerColor: Int,
-  val markerFontSize: Float,
-  val markerFontFamily: String,
   val markerFontWeight: String,
   val gapWidth: Float,
   val marginLeft: Float,
@@ -29,8 +27,6 @@ data class OrderedListStyle(
       val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
       val markerColor = parser.parseColor(map, "markerColor")
-      val markerFontSize = parser.toPixelFromSP(map.getDouble("markerFontSize").toFloat())
-      val markerFontFamily = parser.parseString(map, "markerFontFamily")
       val markerFontWeight = parser.parseString(map, "markerFontWeight", "normal")
       val gapWidth = parser.toPixelFromDIP(map.getDouble("gapWidth").toFloat())
       val marginLeft = parser.toPixelFromDIP(map.getDouble("marginLeft").toFloat())
@@ -43,8 +39,6 @@ data class OrderedListStyle(
         marginBottom,
         lineHeight,
         markerColor,
-        markerFontSize,
-        markerFontFamily,
         markerFontWeight,
         gapWidth,
         marginLeft,

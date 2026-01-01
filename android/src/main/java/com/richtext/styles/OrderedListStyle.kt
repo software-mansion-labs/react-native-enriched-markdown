@@ -15,8 +15,6 @@ data class OrderedListStyle(
   val markerFontWeight: String,
   val gapWidth: Float,
   val marginLeft: Float,
-  val itemMarginBottom: Float,
-  val nestedMarginBottom: Float,
 ) : BaseBlockStyle {
   companion object {
     fun fromReadableMap(
@@ -36,8 +34,6 @@ data class OrderedListStyle(
       val markerFontWeight = parser.parseString(map, "markerFontWeight", "normal")
       val gapWidth = parser.toPixelFromDIP(map.getDouble("gapWidth").toFloat())
       val marginLeft = parser.toPixelFromDIP(map.getDouble("marginLeft").toFloat())
-      val itemMarginBottom = parser.toPixelFromDIP(map.getDouble("itemMarginBottom").toFloat())
-      val nestedMarginBottom = parser.toPixelFromDIP(map.getDouble("nestedMarginBottom").toFloat())
 
       return OrderedListStyle(
         fontSize,
@@ -52,8 +48,6 @@ data class OrderedListStyle(
         markerFontWeight,
         gapWidth,
         marginLeft,
-        itemMarginBottom,
-        nestedMarginBottom,
       )
     }
   }

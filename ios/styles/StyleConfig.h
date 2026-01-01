@@ -176,10 +176,6 @@
 - (void)setUnorderedListGapWidth:(CGFloat)newValue;
 - (CGFloat)unorderedListMarginLeft;
 - (void)setUnorderedListMarginLeft:(CGFloat)newValue;
-- (CGFloat)unorderedListItemMarginBottom;
-- (void)setUnorderedListItemMarginBottom:(CGFloat)newValue;
-- (CGFloat)unorderedListNestedMarginBottom;
-- (void)setUnorderedListNestedMarginBottom:(CGFloat)newValue;
 // Ordered list properties
 - (CGFloat)orderedListFontSize;
 - (void)setOrderedListFontSize:(CGFloat)newValue;
@@ -205,9 +201,5 @@
 - (void)setOrderedListGapWidth:(CGFloat)newValue;
 - (CGFloat)orderedListMarginLeft;
 - (void)setOrderedListMarginLeft:(CGFloat)newValue;
-- (CGFloat)orderedListItemMarginBottom;
-- (void)setOrderedListItemMarginBottom:(CGFloat)newValue;
-- (CGFloat)orderedListNestedMarginBottom;
-- (void)setOrderedListNestedMarginBottom:(CGFloat)newValue;
 
 @end

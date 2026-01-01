@@ -136,8 +136,6 @@ const defaultUnorderedListStyle: RichTextStyleInternal['unorderedList'] = {
   bulletSize: 8,
   gapWidth: 16,
   marginLeft: 16,
-  itemMarginBottom: 8,
-  nestedMarginBottom: 8,
 };
 
 const defaultOrderedListMarkerColor = processColor('#000000') as ColorValue;
@@ -155,8 +153,6 @@ const defaultOrderedListStyle: RichTextStyleInternal['orderedList'] = {
   markerFontWeight: 'normal',
   gapWidth: 16,
   marginLeft: 16,
-  itemMarginBottom: 8,
-  nestedMarginBottom: 8,
 };
 
 export const normalizeRichTextStyle = (
@@ -279,12 +275,6 @@ export const normalizeRichTextStyle = (
       style.unorderedList?.gapWidth ?? defaultUnorderedListStyle.gapWidth,
     marginLeft:
       style.unorderedList?.marginLeft ?? defaultUnorderedListStyle.marginLeft,
-    itemMarginBottom:
-      style.unorderedList?.itemMarginBottom ??
-      defaultUnorderedListStyle.itemMarginBottom,
-    nestedMarginBottom:
-      style.unorderedList?.nestedMarginBottom ??
-      defaultUnorderedListStyle.nestedMarginBottom,
   };
 
   const orderedList: RichTextStyleInternal['orderedList'] = {
@@ -314,12 +304,6 @@ export const normalizeRichTextStyle = (
     gapWidth: style.orderedList?.gapWidth ?? defaultOrderedListStyle.gapWidth,
     marginLeft:
       style.orderedList?.marginLeft ?? defaultOrderedListStyle.marginLeft,
-    itemMarginBottom:
-      style.orderedList?.itemMarginBottom ??
-      defaultOrderedListStyle.itemMarginBottom,
-    nestedMarginBottom:
-      style.orderedList?.nestedMarginBottom ??
-      defaultOrderedListStyle.nestedMarginBottom,
   };
 
   return {

@@ -52,9 +52,6 @@ export interface UnorderedListStyle {
   bulletSize?: number;
   gapWidth?: number;
   marginLeft?: number;
-  itemMarginBottom?: number;
-  /** @deprecated Use itemMarginBottom instead. This property will be removed in a future version. */
-  nestedMarginBottom?: number;
 }
 
 export interface OrderedListStyle {
@@ -70,9 +67,6 @@ export interface OrderedListStyle {
   markerFontWeight?: string;
   gapWidth?: number;
   marginLeft?: number;
-  itemMarginBottom?: number;
-  /** @deprecated Use itemMarginBottom instead. This property will be removed in a future version. */
-  nestedMarginBottom?: number;
 }
 
 export interface LinkStyle {

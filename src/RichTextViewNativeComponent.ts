@@ -32,8 +32,6 @@ interface UnorderedListStyleInternal extends BaseBlockStyleInternal {
   bulletSize: CodegenTypes.Float;
   gapWidth: CodegenTypes.Float;
   marginLeft: CodegenTypes.Float;
-  itemMarginBottom: CodegenTypes.Float; // Spacing between consecutive list items at the same level
-  nestedMarginBottom: CodegenTypes.Float; // Spacing when a list item contains a nested list
 }
 
 interface OrderedListStyleInternal extends BaseBlockStyleInternal {
@@ -43,8 +41,6 @@ interface OrderedListStyleInternal extends BaseBlockStyleInternal {
   markerFontWeight: string;
   gapWidth: CodegenTypes.Float;
   marginLeft: CodegenTypes.Float;
-  itemMarginBottom: CodegenTypes.Float; // Spacing between consecutive list items at the same level
-  nestedMarginBottom: CodegenTypes.Float; // Spacing when a list item contains a nested list
 }
 
 interface LinkStyleInternal {

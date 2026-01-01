@@ -13,8 +13,6 @@ data class UnorderedListStyle(
   val bulletSize: Float,
   val gapWidth: Float,
   val marginLeft: Float,
-  val itemMarginBottom: Float,
-  val nestedMarginBottom: Float,
 ) : BaseBlockStyle {
   companion object {
     fun fromReadableMap(
@@ -32,8 +30,6 @@ data class UnorderedListStyle(
       val bulletSize = parser.toPixelFromDIP(map.getDouble("bulletSize").toFloat())
       val gapWidth = parser.toPixelFromDIP(map.getDouble("gapWidth").toFloat())
       val marginLeft = parser.toPixelFromDIP(map.getDouble("marginLeft").toFloat())
-      val itemMarginBottom = parser.toPixelFromDIP(map.getDouble("itemMarginBottom").toFloat())
-      val nestedMarginBottom = parser.toPixelFromDIP(map.getDouble("nestedMarginBottom").toFloat())
 
       return UnorderedListStyle(
         fontSize,
@@ -46,8 +42,6 @@ data class UnorderedListStyle(
         bulletSize,
         gapWidth,
         marginLeft,
-        itemMarginBottom,
-        nestedMarginBottom,
       )
     }
   }

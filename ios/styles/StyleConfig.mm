@@ -98,8 +98,6 @@
   CGFloat _unorderedListBulletSize;
   CGFloat _unorderedListGapWidth;
   CGFloat _unorderedListMarginLeft;
-  CGFloat _unorderedListItemMarginBottom;
-  CGFloat _unorderedListNestedMarginBottom;
   // Ordered list properties
   CGFloat _orderedListFontSize;
   NSString *_orderedListFontFamily;
@@ -113,8 +111,6 @@
   NSString *_orderedListMarkerFontWeight;
   CGFloat _orderedListGapWidth;
   CGFloat _orderedListMarginLeft;
-  CGFloat _orderedListItemMarginBottom;
-  CGFloat _orderedListNestedMarginBottom;
 }
 
 - (instancetype)init
@@ -207,8 +203,6 @@
   copy->_unorderedListBulletSize = _unorderedListBulletSize;
   copy->_unorderedListGapWidth = _unorderedListGapWidth;
   copy->_unorderedListMarginLeft = _unorderedListMarginLeft;
-  copy->_unorderedListItemMarginBottom = _unorderedListItemMarginBottom;
-  copy->_unorderedListNestedMarginBottom = _unorderedListNestedMarginBottom;
   copy->_orderedListFontSize = _orderedListFontSize;
   copy->_orderedListFontFamily = [_orderedListFontFamily copy];
   copy->_orderedListFontWeight = [_orderedListFontWeight copy];
@@ -221,8 +215,6 @@
   copy->_orderedListMarkerFontWeight = [_orderedListMarkerFontWeight copy];
   copy->_orderedListGapWidth = _orderedListGapWidth;
   copy->_orderedListMarginLeft = _orderedListMarginLeft;
-  copy->_orderedListItemMarginBottom = _orderedListItemMarginBottom;
-  copy->_orderedListNestedMarginBottom = _orderedListNestedMarginBottom;
 
   return copy;
 }
@@ -1028,26 +1020,6 @@
   _unorderedListMarginLeft = newValue;
 }
 
-- (CGFloat)unorderedListItemMarginBottom
-{
-  return _unorderedListItemMarginBottom;
-}
-
-- (void)setUnorderedListItemMarginBottom:(CGFloat)newValue
-{
-  _unorderedListItemMarginBottom = newValue;
-}
-
-- (CGFloat)unorderedListNestedMarginBottom
-{
-  return _unorderedListNestedMarginBottom;
-}
-
-- (void)setUnorderedListNestedMarginBottom:(CGFloat)newValue
-{
-  _unorderedListNestedMarginBottom = newValue;
-}
-
 // Ordered list properties
 - (CGFloat)orderedListFontSize
 {
@@ -1167,26 +1139,6 @@
 - (void)setOrderedListMarginLeft:(CGFloat)newValue
 {
   _orderedListMarginLeft = newValue;
-}
-
-- (CGFloat)orderedListItemMarginBottom
-{
-  return _orderedListItemMarginBottom;
-}
-
-- (void)setOrderedListItemMarginBottom:(CGFloat)newValue
-{
-  _orderedListItemMarginBottom = newValue;
-}
-
-- (CGFloat)orderedListNestedMarginBottom
-{
-  return _orderedListNestedMarginBottom;
-}
-
-- (void)setOrderedListNestedMarginBottom:(CGFloat)newValue
-{
-  _orderedListNestedMarginBottom = newValue;
 }
 
 @end

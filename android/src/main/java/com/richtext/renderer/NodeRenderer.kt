@@ -35,8 +35,8 @@ class RendererFactory(
   private val sharedImageRenderer = ImageRenderer(config, context)
   private val sharedLineBreakRenderer = LineBreakRenderer()
   private val sharedBlockquoteRenderer = BlockquoteRenderer(config)
-  private val sharedUnorderedListRenderer = UnorderedListRenderer(config)
-  private val sharedOrderedListRenderer = OrderedListRenderer(config)
+  private val sharedUnorderedListRenderer = ListRenderer(config, isOrdered = false)
+  private val sharedOrderedListRenderer = ListRenderer(config, isOrdered = true)
   private val sharedListItemRenderer = ListItemRenderer(config)
 
   fun getRenderer(node: MarkdownASTNode): NodeRenderer =

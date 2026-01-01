@@ -4,11 +4,17 @@ import android.text.SpannableStringBuilder
 import com.richtext.parser.MarkdownASTNode
 import com.richtext.spans.MarginBottomSpan
 import com.richtext.spans.OrderedListSpan
+import com.richtext.spans.UnorderedListSpan
 import com.richtext.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 import com.richtext.utils.createLineHeightSpan
 
-class OrderedListRenderer(
+/**
+ * Unified renderer for both ordered and unordered lists.
+ * Handles all list rendering logic including nesting, context management, and styling.
+ */
+class ListRenderer(
   private val config: RendererConfig,
+  private val isOrdered: Boolean,
 ) : NodeRenderer {
   override fun render(
     node: MarkdownASTNode,
@@ -17,17 +23,27 @@ class OrderedListRenderer(
     factory: RendererFactory,
   ) {
     val start = builder.length
-    val listStyle = config.style.getOrderedListStyle()
     val currentDepth = factory.blockStyleContext.listDepth
     val parentListType = if (currentDepth > 0) factory.blockStyleContext.listType else null
+
     // Save parent list's item number to stack before resetting for nested list
-    val isNestedOrderedList = currentDepth > 0 && parentListType == BlockStyleContext.ListType.ORDERED
-    if (isNestedOrderedList) {
+    // This is needed even for unordered lists, as the parent might be ordered
+    val isNestedInOrderedList = currentDepth > 0 && parentListType == BlockStyleContext.ListType.ORDERED
+    if (isNestedInOrderedList) {
       factory.blockStyleContext.pushOrderedListItemNumber()
     }
 
     factory.blockStyleContext.listDepth = currentDepth + 1
-    factory.blockStyleContext.setOrderedListStyle(listStyle)
+    val listStyle: com.richtext.styles.BaseBlockStyle =
+      if (isOrdered) {
+        val orderedStyle = config.style.getOrderedListStyle()
+        factory.blockStyleContext.setOrderedListStyle(orderedStyle)
+        orderedStyle
+      } else {
+        val unorderedStyle = config.style.getUnorderedListStyle()
+        factory.blockStyleContext.setUnorderedListStyle(unorderedStyle)
+        unorderedStyle
+      }
     factory.blockStyleContext.resetListItemNumber()
 
     // Ensure nested lists start on a new line (without spacing)
@@ -40,8 +56,8 @@ class OrderedListRenderer(
     } finally {
       factory.blockStyleContext.clearListStyle()
       factory.blockStyleContext.listDepth = currentDepth
-      // Restore parent list's item number from stack if it was an ordered list
-      if (isNestedOrderedList) {
+      // Restore parent list's item number from stack if parent was an ordered list
+      if (isNestedInOrderedList) {
         factory.blockStyleContext.popOrderedListItemNumber()
       }
       restoreParentListContext(factory, parentListType)
@@ -57,17 +73,17 @@ class OrderedListRenderer(
     factory: RendererFactory,
     parentListType: BlockStyleContext.ListType?,
   ) {
-    if (parentListType != null) {
-      when (parentListType) {
-        BlockStyleContext.ListType.UNORDERED -> {
-          factory.blockStyleContext.setUnorderedListStyle(config.style.getUnorderedListStyle())
-        }
+    when (parentListType) {
+      BlockStyleContext.ListType.UNORDERED -> {
+        factory.blockStyleContext.setUnorderedListStyle(config.style.getUnorderedListStyle())
+      }
 
-        BlockStyleContext.ListType.ORDERED -> {
-          factory.blockStyleContext.setOrderedListStyle(config.style.getOrderedListStyle())
-        }
+      BlockStyleContext.ListType.ORDERED -> {
+        factory.blockStyleContext.setOrderedListStyle(config.style.getOrderedListStyle())
+      }
 
-        null -> {}
+      null -> {
+        // No parent list to restore
       }
     }
   }
@@ -77,7 +93,7 @@ class OrderedListRenderer(
     start: Int,
     end: Int,
     currentDepth: Int,
-    listStyle: com.richtext.styles.OrderedListStyle,
+    listStyle: com.richtext.styles.BaseBlockStyle,
   ) {
     builder.setSpan(
       createLineHeightSpan(listStyle.lineHeight),

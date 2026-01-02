@@ -1,7 +1,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, BlockTypeHeading, BlockTypeBlockquote };
+typedef NS_ENUM(NSInteger, BlockType) {
+  BlockTypeNone,
+  BlockTypeParagraph,
+  BlockTypeHeading,
+  BlockTypeBlockquote,
+  BlockTypeUnorderedList,
+  BlockTypeOrderedList
+};
+
+typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 
 @interface BlockStyle : NSObject
 @property (nonatomic, assign) CGFloat fontSize;
@@ -17,6 +26,9 @@ typedef NS_ENUM(NSInteger, BlockType) { BlockTypeNone, BlockTypeParagraph, Block
 @property (nonatomic, strong) BlockStyle *currentBlockStyle;
 @property (nonatomic, assign) NSInteger currentHeadingLevel;
 @property (nonatomic, assign) NSInteger blockquoteDepth;
+@property (nonatomic, assign) NSInteger listDepth;
+@property (nonatomic, assign) ListType listType;
+@property (nonatomic, assign) NSInteger listItemNumber;
 
 - (instancetype)init;
 - (void)reset;

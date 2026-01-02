@@ -24,4 +24,8 @@ extern void *kCodeBackgroundKey;
 // Used by TextViewLayoutManager for blockquote border drawing
 extern void *kBlockquoteBorderKey;
 
+// Key for storing ListMarkerDrawer instance on NSLayoutManager
+// Used by TextViewLayoutManager for list marker drawing
+extern void *kListMarkerDrawerKey;
+
 NS_ASSUME_NONNULL_END

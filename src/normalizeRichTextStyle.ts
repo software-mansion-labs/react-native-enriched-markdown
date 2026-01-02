@@ -26,7 +26,7 @@ const paragraphDefaultStyles: RichTextStyleInternal['paragraph'] = {
 const defaultH1Style: RichTextStyleInternal['h1'] = {
   fontSize: 36,
   fontFamily: 'Helvetica-Bold',
-  fontWeight: 'normal',
+  fontWeight: 'bold',
   color: defaultColor,
   marginBottom: 24,
   lineHeight: 28 * 1.1,
@@ -121,6 +121,24 @@ const defaultBlockquoteStyle: RichTextStyleInternal['blockquote'] = {
   borderWidth: 4,
   gapWidth: 16,
   backgroundColor: defaultBlockquoteBackgroundColor,
+};
+
+const defaultListBulletColor = processColor('#000000') as ColorValue;
+const defaultListMarkerColor = processColor('#000000') as ColorValue;
+
+const defaultListStyle: RichTextStyleInternal['listStyle'] = {
+  fontSize: 16,
+  fontFamily: '',
+  fontWeight: 'normal',
+  color: defaultColor,
+  marginBottom: 16,
+  lineHeight: 16 * 1.4,
+  bulletColor: defaultListBulletColor,
+  bulletSize: 8,
+  markerColor: defaultListMarkerColor,
+  markerFontWeight: 'normal',
+  gapWidth: 16,
+  marginLeft: 16,
 };
 
 export const normalizeRichTextStyle = (
@@ -219,6 +237,27 @@ export const normalizeRichTextStyle = (
       defaultBlockquoteStyle.backgroundColor,
   };
 
+  const listStyle: RichTextStyleInternal['listStyle'] = {
+    fontSize: style.listStyle?.fontSize ?? defaultListStyle.fontSize,
+    fontFamily: style.listStyle?.fontFamily ?? defaultListStyle.fontFamily,
+    fontWeight: style.listStyle?.fontWeight ?? defaultListStyle.fontWeight,
+    color: normalizeColor(style.listStyle?.color) ?? defaultListStyle.color,
+    marginBottom:
+      style.listStyle?.marginBottom ?? defaultListStyle.marginBottom,
+    lineHeight: style.listStyle?.lineHeight ?? defaultListStyle.lineHeight,
+    bulletColor:
+      normalizeColor(style.listStyle?.bulletColor) ??
+      defaultListStyle.bulletColor,
+    bulletSize: style.listStyle?.bulletSize ?? defaultListStyle.bulletSize,
+    markerColor:
+      normalizeColor(style.listStyle?.markerColor) ??
+      defaultListStyle.markerColor,
+    markerFontWeight:
+      style.listStyle?.markerFontWeight ?? defaultListStyle.markerFontWeight,
+    gapWidth: style.listStyle?.gapWidth ?? defaultListStyle.gapWidth,
+    marginLeft: style.listStyle?.marginLeft ?? defaultListStyle.marginLeft,
+  };
+
   return {
     paragraph,
     h1,
@@ -228,6 +267,7 @@ export const normalizeRichTextStyle = (
     h5,
     h6,
     blockquote,
+    listStyle,
     link: {
       ...defaultLinkStyle,
       ...style.link,

@@ -41,6 +41,21 @@ export interface BlockquoteStyle {
   backgroundColor?: string;
 }
 
+export interface ListStyle {
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string;
+  color?: string;
+  marginBottom?: number;
+  lineHeight?: number;
+  bulletColor?: string;
+  bulletSize?: number;
+  markerColor?: string;
+  markerFontWeight?: string;
+  gapWidth?: number;
+  marginLeft?: number;
+}
+
 export interface LinkStyle {
   color?: string;
   underline?: boolean;
@@ -79,6 +94,7 @@ export interface RichTextStyle {
   h5?: HeadingStyle;
   h6?: HeadingStyle;
   blockquote?: BlockquoteStyle;
+  listStyle?: ListStyle;
   link?: LinkStyle;
   strong?: StrongStyle;
   em?: EmphasisStyle;

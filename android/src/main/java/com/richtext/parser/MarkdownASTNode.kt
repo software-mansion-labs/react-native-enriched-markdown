@@ -18,6 +18,9 @@ data class MarkdownASTNode(
     Code,
     Image,
     Blockquote,
+    UnorderedList,
+    OrderedList,
+    ListItem,
   }
 
   fun getAttribute(key: String): String? = attributes[key]

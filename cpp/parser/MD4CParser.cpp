@@ -103,6 +103,21 @@ public:
         break;
       }
 
+      case MD_BLOCK_UL: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::UnorderedList));
+        break;
+      }
+
+      case MD_BLOCK_OL: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::OrderedList));
+        break;
+      }
+
+      case MD_BLOCK_LI: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::ListItem));
+        break;
+      }
+
       default:
         // Other block types not yet implemented
         break;

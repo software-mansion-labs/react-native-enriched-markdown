@@ -34,6 +34,12 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 9;
     case NodeType::Blockquote:
       return 10;
+    case NodeType::UnorderedList:
+      return 11;
+    case NodeType::OrderedList:
+      return 12;
+    case NodeType::ListItem:
+      return 13;
     default:
       return 0;
   }

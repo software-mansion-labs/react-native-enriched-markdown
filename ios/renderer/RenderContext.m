@@ -17,6 +17,9 @@
     _currentBlockStyle = nil;
     _currentHeadingLevel = 0;
     _blockquoteDepth = 0;
+    _listDepth = 0;
+    _listType = ListTypeUnordered;
+    _listItemNumber = 0;
   }
   return self;
 }
@@ -71,6 +74,9 @@
   [_linkURLs removeAllObjects];
   [self clearBlockStyle];
   _blockquoteDepth = 0;
+  _listDepth = 0;
+  _listType = ListTypeUnordered;
+  _listItemNumber = 0;
 }
 
 + (BOOL)shouldPreserveColors:(NSDictionary *)existingAttributes

@@ -1,6 +1,7 @@
 #import "TextViewLayoutManager.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
+#import "ListMarkerDrawer.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import <objc/runtime.h>
@@ -40,6 +41,14 @@
                                textContainer:textContainer
                                      atPoint:origin];
 
+  ListMarkerDrawer *listMarkerDrawer =
+      [self getOrCreateAssociatedObject:kListMarkerDrawerKey
+                                factory:^id { return [[ListMarkerDrawer alloc] initWithConfig:config]; }];
+  [listMarkerDrawer drawMarkersForGlyphRange:glyphsToShow
+                               layoutManager:self
+                               textContainer:textContainer
+                                     atPoint:origin];
+
   // Add other element drawing here:
   // [self drawBlockquoteBackgroundsForGlyphRange:glyphsToShow
   //                                 textContainer:textContainer
@@ -58,6 +67,7 @@
   // Reset all drawing objects when config changes (they'll be recreated on next draw)
   objc_setAssociatedObject(self, kCodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kBlockquoteBorderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, kListMarkerDrawerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   // Add more resets here for other element types
 }
 

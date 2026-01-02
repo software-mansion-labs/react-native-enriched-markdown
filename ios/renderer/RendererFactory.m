@@ -5,6 +5,8 @@
 #import "ImageRenderer.h"
 #import "InlineCodeRenderer.h"
 #import "LinkRenderer.h"
+#import "ListItemRenderer.h"
+#import "ListRenderer.h"
 #import "ParagraphRenderer.h"
 #import "RenderContext.h"
 #import "StrongRenderer.h"
@@ -21,6 +23,9 @@
   ImageRenderer *_sharedImageRenderer;
   ParagraphRenderer *_sharedParagraphRenderer;
   BlockquoteRenderer *_sharedBlockquoteRenderer;
+  ListRenderer *_sharedUnorderedListRenderer;
+  ListRenderer *_sharedOrderedListRenderer;
+  ListItemRenderer *_sharedListItemRenderer;
 }
 
 - (instancetype)initWithConfig:(id)config
@@ -37,6 +42,9 @@
     _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithRendererFactory:self config:config];
     _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithRendererFactory:self config:config];
     _sharedBlockquoteRenderer = [[BlockquoteRenderer alloc] initWithRendererFactory:self config:config];
+    _sharedUnorderedListRenderer = [[ListRenderer alloc] initWithRendererFactory:self config:config isOrdered:NO];
+    _sharedOrderedListRenderer = [[ListRenderer alloc] initWithRendererFactory:self config:config isOrdered:YES];
+    _sharedListItemRenderer = [[ListItemRenderer alloc] initWithRendererFactory:self config:config];
   }
   return self;
 }
@@ -62,6 +70,12 @@
       return _sharedImageRenderer;
     case MarkdownNodeTypeBlockquote:
       return _sharedBlockquoteRenderer;
+    case MarkdownNodeTypeUnorderedList:
+      return _sharedUnorderedListRenderer;
+    case MarkdownNodeTypeOrderedList:
+      return _sharedOrderedListRenderer;
+    case MarkdownNodeTypeListItem:
+      return _sharedListItemRenderer;
     default:
       return nil;
   }

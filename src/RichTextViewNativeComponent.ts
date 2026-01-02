@@ -27,6 +27,15 @@ interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
   backgroundColor: ColorValue;
 }
 
+interface ListStyleInternal extends BaseBlockStyleInternal {
+  bulletColor: ColorValue;
+  bulletSize: CodegenTypes.Float;
+  markerColor: ColorValue;
+  markerFontWeight: string;
+  gapWidth: CodegenTypes.Float;
+  marginLeft: CodegenTypes.Float;
+}
+
 interface LinkStyleInternal {
   color: ColorValue;
   underline: boolean;
@@ -65,6 +74,7 @@ export interface RichTextStyleInternal {
   h5: HeadingStyleInternal;
   h6: HeadingStyleInternal;
   blockquote: BlockquoteStyleInternal;
+  listStyle: ListStyleInternal;
   link: LinkStyleInternal;
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;

@@ -11,7 +11,10 @@ typedef NS_ENUM(NSInteger, MarkdownNodeType) {
   MarkdownNodeTypeEmphasis,
   MarkdownNodeTypeCode,
   MarkdownNodeTypeImage,
-  MarkdownNodeTypeBlockquote
+  MarkdownNodeTypeBlockquote,
+  MarkdownNodeTypeUnorderedList,
+  MarkdownNodeTypeOrderedList,
+  MarkdownNodeTypeListItem
 };
 
 @interface MarkdownASTNode : NSObject

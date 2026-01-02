@@ -18,7 +18,10 @@ enum class NodeType {
     Emphasis,
     Code,
     Image,
-    Blockquote
+    Blockquote,
+    UnorderedList,
+    OrderedList,
+    ListItem
 };
 
 struct MarkdownASTNode {

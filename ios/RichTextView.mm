@@ -693,6 +693,76 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  // List style
+  if (newViewProps.richTextStyle.listStyle.fontSize != oldViewProps.richTextStyle.listStyle.fontSize) {
+    [_config setListStyleFontSize:newViewProps.richTextStyle.listStyle.fontSize];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.fontFamily != oldViewProps.richTextStyle.listStyle.fontFamily) {
+    NSString *fontFamily =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.listStyle.fontFamily.c_str()];
+    [_config setListStyleFontFamily:fontFamily];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.fontWeight != oldViewProps.richTextStyle.listStyle.fontWeight) {
+    NSString *fontWeight =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.listStyle.fontWeight.c_str()];
+    [_config setListStyleFontWeight:fontWeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.color != oldViewProps.richTextStyle.listStyle.color) {
+    UIColor *listColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.listStyle.color);
+    [_config setListStyleColor:listColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.marginBottom != oldViewProps.richTextStyle.listStyle.marginBottom) {
+    [_config setListStyleMarginBottom:newViewProps.richTextStyle.listStyle.marginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.lineHeight != oldViewProps.richTextStyle.listStyle.lineHeight) {
+    [_config setListStyleLineHeight:newViewProps.richTextStyle.listStyle.lineHeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.bulletColor != oldViewProps.richTextStyle.listStyle.bulletColor) {
+    UIColor *bulletColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.listStyle.bulletColor);
+    [_config setListStyleBulletColor:bulletColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.bulletSize != oldViewProps.richTextStyle.listStyle.bulletSize) {
+    [_config setListStyleBulletSize:newViewProps.richTextStyle.listStyle.bulletSize];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.markerColor != oldViewProps.richTextStyle.listStyle.markerColor) {
+    UIColor *markerColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.listStyle.markerColor);
+    [_config setListStyleMarkerColor:markerColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.markerFontWeight != oldViewProps.richTextStyle.listStyle.markerFontWeight) {
+    NSString *markerFontWeight =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.listStyle.markerFontWeight.c_str()];
+    [_config setListStyleMarkerFontWeight:markerFontWeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.gapWidth != oldViewProps.richTextStyle.listStyle.gapWidth) {
+    [_config setListStyleGapWidth:newViewProps.richTextStyle.listStyle.gapWidth];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.listStyle.marginLeft != oldViewProps.richTextStyle.listStyle.marginLeft) {
+    [_config setListStyleMarginLeft:newViewProps.richTextStyle.listStyle.marginLeft];
+    stylePropChanged = YES;
+  }
+
   // Update config reference on layout manager if it's not already set
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {

@@ -22,23 +22,49 @@ class MarginBottomSpan(
     lineHeight: Int,
     fm: Paint.FontMetricsInt,
   ) {
-    if (end <= start || text[end - 1] != '\n') return
-
-    val marginPixels = marginBottom.toInt()
-
-    if (end - start == 1 && text[start] == '\n') {
-      fm.top = 0
-      fm.ascent = 0
-      fm.descent = marginPixels
-      fm.bottom = marginPixels
+    // Only process lines that end with a newline
+    if (end <= start || text[end - 1] != '\n') {
       return
     }
 
-    // Only add spacing at paragraph boundaries (newline followed by non-newline content)
-    // to prevent affecting lineHeight on every line
-    if (end < text.length && text[end] != '\n') {
+    val marginPixels = marginBottom.toInt()
+
+    // Handle spacer lines (single newline character)
+    if (end - start == 1 && text[start] == '\n') {
+      if (hasContentAfter(text, end)) {
+        // Set line height to exactly marginBottom for spacer lines
+        fm.top = 0
+        fm.ascent = 0
+        fm.descent = marginPixels
+        fm.bottom = marginPixels
+      }
+      return
+    }
+
+    // For regular lines, add spacing only if there's content after
+    if (hasContentAfter(text, end)) {
       fm.descent += marginPixels
       fm.bottom += marginPixels
     }
+  }
+
+  /**
+   * Checks if there's non-newline content after the given position.
+   * Used to determine if spacing should be applied (between items) or skipped (after last item).
+   */
+  private fun hasContentAfter(
+    text: CharSequence,
+    pos: Int,
+  ): Boolean {
+    if (pos >= text.length) return false
+
+    // If the next character is a newline, check the character after that
+    if (text[pos] == '\n') {
+      val nextPos = pos + 1
+      if (nextPos >= text.length) return false
+      return text[nextPos] != '\n' // Non-newline = content exists
+    }
+
+    return true // Non-newline content immediately after
   }
 }

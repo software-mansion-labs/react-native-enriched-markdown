@@ -87,6 +87,19 @@
   CGFloat _blockquoteBorderWidth;
   CGFloat _blockquoteGapWidth;
   UIColor *_blockquoteBackgroundColor;
+  // List style properties (combined for both ordered and unordered lists)
+  CGFloat _listStyleFontSize;
+  NSString *_listStyleFontFamily;
+  NSString *_listStyleFontWeight;
+  UIColor *_listStyleColor;
+  CGFloat _listStyleMarginBottom;
+  CGFloat _listStyleLineHeight;
+  UIColor *_listStyleBulletColor;
+  CGFloat _listStyleBulletSize;
+  UIColor *_listStyleMarkerColor;
+  NSString *_listStyleMarkerFontWeight;
+  CGFloat _listStyleGapWidth;
+  CGFloat _listStyleMarginLeft;
 }
 
 - (instancetype)init
@@ -169,6 +182,18 @@
   copy->_blockquoteBorderWidth = _blockquoteBorderWidth;
   copy->_blockquoteGapWidth = _blockquoteGapWidth;
   copy->_blockquoteBackgroundColor = [_blockquoteBackgroundColor copy];
+  copy->_listStyleFontSize = _listStyleFontSize;
+  copy->_listStyleFontFamily = [_listStyleFontFamily copy];
+  copy->_listStyleFontWeight = [_listStyleFontWeight copy];
+  copy->_listStyleColor = [_listStyleColor copy];
+  copy->_listStyleMarginBottom = _listStyleMarginBottom;
+  copy->_listStyleLineHeight = _listStyleLineHeight;
+  copy->_listStyleBulletColor = [_listStyleBulletColor copy];
+  copy->_listStyleBulletSize = _listStyleBulletSize;
+  copy->_listStyleMarkerColor = [_listStyleMarkerColor copy];
+  copy->_listStyleMarkerFontWeight = [_listStyleMarkerFontWeight copy];
+  copy->_listStyleGapWidth = _listStyleGapWidth;
+  copy->_listStyleMarginLeft = _listStyleMarginLeft;
 
   return copy;
 }
@@ -871,6 +896,127 @@
 - (void)setBlockquoteBackgroundColor:(UIColor *)newValue
 {
   _blockquoteBackgroundColor = newValue;
+}
+
+// List style properties (combined for both ordered and unordered lists)
+- (CGFloat)listStyleFontSize
+{
+  return _listStyleFontSize;
+}
+
+- (void)setListStyleFontSize:(CGFloat)newValue
+{
+  _listStyleFontSize = newValue;
+}
+
+- (NSString *)listStyleFontFamily
+{
+  return _listStyleFontFamily;
+}
+
+- (void)setListStyleFontFamily:(NSString *)newValue
+{
+  _listStyleFontFamily = newValue;
+}
+
+- (NSString *)listStyleFontWeight
+{
+  return _listStyleFontWeight;
+}
+
+- (void)setListStyleFontWeight:(NSString *)newValue
+{
+  _listStyleFontWeight = newValue;
+}
+
+- (UIColor *)listStyleColor
+{
+  return _listStyleColor;
+}
+
+- (void)setListStyleColor:(UIColor *)newValue
+{
+  _listStyleColor = newValue;
+}
+
+- (CGFloat)listStyleMarginBottom
+{
+  return _listStyleMarginBottom;
+}
+
+- (void)setListStyleMarginBottom:(CGFloat)newValue
+{
+  _listStyleMarginBottom = newValue;
+}
+
+- (CGFloat)listStyleLineHeight
+{
+  return _listStyleLineHeight;
+}
+
+- (void)setListStyleLineHeight:(CGFloat)newValue
+{
+  _listStyleLineHeight = newValue;
+}
+
+- (UIColor *)listStyleBulletColor
+{
+  return _listStyleBulletColor;
+}
+
+- (void)setListStyleBulletColor:(UIColor *)newValue
+{
+  _listStyleBulletColor = newValue;
+}
+
+- (CGFloat)listStyleBulletSize
+{
+  return _listStyleBulletSize;
+}
+
+- (void)setListStyleBulletSize:(CGFloat)newValue
+{
+  _listStyleBulletSize = newValue;
+}
+
+- (UIColor *)listStyleMarkerColor
+{
+  return _listStyleMarkerColor;
+}
+
+- (void)setListStyleMarkerColor:(UIColor *)newValue
+{
+  _listStyleMarkerColor = newValue;
+}
+
+- (NSString *)listStyleMarkerFontWeight
+{
+  return _listStyleMarkerFontWeight;
+}
+
+- (void)setListStyleMarkerFontWeight:(NSString *)newValue
+{
+  _listStyleMarkerFontWeight = newValue;
+}
+
+- (CGFloat)listStyleGapWidth
+{
+  return _listStyleGapWidth;
+}
+
+- (void)setListStyleGapWidth:(CGFloat)newValue
+{
+  _listStyleGapWidth = newValue;
+}
+
+- (CGFloat)listStyleMarginLeft
+{
+  return _listStyleMarginLeft;
+}
+
+- (void)setListStyleMarginLeft:(CGFloat)newValue
+{
+  _listStyleMarginLeft = newValue;
 }
 
 @end

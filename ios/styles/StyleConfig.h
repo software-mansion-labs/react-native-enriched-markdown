@@ -155,5 +155,30 @@
 - (void)setBlockquoteGapWidth:(CGFloat)newValue;
 - (UIColor *)blockquoteBackgroundColor;
 - (void)setBlockquoteBackgroundColor:(UIColor *)newValue;
+// List style properties (combined for both ordered and unordered lists)
+- (CGFloat)listStyleFontSize;
+- (void)setListStyleFontSize:(CGFloat)newValue;
+- (NSString *)listStyleFontFamily;
+- (void)setListStyleFontFamily:(NSString *)newValue;
+- (NSString *)listStyleFontWeight;
+- (void)setListStyleFontWeight:(NSString *)newValue;
+- (UIColor *)listStyleColor;
+- (void)setListStyleColor:(UIColor *)newValue;
+- (CGFloat)listStyleMarginBottom;
+- (void)setListStyleMarginBottom:(CGFloat)newValue;
+- (CGFloat)listStyleLineHeight;
+- (void)setListStyleLineHeight:(CGFloat)newValue;
+- (UIColor *)listStyleBulletColor;
+- (void)setListStyleBulletColor:(UIColor *)newValue;
+- (CGFloat)listStyleBulletSize;
+- (void)setListStyleBulletSize:(CGFloat)newValue;
+- (UIColor *)listStyleMarkerColor;
+- (void)setListStyleMarkerColor:(UIColor *)newValue;
+- (NSString *)listStyleMarkerFontWeight;
+- (void)setListStyleMarkerFontWeight:(NSString *)newValue;
+- (CGFloat)listStyleGapWidth;
+- (void)setListStyleGapWidth:(CGFloat)newValue;
+- (CGFloat)listStyleMarginLeft;
+- (void)setListStyleMarginLeft:(CGFloat)newValue;
 
 @end

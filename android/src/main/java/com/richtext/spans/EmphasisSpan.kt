@@ -16,6 +16,11 @@ class EmphasisSpan(
   private val style: StyleConfig,
   private val blockStyle: BlockStyle,
 ) : MetricAffectingSpan() {
+  // Pre-calculate colors to preserve once per span instance
+  private val colorsToPreserve by lazy {
+    getColorsToPreserveForInlineStyle(style)
+  }
+
   override fun updateDrawState(tp: TextPaint) {
     applyEmphasisStyle(tp)
     applyEmphasisColor(tp)
@@ -27,10 +32,11 @@ class EmphasisSpan(
 
   private fun applyEmphasisStyle(tp: TextPaint) {
     val old = tp.typeface ?: Typeface.DEFAULT
-    // Typeface.create handles merging styles automatically.
-    // If the old typeface was BOLD, this results in BOLD_ITALIC.
+
+    // Use bitwise OR to combine styles; BOLD becomes BOLD_ITALIC
     val combinedStyle = old.style or Typeface.ITALIC
 
+    // Performance: Only update if the typeface actually changes
     if (old.style != combinedStyle) {
       tp.typeface = Typeface.create(old, combinedStyle)
     }
@@ -39,8 +45,8 @@ class EmphasisSpan(
   private fun applyEmphasisColor(tp: TextPaint) {
     val configEmphasisColor = style.getEmphasisColor()
 
-    // We only apply emphasis color if a specific color is configured
-    // and if the current color is still the base block color (not already changed by Strong/Link).
+    // Only override color if it hasn't been modified by a higher-priority span
+    // If tp.color != blockStyle.color, it means Strong, Link, or Code already set it.
     val colorToUse =
       if (tp.color == blockStyle.color) {
         configEmphasisColor ?: blockStyle.color
@@ -48,7 +54,7 @@ class EmphasisSpan(
         tp.color
       }
 
-    // Apply color while protecting specific UI colors like Links or Code backgrounds.
-    tp.applyColorPreserving(colorToUse, *getColorsToPreserveForInlineStyle(style))
+    // Use the pre-calculated array to avoid allocations in the draw pass
+    tp.applyColorPreserving(colorToUse, *colorsToPreserve)
   }
 }

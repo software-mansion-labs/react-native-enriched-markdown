@@ -19,32 +19,45 @@
   return self;
 }
 
+#pragma mark - Rendering
+
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   NSUInteger start = output.length;
 
-  UIColor *linkColor = [_config linkColor];
-
+  // 1. Render children first to establish base attributes
   [_rendererFactory renderChildrenOfNode:node into:output context:context];
 
-  NSRange range = [RenderContext rangeForRenderedContent:output start:start];
-  if (range.length > 0) {
-    NSString *url = node.attributes[@"url"] ?: @"";
+  NSRange range = NSMakeRange(start, output.length - start);
+  if (range.length == 0)
+    return;
 
-    NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
+  // 2. Extract configuration
+  NSString *url = node.attributes[@"url"] ?: @"";
+  UIColor *linkColor = [_config linkColor];
+  NSNumber *underlineStyle = @([_config linkUnderline] ? NSUnderlineStyleSingle : NSUnderlineStyleNone);
 
-    NSMutableDictionary *linkAttributes = [existingAttributes mutableCopy];
-    linkAttributes[NSLinkAttributeName] = url;
-    linkAttributes[NSForegroundColorAttributeName] = linkColor;
-    linkAttributes[NSUnderlineColorAttributeName] = linkColor;
+  // 3. Apply core link functionality (non-destructive)
+  [output addAttribute:NSLinkAttributeName value:url range:range];
 
-    BOOL shouldUnderline = [_config linkUnderline];
-    linkAttributes[NSUnderlineStyleAttributeName] =
-        shouldUnderline ? @(NSUnderlineStyleSingle) : @(NSUnderlineStyleNone);
+  // 4. Optimize visual attributes via enumeration to avoid redundant updates
+  [output enumerateAttributesInRange:range
+                             options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
+                          usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
+                            // Only apply link color if the subrange isn't already colored by the link style
+                            if (linkColor && ![attrs[NSForegroundColorAttributeName] isEqual:linkColor]) {
+                              [output addAttribute:NSForegroundColorAttributeName value:linkColor range:subrange];
+                              [output addAttribute:NSUnderlineColorAttributeName value:linkColor range:subrange];
+                            }
 
-    [output setAttributes:linkAttributes range:range];
-    [context registerLinkRange:range url:url];
-  }
+                            // Only update underline style if it differs from the config
+                            if (![attrs[NSUnderlineStyleAttributeName] isEqual:underlineStyle]) {
+                              [output addAttribute:NSUnderlineStyleAttributeName value:underlineStyle range:subrange];
+                            }
+                          }];
+
+  // 5. Register for touch handling
+  [context registerLinkRange:range url:url];
 }
 
 @end

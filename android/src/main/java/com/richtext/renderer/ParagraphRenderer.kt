@@ -18,100 +18,49 @@ class ParagraphRenderer(
     onLinkPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    // When inside a block element, render content without paragraph-specific spans
-    // The parent block element (blockquote, list, etc.) handles spacing and styling
-    if (factory.blockStyleContext.isInsideBlockElement()) {
-      renderParagraphContent(node, builder, onLinkPress, factory)
+    val context = factory.blockStyleContext
+
+    // If nested, just render content and a newline
+    if (context.isInsideBlockElement()) {
+      factory.renderChildren(node, builder, onLinkPress)
+      builder.append("\n")
       return
     }
 
-    renderTopLevelParagraph(node, builder, onLinkPress, factory)
-  }
-
-  // ============================================================================
-  // Styling and Spacing
-  // ============================================================================
-
-  /**
-   * Renders a top-level paragraph with all paragraph-specific styling:
-   * - Line height (skipped for paragraphs containing block images)
-   * - Margin bottom (calculated based on paragraph content)
-   */
-  private fun renderTopLevelParagraph(
-    paragraph: MarkdownASTNode,
-    builder: SpannableStringBuilder,
-    onLinkPress: ((String) -> Unit)?,
-    factory: RendererFactory,
-  ) {
+    // Top-level paragraph rendering
     val start = builder.length
-    val paragraphStyle = config.style.getParagraphStyle()
-    factory.blockStyleContext.setParagraphStyle(paragraphStyle)
+    val style = config.style.getParagraphStyle()
 
+    context.setParagraphStyle(style)
     try {
-      factory.renderChildren(paragraph, builder, onLinkPress)
+      factory.renderChildren(node, builder, onLinkPress)
     } finally {
-      factory.blockStyleContext.clearBlockStyle()
+      context.clearBlockStyle()
     }
 
-    val end = builder.length
-    val contentLength = end - start
-    if (contentLength > 0) {
-      applyLineHeight(builder, paragraph, paragraphStyle, start, end)
-      applyParagraphMarginBottom(builder, paragraph, paragraphStyle, start)
+    // Apply spans only if content was actually added
+    if (builder.length > start) {
+      builder.applySpans(node, style, start)
     }
   }
 
-  /**
-   * Applies line height to the paragraph, skipping it if the paragraph contains block images.
-   * This prevents unwanted spacing above block images.
-   */
-  private fun applyLineHeight(
-    builder: SpannableStringBuilder,
-    paragraph: MarkdownASTNode,
-    paragraphStyle: ParagraphStyle,
+  private fun SpannableStringBuilder.applySpans(
+    node: MarkdownASTNode,
+    style: ParagraphStyle,
     start: Int,
-    end: Int,
   ) {
-    // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
-    if (!paragraph.containsBlockImage()) {
-      builder.setSpan(
-        createLineHeightSpan(paragraphStyle.lineHeight),
+    val end = length // Current length is the end point
+
+    if (!node.containsBlockImage()) {
+      setSpan(
+        createLineHeightSpan(style.lineHeight),
         start,
         end,
         SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
       )
     }
-  }
 
-  /**
-   * Applies margin bottom spacing to the paragraph.
-   * The margin value is calculated based on paragraph content (e.g., uses image margin if paragraph contains only an image).
-   */
-  private fun applyParagraphMarginBottom(
-    builder: SpannableStringBuilder,
-    paragraph: MarkdownASTNode,
-    paragraphStyle: ParagraphStyle,
-    start: Int,
-  ) {
-    val marginBottom = getMarginBottomForParagraph(paragraph, paragraphStyle, config.style)
-    applyMarginBottom(builder, start, marginBottom)
-  }
-
-  // ============================================================================
-  // Helper Methods
-  // ============================================================================
-
-  /**
-   * Renders paragraph content (children + newline) without applying paragraph-specific spans.
-   * Used when paragraph is inside a block element that handles its own spacing.
-   */
-  private fun renderParagraphContent(
-    paragraph: MarkdownASTNode,
-    builder: SpannableStringBuilder,
-    onLinkPress: ((String) -> Unit)?,
-    factory: RendererFactory,
-  ) {
-    factory.renderChildren(paragraph, builder, onLinkPress)
-    builder.append("\n")
+    val margin = getMarginBottomForParagraph(node, style, config.style)
+    applyMarginBottom(this, start, margin)
   }
 }

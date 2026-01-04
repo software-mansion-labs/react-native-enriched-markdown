@@ -22,19 +22,30 @@ class ImageRenderer(
     val isInline = builder.isInlineImage()
     val start = builder.length
 
-    // Append object replacement character (U+FFFC) - Android requires text to attach spans to.
-    // ImageSpan will replace this placeholder with the actual image during rendering.
+    // 1. Append the placeholder character
     builder.append("\uFFFC")
-
     val end = builder.length
-    val contentLength = end - start
 
+    // 2. Create the Span
+    val span =
+      ImageSpan(
+        context = context,
+        imageUrl = imageUrl,
+        style = config.style,
+        isInline = isInline,
+      )
+
+    // 3. Attach it to the builder
     builder.setSpan(
-      ImageSpan(context, imageUrl, config.style, isInline),
+      span,
       start,
       end,
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
+
+    // 4. REPORT the span to the collector via the factory
+    factory.registerImageSpan(span)
+
     // Note: marginBottom for images is handled by ParagraphRenderer when the paragraph contains only an image
     // This ensures consistent spacing behavior and prevents paragraph's marginBottom from affecting images
   }

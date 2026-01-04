@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.Spannable
@@ -32,101 +31,107 @@ class ImageSpan(
 ) : AndroidImageSpan(createInitialDrawable(context, style, imageUrl, isInline), imageUrl, ALIGN_CENTER),
   AndroidLineHeightSpan {
   private var loadedDrawable: Drawable? = null
-  private var underlyingLoadedDrawable: Drawable? = null
   private val imageStyle = style.getImageStyle()
-  private val height: Int =
-    if (isInline) {
-      Companion.calculateInlineImageSize(style)
-    } else {
-      imageStyle.height.toInt()
-    }
+  private val height: Int = if (isInline) calculateInlineImageSize(style) else imageStyle.height.toInt()
   private val borderRadiusPx: Int = (imageStyle.borderRadius * context.resources.displayMetrics.density).toInt()
-  private var cachedWidth: Int = Companion.MINIMUM_VALID_DIMENSION
+
+  private var cachedWidth: Int = MINIMUM_VALID_DIMENSION
   private val initialDrawable: Drawable = super.getDrawable()
   private var viewRef: WeakReference<RichTextView>? = null
 
   init {
-    // For inline local files, wrap immediately if available
-    if (isInline && initialDrawable !is AsyncDrawable) {
-      val isPlaceholder = initialDrawable.intrinsicWidth <= 0 && initialDrawable.intrinsicHeight <= 0
-      if (!isPlaceholder) {
-        loadedDrawable = ScaledImageDrawable(initialDrawable, height, height, borderRadiusPx, isBlockImage = false)
-      }
+    setupLoadingLogic()
+  }
+
+  private fun setupLoadingLogic() {
+    val d = initialDrawable
+    if (d is AsyncDrawable) {
+      // Set up the callback immediately. If already loaded, it triggers next frame.
+      d.onLoaded = { handleImageLoaded(d) }
+      if (d.isLoaded) handleImageLoaded(d)
+    } else if (d.intrinsicWidth > 0) {
+      // Local file or resource
+      wrapAndAssignDrawable(d)
     }
   }
 
-  private fun getWidth(): Int = if (isInline) height else cachedWidth
+  private fun handleImageLoaded(asyncDrawable: AsyncDrawable) {
+    val rawDrawable = asyncDrawable.internalDrawable
+    wrapAndAssignDrawable(rawDrawable)
+  }
+
+  private fun wrapAndAssignDrawable(base: Drawable) {
+    val view = viewRef?.get()
+    val targetWidth =
+      if (isInline) {
+        height
+      } else {
+        val available = view?.let { getAvailableWidth(it) } ?: cachedWidth
+        available.coerceAtLeast(MINIMUM_VALID_DIMENSION)
+      }
+
+    loadedDrawable =
+      ScaledImageDrawable(
+        imageDrawable = base,
+        targetWidth = targetWidth,
+        targetHeight = height,
+        borderRadius = borderRadiusPx,
+        isBlockImage = !isInline,
+      )
+    requestReflow()
+  }
+
+  private fun requestReflow() {
+    val view = viewRef?.get() ?: return
+    val text = view.text
+    if (text is Spannable) {
+      val start = text.getSpanStart(this)
+      val end = text.getSpanEnd(this)
+      if (start != -1 && end != -1) {
+        // Notifying the spannable that the span changed triggers a re-layout
+        text.setSpan(this, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+      }
+    } else {
+      view.invalidate()
+      view.requestLayout()
+    }
+  }
 
   fun registerTextView(view: RichTextView) {
     viewRef = WeakReference(view)
-
     if (!isInline) {
-      cachedWidth = Companion.MINIMUM_VALID_DIMENSION
-
       val availableWidth = getAvailableWidth(view)
-      if (availableWidth > Companion.MINIMUM_VALID_DIMENSION) {
-        updateCachedWidth(availableWidth, view)
+      if (availableWidth > MINIMUM_VALID_DIMENSION) {
+        updateWidthAndRecreate(availableWidth)
       }
-
+      // Ensure we catch the width after the first layout pass
       view.post {
-        val textViewWidth = getAvailableWidth(view)
-        if (textViewWidth > Companion.MINIMUM_VALID_DIMENSION) {
-          updateCachedWidth(textViewWidth, view)
-        }
+        val postWidth = getAvailableWidth(view)
+        if (postWidth != cachedWidth) updateWidthAndRecreate(postWidth)
       }
     }
   }
 
-  private fun getAvailableWidth(view: RichTextView): Int {
-    // Use layout width if available (most accurate), otherwise fallback to view width
-    // Since RichTextView has padding set to 0, view.width should match layout.width
-    return view.layout?.width ?: view.width
-  }
-
-  private fun updateCachedWidth(
-    newWidth: Int,
-    view: RichTextView,
-  ) {
-    if (newWidth <= Companion.MINIMUM_VALID_DIMENSION) {
-      return
-    }
-
-    val widthChanged = cachedWidth != newWidth
+  private fun updateWidthAndRecreate(newWidth: Int) {
+    if (newWidth <= MINIMUM_VALID_DIMENSION || cachedWidth == newWidth) return
     cachedWidth = newWidth
 
-    // Recreate drawable if width changed or we have underlying but no loaded drawable yet
-    val needsRecreation = widthChanged || (underlyingLoadedDrawable != null && loadedDrawable == null)
-
-    if (needsRecreation && underlyingLoadedDrawable != null) {
-      loadedDrawable = ScaledImageDrawable(underlyingLoadedDrawable!!, cachedWidth, height, borderRadiusPx, isBlockImage = true)
-      forceRedraw(view)
-    } else if (underlyingLoadedDrawable == null) {
-      // Try to wrap local file drawable
-      if (initialDrawable !is AsyncDrawable) {
-        val isPlaceholder = initialDrawable.intrinsicWidth <= 0 && initialDrawable.intrinsicHeight <= 0
-        if (!isPlaceholder) {
-          underlyingLoadedDrawable = initialDrawable
-          loadedDrawable = ScaledImageDrawable(initialDrawable, cachedWidth, height, borderRadiusPx, isBlockImage = true)
-          forceRedraw(view)
-        }
-      }
+    // If we already have a loaded source, recreate the scaled wrapper with new width
+    val base = (initialDrawable as? AsyncDrawable)?.internalDrawable ?: initialDrawable
+    if (base.intrinsicWidth > 0) {
+      wrapAndAssignDrawable(base)
     }
   }
+
+  private fun getAvailableWidth(view: RichTextView): Int = view.layout?.width ?: view.width
 
   override fun getDrawable(): Drawable {
     val drawable = loadedDrawable ?: initialDrawable
-
     if (drawable !is ScaledImageDrawable) {
-      val drawableWidth = if (isInline) height else getWidth().takeIf { it > Companion.MINIMUM_VALID_DIMENSION } ?: drawable.intrinsicWidth
-      val drawableHeight =
-        if (isInline) {
-          drawable.intrinsicHeight.takeIf { it > Companion.MINIMUM_VALID_DIMENSION } ?: height
-        } else {
-          height
-        }
-      drawable.setBounds(0, 0, drawableWidth, drawableHeight)
+      val dWidth = if (isInline) height else cachedWidth.takeIf { it > 0 } ?: drawable.intrinsicWidth
+      val dHeight = if (isInline) height else height
+      drawable.setBounds(0, 0, dWidth.coerceAtLeast(0), dHeight.coerceAtLeast(0))
     }
-
     return drawable
   }
 
@@ -147,12 +152,9 @@ class ImageSpan(
     fm: Paint.FontMetricsInt?,
   ) {
     if (fm == null || isInline) return
-
-    val targetImageHeight = height
     val currentLineHeight = fm.descent - fm.ascent
-
-    if (targetImageHeight > currentLineHeight) {
-      val extraHeight = targetImageHeight - currentLineHeight
+    if (height > currentLineHeight) {
+      val extraHeight = height - currentLineHeight
       fm.descent += extraHeight
       fm.bottom += extraHeight
     }
@@ -173,95 +175,25 @@ class ImageSpan(
     canvas.withSave {
       if (isInline) {
         val imageHeight = drawable.bounds.height()
-        val raiseAmount = imageHeight * 0.1f
-        val transY = y - imageHeight + raiseAmount
-        translate(x, transY)
+        translate(x, (y - imageHeight + (imageHeight * 0.1f)))
       } else {
-        // For block images, use x parameter which is already positioned correctly by the layout
-        val transY = top.toFloat() - drawable.bounds.top
-        translate(x, transY)
+        translate(x, top.toFloat())
       }
       drawable.draw(this)
     }
   }
 
-  fun observeAsyncDrawableLoaded(text: Editable?) {
-    val d = initialDrawable
-    if (d !is AsyncDrawable) return
-
-    registerDrawableLoadCallback(d)
-
-    if (d.isLoaded) {
-      d.onLoaded?.invoke()
-    }
-  }
-
-  private fun registerDrawableLoadCallback(d: AsyncDrawable) {
-    d.onLoaded = onLoaded@{
-      val view = viewRef?.get() ?: return@onLoaded
-      val spannable = view.text as? Spannable ?: return@onLoaded
-
-      val start = spannable.getSpanStart(this@ImageSpan)
-      val end = spannable.getSpanEnd(this@ImageSpan)
-      if (start == -1 || end == -1) return@onLoaded
-
-      val loadedBitmapDrawable = d.internalDrawable ?: return@onLoaded
-      underlyingLoadedDrawable = loadedBitmapDrawable
-
-      if (!isInline) {
-        val availableWidth = getAvailableWidth(view)
-        if (availableWidth > Companion.MINIMUM_VALID_DIMENSION) {
-          updateCachedWidth(availableWidth, view)
-        } else {
-          val finalWidth =
-            getWidth().takeIf { it > Companion.MINIMUM_VALID_DIMENSION }
-              ?: loadedBitmapDrawable.intrinsicWidth.takeIf { it > Companion.MINIMUM_VALID_DIMENSION }
-              ?: Companion.MINIMUM_VALID_DIMENSION
-          loadedDrawable = ScaledImageDrawable(loadedBitmapDrawable, finalWidth, height, borderRadiusPx, isBlockImage = true)
-          forceRedraw(view)
-        }
-      } else {
-        loadedDrawable = ScaledImageDrawable(loadedBitmapDrawable, height, height, borderRadiusPx, isBlockImage = false)
-        forceRedraw(view)
-      }
-    }
-  }
-
-  private fun forceRedraw(view: RichTextView) {
-    val spannable =
-      view.text as? Spannable ?: run {
-        view.invalidate()
-        view.requestLayout()
-        return
-      }
-
-    val start = spannable.getSpanStart(this@ImageSpan)
-    val end = spannable.getSpanEnd(this@ImageSpan)
-    if (start == -1 || end == -1) {
-      view.invalidate()
-      view.requestLayout()
-      return
-    }
-
-    try {
-      val redrawSpan = ForceRedrawSpan()
-      spannable.setSpan(redrawSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-      spannable.removeSpan(redrawSpan)
-    } catch (e: UnsupportedOperationException) {
-      view.invalidate()
-      view.requestLayout()
-    }
-  }
+  // --- Helper Classes ---
 
   private class ScaledImageDrawable(
     private val imageDrawable: Drawable,
     private val targetWidth: Int,
     private val targetHeight: Int,
-    private val borderRadius: Int = 0,
-    private val isBlockImage: Boolean = false,
+    private val borderRadius: Int,
+    private val isBlockImage: Boolean,
   ) : Drawable() {
-    private val roundedRectPath: Path? =
-      if (borderRadius > ImageSpan.MINIMUM_VALID_DIMENSION) {
+    private val clipPath: Path? =
+      if (borderRadius > 0) {
         Path().apply {
           addRoundRect(
             0f,
@@ -279,76 +211,44 @@ class ImageSpan(
 
     init {
       setBounds(0, 0, targetWidth, targetHeight)
+      val iW = imageDrawable.intrinsicWidth
+      val iH = imageDrawable.intrinsicHeight
 
-      val intrinsicWidth = imageDrawable.intrinsicWidth
-      val intrinsicHeight = imageDrawable.intrinsicHeight
+      val (sW, sH) =
+        if (iW > 0 && iH > 0) {
+          if (isBlockImage) {
+            val scale = targetWidth.toFloat() / iW
+            targetWidth to (iH * scale).toInt()
+          } else {
+            val scale = minOf(targetWidth.toFloat() / iW, targetHeight.toFloat() / iH)
+            (iW * scale).toInt() to (iH * scale).toInt()
+          }
+        } else {
+          targetWidth to targetHeight
+        }
 
-      val (scaledWidth, scaledHeight) =
-        calculateScaledDimensions(
-          intrinsicWidth,
-          intrinsicHeight,
-          targetWidth,
-          targetHeight,
-        )
-
-      val centeredLeft = (targetWidth - scaledWidth) / ImageSpan.CENTERING_DIVISOR
-      val centeredTop = (targetHeight - scaledHeight) / ImageSpan.CENTERING_DIVISOR
-
-      imageDrawable.setBounds(
-        centeredLeft,
-        centeredTop,
-        centeredLeft + scaledWidth,
-        centeredTop + scaledHeight,
-      )
-    }
-
-    private fun calculateScaledDimensions(
-      intrinsicWidth: Int,
-      intrinsicHeight: Int,
-      targetWidth: Int,
-      targetHeight: Int,
-    ): Pair<Int, Int> {
-      val hasValidDimensions =
-        intrinsicWidth > ImageSpan.MINIMUM_VALID_DIMENSION &&
-          intrinsicHeight > ImageSpan.MINIMUM_VALID_DIMENSION
-
-      if (!hasValidDimensions) {
-        return Pair(targetWidth, targetHeight)
-      }
-
-      return if (isBlockImage) {
-        // Block images: scale to fill width (aspect fill)
-        val widthScale = targetWidth.toFloat() / intrinsicWidth
-        Pair(targetWidth, (intrinsicHeight * widthScale).toInt())
-      } else {
-        // Inline images: scale to fit (aspect fit)
-        val scale =
-          minOf(
-            targetWidth.toFloat() / intrinsicWidth,
-            targetHeight.toFloat() / intrinsicHeight,
-          )
-        Pair(
-          (intrinsicWidth * scale).toInt(),
-          (intrinsicHeight * scale).toInt(),
-        )
-      }
+      val left = (targetWidth - sW) / 2
+      val top = (targetHeight - sH) / 2
+      imageDrawable.setBounds(left, top, left + sW, top + sH)
     }
 
     override fun draw(canvas: Canvas) {
-      roundedRectPath?.let { path ->
-        canvas.save()
-        canvas.clipPath(path)
+      if (clipPath != null) {
+        canvas.withSave {
+          clipPath(clipPath)
+          imageDrawable.draw(canvas)
+        }
+      } else {
         imageDrawable.draw(canvas)
-        canvas.restore()
-      } ?: imageDrawable.draw(canvas)
+      }
     }
 
     override fun setAlpha(alpha: Int) {
       imageDrawable.alpha = alpha
     }
 
-    override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) {
-      imageDrawable.colorFilter = colorFilter
+    override fun setColorFilter(cf: android.graphics.ColorFilter?) {
+      imageDrawable.colorFilter = cf
     }
 
     override fun getOpacity(): Int = imageDrawable.opacity
@@ -359,75 +259,56 @@ class ImageSpan(
   }
 
   companion object {
-    internal const val MINIMUM_VALID_DIMENSION = 0
-    internal const val CENTERING_DIVISOR = 2
+    private const val MINIMUM_VALID_DIMENSION = 0
 
     private fun calculateInlineImageSize(style: StyleConfig): Int = style.getInlineImageStyle().size.toInt()
 
     private fun createInitialDrawable(
       context: Context,
       style: StyleConfig,
-      imageUrl: String,
+      url: String,
       isInline: Boolean,
     ): Drawable {
-      val imageStyle = style.getImageStyle()
-      val placeholderWidth =
-        if (isInline) {
-          calculateInlineImageSize(style)
-        } else {
-          imageStyle.height.toInt()
-        }
-      val placeholderHeight = if (isInline) placeholderWidth else imageStyle.height.toInt()
+      val imgStyle = style.getImageStyle()
+      val size = if (isInline) calculateInlineImageSize(style) else imgStyle.height.toInt()
 
-      val drawable = prepareDrawableForImage(context, imageUrl, placeholderWidth, placeholderHeight)
-      return drawable ?: PlaceholderDrawable(placeholderWidth, placeholderHeight)
+      return prepareDrawable(context, url, size, size) ?: PlaceholderDrawable(size, size)
     }
 
-    private fun prepareDrawableForImage(
+    private fun prepareDrawable(
       context: Context,
       src: String,
-      targetWidth: Int,
-      targetHeight: Int,
+      tw: Int,
+      th: Int,
     ): Drawable? {
-      // Handle HTTP/HTTPS URLs
-      if (src.startsWith("http://") || src.startsWith("https://")) {
-        return AsyncDrawable(src).apply {
-          setBounds(0, 0, targetWidth, targetHeight)
-        }
+      if (src.startsWith("http")) {
+        return AsyncDrawable(src).apply { setBounds(0, 0, tw, th) }
       }
-
-      // Handle local files
-      var cleanPath = src
-      if (cleanPath.startsWith("file://")) {
-        cleanPath = cleanPath.substring(7)
-      }
-
+      val path = src.removePrefix("file://")
       return try {
-        val bitmap = BitmapFactory.decodeFile(cleanPath)
-        bitmap?.toDrawable(Resources.getSystem())?.apply {
-          setBounds(0, 0, bitmap.width, bitmap.height)
+        BitmapFactory.decodeFile(path)?.toDrawable(Resources.getSystem())?.apply {
+          setBounds(0, 0, intrinsicWidth, intrinsicHeight)
         }
       } catch (e: Exception) {
-        Log.e("ImageSpan", "Failed to load image from path: $cleanPath", e)
         null
       }
     }
 
     private class PlaceholderDrawable(
-      private val width: Int,
-      private val height: Int,
+      private val w: Int,
+      private val h: Int,
     ) : Drawable() {
       override fun draw(canvas: Canvas) {}
 
       override fun setAlpha(alpha: Int) {}
 
-      override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) {}
+      override fun setColorFilter(cf: android.graphics.ColorFilter?) {}
 
       override fun getOpacity(): Int = android.graphics.PixelFormat.TRANSLUCENT
 
-      override fun getIntrinsicWidth(): Int = width
+      override fun getIntrinsicWidth(): Int = w
 
-      override fun getIntrinsicHeight(): Int = height
+      override fun getIntrinsicHeight(): Int = h
     }
   }
 }

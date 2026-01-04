@@ -3,7 +3,6 @@ package com.richtext.spans
 import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
-import com.facebook.react.views.text.ReactTypefaceUtils
 import com.richtext.renderer.BlockStyle
 import com.richtext.styles.StyleConfig
 import com.richtext.utils.applyColorPreserving

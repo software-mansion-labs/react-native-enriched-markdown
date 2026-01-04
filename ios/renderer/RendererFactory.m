@@ -10,77 +10,85 @@
 #import "ParagraphRenderer.h"
 #import "RenderContext.h"
 #import "StrongRenderer.h"
+#import "StyleConfig.h"
 #import "TextRenderer.h"
 
 @implementation RendererFactory {
-  id _config;
-  TextRenderer *_sharedTextRenderer;
-  LinkRenderer *_sharedLinkRenderer;
-  HeadingRenderer *_sharedHeadingRenderer;
-  StrongRenderer *_sharedStrongRenderer;
-  EmphasisRenderer *_sharedEmphasisRenderer;
-  InlineCodeRenderer *_sharedInlineCodeRenderer;
-  ImageRenderer *_sharedImageRenderer;
-  ParagraphRenderer *_sharedParagraphRenderer;
-  BlockquoteRenderer *_sharedBlockquoteRenderer;
-  ListRenderer *_sharedUnorderedListRenderer;
-  ListRenderer *_sharedOrderedListRenderer;
-  ListItemRenderer *_sharedListItemRenderer;
+  StyleConfig *_config;
+  NSMutableDictionary<NSNumber *, id<NodeRenderer>> *_cache;
 }
 
-- (instancetype)initWithConfig:(id)config
+/**
+ * Initializes the factory with a shared style configuration.
+ * Uses a mutable dictionary to cache renderer instances as they are needed.
+ */
+- (instancetype)initWithConfig:(StyleConfig *)config
 {
   self = [super init];
   if (self) {
     _config = config;
-    _sharedTextRenderer = [TextRenderer new];
-    _sharedStrongRenderer = [[StrongRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedEmphasisRenderer = [[EmphasisRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedInlineCodeRenderer = [[InlineCodeRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedImageRenderer = [[ImageRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedLinkRenderer = [[LinkRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedHeadingRenderer = [[HeadingRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedParagraphRenderer = [[ParagraphRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedBlockquoteRenderer = [[BlockquoteRenderer alloc] initWithRendererFactory:self config:config];
-    _sharedUnorderedListRenderer = [[ListRenderer alloc] initWithRendererFactory:self config:config isOrdered:NO];
-    _sharedOrderedListRenderer = [[ListRenderer alloc] initWithRendererFactory:self config:config isOrdered:YES];
-    _sharedListItemRenderer = [[ListItemRenderer alloc] initWithRendererFactory:self config:config];
+    _cache = [NSMutableDictionary new];
   }
   return self;
 }
 
+/**
+ * Returns a shared renderer instance for a specific node type.
+ * Implements lazy initialization to avoid allocating unused renderers.
+ */
 - (id<NodeRenderer>)rendererForNodeType:(MarkdownNodeType)type
 {
+  id<NodeRenderer> cached = _cache[@(type)];
+  if (cached) {
+    return cached;
+  }
+
+  id<NodeRenderer> renderer = [self createRendererForType:type];
+  if (renderer) {
+    _cache[@(type)] = renderer;
+  }
+  return renderer;
+}
+
+/**
+ * Internal factory method to instantiate specialized renderers.
+ */
+- (id<NodeRenderer>)createRendererForType:(MarkdownNodeType)type
+{
   switch (type) {
-    case MarkdownNodeTypeParagraph:
-      return _sharedParagraphRenderer;
     case MarkdownNodeTypeText:
-      return _sharedTextRenderer;
-    case MarkdownNodeTypeLink:
-      return _sharedLinkRenderer;
-    case MarkdownNodeTypeHeading:
-      return _sharedHeadingRenderer;
+      return [TextRenderer new];
     case MarkdownNodeTypeStrong:
-      return _sharedStrongRenderer;
+      return [[StrongRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeEmphasis:
-      return _sharedEmphasisRenderer;
+      return [[EmphasisRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeParagraph:
+      return [[ParagraphRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeLink:
+      return [[LinkRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeHeading:
+      return [[HeadingRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeCode:
-      return _sharedInlineCodeRenderer;
+      return [[InlineCodeRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeImage:
-      return _sharedImageRenderer;
+      return [[ImageRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeBlockquote:
-      return _sharedBlockquoteRenderer;
-    case MarkdownNodeTypeUnorderedList:
-      return _sharedUnorderedListRenderer;
-    case MarkdownNodeTypeOrderedList:
-      return _sharedOrderedListRenderer;
+      return [[BlockquoteRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeListItem:
-      return _sharedListItemRenderer;
+      return [[ListItemRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeUnorderedList:
+      return [[ListRenderer alloc] initWithRendererFactory:self config:_config isOrdered:NO];
+    case MarkdownNodeTypeOrderedList:
+      return [[ListRenderer alloc] initWithRendererFactory:self config:_config isOrdered:YES];
     default:
       return nil;
   }
 }
 
+/**
+ * Helper method for container renderers to process their children.
+ * Leverages the factory to find the appropriate renderer for each child node.
+ */
 - (void)renderChildrenOfNode:(MarkdownASTNode *)node
                         into:(NSMutableAttributedString *)output
                      context:(RenderContext *)context

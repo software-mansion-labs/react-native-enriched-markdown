@@ -2,27 +2,30 @@ package com.richtext.spans
 
 import android.graphics.Typeface
 import android.text.TextPaint
-import android.text.style.AbsoluteSizeSpan
+import android.text.style.MetricAffectingSpan
 import com.richtext.styles.StyleConfig
 import com.richtext.utils.applyTypefacePreserving
 
 class HeadingSpan(
   private val level: Int,
   private val style: StyleConfig,
-) : AbsoluteSizeSpan(style.getHeadingFontSize(level).toInt()) {
-  // Use cached typeface from StyleConfig instead of computing it lazily
-  // This avoids recreating the same typeface for each span instance
+) : MetricAffectingSpan() {
+  private val fontSize: Float = style.getHeadingFontSize(level)
   private val cachedTypeface: Typeface? = style.getHeadingTypeface(level)
 
   override fun updateDrawState(tp: TextPaint) {
-    super.updateDrawState(tp)
-    cachedTypeface?.let { headingTypeface ->
-      tp.applyTypefacePreserving(headingTypeface, Typeface.BOLD, Typeface.ITALIC)
-    }
+    applyHeadingStyle(tp)
   }
 
   override fun updateMeasureState(tp: TextPaint) {
-    super.updateMeasureState(tp)
+    applyHeadingStyle(tp)
+  }
+
+  private fun applyHeadingStyle(tp: TextPaint) {
+    // 1. Apply font size directly to the TextPaint
+    tp.textSize = fontSize
+
+    // 2. Apply cached typeface while preserving Bold/Italic bits
     cachedTypeface?.let { headingTypeface ->
       tp.applyTypefacePreserving(headingTypeface, Typeface.BOLD, Typeface.ITALIC)
     }

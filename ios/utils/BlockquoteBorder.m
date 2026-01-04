@@ -1,13 +1,9 @@
 #import "BlockquoteBorder.h"
 #import "StyleConfig.h"
 
+// Attribute constants for identifying blockquote segments in text storage
 NSString *const RichTextBlockquoteDepthAttributeName = @"RichTextBlockquoteDepth";
 NSString *const RichTextBlockquoteBackgroundColorAttributeName = @"RichTextBlockquoteBackgroundColor";
-
-static NSString *const kFragmentRectKey = @"rect";
-static NSString *const kFragmentDepthKey = @"depth";
-static NSString *const kFragmentDepthLocationKey = @"depthLocation";
-static NSString *const kFragmentIsSpacerKey = @"isSpacer";
 
 @implementation BlockquoteBorder {
   StyleConfig *_config;
@@ -21,119 +17,76 @@ static NSString *const kFragmentIsSpacerKey = @"isSpacer";
   return self;
 }
 
+/**
+ * Main drawing entry point called by the LayoutManager.
+ * Iterates through line fragments to draw backgrounds and borders for nested blockquotes.
+ */
 - (void)drawBordersForGlyphRange:(NSRange)glyphsToShow
                    layoutManager:(NSLayoutManager *)layoutManager
                    textContainer:(NSTextContainer *)textContainer
                          atPoint:(CGPoint)origin
 {
   NSTextStorage *textStorage = layoutManager.textStorage;
-  if (!textStorage || textStorage.length == 0)
+  if (!textStorage || textStorage.length == 0) {
     return;
+  }
 
-  UIColor *borderColor = [_config blockquoteBorderColor];
-  CGFloat borderWidth = [_config blockquoteBorderWidth];
-  CGFloat levelSpacing = borderWidth + [_config blockquoteGapWidth];
-  CGFloat nestedMarginBottom = [_config blockquoteNestedMarginBottom];
+  // Cache configuration values to minimize pointer chasing and method lookups in the loop
+  StyleConfig *c = _config;
+  CGFloat borderWidth = c.blockquoteBorderWidth;
+  CGFloat gapWidth = c.blockquoteGapWidth;
+  CGFloat levelSpacing = borderWidth + gapWidth;
   CGFloat containerWidth = textContainer.size.width;
+  UIColor *defaultBgColor = c.blockquoteBackgroundColor;
+  UIColor *borderColor = c.blockquoteBorderColor;
 
-  NSMutableArray<NSDictionary *> *fragments = [NSMutableArray array];
-  NSMutableDictionary<NSNumber *, NSNumber *> *firstCharIndexForDepth = [NSMutableDictionary dictionary];
+  // Use a Bezier path to batch all vertical border rectangles into a single GPU draw call
+  UIBezierPath *borderPath = [UIBezierPath bezierPath];
 
-  [layoutManager
-      enumerateLineFragmentsForGlyphRange:glyphsToShow
-                               usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *container,
-                                            NSRange glyphRange, BOOL *stop) {
-                                 NSRange charRange = [layoutManager characterRangeForGlyphRange:glyphRange
-                                                                               actualGlyphRange:NULL];
-                                 if (charRange.location == NSNotFound || charRange.length == 0) {
-                                   return;
-                                 }
+  [layoutManager enumerateLineFragmentsForGlyphRange:glyphsToShow
+                                          usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *container,
+                                                       NSRange glyphRange, BOOL *stop) {
+                                            // Map the glyph range back to character indices to retrieve attributes
+                                            NSRange charRange = [layoutManager characterRangeForGlyphRange:glyphRange
+                                                                                          actualGlyphRange:NULL];
+                                            if (charRange.location == NSNotFound || charRange.length == 0) {
+                                              return;
+                                            }
 
-                                 NSNumber *depth = [textStorage attribute:RichTextBlockquoteDepthAttributeName
-                                                                  atIndex:charRange.location
-                                                           effectiveRange:NULL];
-                                 if (!depth) {
-                                   return;
-                                 }
+                                            // Perform a single attribute lookup for the current line fragment
+                                            NSDictionary *attrs = [textStorage attributesAtIndex:charRange.location
+                                                                                  effectiveRange:NULL];
+                                            NSNumber *depthNum = attrs[RichTextBlockquoteDepthAttributeName];
 
-                                 NSUInteger charLocation = charRange.location;
-                                 BOOL isSpacer = nestedMarginBottom > 0
-                                                     ? [self isSpacerAtLocation:charLocation textStorage:textStorage]
-                                                     : NO;
+                                            // If no depth is found, this fragment is not part of a blockquote
+                                            if (!depthNum) {
+                                              return;
+                                            }
 
-                                 if (nestedMarginBottom > 0 && !firstCharIndexForDepth[depth] && !isSpacer) {
-                                   firstCharIndexForDepth[depth] = @(charLocation);
-                                 }
+                                            NSInteger depth = [depthNum integerValue];
+                                            CGFloat baseY = origin.y + rect.origin.y;
 
-                                 [fragments addObject:@{
-                                   kFragmentRectKey : [NSValue valueWithCGRect:rect],
-                                   @"usedRect" : [NSValue valueWithCGRect:usedRect],
-                                   kFragmentDepthKey : depth,
-                                   kFragmentDepthLocationKey : @(charLocation),
-                                   kFragmentIsSpacerKey : @(isSpacer)
-                                 }];
-                               }];
+                                            // 1. Draw Background (Painter's algorithm: draw backgrounds before borders)
+                                            UIColor *bgColor =
+                                                attrs[RichTextBlockquoteBackgroundColorAttributeName] ?: defaultBgColor;
+                                            if (bgColor && bgColor != [UIColor clearColor]) {
+                                              [bgColor setFill];
+                                              UIRectFill(CGRectMake(origin.x, baseY, containerWidth, rect.size.height));
+                                            }
 
-  for (NSDictionary *fragment in fragments) {
-    [self drawFragment:fragment
-                   textStorage:textStorage
-                        origin:origin
-                  levelSpacing:levelSpacing
-            nestedMarginBottom:nestedMarginBottom
-        firstCharIndexForDepth:firstCharIndexForDepth
-                   borderColor:borderColor
-                   borderWidth:borderWidth
-                containerWidth:containerWidth];
-  }
-}
+                                            // 2. Aggregate vertical borders into the batch path
+                                            for (NSInteger level = 0; level <= depth; level++) {
+                                              CGFloat borderX = origin.x + (levelSpacing * level);
+                                              CGRect borderRect =
+                                                  CGRectMake(borderX, baseY, borderWidth, rect.size.height);
+                                              [borderPath appendPath:[UIBezierPath bezierPathWithRect:borderRect]];
+                                            }
+                                          }];
 
-#pragma mark - Helper Methods
-
-- (BOOL)isSpacerAtLocation:(NSUInteger)location textStorage:(NSTextStorage *)textStorage
-{
-  NSParagraphStyle *paraStyle = [textStorage attribute:NSParagraphStyleAttributeName
-                                               atIndex:location
-                                        effectiveRange:NULL];
-  if (!paraStyle) {
-    return NO;
-  }
-  return (paraStyle.headIndent == 0 && paraStyle.minimumLineHeight > 0 &&
-          fabs(paraStyle.minimumLineHeight - paraStyle.maximumLineHeight) < 0.001);
-}
-
-- (void)drawFragment:(NSDictionary *)fragment
-               textStorage:(NSTextStorage *)textStorage
-                    origin:(CGPoint)origin
-              levelSpacing:(CGFloat)levelSpacing
-        nestedMarginBottom:(CGFloat)nestedMarginBottom
-    firstCharIndexForDepth:(NSDictionary<NSNumber *, NSNumber *> *)firstCharIndexForDepth
-               borderColor:(UIColor *)borderColor
-               borderWidth:(CGFloat)borderWidth
-            containerWidth:(CGFloat)containerWidth
-{
-  CGRect rect = [fragment[kFragmentRectKey] CGRectValue];
-  NSInteger depth = [fragment[kFragmentDepthKey] integerValue];
-  NSUInteger charLocation = [fragment[kFragmentDepthLocationKey] unsignedIntegerValue];
-  BOOL isSpacer = [fragment[kFragmentIsSpacerKey] boolValue];
-  CGFloat baseY = origin.y + rect.origin.y;
-
-  UIColor *backgroundColor = [textStorage attribute:RichTextBlockquoteBackgroundColorAttributeName
-                                            atIndex:charLocation
-                                     effectiveRange:NULL]
-                                 ?: [_config blockquoteBackgroundColor];
-  if (backgroundColor && backgroundColor != [UIColor clearColor]) {
-    CGRect bgRect = CGRectMake(origin.x, baseY, containerWidth, rect.size.height);
-    [backgroundColor setFill];
-    UIRectFill(bgRect);
-  }
-
-  // Border aligns with text content naturally since paragraphSpacing adds space after paragraphs
-  for (NSInteger level = 0; level <= depth; level++) {
-    CGFloat borderY = baseY;
-    CGFloat borderHeight = rect.size.height;
-    CGRect borderRect = CGRectMake(origin.x + (levelSpacing * level), borderY, borderWidth, borderHeight);
+  // 3. Perform a single batch fill for all borders
+  if (!borderPath.isEmpty) {
     [borderColor setFill];
-    UIRectFill(borderRect);
+    [borderPath fill];
   }
 }
 

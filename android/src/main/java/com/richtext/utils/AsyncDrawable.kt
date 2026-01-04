@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
-import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
@@ -20,32 +19,42 @@ import java.util.concurrent.Executors
 class AsyncDrawable(
   private val url: String,
 ) : Drawable() {
-  internal var internalDrawable: Drawable = Color.TRANSPARENT.toDrawable()
-  private val mainHandler = Handler(Looper.getMainLooper())
-  private val executor = Executors.newSingleThreadExecutor()
+  // 1. Use a shared companion executor to avoid thread leakage per instance
+  companion object {
+    private val sharedExecutor = Executors.newFixedThreadPool(4)
+    private val mainHandler = Handler(Looper.getMainLooper())
+  }
+
+  var internalDrawable: Drawable = Color.TRANSPARENT.toDrawable()
+
+  // 2. Track loading state more granularly
   var isLoaded = false
+    private set
+
   var onLoaded: (() -> Unit)? = null
 
   init {
-    internalDrawable.bounds = bounds
     load()
   }
 
   private fun load() {
-    executor.execute {
+    sharedExecutor.execute {
       try {
-        isLoaded = false
-        val inputStream = URL(url).openStream()
-        val bitmap = BitmapFactory.decodeStream(inputStream)
+        // 3. Proper Resource Management: Use 'use' to close the stream automatically
+        val bitmap =
+          URL(url).openStream().use {
+            BitmapFactory.decodeStream(it)
+          }
 
         mainHandler.post {
-          if (bitmap != null) {
-            val drawable = bitmap.toDrawable(Resources.getSystem())
+          bitmap?.let {
+            val drawable = it.toDrawable(Resources.getSystem())
             drawable.bounds = bounds
             internalDrawable = drawable
           }
           isLoaded = true
           onLoaded?.invoke()
+          invalidateSelf() // 4. Critical: Tell the system to redraw
         }
       } catch (e: Exception) {
         Log.e("AsyncDrawable", "Failed to load image from: $url", e)
@@ -57,9 +66,7 @@ class AsyncDrawable(
     }
   }
 
-  override fun draw(canvas: Canvas) {
-    internalDrawable.draw(canvas)
-  }
+  override fun draw(canvas: Canvas) = internalDrawable.draw(canvas)
 
   override fun setAlpha(alpha: Int) {
     internalDrawable.alpha = alpha
@@ -70,7 +77,7 @@ class AsyncDrawable(
   }
 
   @Deprecated("Deprecated in Java")
-  override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
+  override fun getOpacity(): Int = internalDrawable.opacity
 
   override fun setBounds(
     left: Int,

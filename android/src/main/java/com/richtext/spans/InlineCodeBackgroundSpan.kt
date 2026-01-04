@@ -8,24 +8,28 @@ import android.text.Spanned
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.style.LineBackgroundSpan
-import com.richtext.styles.CodeStyle
 import com.richtext.styles.StyleConfig
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Draws rounded rectangle backgrounds for inline code spans.
- * Handles both single-line and multi-line code blocks with proper border rendering.
- * Implements LineBackgroundSpan to draw backgrounds automatically for each line.
- */
 class InlineCodeBackgroundSpan(
   private val style: StyleConfig,
 ) : LineBackgroundSpan {
   companion object {
     private const val CORNER_RADIUS = 6.0f
     private const val BORDER_WIDTH = 1.0f
-    private const val HALF_STROKE = BORDER_WIDTH / 2f
   }
+
+  private val rect = RectF()
+  private val path = Path()
+  private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+  private val borderPaint =
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      style = Paint.Style.STROKE
+      strokeWidth = BORDER_WIDTH
+      strokeJoin = Paint.Join.ROUND
+      strokeCap = Paint.Cap.ROUND
+    }
 
   override fun drawBackground(
     canvas: Canvas,
@@ -46,172 +50,94 @@ class InlineCodeBackgroundSpan(
     val spanEnd = text.getSpanEnd(this)
     if (spanStart < 0 || spanEnd <= spanStart) return
 
-    val codeStyle = style.getCodeStyle()
-    val lineInfo = calculateLineInfo(start, end, spanStart, spanEnd)
-    val (lineStartOffset, lineEndOffset) =
-      calculateLineOffsets(
-        text,
-        start,
-        end,
-        spanStart,
-        spanEnd,
-        left,
-        right,
-        p,
-        lineInfo,
-      )
+    // 1. Determine relative positioning
+    val isFirst = spanStart >= start
+    val isLast = spanEnd <= end
+
+    // 2. Calculate coordinates
     val finalBottom = adjustBottomForMargin(text, end, bottom)
-    val rect = createRect(lineStartOffset, lineEndOffset, top, finalBottom)
+    val startX = if (isFirst) getHorizontalOffset(text, start, end, spanStart, p) + left else left.toFloat()
+    val endX = if (isLast) getHorizontalOffset(text, start, end, spanEnd, p) + left else right.toFloat()
 
-    drawBackgroundAndBorders(canvas, rect, codeStyle, lineInfo)
+    rect.set(min(startX, endX), top.toFloat(), max(startX, endX), finalBottom.toFloat())
+
+    // 3. Apply Style
+    val codeStyle = style.getCodeStyle()
+    bgPaint.color = codeStyle.backgroundColor
+    borderPaint.color = codeStyle.borderColor
+
+    drawShapes(canvas, isFirst, isLast)
   }
 
-  private data class LineInfo(
-    val isSingleLine: Boolean,
-    val isFirstLine: Boolean,
-    val isLastLine: Boolean,
-    val spanStartsMidLine: Boolean,
-    val spanEndsMidLine: Boolean,
-  )
-
-  private fun calculateLineInfo(
-    lineStart: Int,
-    lineEnd: Int,
-    spanStart: Int,
-    spanEnd: Int,
-  ): LineInfo {
-    val isSingleLine = lineStart <= spanStart && spanEnd <= lineEnd
-    val isFirstLine = lineStart <= spanStart && spanStart < lineEnd
-    val isLastLine = lineStart < spanEnd && spanEnd <= lineEnd
-    val spanStartsMidLine = lineStart < spanStart
-    val spanEndsMidLine = lineEnd > spanEnd
-
-    return LineInfo(isSingleLine, isFirstLine, isLastLine, spanStartsMidLine, spanEndsMidLine)
-  }
-
-  private fun calculateLineOffsets(
+  private fun getHorizontalOffset(
     text: CharSequence,
     lineStart: Int,
     lineEnd: Int,
-    spanStart: Int,
-    spanEnd: Int,
-    left: Int,
-    right: Int,
+    index: Int,
     paint: Paint,
-    lineInfo: LineInfo,
-  ): Pair<Int, Int> {
-    if (!lineInfo.spanStartsMidLine && !lineInfo.spanEndsMidLine) {
-      return Pair(left, right)
-    }
-
-    // Need precise positioning - create StaticLayout for this line
+  ): Float {
+    if (index <= lineStart) return 0f
     val lineText = text.subSequence(lineStart, lineEnd)
     val textPaint = paint as? TextPaint ?: TextPaint(paint)
-    val lineLayout = StaticLayout.Builder.obtain(lineText, 0, lineText.length, textPaint, right - left).build()
-
-    val relativeSpanStart = max(0, spanStart - lineStart)
-    val relativeSpanEnd = min(lineText.length, spanEnd - lineStart)
-
-    val startOffset =
-      if (lineInfo.spanStartsMidLine) {
-        lineLayout.getPrimaryHorizontal(relativeSpanStart).toInt() + left
-      } else {
-        left
-      }
-
-    val endOffset =
-      if (lineInfo.spanEndsMidLine) {
-        lineLayout.getPrimaryHorizontal(relativeSpanEnd).toInt() + left
-      } else {
-        right
-      }
-
-    return Pair(startOffset, endOffset)
+    val layout = StaticLayout.Builder.obtain(lineText, 0, lineText.length, textPaint, 10000).build()
+    return layout.getPrimaryHorizontal(index - lineStart)
   }
 
-  private fun adjustBottomForMargin(
-    text: CharSequence,
-    lineEnd: Int,
-    bottom: Int,
-  ): Int {
-    if (lineEnd <= 0 || lineEnd > text.length || text[lineEnd - 1] != '\n') {
-      return bottom
-    }
-
-    // Check if there's a MarginBottomSpan ending at this newline position
-    if (text !is Spanned) return bottom
-
-    var adjustedBottom = bottom
-    text.getSpans(lineEnd - 1, lineEnd, MarginBottomSpan::class.java).forEach { marginSpan ->
-      if (text.getSpanEnd(marginSpan) == lineEnd) {
-        adjustedBottom -= marginSpan.marginBottom.toInt()
-      }
-    }
-    return adjustedBottom
-  }
-
-  private fun createRect(
-    startOffset: Int,
-    endOffset: Int,
-    top: Int,
-    bottom: Int,
-  ): RectF =
-    RectF(
-      min(startOffset, endOffset).toFloat(),
-      top.toFloat(),
-      max(startOffset, endOffset).toFloat(),
-      bottom.toFloat(),
-    )
-
-  private fun drawBackgroundAndBorders(
+  private fun drawShapes(
     canvas: Canvas,
-    rect: RectF,
-    codeStyle: CodeStyle,
-    lineInfo: LineInfo,
+    isFirst: Boolean,
+    isLast: Boolean,
   ) {
-    val bgPaint = createPaint(Paint.Style.FILL, codeStyle.backgroundColor)
-    val borderPaint = createPaint(Paint.Style.STROKE, codeStyle.borderColor)
+    val r = CORNER_RADIUS
+    val radii = createRadii(isFirst, isLast)
 
-    if (lineInfo.isSingleLine) {
-      drawSingleLineBackground(canvas, rect, bgPaint, borderPaint)
-    } else {
-      drawMultiLineBackground(canvas, rect, bgPaint, borderPaint, lineInfo)
-    }
-  }
-
-  private fun drawSingleLineBackground(
-    canvas: Canvas,
-    rect: RectF,
-    bgPaint: Paint,
-    borderPaint: Paint,
-  ) {
-    canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, bgPaint)
-    canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, borderPaint)
-  }
-
-  private fun drawMultiLineBackground(
-    canvas: Canvas,
-    rect: RectF,
-    bgPaint: Paint,
-    borderPaint: Paint,
-    lineInfo: LineInfo,
-  ) {
-    val radii = createRadii(lineInfo.isFirstLine, lineInfo.isLastLine)
-    val path =
-      Path().apply {
-        addRoundRect(rect, radii, Path.Direction.CW)
-      }
+    path.reset()
+    path.addRoundRect(rect, radii, Path.Direction.CW)
     canvas.drawPath(path, bgPaint)
-    drawBorders(canvas, rect, borderPaint, lineInfo.isFirstLine, lineInfo.isLastLine)
+
+    if (isFirst && isLast) {
+      canvas.drawPath(path, borderPaint)
+    } else {
+      drawOpenBorders(canvas, isFirst, isLast)
+    }
+  }
+
+  private fun drawOpenBorders(
+    canvas: Canvas,
+    isFirst: Boolean,
+    isLast: Boolean,
+  ) {
+    val r = CORNER_RADIUS
+    path.reset()
+
+    if (isFirst) {
+      path.moveTo(rect.right, rect.top)
+      path.lineTo(rect.left + r, rect.top)
+      path.quadTo(rect.left, rect.top, rect.left, rect.top + r)
+      path.lineTo(rect.left, rect.bottom - r)
+      path.quadTo(rect.left, rect.bottom, rect.left + r, rect.bottom)
+      path.lineTo(rect.right, rect.bottom)
+    } else if (isLast) {
+      path.moveTo(rect.left, rect.top)
+      path.lineTo(rect.right - r, rect.top)
+      path.quadTo(rect.right, rect.top, rect.right, rect.top + r)
+      path.lineTo(rect.right, rect.bottom - r)
+      path.quadTo(rect.right, rect.bottom, rect.right - r, rect.bottom)
+      path.lineTo(rect.left, rect.bottom)
+    } else {
+      path.moveTo(rect.left, rect.top)
+      path.lineTo(rect.right, rect.top)
+      path.moveTo(rect.left, rect.bottom)
+      path.lineTo(rect.right, rect.bottom)
+    }
+    canvas.drawPath(path, borderPaint)
   }
 
   private fun createRadii(
-    isFirstLine: Boolean,
-    isLastLine: Boolean,
-  ): FloatArray {
-    // Radii array format: [top-left-x, top-left-y, top-right-x, top-right-y,
-    //                     bottom-right-x, bottom-right-y, bottom-left-x, bottom-left-y]
-    val allRounded =
+    isFirst: Boolean,
+    isLast: Boolean,
+  ) = when {
+    isFirst && isLast -> {
       floatArrayOf(
         CORNER_RADIUS,
         CORNER_RADIUS,
@@ -222,122 +148,32 @@ class InlineCodeBackgroundSpan(
         CORNER_RADIUS,
         CORNER_RADIUS,
       )
-    val leftRounded =
-      floatArrayOf(
-        CORNER_RADIUS,
-        CORNER_RADIUS,
-        0f,
-        0f,
-        0f,
-        0f,
-        CORNER_RADIUS,
-        CORNER_RADIUS,
-      )
-    val rightRounded =
-      floatArrayOf(
-        0f,
-        0f,
-        CORNER_RADIUS,
-        CORNER_RADIUS,
-        CORNER_RADIUS,
-        CORNER_RADIUS,
-        0f,
-        0f,
-      )
-    val noRounded = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+    }
 
-    return when {
-      isFirstLine && isLastLine -> allRounded
-      isFirstLine -> leftRounded
-      isLastLine -> rightRounded
-      else -> noRounded // Middle lines: rectangular
+    isFirst -> {
+      floatArrayOf(CORNER_RADIUS, CORNER_RADIUS, 0f, 0f, 0f, 0f, CORNER_RADIUS, CORNER_RADIUS)
+    }
+
+    isLast -> {
+      floatArrayOf(0f, 0f, CORNER_RADIUS, CORNER_RADIUS, CORNER_RADIUS, CORNER_RADIUS, 0f, 0f)
+    }
+
+    else -> {
+      floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
     }
   }
 
-  private fun drawBorders(
-    canvas: Canvas,
-    rect: RectF,
-    paint: Paint,
-    isFirstLine: Boolean,
-    isLastLine: Boolean,
-  ) {
-    val topY = rect.top + HALF_STROKE
-    val bottomY = rect.bottom - HALF_STROKE
-
-    when {
-      isFirstLine -> {
-        // First line: rounded left corners, top and bottom borders, no right border
-        drawRoundedLeftBorder(canvas, rect, topY, bottomY, paint)
-        canvas.drawLine(rect.left + CORNER_RADIUS, topY, rect.right, topY, paint)
-        canvas.drawLine(rect.left + CORNER_RADIUS, bottomY, rect.right, bottomY, paint)
-      }
-
-      isLastLine -> {
-        // Last line: rounded right corners, top and bottom borders, no left border
-        canvas.drawLine(rect.left, topY, rect.right - CORNER_RADIUS, topY, paint)
-        canvas.drawLine(rect.left, bottomY, rect.right - CORNER_RADIUS, bottomY, paint)
-        drawRoundedRightBorder(canvas, rect, topY, bottomY, paint)
-      }
-
-      else -> {
-        // Middle lines: only top and bottom borders
-        canvas.drawLine(rect.left, topY, rect.right, topY, paint)
-        canvas.drawLine(rect.left, bottomY, rect.right, bottomY, paint)
-      }
+  private fun adjustBottomForMargin(
+    text: Spanned,
+    lineEnd: Int,
+    bottom: Int,
+  ): Int {
+    if (lineEnd <= 0 || lineEnd > text.length || text[lineEnd - 1] != '\n') return bottom
+    val marginSpans = text.getSpans(lineEnd - 1, lineEnd, MarginBottomSpan::class.java)
+    var adjusted = bottom
+    for (span in marginSpans) {
+      if (text.getSpanEnd(span) == lineEnd) adjusted -= span.marginBottom.toInt()
     }
-  }
-
-  private fun drawRoundedLeftBorder(
-    canvas: Canvas,
-    rect: RectF,
-    topY: Float,
-    bottomY: Float,
-    paint: Paint,
-  ) {
-    val borderX = rect.left + HALF_STROKE
-    val path =
-      Path().apply {
-        moveTo(borderX, rect.top + CORNER_RADIUS)
-        quadTo(borderX, rect.top, rect.left + CORNER_RADIUS, topY)
-        moveTo(rect.left + CORNER_RADIUS, bottomY)
-        quadTo(borderX, rect.bottom, borderX, rect.bottom - CORNER_RADIUS)
-        moveTo(borderX, rect.top + CORNER_RADIUS)
-        lineTo(borderX, rect.bottom - CORNER_RADIUS)
-      }
-    canvas.drawPath(path, paint)
-  }
-
-  private fun drawRoundedRightBorder(
-    canvas: Canvas,
-    rect: RectF,
-    topY: Float,
-    bottomY: Float,
-    paint: Paint,
-  ) {
-    val borderX = rect.right - HALF_STROKE
-    val path =
-      Path().apply {
-        moveTo(rect.right - CORNER_RADIUS, topY)
-        quadTo(rect.right, topY, borderX, rect.top + CORNER_RADIUS)
-        moveTo(borderX, rect.bottom - CORNER_RADIUS)
-        quadTo(rect.right, bottomY, rect.right - CORNER_RADIUS, bottomY)
-        moveTo(borderX, rect.top + CORNER_RADIUS)
-        lineTo(borderX, rect.bottom - CORNER_RADIUS)
-      }
-    canvas.drawPath(path, paint)
-  }
-
-  private fun createPaint(
-    style: Paint.Style,
-    color: Int,
-  ) = Paint().apply {
-    this.style = style
-    this.color = color
-    isAntiAlias = true
-    if (style == Paint.Style.STROKE) {
-      strokeWidth = BORDER_WIDTH
-      strokeJoin = Paint.Join.ROUND
-      strokeCap = Paint.Cap.ROUND
-    }
+    return adjusted
   }
 }

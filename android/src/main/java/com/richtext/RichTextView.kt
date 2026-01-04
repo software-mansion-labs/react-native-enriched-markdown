@@ -2,133 +2,136 @@ package com.richtext
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.text.Spannable
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
+import android.util.Log
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.text.PrecomputedTextCompat
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.uimanager.UIManagerHelper
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
-import com.richtext.spans.ImageSpan
 import com.richtext.styles.StyleConfig
+import java.util.concurrent.Executors
 
-class RichTextView : AppCompatTextView {
-  private val parser = Parser.shared
-  private val renderer = Renderer()
-  private var onLinkPressCallback: ((String) -> Unit)? = null
+/**
+ * RichTextView that handles Markdown parsing and rendering on a background thread.
+ * Utilizes PrecomputedText for smoother UI updates on supported Android versions.
+ */
+class RichTextView
+  @JvmOverloads
+  constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+  ) : AppCompatTextView(context, attrs, defStyleAttr) {
+    private val parser = Parser.shared
+    private val renderer = Renderer()
+    private var onLinkPressCallback: ((String) -> Unit)? = null
 
-  var richTextStyle: StyleConfig? = null
-  private var currentMarkdown: String = ""
+    // Background processing tools
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val executor = Executors.newSingleThreadExecutor()
+    private var currentRenderId = 0L
 
-  constructor(context: Context) : super(context) {
-    prepareComponent()
-  }
+    var richTextStyle: StyleConfig? = null
+      private set
 
-  constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-    prepareComponent()
-  }
+    private var currentMarkdown: String = ""
 
-  constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
-    context,
-    attrs,
-    defStyleAttr,
-  ) {
-    prepareComponent()
-  }
+    init {
+      movementMethod = LinkMovementMethod.getInstance()
+      setTextIsSelectable(true)
+      setPadding(0, 0, 0, 0)
+      setBackgroundColor(Color.TRANSPARENT)
+    }
 
-  private fun prepareComponent() {
-    movementMethod = LinkMovementMethod.getInstance()
-    setTextIsSelectable(true) // Default to true to match prop default
-    setPadding(0, 0, 0, 0)
-    setBackgroundColor(Color.TRANSPARENT)
-  }
+    fun setMarkdownContent(markdown: String) {
+      if (currentMarkdown == markdown) return
+      currentMarkdown = markdown
+      scheduleRender()
+    }
 
-  fun setMarkdownContent(markdown: String) {
-    currentMarkdown = markdown
-    renderMarkdown()
-  }
+    fun setRichTextStyle(style: ReadableMap?) {
+      val newStyle = style?.let { StyleConfig(it, context) }
+      if (richTextStyle == newStyle) return
 
-  fun renderMarkdown() {
-    try {
-      val ast = parser.parseMarkdown(currentMarkdown)
-      if (ast != null) {
-        val currentStyle =
-          requireNotNull(richTextStyle) {
-            "richTextStyle should always be provided from JS side with defaults."
+      richTextStyle = newStyle
+      scheduleRender()
+    }
+
+    private fun scheduleRender() {
+      val style = richTextStyle ?: return
+      val markdown = currentMarkdown
+      val renderId = ++currentRenderId
+
+      executor.execute {
+        try {
+          // 1. Parsing (C++ Native)
+          val ast =
+            parser.parseMarkdown(markdown) ?: run {
+              mainHandler.post { if (renderId == currentRenderId) text = "" }
+              return@execute
+            }
+
+          // 2. Rendering (Spannable Construction)
+          renderer.configure(style, context)
+          val styledText = renderer.renderDocument(ast, onLinkPressCallback)
+
+          // 3. Precompute Layout
+          // This calculates line breaks and measurements on this background thread
+          val finalParams = getTextMetricsParamsCompat()
+          val processedText = PrecomputedTextCompat.create(styledText, finalParams)
+
+          mainHandler.post {
+            if (renderId == currentRenderId) {
+              applyRenderedText(processedText)
+            }
           }
-        renderer.configure(currentStyle, context)
-        val styledText = renderer.renderDocument(ast, onLinkPressCallback)
-        text = styledText
-
-        movementMethod = LinkMovementMethod.getInstance()
-
-        // Register image spans for async loading
-        (text as? Spannable)?.let { spannable ->
-          spannable.getSpans(0, spannable.length, ImageSpan::class.java).forEach { span ->
-            span.registerTextView(this)
-            span.observeAsyncDrawableLoaded(null)
-          }
+        } catch (e: Exception) {
+          Log.e("RichTextView", "Error rendering: ${e.message}", e)
+          mainHandler.post { if (renderId == currentRenderId) text = "" }
         }
-      } else {
-        android.util.Log.e("RichTextView", "Failed to parse markdown - AST is null")
-        text = ""
       }
-    } catch (e: Exception) {
-      android.util.Log.e("RichTextView", "Error parsing markdown: ${e.message}")
-      text = ""
     }
-  }
 
-  fun setRichTextStyle(style: ReadableMap?) {
-    val newStyle = style?.let { StyleConfig(it, context) }
-    val styleChanged = richTextStyle != newStyle
-    richTextStyle = newStyle
-    if (styleChanged) {
-      renderMarkdown()
-    }
-  }
+    private fun applyRenderedText(styledText: CharSequence) {
+      // Sets the text. If it's PrecomputedText, the UI thread skips the measure pass.
+      text = styledText
 
-  fun setOnLinkPressCallback(callback: (String) -> Unit) {
-    onLinkPressCallback = callback
-  }
-
-  fun emitOnLinkPress(url: String) {
-    val context = this.context as? com.facebook.react.bridge.ReactContext ?: return
-    val surfaceId =
-      com.facebook.react.uimanager.UIManagerHelper
-        .getSurfaceId(context)
-    val dispatcher =
-      com.facebook.react.uimanager.UIManagerHelper
-        .getEventDispatcherForReactTag(context, id)
-
-    dispatcher?.dispatchEvent(
-      com.richtext.events.LinkPressEvent(
-        surfaceId,
-        id,
-        url,
-      ),
-    )
-  }
-
-  fun setIsSelectable(selectable: Boolean) {
-    if (isTextSelectable != selectable) {
-      setTextIsSelectable(selectable)
-
-      // Ensure links always work: LinkMovementMethod is needed for link clicks
-      // setTextIsSelectable might reset movementMethod, so we always restore it
+      // LinkMovementMethod check (setText can sometimes reset it)
       if (movementMethod !is LinkMovementMethod) {
         movementMethod = LinkMovementMethod.getInstance()
       }
 
-      // When selection is disabled, ensure view is clickable for link interaction
-      // setTextIsSelectable(false) might set isClickable=false, breaking links
-      if (!selectable && !isClickable) {
-        isClickable = true
+      // Register ImageSpans from the collector
+      renderer.getCollectedImageSpans().forEach { span ->
+        span.registerTextView(this)
       }
     }
-  }
 
-  override fun onDetachedFromWindow() {
-    super.onDetachedFromWindow()
+    fun setIsSelectable(selectable: Boolean) {
+      if (isTextSelectable == selectable) return
+      setTextIsSelectable(selectable)
+      movementMethod = LinkMovementMethod.getInstance()
+      if (!selectable && !isClickable) isClickable = true
+    }
+
+    fun emitOnLinkPress(url: String) {
+      val reactContext = context as? com.facebook.react.bridge.ReactContext ?: return
+      val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+      val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+
+      dispatcher?.dispatchEvent(
+        com.richtext.events.LinkPressEvent(surfaceId, id, url),
+      )
+    }
+
+    fun setOnLinkPressCallback(callback: (String) -> Unit) {
+      onLinkPressCallback = callback
+    }
   }
-}

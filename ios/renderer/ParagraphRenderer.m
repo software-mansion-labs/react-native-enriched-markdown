@@ -24,74 +24,50 @@
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
+  // 1. Context-Aware Styling
+  // We only set the block style if no parent element (like a list or blockquote) has already established one.
+  BOOL isTopLevel = (context.currentBlockType == BlockTypeNone);
 
-  // Only set paragraph blockStyle if no other block element has already set one
-  // This allows strong/emphasis elements inside blockquotes, lists, etc. to inherit parent styles
-  BOOL shouldSetParagraphStyle = (context.currentBlockType == BlockTypeNone);
-  if (shouldSetParagraphStyle) {
-    CGFloat fontSize = [_config paragraphFontSize];
-    NSString *fontFamily = [_config paragraphFontFamily];
-    NSString *fontWeight = [_config paragraphFontWeight];
-    UIColor *paragraphColor = [_config paragraphColor];
-
+  if (isTopLevel) {
     [context setBlockStyle:BlockTypeParagraph
-                  fontSize:fontSize
-                fontFamily:fontFamily
-                fontWeight:fontWeight
-                     color:paragraphColor];
+                  fontSize:_config.paragraphFontSize
+                fontFamily:_config.paragraphFontFamily
+                fontWeight:_config.paragraphFontWeight
+                     color:_config.paragraphColor];
   }
 
   NSUInteger start = output.length;
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];
   } @finally {
-    // Only clear blockStyle if we set it (paragraph is top-level)
-    if (shouldSetParagraphStyle) {
+    // Only clear the style if this paragraph was the one that set it.
+    if (isTopLevel) {
       [context clearBlockStyle];
     }
   }
 
-  NSUInteger end = output.length;
+  // 2. Geometry and Spacing Logic
+  if (output.length <= start)
+    return;
+  NSRange range = NSMakeRange(start, output.length - start);
 
-  // Skip lineHeight for paragraphs containing block images to prevent unwanted spacing above image
-  BOOL containsBlockImage =
-      (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
+  // Check if this paragraph is purely a wrapper for a block image.
+  // Images often require different spacing and should not have standard line height applied.
+  BOOL isBlockImage = (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
 
-  if (!containsBlockImage) {
-    CGFloat lineHeight = [_config paragraphLineHeight];
-    NSRange paragraphContentRange = NSMakeRange(start, end - start);
-    applyLineHeight(output, paragraphContentRange, lineHeight);
+  // Apply line height only for text paragraphs to avoid unwanted gaps above/below images.
+  if (!isBlockImage) {
+    applyLineHeight(output, range, _config.paragraphLineHeight);
   }
 
-  // Only apply marginBottom for top-level paragraphs
-  // Block elements (blockquote, list, etc.) handle their own spacing
+  // 3. Margin Application
+  // Only top-level paragraphs apply bottom margins; nested paragraphs defer to their parents.
   CGFloat marginBottom = 0;
-  if (shouldSetParagraphStyle) {
-    marginBottom = [self getMarginBottomForParagraph:node config:_config];
+  if (isTopLevel) {
+    marginBottom = isBlockImage ? _config.imageMarginBottom : _config.paragraphMarginBottom;
   }
+
   applyParagraphSpacing(output, start, marginBottom);
-}
-
-#pragma mark - Helper Methods
-
-- (CGFloat)getMarginBottomForParagraph:(MarkdownASTNode *)node config:(StyleConfig *)config
-{
-  // TODO: Refactor - each block element (image, blockquote, list) should handle its own spacing
-  // Currently images are handled here, but blockquotes handle their own spacing (inconsistent)
-
-  // If paragraph contains only a single block-level element, use that element's marginBottom
-  // Otherwise, use paragraph's marginBottom
-  if (node.children.count == 1) {
-    MarkdownASTNode *child = node.children[0];
-
-    // Image: use image's marginBottom
-    if (child.type == MarkdownNodeTypeImage) {
-      return [config imageMarginBottom];
-    }
-  }
-
-  // Default: use paragraph's marginBottom
-  return [config paragraphMarginBottom];
 }
 
 @end

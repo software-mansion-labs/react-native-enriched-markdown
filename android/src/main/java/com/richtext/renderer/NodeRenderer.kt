@@ -3,6 +3,7 @@ package com.richtext.renderer
 import android.content.Context
 import android.text.SpannableStringBuilder
 import com.richtext.parser.MarkdownASTNode
+import com.richtext.spans.ImageSpan
 import com.richtext.styles.StyleConfig
 
 interface NodeRenderer {
@@ -21,89 +22,44 @@ data class RendererConfig(
 class RendererFactory(
   private val config: RendererConfig,
   val context: Context,
+  // 1. Callback to report ImageSpans back to the main Renderer collector
+  private val onImageSpanCreated: (ImageSpan) -> Unit,
 ) {
   val blockStyleContext = BlockStyleContext()
 
-  private val sharedTextRenderer = TextRenderer()
-  private val sharedLinkRenderer = LinkRenderer(config)
-  private val sharedHeadingRenderer = HeadingRenderer(config)
-  private val sharedParagraphRenderer = ParagraphRenderer(config)
-  private val sharedDocumentRenderer = DocumentRenderer(config)
-  private val sharedStrongRenderer = StrongRenderer(config)
-  private val sharedEmphasisRenderer = EmphasisRenderer(config)
-  private val sharedInlineCodeRenderer = InlineCodeRenderer(config)
-  private val sharedImageRenderer = ImageRenderer(config, context)
-  private val sharedLineBreakRenderer = LineBreakRenderer()
-  private val sharedBlockquoteRenderer = BlockquoteRenderer(config)
-  private val sharedUnorderedListRenderer = ListRenderer(config, isOrdered = false)
-  private val sharedOrderedListRenderer = ListRenderer(config, isOrdered = true)
-  private val sharedListItemRenderer = ListItemRenderer(config)
+  private val textRenderer = TextRenderer()
+  private val lineBreakRenderer = LineBreakRenderer()
+
+  private val renderers: Map<MarkdownASTNode.NodeType, NodeRenderer> by lazy {
+    mapOf(
+      MarkdownASTNode.NodeType.Document to DocumentRenderer(config),
+      MarkdownASTNode.NodeType.Paragraph to ParagraphRenderer(config),
+      MarkdownASTNode.NodeType.Heading to HeadingRenderer(config),
+      MarkdownASTNode.NodeType.Blockquote to BlockquoteRenderer(config),
+      MarkdownASTNode.NodeType.UnorderedList to ListRenderer(config, isOrdered = false),
+      MarkdownASTNode.NodeType.OrderedList to ListRenderer(config, isOrdered = true),
+      MarkdownASTNode.NodeType.ListItem to ListItemRenderer(config),
+      MarkdownASTNode.NodeType.Text to textRenderer,
+      MarkdownASTNode.NodeType.Link to LinkRenderer(config),
+      MarkdownASTNode.NodeType.Strong to StrongRenderer(config),
+      MarkdownASTNode.NodeType.Emphasis to EmphasisRenderer(config),
+      MarkdownASTNode.NodeType.Code to InlineCodeRenderer(config),
+      MarkdownASTNode.NodeType.Image to ImageRenderer(config, context),
+      MarkdownASTNode.NodeType.LineBreak to lineBreakRenderer,
+    )
+  }
+
+  /**
+   * Called by ImageRenderer to report a new span to the collector.
+   */
+  fun registerImageSpan(span: ImageSpan) {
+    onImageSpanCreated(span)
+  }
 
   fun getRenderer(node: MarkdownASTNode): NodeRenderer =
-    when (node.type) {
-      MarkdownASTNode.NodeType.Document -> {
-        sharedDocumentRenderer
-      }
-
-      MarkdownASTNode.NodeType.Paragraph -> {
-        sharedParagraphRenderer
-      }
-
-      MarkdownASTNode.NodeType.Heading -> {
-        sharedHeadingRenderer
-      }
-
-      MarkdownASTNode.NodeType.Blockquote -> {
-        sharedBlockquoteRenderer
-      }
-
-      MarkdownASTNode.NodeType.UnorderedList -> {
-        sharedUnorderedListRenderer
-      }
-
-      MarkdownASTNode.NodeType.OrderedList -> {
-        sharedOrderedListRenderer
-      }
-
-      MarkdownASTNode.NodeType.ListItem -> {
-        sharedListItemRenderer
-      }
-
-      MarkdownASTNode.NodeType.Text -> {
-        sharedTextRenderer
-      }
-
-      MarkdownASTNode.NodeType.Link -> {
-        sharedLinkRenderer
-      }
-
-      MarkdownASTNode.NodeType.Strong -> {
-        sharedStrongRenderer
-      }
-
-      MarkdownASTNode.NodeType.Emphasis -> {
-        sharedEmphasisRenderer
-      }
-
-      MarkdownASTNode.NodeType.Code -> {
-        sharedInlineCodeRenderer
-      }
-
-      MarkdownASTNode.NodeType.Image -> {
-        sharedImageRenderer
-      }
-
-      MarkdownASTNode.NodeType.LineBreak -> {
-        sharedLineBreakRenderer
-      }
-
-      else -> {
-        android.util.Log.w(
-          "RendererFactory",
-          "No renderer found for node type: ${node.type}",
-        )
-        sharedTextRenderer
-      }
+    renderers[node.type] ?: run {
+      android.util.Log.w("RendererFactory", "No renderer for: ${node.type}")
+      textRenderer
     }
 
   fun renderChildren(
@@ -111,20 +67,15 @@ class RendererFactory(
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
   ) {
-    for (child in node.children) {
+    node.children.forEach { child ->
       getRenderer(child).render(child, builder, onLinkPress, this)
     }
   }
 
   /**
-   * Helper method to reduce repetitive start/length pattern in renderers.
-   * Tracks the start position, executes rendering logic, and applies a span if content was rendered.
-   *
-   * @param builder The SpannableStringBuilder to append to
-   * @param renderContent Lambda that performs the actual rendering (appends content)
-   * @param applySpan Lambda that applies the span to the rendered range (start, end, blockStyle)
+   * Improved helper for applying spans to blocks of text.
    */
-  fun renderWithSpan(
+  inline fun renderWithSpan(
     builder: SpannableStringBuilder,
     renderContent: () -> Unit,
     applySpan: (start: Int, end: Int, blockStyle: BlockStyle) -> Unit,
@@ -132,8 +83,8 @@ class RendererFactory(
     val start = builder.length
     renderContent()
     val end = builder.length
-    val contentLength = end - start
-    if (contentLength > 0) {
+
+    if (end > start) {
       val blockStyle = blockStyleContext.requireBlockStyle()
       applySpan(start, end, blockStyle)
     }

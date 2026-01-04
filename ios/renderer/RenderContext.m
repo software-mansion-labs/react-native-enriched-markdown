@@ -1,8 +1,6 @@
 #import "RenderContext.h"
 #import "CodeBackground.h"
 
-// BlockStyle is a simple data class with only properties.
-// Properties are automatically synthesized, so no implementation code is needed.
 @implementation BlockStyle
 @end
 
@@ -13,21 +11,43 @@
   if (self = [super init]) {
     _linkRanges = [NSMutableArray array];
     _linkURLs = [NSMutableArray array];
-    _currentBlockType = BlockTypeNone;
-    _currentBlockStyle = nil;
-    _currentHeadingLevel = 0;
-    _blockquoteDepth = 0;
-    _listDepth = 0;
-    _listType = ListTypeUnordered;
-    _listItemNumber = 0;
+    // Pre-allocate the style object to be reused throughout the session to prevent churn
+    _currentBlockStyle = [[BlockStyle alloc] init];
+    [self reset];
   }
   return self;
 }
 
+#pragma mark - Link Registry
+
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url
 {
+  if (range.length == 0)
+    return;
   [self.linkRanges addObject:[NSValue valueWithRange:range]];
   [self.linkURLs addObject:url ?: @""];
+}
+
+#pragma mark - Block Style Management
+
+/**
+ * Updates the shared BlockStyle object with new traits.
+ * This avoids allocating a new object for every block node in the AST.
+ */
+- (void)setBlockStyle:(BlockType)type
+             fontSize:(CGFloat)fontSize
+           fontFamily:(NSString *)fontFamily
+           fontWeight:(NSString *)fontWeight
+                color:(UIColor *)color
+         headingLevel:(NSInteger)headingLevel
+{
+  _currentBlockType = type;
+  _currentHeadingLevel = headingLevel;
+
+  _currentBlockStyle.fontSize = fontSize;
+  _currentBlockStyle.fontFamily = fontFamily ?: @"";
+  _currentBlockStyle.fontWeight = fontWeight ?: @"normal";
+  _currentBlockStyle.color = color ?: [UIColor blackColor];
 }
 
 - (void)setBlockStyle:(BlockType)type
@@ -39,23 +59,6 @@
   [self setBlockStyle:type fontSize:fontSize fontFamily:fontFamily fontWeight:fontWeight color:color headingLevel:0];
 }
 
-- (void)setBlockStyle:(BlockType)type
-             fontSize:(CGFloat)fontSize
-           fontFamily:(NSString *)fontFamily
-           fontWeight:(NSString *)fontWeight
-                color:(UIColor *)color
-         headingLevel:(NSInteger)headingLevel
-{
-  _currentBlockType = type;
-  _currentHeadingLevel = headingLevel;
-  BlockStyle *style = [[BlockStyle alloc] init];
-  style.fontSize = fontSize;
-  style.fontFamily = fontFamily ?: @"";
-  style.fontWeight = fontWeight ?: @"normal";
-  style.color = color ?: [UIColor blackColor];
-  _currentBlockStyle = style;
-}
-
 - (BlockStyle *)getBlockStyle
 {
   return _currentBlockStyle;
@@ -64,76 +67,83 @@
 - (void)clearBlockStyle
 {
   _currentBlockType = BlockTypeNone;
-  _currentBlockStyle = nil;
   _currentHeadingLevel = 0;
 }
+
+#pragma mark - Reset
 
 - (void)reset
 {
   [_linkRanges removeAllObjects];
   [_linkURLs removeAllObjects];
   [self clearBlockStyle];
+
   _blockquoteDepth = 0;
   _listDepth = 0;
   _listType = ListTypeUnordered;
   _listItemNumber = 0;
+
+  // Revert shared style object to baseline defaults
+  _currentBlockStyle.fontSize = 0;
+  _currentBlockStyle.fontFamily = @"";
+  _currentBlockStyle.fontWeight = @"";
+  _currentBlockStyle.color = [UIColor blackColor];
 }
 
-+ (BOOL)shouldPreserveColors:(NSDictionary *)existingAttributes
+#pragma mark - Static Utilities
+
+/**
+ * Determines if specific inline attributes should protect the current color.
+ */
++ (BOOL)shouldPreserveColors:(NSDictionary *)attrs
 {
-  if (existingAttributes[NSLinkAttributeName]) {
-    return YES;
-  }
-
-  if (existingAttributes[RichTextCodeAttributeName]) {
-    return YES;
-  }
-  return NO;
+  return (attrs[NSLinkAttributeName] != nil || attrs[RichTextCodeAttributeName] != nil);
 }
 
+/**
+ * Calculates whether a strong color should override the block color.
+ */
 + (UIColor *)calculateStrongColor:(UIColor *)configStrongColor blockColor:(UIColor *)blockColor
 {
-  if (configStrongColor && ![configStrongColor isEqual:blockColor]) {
-    return configStrongColor;
+  if (!configStrongColor || [configStrongColor isEqual:blockColor]) {
+    return blockColor;
   }
-  return blockColor;
+  return configStrongColor;
 }
 
+/**
+ * Safely calculates a range based on a start point and the current output length.
+ */
 + (NSRange)rangeForRenderedContent:(NSMutableAttributedString *)output start:(NSUInteger)start
 {
-  NSUInteger length = output.length - start;
-  return NSMakeRange(start, length);
+  if (output.length < start)
+    return NSMakeRange(start, 0);
+  return NSMakeRange(start, output.length - start);
 }
 
-+ (BOOL)applyFontAndColorAttributes:(NSMutableAttributedString *)output
+/**
+ * Surgically applies attributes only if they differ from current values.
+ * This minimizes "dirtying" the AttributedString, which improves layout performance.
+ */
++ (void)applyFontAndColorAttributes:(NSMutableAttributedString *)output
                               range:(NSRange)range
                                font:(UIFont *)font
                               color:(UIColor *)color
-                 existingAttributes:(NSDictionary *)existingAttributes
-               shouldPreserveColors:(BOOL)shouldPreserveColors
+                 existingAttributes:(NSDictionary *)attrs
+               shouldPreserveColors:(BOOL)shouldPreserve
 {
-  UIFont *currentFont = existingAttributes[NSFontAttributeName];
-  UIColor *currentColor = existingAttributes[NSForegroundColorAttributeName];
+  if (range.length == 0)
+    return;
 
-  BOOL fontNeedsUpdate = font && ![font isEqual:currentFont];
-  BOOL colorNeedsUpdate = color && !shouldPreserveColors && ![color isEqual:currentColor];
-
-  if (fontNeedsUpdate || colorNeedsUpdate) {
-    NSMutableDictionary *attributes = [existingAttributes ?: @{} mutableCopy];
-
-    if (fontNeedsUpdate) {
-      attributes[NSFontAttributeName] = font;
-    }
-
-    if (colorNeedsUpdate) {
-      attributes[NSForegroundColorAttributeName] = color;
-    }
-
-    [output setAttributes:attributes range:range];
-    return YES;
+  // Font Update: Only if it exists and is different
+  if (font && ![font isEqual:attrs[NSFontAttributeName]]) {
+    [output addAttribute:NSFontAttributeName value:font range:range];
   }
 
-  return NO;
+  // Color Update: Only if not a link/code and different from existing
+  if (color && !shouldPreserve && ![color isEqual:attrs[NSForegroundColorAttributeName]]) {
+    [output addAttribute:NSForegroundColorAttributeName value:color range:range];
+  }
 }
 
 @end

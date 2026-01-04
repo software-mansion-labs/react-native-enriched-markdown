@@ -6,11 +6,11 @@
 #import "StyleConfig.h"
 
 @implementation AttributedRenderer {
-  id _config;
+  StyleConfig *_config;
   RendererFactory *_rendererFactory;
 }
 
-- (instancetype)initWithConfig:(id)config
+- (instancetype)initWithConfig:(StyleConfig *)config
 {
   self = [super init];
   if (self) {
@@ -20,48 +20,59 @@
   return self;
 }
 
+/**
+ * Entry point for rendering a Markdown AST.
+ * Sets the baseline global style and initiates the recursive traversal.
+ */
 - (NSMutableAttributedString *)renderRoot:(MarkdownASTNode *)root context:(RenderContext *)context
 {
-  // Set default paragraph block style as fallback for any content that doesn't have a block style
-  // This ensures TextRenderer and other elements always have a block style available
-  StyleConfig *config = (StyleConfig *)_config;
-  [context setBlockStyle:BlockTypeParagraph
-                fontSize:[config paragraphFontSize]
-              fontFamily:[config paragraphFontFamily]
-              fontWeight:[config paragraphFontWeight]
-                   color:[config paragraphColor]];
+  if (!root)
+    return [[NSMutableAttributedString alloc] init];
 
-  NSMutableAttributedString *out = [[NSMutableAttributedString alloc] init];
-  [self renderNodeRecursive:root into:out context:context];
-  return out;
+  // 1. Establish the global baseline style.
+  // This ensures that leaf nodes (like Text) have valid attributes if they appear at the root.
+  [context setBlockStyle:BlockTypeParagraph
+                fontSize:_config.paragraphFontSize
+              fontFamily:_config.paragraphFontFamily
+              fontWeight:_config.paragraphFontWeight
+                   color:_config.paragraphColor];
+
+  NSMutableAttributedString *output = [[NSMutableAttributedString alloc] init];
+
+  // 2. Iterate through root children.
+  // We skip the 'Root' node itself as it is a container, not a renderable element.
+  for (MarkdownASTNode *node in root.children) {
+    [self renderNodeRecursive:node into:output context:context];
+  }
+
+  // 3. Cleanup global state to prevent side effects in subsequent renders.
+  [context clearBlockStyle];
+
+  return output;
 }
 
 /**
- * Recursively renders markdown AST nodes into attributed text.
- *
- * Uses recursive tree traversal to handle nested markdown elements like
- * "**bold with [link](url) inside**". Each node type has its own renderer
- * for modular, maintainable code. Performance: O(n) with shallow AST depth.
+ * Orchestrates the recursive traversal of the AST.
+ * If a specialized renderer exists for a node type, it takes full control.
  */
 - (void)renderNodeRecursive:(MarkdownASTNode *)node
                        into:(NSMutableAttributedString *)out
                     context:(RenderContext *)context
 {
-  id<NodeRenderer> renderer = [_rendererFactory rendererForNodeType:node.type];
-  if (renderer) {
-    [renderer renderNode:node into:out context:context];
+  if (!node)
     return;
-  }
 
-  for (NSUInteger i = 0; i < node.children.count; i++) {
-    MarkdownASTNode *child = node.children[i];
-    [self renderNodeRecursive:child into:out context:context];
-  }
-}
+  id<NodeRenderer> renderer = [_rendererFactory rendererForNodeType:node.type];
 
-- (id<NodeRenderer>)rendererForNode:(MarkdownASTNode *)node
-{
-  return [_rendererFactory rendererForNodeType:node.type];
+  if (renderer) {
+    // Specialized renderers (e.g., Strong, Link, Heading) handle their own sub-trees.
+    [renderer renderNode:node into:out context:context];
+  } else {
+    // Fallback: Default to deep-first traversal for unhandled container nodes.
+    for (MarkdownASTNode *child in node.children) {
+      [self renderNodeRecursive:child into:out context:context];
+    }
+  }
 }
 
 @end

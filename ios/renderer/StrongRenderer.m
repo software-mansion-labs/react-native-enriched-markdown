@@ -12,8 +12,7 @@
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
 {
-  self = [super init];
-  if (self) {
+  if (self = [super init]) {
     _rendererFactory = rendererFactory;
     _config = (StyleConfig *)config;
   }
@@ -25,52 +24,59 @@
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   NSUInteger start = output.length;
-
-  BlockStyle *blockStyle = [context getBlockStyle];
-
-  UIColor *configStrongColor = [_config strongColor];
-
-  UIFont *baseFont = fontFromBlockStyle(blockStyle);
-  UIFont *strongFont = [self ensureFontIsBold:baseFont];
-
-  UIColor *strongColor = [RenderContext calculateStrongColor:configStrongColor blockColor:blockStyle.color];
-
   [_rendererFactory renderChildrenOfNode:node into:output context:context];
 
-  NSRange range = [RenderContext rangeForRenderedContent:output start:start];
-  if (range.length > 0) {
-    NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
-    UIFont *currentFont = existingAttributes[NSFontAttributeName];
-    UIFont *verifiedStrongFont = [self ensureFontIsBold:currentFont ?: strongFont];
+  NSRange range = NSMakeRange(start, output.length - start);
+  if (range.length == 0)
+    return;
 
-    BOOL shouldPreserveColors = [RenderContext shouldPreserveColors:existingAttributes];
-    UIColor *colorToApply = configStrongColor ? strongColor : nil;
+  BlockStyle *blockStyle = [context getBlockStyle];
+  UIColor *configStrongColor = [_config strongColor];
+  UIColor *calculatedColor =
+      configStrongColor ? [RenderContext calculateStrongColor:configStrongColor blockColor:blockStyle.color] : nil;
 
-    [RenderContext applyFontAndColorAttributes:output
-                                         range:range
-                                          font:verifiedStrongFont
-                                         color:colorToApply
-                            existingAttributes:existingAttributes
-                          shouldPreserveColors:shouldPreserveColors];
-  }
+  [output enumerateAttributesInRange:range
+                             options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
+                          usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
+                            // 1. Resolve Font
+                            UIFont *currentFont = attrs[NSFontAttributeName] ?: fontFromBlockStyle(blockStyle);
+
+                            // Optimization: Only apply bold if not already bold
+                            if (!([currentFont.fontDescriptor symbolicTraits] & UIFontDescriptorTraitBold)) {
+                              UIFont *boldFont = [self ensureFontIsBold:currentFont];
+                              if (boldFont) {
+                                [output addAttribute:NSFontAttributeName value:boldFont range:subrange];
+                              }
+                            }
+
+                            // 2. Resolve Color
+                            // Only apply if we have a color and the current segment doesn't explicitly forbid overrides
+                            if (calculatedColor && ![RenderContext shouldPreserveColors:attrs]) {
+                              // Optimization: Check if this color is already set to avoid redundant attribute changes
+                              if (![attrs[NSForegroundColorAttributeName] isEqual:calculatedColor]) {
+                                [output addAttribute:NSForegroundColorAttributeName
+                                               value:calculatedColor
+                                               range:subrange];
+                              }
+                            }
+                          }];
 }
 
 #pragma mark - Helper Methods
 
 - (UIFont *)ensureFontIsBold:(UIFont *)font
 {
-  if (!font) {
+  if (!font)
     return nil;
-  }
-  UIFontDescriptorSymbolicTraits traits = font.fontDescriptor.symbolicTraits;
-  if (traits & UIFontDescriptorTraitBold) {
-    return font;
-  }
 
-  // Combine bold with existing traits (preserve italic if present)
-  UIFontDescriptorSymbolicTraits combinedTraits = traits | UIFontDescriptorTraitBold;
-  UIFontDescriptor *boldDescriptor = [font.fontDescriptor fontDescriptorWithSymbolicTraits:combinedTraits];
-  return [UIFont fontWithDescriptor:boldDescriptor size:font.pointSize] ?: font;
+  UIFontDescriptor *descriptor = font.fontDescriptor;
+  UIFontDescriptorSymbolicTraits traits = descriptor.symbolicTraits;
+
+  // Create new descriptor combining current traits with Bold
+  UIFontDescriptor *boldDescriptor = [descriptor fontDescriptorWithSymbolicTraits:(traits | UIFontDescriptorTraitBold)];
+
+  // Fallback to original font if bold version is unavailable
+  return boldDescriptor ? [UIFont fontWithDescriptor:boldDescriptor size:0] : font;
 }
 
 @end

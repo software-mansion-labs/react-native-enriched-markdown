@@ -4,7 +4,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const RichTextCodeBlockAttributeName;
+extern NSString *const CodeBlockAttributeName;
 
 @interface CodeBlockBackground : NSObject
 

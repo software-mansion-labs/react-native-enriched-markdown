@@ -1,7 +1,7 @@
 #import "CodeBlockBackground.h"
 #import "StyleConfig.h"
 
-NSString *const RichTextCodeBlockAttributeName = @"RichTextCodeBlock";
+NSString *const CodeBlockAttributeName = @"CodeBlock";
 
 @implementation CodeBlockBackground {
   StyleConfig *_config;
@@ -24,7 +24,7 @@ NSString *const RichTextCodeBlockAttributeName = @"RichTextCodeBlock";
   // Optimization: Only enumerate the character range that corresponds to the visible glyphs.
   NSRange charRange = [layoutManager characterRangeForGlyphRange:glyphsToShow actualGlyphRange:NULL];
 
-  [textStorage enumerateAttribute:RichTextCodeBlockAttributeName
+  [textStorage enumerateAttribute:CodeBlockAttributeName
                           inRange:charRange // Don't enumerate (0, length) for performance
                           options:0
                        usingBlock:^(id value, NSRange range, BOOL *stop) {

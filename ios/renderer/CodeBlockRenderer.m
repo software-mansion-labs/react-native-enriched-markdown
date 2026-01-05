@@ -89,7 +89,7 @@
 
   // 6. MARK BACKGROUND
   NSRange backgroundRange = NSMakeRange(blockStart, output.length - blockStart);
-  [output addAttribute:RichTextCodeBlockAttributeName value:@YES range:backgroundRange];
+  [output addAttribute:CodeBlockAttributeName value:@YES range:backgroundRange];
 }
 
 @end

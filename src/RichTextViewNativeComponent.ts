@@ -36,6 +36,14 @@ interface ListStyleInternal extends BaseBlockStyleInternal {
   marginLeft: CodegenTypes.Float;
 }
 
+interface CodeBlockStyleInternal extends BaseBlockStyleInternal {
+  backgroundColor: ColorValue;
+  borderColor: ColorValue;
+  borderRadius: CodegenTypes.Float;
+  borderWidth: CodegenTypes.Float;
+  padding: CodegenTypes.Float;
+}
+
 interface LinkStyleInternal {
   color: ColorValue;
   underline: boolean;
@@ -75,6 +83,7 @@ export interface RichTextStyleInternal {
   h6: HeadingStyleInternal;
   blockquote: BlockquoteStyleInternal;
   listStyle: ListStyleInternal;
+  codeBlock: CodeBlockStyleInternal;
   link: LinkStyleInternal;
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;

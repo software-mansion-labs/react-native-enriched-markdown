@@ -141,6 +141,23 @@ const defaultListStyle: RichTextStyleInternal['listStyle'] = {
   marginLeft: 16,
 };
 
+const defaultCodeBlockBackgroundColor = processColor('#F3F4F6') as ColorValue;
+const defaultCodeBlockBorderColor = processColor('#D1D5DB') as ColorValue;
+
+const defaultCodeBlockStyle: RichTextStyleInternal['codeBlock'] = {
+  fontSize: 14,
+  fontFamily: '',
+  fontWeight: 'normal',
+  color: defaultColor,
+  marginBottom: 16,
+  lineHeight: 14 * 1.5,
+  backgroundColor: defaultCodeBlockBackgroundColor,
+  borderColor: defaultCodeBlockBorderColor,
+  borderRadius: 8,
+  borderWidth: 0,
+  padding: 12,
+};
+
 export const normalizeRichTextStyle = (
   style: RichTextStyle
 ): RichTextStyleInternal => {
@@ -258,6 +275,28 @@ export const normalizeRichTextStyle = (
     marginLeft: style.listStyle?.marginLeft ?? defaultListStyle.marginLeft,
   };
 
+  const codeBlock: RichTextStyleInternal['codeBlock'] = {
+    fontSize: style.codeBlock?.fontSize ?? defaultCodeBlockStyle.fontSize,
+    fontFamily: style.codeBlock?.fontFamily ?? defaultCodeBlockStyle.fontFamily,
+    fontWeight: style.codeBlock?.fontWeight ?? defaultCodeBlockStyle.fontWeight,
+    color:
+      normalizeColor(style.codeBlock?.color) ?? defaultCodeBlockStyle.color,
+    marginBottom:
+      style.codeBlock?.marginBottom ?? defaultCodeBlockStyle.marginBottom,
+    lineHeight: style.codeBlock?.lineHeight ?? defaultCodeBlockStyle.lineHeight,
+    backgroundColor:
+      normalizeColor(style.codeBlock?.backgroundColor) ??
+      defaultCodeBlockStyle.backgroundColor,
+    borderColor:
+      normalizeColor(style.codeBlock?.borderColor) ??
+      defaultCodeBlockStyle.borderColor,
+    borderRadius:
+      style.codeBlock?.borderRadius ?? defaultCodeBlockStyle.borderRadius,
+    borderWidth:
+      style.codeBlock?.borderWidth ?? defaultCodeBlockStyle.borderWidth,
+    padding: style.codeBlock?.padding ?? defaultCodeBlockStyle.padding,
+  };
+
   return {
     paragraph,
     h1,
@@ -268,6 +307,7 @@ export const normalizeRichTextStyle = (
     h6,
     blockquote,
     listStyle,
+    codeBlock,
     link: {
       ...defaultLinkStyle,
       ...style.link,

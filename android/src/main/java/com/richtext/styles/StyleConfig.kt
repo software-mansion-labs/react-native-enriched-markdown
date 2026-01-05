@@ -24,6 +24,7 @@ class StyleConfig(
   private lateinit var inlineImageStyle: InlineImageStyle
   private lateinit var blockquoteStyle: BlockquoteStyle
   private lateinit var listStyle: ListStyle
+  private lateinit var codeBlockStyle: CodeBlockStyle
 
   private val styleParser = StyleParser(context)
 
@@ -61,6 +62,8 @@ class StyleConfig(
   fun getBlockquoteStyle(): BlockquoteStyle = blockquoteStyle
 
   fun getListStyle(): ListStyle = listStyle
+
+  fun getCodeBlockStyle(): CodeBlockStyle = codeBlockStyle
 
   /**
    * Gets the cached typeface for a heading level.
@@ -146,6 +149,12 @@ class StyleConfig(
         "ListStyle style not found. JS should always provide defaults."
       }
     listStyle = ListStyle.fromReadableMap(listStyleMap, styleParser)
+
+    val codeBlockStyleMap =
+      requireNotNull(style.getMap("codeBlock")) {
+        "CodeBlock style not found. JS should always provide defaults."
+      }
+    codeBlockStyle = CodeBlockStyle.fromReadableMap(codeBlockStyleMap, styleParser)
   }
 
   override fun equals(other: Any?): Boolean {
@@ -161,7 +170,8 @@ class StyleConfig(
       imageStyle == other.imageStyle &&
       inlineImageStyle == other.inlineImageStyle &&
       blockquoteStyle == other.blockquoteStyle &&
-      listStyle == other.listStyle
+      listStyle == other.listStyle &&
+      codeBlockStyle == other.codeBlockStyle
   }
 
   override fun hashCode(): Int {
@@ -175,6 +185,7 @@ class StyleConfig(
     result = 31 * result + inlineImageStyle.hashCode()
     result = 31 * result + blockquoteStyle.hashCode()
     result = 31 * result + listStyle.hashCode()
+    result = 31 * result + codeBlockStyle.hashCode()
     return result
   }
 }

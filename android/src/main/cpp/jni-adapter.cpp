@@ -40,6 +40,8 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 12;
     case NodeType::ListItem:
       return 13;
+    case NodeType::CodeBlock:
+      return 14;
     default:
       return 0;
   }

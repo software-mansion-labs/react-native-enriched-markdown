@@ -36,6 +36,7 @@ class RendererFactory(
       MarkdownASTNode.NodeType.Paragraph to ParagraphRenderer(config),
       MarkdownASTNode.NodeType.Heading to HeadingRenderer(config),
       MarkdownASTNode.NodeType.Blockquote to BlockquoteRenderer(config),
+      MarkdownASTNode.NodeType.CodeBlock to CodeBlockRenderer(config),
       MarkdownASTNode.NodeType.UnorderedList to ListRenderer(config, isOrdered = false),
       MarkdownASTNode.NodeType.OrderedList to ListRenderer(config, isOrdered = true),
       MarkdownASTNode.NodeType.ListItem to ListItemRenderer(config),

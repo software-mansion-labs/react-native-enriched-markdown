@@ -2,6 +2,7 @@ package com.richtext.renderer
 
 import com.richtext.styles.BaseBlockStyle
 import com.richtext.styles.BlockquoteStyle
+import com.richtext.styles.CodeBlockStyle
 import com.richtext.styles.HeadingStyle
 import com.richtext.styles.ListStyle
 import com.richtext.styles.ParagraphStyle
@@ -13,8 +14,7 @@ enum class BlockType {
   BLOCKQUOTE,
   UNORDERED_LIST,
   ORDERED_LIST,
-  // TODO: Add when implementing:
-  // CODE_BLOCK,
+  CODE_BLOCK,
 }
 
 data class BlockStyle(
@@ -74,6 +74,8 @@ class BlockStyleContext {
     listType = ListType.ORDERED
     updateBlockStyle(BlockType.ORDERED_LIST, style)
   }
+
+  fun setCodeBlockStyle(style: CodeBlockStyle) = updateBlockStyle(BlockType.CODE_BLOCK, style)
 
   // List State Management
   fun isInsideBlockElement(): Boolean = blockquoteDepth > 0 || listDepth > 0

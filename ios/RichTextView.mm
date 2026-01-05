@@ -763,6 +763,69 @@ static const CGFloat kLabelPadding = 10.0;
     stylePropChanged = YES;
   }
 
+  // Code block style
+  if (newViewProps.richTextStyle.codeBlock.fontSize != oldViewProps.richTextStyle.codeBlock.fontSize) {
+    [_config setCodeBlockFontSize:newViewProps.richTextStyle.codeBlock.fontSize];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.fontFamily != oldViewProps.richTextStyle.codeBlock.fontFamily) {
+    NSString *fontFamily =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.codeBlock.fontFamily.c_str()];
+    [_config setCodeBlockFontFamily:fontFamily];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.fontWeight != oldViewProps.richTextStyle.codeBlock.fontWeight) {
+    NSString *fontWeight =
+        [[NSString alloc] initWithUTF8String:newViewProps.richTextStyle.codeBlock.fontWeight.c_str()];
+    [_config setCodeBlockFontWeight:fontWeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.color != oldViewProps.richTextStyle.codeBlock.color) {
+    UIColor *codeBlockColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.codeBlock.color);
+    [_config setCodeBlockColor:codeBlockColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.marginBottom != oldViewProps.richTextStyle.codeBlock.marginBottom) {
+    [_config setCodeBlockMarginBottom:newViewProps.richTextStyle.codeBlock.marginBottom];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.lineHeight != oldViewProps.richTextStyle.codeBlock.lineHeight) {
+    [_config setCodeBlockLineHeight:newViewProps.richTextStyle.codeBlock.lineHeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.backgroundColor != oldViewProps.richTextStyle.codeBlock.backgroundColor) {
+    UIColor *codeBlockBackgroundColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.codeBlock.backgroundColor);
+    [_config setCodeBlockBackgroundColor:codeBlockBackgroundColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.borderColor != oldViewProps.richTextStyle.codeBlock.borderColor) {
+    UIColor *codeBlockBorderColor = RCTUIColorFromSharedColor(newViewProps.richTextStyle.codeBlock.borderColor);
+    [_config setCodeBlockBorderColor:codeBlockBorderColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.borderRadius != oldViewProps.richTextStyle.codeBlock.borderRadius) {
+    [_config setCodeBlockBorderRadius:newViewProps.richTextStyle.codeBlock.borderRadius];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.borderWidth != oldViewProps.richTextStyle.codeBlock.borderWidth) {
+    [_config setCodeBlockBorderWidth:newViewProps.richTextStyle.codeBlock.borderWidth];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.richTextStyle.codeBlock.padding != oldViewProps.richTextStyle.codeBlock.padding) {
+    [_config setCodeBlockPadding:newViewProps.richTextStyle.codeBlock.padding];
+    stylePropChanged = YES;
+  }
+
   // Update config reference on layout manager if it's not already set
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {

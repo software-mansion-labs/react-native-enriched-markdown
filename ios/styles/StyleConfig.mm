@@ -100,6 +100,18 @@
   NSString *_listStyleMarkerFontWeight;
   CGFloat _listStyleGapWidth;
   CGFloat _listStyleMarginLeft;
+  // Code block properties
+  CGFloat _codeBlockFontSize;
+  NSString *_codeBlockFontFamily;
+  NSString *_codeBlockFontWeight;
+  UIColor *_codeBlockColor;
+  CGFloat _codeBlockMarginBottom;
+  CGFloat _codeBlockLineHeight;
+  UIColor *_codeBlockBackgroundColor;
+  UIColor *_codeBlockBorderColor;
+  CGFloat _codeBlockBorderRadius;
+  CGFloat _codeBlockBorderWidth;
+  CGFloat _codeBlockPadding;
 }
 
 - (instancetype)init
@@ -194,6 +206,17 @@
   copy->_listStyleMarkerFontWeight = [_listStyleMarkerFontWeight copy];
   copy->_listStyleGapWidth = _listStyleGapWidth;
   copy->_listStyleMarginLeft = _listStyleMarginLeft;
+  copy->_codeBlockFontSize = _codeBlockFontSize;
+  copy->_codeBlockFontFamily = [_codeBlockFontFamily copy];
+  copy->_codeBlockFontWeight = [_codeBlockFontWeight copy];
+  copy->_codeBlockColor = [_codeBlockColor copy];
+  copy->_codeBlockMarginBottom = _codeBlockMarginBottom;
+  copy->_codeBlockLineHeight = _codeBlockLineHeight;
+  copy->_codeBlockBackgroundColor = [_codeBlockBackgroundColor copy];
+  copy->_codeBlockBorderColor = [_codeBlockBorderColor copy];
+  copy->_codeBlockBorderRadius = _codeBlockBorderRadius;
+  copy->_codeBlockBorderWidth = _codeBlockBorderWidth;
+  copy->_codeBlockPadding = _codeBlockPadding;
 
   return copy;
 }
@@ -1017,6 +1040,117 @@
 - (void)setListStyleMarginLeft:(CGFloat)newValue
 {
   _listStyleMarginLeft = newValue;
+}
+
+// Code block properties
+- (CGFloat)codeBlockFontSize
+{
+  return _codeBlockFontSize;
+}
+
+- (void)setCodeBlockFontSize:(CGFloat)newValue
+{
+  _codeBlockFontSize = newValue;
+}
+
+- (NSString *)codeBlockFontFamily
+{
+  return _codeBlockFontFamily;
+}
+
+- (void)setCodeBlockFontFamily:(NSString *)newValue
+{
+  _codeBlockFontFamily = newValue;
+}
+
+- (NSString *)codeBlockFontWeight
+{
+  return _codeBlockFontWeight;
+}
+
+- (void)setCodeBlockFontWeight:(NSString *)newValue
+{
+  _codeBlockFontWeight = newValue;
+}
+
+- (UIColor *)codeBlockColor
+{
+  return _codeBlockColor;
+}
+
+- (void)setCodeBlockColor:(UIColor *)newValue
+{
+  _codeBlockColor = newValue;
+}
+
+- (CGFloat)codeBlockMarginBottom
+{
+  return _codeBlockMarginBottom;
+}
+
+- (void)setCodeBlockMarginBottom:(CGFloat)newValue
+{
+  _codeBlockMarginBottom = newValue;
+}
+
+- (CGFloat)codeBlockLineHeight
+{
+  return _codeBlockLineHeight;
+}
+
+- (void)setCodeBlockLineHeight:(CGFloat)newValue
+{
+  _codeBlockLineHeight = newValue;
+}
+
+- (UIColor *)codeBlockBackgroundColor
+{
+  return _codeBlockBackgroundColor;
+}
+
+- (void)setCodeBlockBackgroundColor:(UIColor *)newValue
+{
+  _codeBlockBackgroundColor = newValue;
+}
+
+- (UIColor *)codeBlockBorderColor
+{
+  return _codeBlockBorderColor;
+}
+
+- (void)setCodeBlockBorderColor:(UIColor *)newValue
+{
+  _codeBlockBorderColor = newValue;
+}
+
+- (CGFloat)codeBlockBorderRadius
+{
+  return _codeBlockBorderRadius;
+}
+
+- (void)setCodeBlockBorderRadius:(CGFloat)newValue
+{
+  _codeBlockBorderRadius = newValue;
+}
+
+- (CGFloat)codeBlockBorderWidth
+{
+  return _codeBlockBorderWidth;
+}
+
+- (void)setCodeBlockBorderWidth:(CGFloat)newValue
+{
+  _codeBlockBorderWidth = newValue;
+}
+
+- (CGFloat)codeBlockPadding
+{
+  return _codeBlockPadding;
+}
+
+- (void)setCodeBlockPadding:(CGFloat)newValue
+{
+  _codeBlockPadding = newValue;
 }
 
 @end

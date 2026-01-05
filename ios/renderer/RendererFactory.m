@@ -1,5 +1,6 @@
 #import "RendererFactory.h"
 #import "BlockquoteRenderer.h"
+#import "CodeBlockRenderer.h"
 #import "EmphasisRenderer.h"
 #import "HeadingRenderer.h"
 #import "ImageRenderer.h"
@@ -80,6 +81,8 @@
       return [[ListRenderer alloc] initWithRendererFactory:self config:_config isOrdered:NO];
     case MarkdownNodeTypeOrderedList:
       return [[ListRenderer alloc] initWithRendererFactory:self config:_config isOrdered:YES];
+    case MarkdownNodeTypeCodeBlock:
+      return [[CodeBlockRenderer alloc] initWithRendererFactory:self config:_config];
     default:
       return nil;
   }

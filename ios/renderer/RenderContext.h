@@ -7,7 +7,8 @@ typedef NS_ENUM(NSInteger, BlockType) {
   BlockTypeHeading,
   BlockTypeBlockquote,
   BlockTypeUnorderedList,
-  BlockTypeOrderedList
+  BlockTypeOrderedList,
+  BlockTypeCodeBlock
 };
 
 typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };

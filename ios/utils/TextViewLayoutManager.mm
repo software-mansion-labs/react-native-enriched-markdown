@@ -1,6 +1,7 @@
 #import "TextViewLayoutManager.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
+#import "CodeBlockBackground.h"
 #import "ListMarkerDrawer.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
@@ -32,6 +33,9 @@
 
   CodeBackground *codeBg = [self getCodeBackgroundWithConfig:config];
   [codeBg drawBackgroundsForGlyphRange:glyphsToShow layoutManager:self textContainer:textContainer atPoint:origin];
+
+  CodeBlockBackground *codeBlockBg = [self getCodeBlockBackgroundWithConfig:config];
+  [codeBlockBg drawBackgroundsForGlyphRange:glyphsToShow layoutManager:self textContainer:textContainer atPoint:origin];
 
   BlockquoteBorder *quoteBorder = [self getBlockquoteBorderWithConfig:config];
   [quoteBorder drawBordersForGlyphRange:glyphsToShow layoutManager:self textContainer:textContainer atPoint:origin];
@@ -75,6 +79,16 @@
   return obj;
 }
 
+- (CodeBlockBackground *)getCodeBlockBackgroundWithConfig:(StyleConfig *)config
+{
+  CodeBlockBackground *obj = objc_getAssociatedObject(self, kCodeBlockBackgroundKey);
+  if (!obj) {
+    obj = [[CodeBlockBackground alloc] initWithConfig:config];
+    objc_setAssociatedObject(self, kCodeBlockBackgroundKey, obj, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  }
+  return obj;
+}
+
 #pragma mark - Configuration
 
 - (StyleConfig *)config
@@ -86,6 +100,7 @@
 {
   // We use the same key but clear dependencies first to ensure no stale pointers exist
   objc_setAssociatedObject(self, kCodeBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, kCodeBlockBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kBlockquoteBorderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kListMarkerDrawerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 

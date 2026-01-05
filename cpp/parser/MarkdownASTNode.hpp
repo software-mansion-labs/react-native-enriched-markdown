@@ -21,7 +21,8 @@ enum class NodeType {
     Blockquote,
     UnorderedList,
     OrderedList,
-    ListItem
+    ListItem,
+    CodeBlock
 };
 
 struct MarkdownASTNode {

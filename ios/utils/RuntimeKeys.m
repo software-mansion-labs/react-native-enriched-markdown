@@ -5,3 +5,4 @@ void *kStyleConfigKey = &kStyleConfigKey;
 void *kCodeBackgroundKey = &kCodeBackgroundKey;
 void *kBlockquoteBorderKey = &kBlockquoteBorderKey;
 void *kListMarkerDrawerKey = &kListMarkerDrawerKey;
+void *kCodeBlockBackgroundKey = &kCodeBlockBackgroundKey;

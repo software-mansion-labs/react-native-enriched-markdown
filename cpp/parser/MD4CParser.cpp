@@ -15,6 +15,8 @@ public:
   static const std::string ATTR_LEVEL;
   static const std::string ATTR_URL;
   static const std::string ATTR_TITLE;
+  static const std::string ATTR_FENCE_CHAR;
+  static const std::string ATTR_LANGUAGE;
 
   void reset(size_t estimatedDepth) {
     root = std::make_shared<MarkdownASTNode>(NodeType::Document);
@@ -115,6 +117,25 @@ public:
 
       case MD_BLOCK_LI: {
         impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::ListItem));
+        break;
+      }
+
+      case MD_BLOCK_CODE: {
+        auto node = std::make_shared<MarkdownASTNode>(NodeType::CodeBlock);
+        if (detail) {
+          auto *codeDetail = static_cast<MD_BLOCK_CODE_DETAIL *>(detail);
+          // Extract fence character (if fenced code block)
+          if (codeDetail->fence_char != 0) {
+            char fenceStr[2] = {static_cast<char>(codeDetail->fence_char), '\0'};
+            node->setAttribute(ATTR_FENCE_CHAR, fenceStr);
+          }
+          // Extract language from lang attribute
+          std::string lang = impl->getAttributeText(&codeDetail->lang);
+          if (!lang.empty()) {
+            node->setAttribute(ATTR_LANGUAGE, lang);
+          }
+        }
+        impl->pushNode(node);
         break;
       }
 
@@ -282,5 +303,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) 
 const std::string MD4CParser::Impl::ATTR_LEVEL = "level";
 const std::string MD4CParser::Impl::ATTR_URL = "url";
 const std::string MD4CParser::Impl::ATTR_TITLE = "title";
+const std::string MD4CParser::Impl::ATTR_FENCE_CHAR = "fenceChar";
+const std::string MD4CParser::Impl::ATTR_LANGUAGE = "language";
 
 } // namespace Markdown

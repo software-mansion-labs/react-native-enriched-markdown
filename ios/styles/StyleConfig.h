@@ -180,5 +180,28 @@
 - (void)setListStyleGapWidth:(CGFloat)newValue;
 - (CGFloat)listStyleMarginLeft;
 - (void)setListStyleMarginLeft:(CGFloat)newValue;
+// Code block properties
+- (CGFloat)codeBlockFontSize;
+- (void)setCodeBlockFontSize:(CGFloat)newValue;
+- (NSString *)codeBlockFontFamily;
+- (void)setCodeBlockFontFamily:(NSString *)newValue;
+- (NSString *)codeBlockFontWeight;
+- (void)setCodeBlockFontWeight:(NSString *)newValue;
+- (UIColor *)codeBlockColor;
+- (void)setCodeBlockColor:(UIColor *)newValue;
+- (CGFloat)codeBlockMarginBottom;
+- (void)setCodeBlockMarginBottom:(CGFloat)newValue;
+- (CGFloat)codeBlockLineHeight;
+- (void)setCodeBlockLineHeight:(CGFloat)newValue;
+- (UIColor *)codeBlockBackgroundColor;
+- (void)setCodeBlockBackgroundColor:(UIColor *)newValue;
+- (UIColor *)codeBlockBorderColor;
+- (void)setCodeBlockBorderColor:(UIColor *)newValue;
+- (CGFloat)codeBlockBorderRadius;
+- (void)setCodeBlockBorderRadius:(CGFloat)newValue;
+- (CGFloat)codeBlockBorderWidth;
+- (void)setCodeBlockBorderWidth:(CGFloat)newValue;
+- (CGFloat)codeBlockPadding;
+- (void)setCodeBlockPadding:(CGFloat)newValue;
 
 @end

@@ -56,6 +56,20 @@ export interface ListStyle {
   marginLeft?: number;
 }
 
+export interface CodeBlockStyle {
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string;
+  color?: string;
+  marginBottom?: number;
+  lineHeight?: number;
+  backgroundColor?: string;
+  borderColor?: string;
+  borderRadius?: number;
+  borderWidth?: number;
+  padding?: number;
+}
+
 export interface LinkStyle {
   color?: string;
   underline?: boolean;
@@ -95,6 +109,7 @@ export interface RichTextStyle {
   h6?: HeadingStyle;
   blockquote?: BlockquoteStyle;
   listStyle?: ListStyle;
+  codeBlock?: CodeBlockStyle;
   link?: LinkStyle;
   strong?: StrongStyle;
   em?: EmphasisStyle;

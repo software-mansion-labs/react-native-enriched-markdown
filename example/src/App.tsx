@@ -7,7 +7,13 @@ import {
 } from 'react-native';
 import { RichTextView } from 'react-native-rich-text';
 
-const sampleMarkdown = `# Welcome to the ***React Native*** Markdown component!
+const sampleMarkdown = `
+# Welcome to the ***React Native*** Markdown component!
+## Welcome to the ***React Native*** Markdown component!
+### Welcome to the ***React Native*** Markdown component!
+#### Welcome to the ***React Native*** Markdown component!
+##### Welcome to the ***React Native*** Markdown component!
+###### Welcome to the ***React Native*** Markdown component!
 
 This is a simple text with links and __bold text__.
 
@@ -15,11 +21,67 @@ This is a simple text with links and __bold text__.
 
 Check out this *[link to React Native](https://reactnative.dev)* and this [GitHub repository](https://github.com/facebook/react-native).
 
-You can use inline code like \`const x = 42\` or \`function test() {}\` within text. You can also combine code with **strong** like **\`getUserData()\`** or *emphasis* like *\`isValid\`* or *\`handleClick\`*. You can even combine both: **\`boldCode\`** and *\`italicCode\`*.
+You can use inline codessss like \`const x = 42\` or \`function test() {}\` within text. You can also combine code with **strong** like **\`getUserData()\`** or *emphasis* like *\`isValid\`* or *\`handleClick\`*. You can even combine both: **\`boldCode\`** and *\`italicCode\`*.
 
 Here's a longer inline code example that will wrap to multiple lines: \`const result = await fetchUserData(userId, profile, options, flags, errorCallback, call, function)\`.
 
 You can also use images inline with text like this ![GitHub icon](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAZGzTL011iyJZUnzy9T278kjLQmk9W0DMug&s) in the middle of a sentence.
+
+## Code Blocks
+
+Here's a code block example:
+
+\`\`\`javascript
+function greetUser(name) {
+  const greeting = \`Hello, \${name}!\`;
+  console.log(greeting);
+  return greeting;
+}
+
+const user = 'React Native';
+greetUser(user);
+\`\`\`
+
+You can also use code blocks without a language identifier:
+
+\`\`\`
+const x = 42;
+const y = 'hello';
+console.log(x, y);
+\`\`\`
+
+> This is a blockquote example. It can contain **bold text** and *italic text*.
+>
+> It can span multiple paragraphs and include links like [React Native](https://reactnative.dev).
+
+> This is a nested blockquote example.
+> > This is a nested blockquote inside another blockquote.
+> > > This is a nested blockquote inside another blockquote.
+
+## Lists
+
+Here's an unordered list with some items:
+
+- First item with **bold text**
+- Second item with *italic text*
+  - Nested item with **bold**
+  - Another nested item with *italic*
+  - Nested item with a [link](https://reactnative.dev)
+    - Third level nested item
+    - Another third level item
+- Third item with a [link](https://reactnative.dev)
+  - Second level nested item
+    - Third level nested item
+    - Another third level item
+- Fourth item with inline \`code\`
+
+1. First item with **bold text**
+   1. Nested item with **bold**
+   2. Another nested item with *italic*
+   3. Nested item with a [link](https://reactnative.dev)
+2. Second item with *italic text*
+3. Third item with a [link](https://reactnative.dev)
+4. Fourth item with inline \`code\`
 
 Built with ❤️ using **React Native Fabric Architecture**`;
 
@@ -48,7 +110,6 @@ export default function App() {
       >
         <RichTextView
           markdown={sampleMarkdown}
-          style={markdownStyle}
           containerStyle={styles.markdown}
           onLinkPress={handleLinkPress}
         />
@@ -56,36 +117,6 @@ export default function App() {
     </SafeAreaView>
   );
 }
-
-const markdownStyle = {
-  paragraph: {
-    fontSize: 18,
-    fontFamily: 'monospace',
-    color: '#F54927',
-  },
-  h1: {
-    fontSize: 24,
-    fontFamily: 'Helvetica-Bold',
-  },
-  strong: {
-    color: 'blue',
-  },
-  em: {
-    color: 'green',
-  },
-  code: {
-    color: '#E83E8C',
-    backgroundColor: '#F3F4F6',
-    borderColor: 'red',
-  },
-  image: {
-    height: 200,
-    borderRadius: 10,
-  },
-  inlineImage: {
-    size: 20,
-  },
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -101,6 +132,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 8,
-    height: 1000,
+    height: 3800,
   },
 });

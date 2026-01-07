@@ -24,13 +24,14 @@ using namespace facebook::react;
 static const CGFloat kMinimumHeight = 100.0;
 static const CGFloat kLabelPadding = 10.0;
 
-@interface RichTextView () <RCTRichTextViewViewProtocol>
+@interface RichTextView () <RCTRichTextViewViewProtocol, UITextViewDelegate>
 - (void)setupTextView;
 - (void)setupConstraints;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
 - (void)textTapped:(UITapGestureRecognizer *)recognizer;
 - (void)setupLayoutManager;
 - (MarkdownASTNode *)getOrParseAST:(NSString *)markdownString;
+- (NSArray<NSString *> *)imageURLsInRange:(NSRange)range;
 @end
 
 @implementation RichTextView {
@@ -72,6 +73,7 @@ static const CGFloat kLabelPadding = 10.0;
   _textView.backgroundColor = [UIColor clearColor];
   _textView.textColor = [UIColor blackColor];
   _textView.editable = NO;
+  _textView.delegate = self;
   // TODO: Calculate proper height to fit all content including images
   // Currently scrollEnabled = NO means content beyond viewport may not render
   _textView.scrollEnabled = NO;
@@ -933,6 +935,73 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
       eventEmitter.onLinkPress({.url = std::string([url UTF8String])});
     }
   }
+}
+
+#pragma mark - UITextViewDelegate (Edit Menu)
+
+/**
+ * Customizes the edit menu when text is selected.
+ * Adds "Copy Image URL" action when selection contains images.
+ *
+ * NOTE: This delegate method is iOS 16+ only.
+ * Before iOS 16, customizing edit menus required subclassing UITextView
+ * and overriding buildMenuWithBuilder: (iOS 13+) or using the deprecated
+ * UIMenuController API. Apple introduced this delegate method in iOS 16
+ * as part of the new UIEditMenuInteraction system.
+ */
+- (UIMenu *)textView:(UITextView *)textView
+    editMenuForTextInRange:(NSRange)range
+          suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
+{
+  NSArray<NSString *> *imageURLs = [self imageURLsInRange:range];
+
+  if (imageURLs.count == 0) {
+    return [UIMenu menuWithChildren:suggestedActions];
+  }
+
+  NSString *urlsToCopy = [imageURLs componentsJoinedByString:@"\n"];
+  NSString *title = imageURLs.count == 1
+                        ? @"Copy Image URL"
+                        : [NSString stringWithFormat:@"Copy %lu Image URLs", (unsigned long)imageURLs.count];
+
+  UIAction *copyURLAction = [UIAction
+      actionWithTitle:title
+                image:[UIImage systemImageNamed:@"link"]
+           identifier:@"com.richtext.copyImageURL"
+              handler:^(__kindof UIAction *action) { [[UIPasteboard generalPasteboard] setString:urlsToCopy]; }];
+
+  return [UIMenu menuWithChildren:[suggestedActions arrayByAddingObject:copyURLAction]];
+}
+
+/// Extracts remote image URLs from ImageAttachments within the given range.
+/// Only includes http/https URLs, excludes local file paths.
+- (NSArray<NSString *> *)imageURLsInRange:(NSRange)range
+{
+  NSAttributedString *text = _textView.attributedText;
+
+  if (range.location == NSNotFound || range.length == 0 || range.location >= text.length) {
+    return @[];
+  }
+
+  // Clamp range to text bounds
+  range.length = MIN(range.length, text.length - range.location);
+
+  NSMutableArray<NSString *> *urls = [NSMutableArray array];
+
+  [text enumerateAttribute:NSAttachmentAttributeName
+                   inRange:range
+                   options:0
+                usingBlock:^(id value, NSRange r, BOOL *stop) {
+                  if ([value isKindOfClass:[ImageAttachment class]]) {
+                    NSString *url = ((ImageAttachment *)value).imageURL;
+                    // Only include remote URLs (http/https), skip local file paths
+                    if (url && ([url hasPrefix:@"http://"] || [url hasPrefix:@"https://"])) {
+                      [urls addObject:url];
+                    }
+                  }
+                }];
+
+  return urls;
 }
 
 @end

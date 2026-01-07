@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface ImageAttachment : NSTextAttachment
 
+@property (nonatomic, readonly) NSString *imageURL;
+
 - (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline;
 
 @end

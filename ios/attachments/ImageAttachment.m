@@ -5,7 +5,7 @@
 #import <objc/runtime.h>
 
 @interface ImageAttachment ()
-@property (nonatomic, strong) NSString *imageURL;
+@property (nonatomic, readwrite) NSString *imageURL;
 @property (nonatomic, weak) StyleConfig *config;
 @property (nonatomic, assign) BOOL isInline;
 @property (nonatomic, assign) CGFloat cachedHeight;

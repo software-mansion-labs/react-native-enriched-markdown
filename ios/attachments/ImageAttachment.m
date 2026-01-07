@@ -82,6 +82,9 @@
 
     dispatch_async(dispatch_get_main_queue(), ^{
       strongSelf.loadedImage = scaled;
+      // Update self.image with ORIGINAL (non-rounded) image for native iOS actions
+      // This ensures "Save to Camera Roll" saves the proper image without baked-in rounded corners
+      strongSelf.image = image;
       [strongSelf updateUI];
     });
   });

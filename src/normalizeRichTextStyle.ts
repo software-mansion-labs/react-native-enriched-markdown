@@ -108,7 +108,9 @@ const defaultLinkStyle: RichTextStyleInternal['link'] = {
 };
 
 const defaultCodeColor = processColor('#D72B3F') as ColorValue;
-const defaultCodeBackgroundColor = processColor('#F8F8F8') as ColorValue;
+const defaultCodeBackgroundColor = processColor(
+  'rgba(248, 248, 248, 0.7)'
+) as ColorValue;
 const defaultCodeBorderColor = processColor('#E1E1E1') as ColorValue;
 
 const defaultCodeStyle: RichTextStyleInternal['code'] = {
@@ -128,7 +130,9 @@ const defaultInlineImageStyle: RichTextStyleInternal['inlineImage'] = {
 };
 
 const defaultBlockquoteBorderColor = processColor('#3B82F6') as ColorValue;
-const defaultBlockquoteBackgroundColor = processColor('#EFF6FF') as ColorValue;
+const defaultBlockquoteBackgroundColor = processColor(
+  'rgba(239, 246, 255, 0.7)'
+) as ColorValue;
 
 const defaultBlockquoteStyle: RichTextStyleInternal['blockquote'] = {
   fontSize: 16,
@@ -162,7 +166,9 @@ const defaultListStyle: RichTextStyleInternal['listStyle'] = {
   marginLeft: 20,
 };
 
-const defaultCodeBlockBackgroundColor = processColor('#1F2937') as ColorValue; // Dark background (Gray-800)
+const defaultCodeBlockBackgroundColor = processColor(
+  'rgba(31, 41, 55, 0.9)'
+) as ColorValue;
 const defaultCodeBlockBorderColor = processColor('#374151') as ColorValue; // Gray-700 border
 const defaultCodeBlockTextColor = processColor('#F9FAFB') as ColorValue; // Gray-50 text for contrast
 

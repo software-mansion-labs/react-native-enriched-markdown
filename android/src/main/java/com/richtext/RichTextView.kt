@@ -15,7 +15,7 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
 import com.richtext.styles.StyleConfig
-import com.richtext.utils.createImageUrlActionModeCallback
+import com.richtext.utils.createSelectionActionModeCallback
 import java.util.concurrent.Executors
 
 /**
@@ -41,7 +41,9 @@ class RichTextView
     var richTextStyle: StyleConfig? = null
       private set
 
-    private var currentMarkdown: String = ""
+    // Stored for "Copy Markdown" feature
+    var currentMarkdown: String = ""
+      private set
 
     init {
       movementMethod = LinkMovementMethod.getInstance()
@@ -137,6 +139,6 @@ class RichTextView
     }
 
     private fun setupSelectionActionMode() {
-      customSelectionActionModeCallback = createImageUrlActionModeCallback(this)
+      customSelectionActionModeCallback = createSelectionActionModeCallback(this)
     }
   }

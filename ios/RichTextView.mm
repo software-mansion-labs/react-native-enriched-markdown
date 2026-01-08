@@ -3,6 +3,7 @@
 #import "FontUtils.h"
 #import "ImageAttachment.h"
 #import "MarkdownASTNode.h"
+#import "MarkdownExtractor.h"
 #import "MarkdownParser.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
@@ -32,6 +33,7 @@ static const CGFloat kLabelPadding = 10.0;
 - (void)setupLayoutManager;
 - (MarkdownASTNode *)getOrParseAST:(NSString *)markdownString;
 - (NSArray<NSString *> *)imageURLsInRange:(NSRange)range;
+- (NSString *)markdownForRange:(NSRange)range;
 @end
 
 @implementation RichTextView {
@@ -941,36 +943,77 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
 
 /**
  * Customizes the edit menu when text is selected.
- * Adds "Copy Image URL" action when selection contains images.
+ * Adds "Copy Markdown" and "Copy Image URL" actions.
  *
  * NOTE: This delegate method is iOS 16+ only.
- * Before iOS 16, customizing edit menus required subclassing UITextView
- * and overriding buildMenuWithBuilder: (iOS 13+) or using the deprecated
- * UIMenuController API. Apple introduced this delegate method in iOS 16
- * as part of the new UIEditMenuInteraction system.
  */
 - (UIMenu *)textView:(UITextView *)textView
     editMenuForTextInRange:(NSRange)range
           suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
 {
-  NSArray<NSString *> *imageURLs = [self imageURLsInRange:range];
+  NSMutableArray *customActions = [NSMutableArray array];
 
-  if (imageURLs.count == 0) {
+  // Add "Copy Markdown" option
+  NSString *markdown = [self markdownForRange:range];
+  if (markdown.length > 0) {
+    UIAction *copyMarkdownAction = [UIAction
+        actionWithTitle:@"Copy Markdown"
+                  image:[UIImage systemImageNamed:@"doc.text"]
+             identifier:@"com.richtext.copyMarkdown"
+                handler:^(__kindof UIAction *action) { [[UIPasteboard generalPasteboard] setString:markdown]; }];
+    [customActions addObject:copyMarkdownAction];
+  }
+
+  // Add "Copy Image URL" option for remote images
+  NSArray<NSString *> *imageURLs = [self imageURLsInRange:range];
+  if (imageURLs.count > 0) {
+    NSString *urlsToCopy = [imageURLs componentsJoinedByString:@"\n"];
+    NSString *title = imageURLs.count == 1
+                          ? @"Copy Image URL"
+                          : [NSString stringWithFormat:@"Copy %lu Image URLs", (unsigned long)imageURLs.count];
+
+    UIAction *copyURLAction = [UIAction
+        actionWithTitle:title
+                  image:[UIImage systemImageNamed:@"link"]
+             identifier:@"com.richtext.copyImageURL"
+                handler:^(__kindof UIAction *action) { [[UIPasteboard generalPasteboard] setString:urlsToCopy]; }];
+    [customActions addObject:copyURLAction];
+  }
+
+  if (customActions.count == 0) {
     return [UIMenu menuWithChildren:suggestedActions];
   }
 
-  NSString *urlsToCopy = [imageURLs componentsJoinedByString:@"\n"];
-  NSString *title = imageURLs.count == 1
-                        ? @"Copy Image URL"
-                        : [NSString stringWithFormat:@"Copy %lu Image URLs", (unsigned long)imageURLs.count];
+  return [UIMenu menuWithChildren:[suggestedActions arrayByAddingObjectsFromArray:customActions]];
+}
 
-  UIAction *copyURLAction = [UIAction
-      actionWithTitle:title
-                image:[UIImage systemImageNamed:@"link"]
-           identifier:@"com.richtext.copyImageURL"
-              handler:^(__kindof UIAction *action) { [[UIPasteboard generalPasteboard] setString:urlsToCopy]; }];
+/**
+ * Hybrid approach for Copy Markdown:
+ * - Full selection: Returns original markdown
+ * - Partial selection: Reverse engineers markdown from attributed string
+ */
+- (NSString *)markdownForRange:(NSRange)range
+{
+  if (!_cachedMarkdown || range.length == 0) {
+    return nil;
+  }
 
-  return [UIMenu menuWithChildren:[suggestedActions arrayByAddingObject:copyURLAction]];
+  NSAttributedString *text = _textView.attributedText;
+  if (range.location >= text.length) {
+    return nil;
+  }
+
+  // Clamp range
+  range.length = MIN(range.length, text.length - range.location);
+
+  // Check if this is a full selection (entire document)
+  BOOL isFullSelection = (range.location == 0 && range.length >= text.length - 1);
+  if (isFullSelection) {
+    return _cachedMarkdown;
+  }
+
+  // Partial selection: extract markdown from attributes
+  return extractMarkdownFromAttributedString(text, range);
 }
 
 /// Extracts remote image URLs from ImageAttachments within the given range.

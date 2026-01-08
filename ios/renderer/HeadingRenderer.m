@@ -3,6 +3,7 @@
 #import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
+#import "RuntimeKeys.h"
 #import "StyleConfig.h"
 
 // Lightweight struct to hold style data without object overhead
@@ -57,6 +58,10 @@ typedef struct {
   NSRange range = NSMakeRange(start, output.length - start);
   if (range.length == 0)
     return;
+
+  // Mark text as heading for Copy Markdown reverse engineering
+  NSString *headingType = [NSString stringWithFormat:@"heading-%ld", (long)level];
+  [output addAttribute:MarkdownTypeAttributeName value:headingType range:range];
 
   applyLineHeight(output, range, style.lineHeight);
   applyParagraphSpacing(output, start, style.marginBottom);

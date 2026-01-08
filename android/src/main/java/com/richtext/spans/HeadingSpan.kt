@@ -7,7 +7,7 @@ import com.richtext.styles.StyleConfig
 import com.richtext.utils.applyTypefacePreserving
 
 class HeadingSpan(
-  private val level: Int,
+  val level: Int,
   private val style: StyleConfig,
 ) : MetricAffectingSpan() {
   private val fontSize: Float = style.getHeadingFontSize(level)

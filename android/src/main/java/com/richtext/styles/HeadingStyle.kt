@@ -14,7 +14,6 @@ data class HeadingStyle(
     fun fromReadableMap(
       map: ReadableMap,
       parser: StyleParser,
-      level: Int,
     ): HeadingStyle {
       val fontSize = parser.toPixelFromSP(map.getDouble("fontSize").toFloat())
       val fontFamily = parser.parseString(map, "fontFamily")

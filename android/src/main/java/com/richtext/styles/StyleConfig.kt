@@ -99,7 +99,7 @@ class StyleConfig(
         requireNotNull(style.getMap(levelKey)) {
           "Style for $levelKey not found. JS should always provide defaults."
         }
-      headingStyles[level] = HeadingStyle.fromReadableMap(levelStyle, styleParser, level)
+      headingStyles[level] = HeadingStyle.fromReadableMap(levelStyle, styleParser)
     }
 
     val linkStyleMap =

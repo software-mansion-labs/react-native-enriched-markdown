@@ -49,7 +49,7 @@ class RichTextView
       setTextIsSelectable(true)
       setPadding(0, 0, 0, 0)
       setBackgroundColor(Color.TRANSPARENT)
-      setupSelectionActionMode()
+      customSelectionActionModeCallback = createSelectionActionModeCallback(this)
     }
 
     fun setMarkdownContent(markdown: String) {
@@ -135,9 +135,5 @@ class RichTextView
 
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
       onLinkPressCallback = callback
-    }
-
-    private fun setupSelectionActionMode() {
-      customSelectionActionModeCallback = createSelectionActionModeCallback(this)
     }
   }

@@ -100,6 +100,8 @@
   NSString *_listStyleMarkerFontWeight;
   CGFloat _listStyleGapWidth;
   CGFloat _listStyleMarginLeft;
+  UIFont *_listMarkerFont;
+  BOOL _listMarkerFontNeedsRecreation;
   // Code block properties
   CGFloat _codeBlockFontSize;
   NSString *_codeBlockFontFamily;
@@ -118,6 +120,7 @@
 {
   self = [super init];
   _primaryFontNeedsRecreation = YES;
+  _listMarkerFontNeedsRecreation = YES;
   _linkUnderline = YES;
   return self;
 }
@@ -930,6 +933,7 @@
 - (void)setListStyleFontSize:(CGFloat)newValue
 {
   _listStyleFontSize = newValue;
+  _listMarkerFontNeedsRecreation = YES;
 }
 
 - (NSString *)listStyleFontFamily
@@ -940,6 +944,7 @@
 - (void)setListStyleFontFamily:(NSString *)newValue
 {
   _listStyleFontFamily = newValue;
+  _listMarkerFontNeedsRecreation = YES;
 }
 
 - (NSString *)listStyleFontWeight
@@ -1020,6 +1025,7 @@
 - (void)setListStyleMarkerFontWeight:(NSString *)newValue
 {
   _listStyleMarkerFontWeight = newValue;
+  _listMarkerFontNeedsRecreation = YES;
 }
 
 - (CGFloat)listStyleGapWidth
@@ -1040,6 +1046,21 @@
 - (void)setListStyleMarginLeft:(CGFloat)newValue
 {
   _listStyleMarginLeft = newValue;
+}
+
+- (UIFont *)listMarkerFont
+{
+  if (_listMarkerFontNeedsRecreation || !_listMarkerFont) {
+    _listMarkerFont = [RCTFont updateFont:nil
+                               withFamily:_listStyleFontFamily.length > 0 ? _listStyleFontFamily : nil
+                                     size:@(_listStyleFontSize)
+                                   weight:_listStyleMarkerFontWeight ?: @"normal"
+                                    style:nil
+                                  variant:nil
+                          scaleMultiplier:1];
+    _listMarkerFontNeedsRecreation = NO;
+  }
+  return _listMarkerFont;
 }
 
 // Code block properties

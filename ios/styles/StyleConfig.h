@@ -180,6 +180,7 @@
 - (void)setListStyleGapWidth:(CGFloat)newValue;
 - (CGFloat)listStyleMarginLeft;
 - (void)setListStyleMarginLeft:(CGFloat)newValue;
+- (UIFont *)listMarkerFont;
 // Code block properties
 - (CGFloat)codeBlockFontSize;
 - (void)setCodeBlockFontSize:(CGFloat)newValue;

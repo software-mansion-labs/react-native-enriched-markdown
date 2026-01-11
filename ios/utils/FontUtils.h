@@ -13,9 +13,6 @@ extern "C" {
 /** Returns a cached UIFont from BlockStyle properties via RenderContext. */
 extern UIFont *cachedFontFromBlockStyle(BlockStyle *blockStyle, RenderContext *context);
 
-/** Creates a UIFont from individual font properties (uncached). */
-extern UIFont *fontFromProperties(CGFloat fontSize, NSString *fontFamily, NSString *fontWeight);
-
 #ifdef __cplusplus
 }
 #endif

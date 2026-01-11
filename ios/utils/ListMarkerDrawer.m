@@ -1,5 +1,4 @@
 #import "ListMarkerDrawer.h"
-#import "FontUtils.h"
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
 #import "StyleConfig.h"
@@ -92,9 +91,7 @@ extern NSString *const ListItemNumberAttribute;
     return;
 
   NSString *text = [NSString stringWithFormat:@"%ld.", (long)num.integerValue];
-  UIFont *font = fontFromProperties([_config listStyleFontSize], [_config listStyleFontFamily],
-                                    [_config listStyleMarkerFontWeight])
-                     ?: [self defaultFont];
+  UIFont *font = [_config listMarkerFont] ?: [self defaultFont];
 
   NSDictionary *mAttrs = @{
     NSFontAttributeName : font,

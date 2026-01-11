@@ -22,10 +22,13 @@ data class RendererConfig(
 class RendererFactory(
   private val config: RendererConfig,
   val context: Context,
-  // 1. Callback to report ImageSpans back to the main Renderer collector
   private val onImageSpanCreated: (ImageSpan) -> Unit,
 ) {
   val blockStyleContext = BlockStyleContext()
+
+  fun resetForNewRender() {
+    blockStyleContext.resetForNewRender()
+  }
 
   private val textRenderer = TextRenderer()
   private val lineBreakRenderer = LineBreakRenderer()

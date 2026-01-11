@@ -8,13 +8,9 @@ import com.richtext.spans.ImageSpan
 import com.richtext.styles.StyleConfig
 
 class Renderer {
-  private data class Configuration(
-    val style: StyleConfig,
-    val context: Context,
-    val factory: RendererFactory,
-  )
-
-  private var currentConfig: Configuration? = null
+  private var cachedFactory: RendererFactory? = null
+  private var cachedStyle: StyleConfig? = null
+  private var cachedContext: Context? = null
 
   private val collectedImageSpans = mutableListOf<ImageSpan>()
 
@@ -22,39 +18,32 @@ class Renderer {
     style: StyleConfig,
     context: Context,
   ) {
-    if (currentConfig?.style === style && currentConfig?.context === context) return
+    if (cachedStyle === style && cachedContext === context) return
 
-    val config = RendererConfig(style)
-
-    currentConfig =
-      Configuration(
-        style = style,
-        context = context,
-        factory =
-          RendererFactory(config, context) { span ->
-            reportImageSpan(span)
-          },
-      )
+    cachedStyle = style
+    cachedContext = context
+    cachedFactory =
+      RendererFactory(
+        RendererConfig(style),
+        context,
+      ) { span -> reportImageSpan(span) }
   }
 
   fun renderDocument(
     document: MarkdownASTNode,
     onLinkPress: ((String) -> Unit)? = null,
   ): SpannableString {
-    val config =
-      requireNotNull(currentConfig) {
+    val factory =
+      requireNotNull(cachedFactory) {
         "Renderer must be configured with a style before calling renderDocument."
       }
 
-    // 1. Clear the list at the start of every new render pass
+    factory.resetForNewRender()
     collectedImageSpans.clear()
 
     val builder = SpannableStringBuilder()
+    renderNode(document, builder, onLinkPress, factory)
 
-    // 2. Start the recursive rendering process
-    renderNode(document, builder, onLinkPress, config.factory)
-
-    // 3. Convert to SpannableString to "lock in" the spans
     return SpannableString(builder)
   }
 

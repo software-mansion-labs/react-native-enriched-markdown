@@ -123,4 +123,15 @@ class BlockStyleContext {
     currentBlockStyle = null
     currentHeadingLevel = 0
   }
+
+  fun resetForNewRender() {
+    currentBlockType = BlockType.NONE
+    currentBlockStyle = null
+    currentHeadingLevel = 0
+    blockquoteDepth = 0
+    listDepth = 0
+    listType = null
+    listItemNumber = 0
+    orderedListItemNumbers.clear()
+  }
 }

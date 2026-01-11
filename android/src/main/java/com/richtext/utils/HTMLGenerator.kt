@@ -17,28 +17,17 @@ import com.richtext.spans.StrongSpan
 import com.richtext.spans.UnorderedListSpan
 import com.richtext.styles.StyleConfig
 
-/**
- * Generates semantic HTML with inline styles from Spannable text.
- * Optimized for performance with style caching and efficient string operations.
- */
+/** Generates semantic HTML with inline styles from Spannable text. */
 object HTMLGenerator {
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Constants
-  // ─────────────────────────────────────────────────────────────────────────────
-
   private const val OBJECT_REPLACEMENT_CHAR = '\uFFFC'
-  private val ESCAPE_CHARS = charArrayOf('&', '<', '>', '"', '\'')
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Cached Styles (pre-computed to avoid repeated method calls)
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  /** Pre-computed styles to avoid repeated StyleConfig method calls. */
   private class CachedStyles(
     style: StyleConfig,
     private val fontDensity: Float,
     private val dimDensity: Float,
   ) {
-    // Density helpers (inline for performance)
+    // Convert device pixels back to CSS pixels
     private fun fontPx(px: Float) = (px / fontDensity).toInt()
 
     private fun dimPx(px: Float) = (px / dimDensity).toInt()
@@ -188,10 +177,6 @@ object HTMLGenerator {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Generator State
-  // ─────────────────────────────────────────────────────────────────────────────
-
   private class GeneratorState {
     var inCodeBlock = false
     var previousWasCodeBlock = false
@@ -202,13 +187,10 @@ object HTMLGenerator {
     var previousWasBlockquote = false
 
     var listDepth = -1
-    val openListTypes = ArrayList<Int>(4) // Pre-sized, 0 = ul, 1 = ol
+    val openListTypes = ArrayList<Int>(4) // 0 = ul, 1 = ol
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Paragraph Types (using Int constants for performance)
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // Paragraph type constants
   private const val TYPE_NORMAL = 0
   private const val TYPE_H1 = 1
   private const val TYPE_H2 = 2
@@ -227,10 +209,6 @@ object HTMLGenerator {
     val type: Int,
     val depth: Int = 0,
   )
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Public API
-  // ─────────────────────────────────────────────────────────────────────────────
 
   fun generateHTML(
     text: Spannable,
@@ -260,10 +238,6 @@ object HTMLGenerator {
 
     return html.toString()
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Paragraph Processing
-  // ─────────────────────────────────────────────────────────────────────────────
 
   private fun processParagraph(
     html: StringBuilder,
@@ -295,10 +269,6 @@ object HTMLGenerator {
       else -> handleNormalParagraph(html, inlineContent, styles, state)
     }
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Code Block Handling
-  // ─────────────────────────────────────────────────────────────────────────────
 
   private fun handleCodeBlock(
     html: StringBuilder,
@@ -338,7 +308,6 @@ object HTMLGenerator {
       .append(styles.codeBlockColor)
       .append(";\">")
 
-    // Join lines with newlines
     for (i in lines.indices) {
       if (i > 0) html.append('\n')
       html.append(lines[i])
@@ -346,10 +315,6 @@ object HTMLGenerator {
 
     html.append("</code></pre>")
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Blockquote Handling
-  // ─────────────────────────────────────────────────────────────────────────────
 
   private fun handleBlockquote(
     html: StringBuilder,
@@ -362,18 +327,16 @@ object HTMLGenerator {
 
     val depth = para.depth
 
-    // Start fresh if coming from non-blockquote content
+    // Reset if coming from non-blockquote content
     if (!state.previousWasBlockquote && state.inBlockquote) {
       closeAllBlockquotes(html, state)
     }
 
-    // Adjust depth down
     while (state.blockquoteDepth > depth) {
       html.append("</blockquote>")
       state.blockquoteDepth--
     }
 
-    // Adjust depth up
     while (state.blockquoteDepth < depth) {
       state.blockquoteDepth++
       state.inBlockquote = true
@@ -416,10 +379,6 @@ object HTMLGenerator {
     state.previousWasCodeBlock = false
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // List Handling
-  // ─────────────────────────────────────────────────────────────────────────────
-
   private fun handleList(
     html: StringBuilder,
     content: String,
@@ -434,14 +393,14 @@ object HTMLGenerator {
     val isOrdered = para.type == TYPE_ORDERED_LIST
     val listTypeValue = if (isOrdered) 1 else 0
 
-    // Close lists when going to shallower depth
+    // Close lists to shallower depth
     while (state.listDepth > depth) {
       html.append(if (state.openListTypes.lastOrNull() == 1) "</ol>" else "</ul>")
       if (state.openListTypes.isNotEmpty()) state.openListTypes.removeAt(state.openListTypes.lastIndex)
       state.listDepth--
     }
 
-    // Handle list type change at same depth
+    // Handle list type change at same depth (ul <-> ol)
     if (state.listDepth == depth && state.openListTypes.isNotEmpty()) {
       if (state.openListTypes.last() != listTypeValue) {
         html.append(if (state.openListTypes.last() == 1) "</ol>" else "</ul>")
@@ -450,7 +409,7 @@ object HTMLGenerator {
       }
     }
 
-    // Open lists when going deeper
+    // Open lists to deeper depth
     while (state.listDepth < depth) {
       state.listDepth++
       val marginStyle =
@@ -494,10 +453,6 @@ object HTMLGenerator {
     state.previousWasCodeBlock = false
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Heading & Paragraph Handling
-  // ─────────────────────────────────────────────────────────────────────────────
-
   private fun handleHeading(
     html: StringBuilder,
     content: String,
@@ -509,7 +464,7 @@ object HTMLGenerator {
     closeBlockquotesIfOpen(html, state)
     closeListsIfOpen(html, state)
 
-    val level = type // TYPE_H1 = 1, TYPE_H2 = 2, etc.
+    val level = type // TYPE_H1..TYPE_H6 = 1..6
     val idx = level - 1
 
     html
@@ -557,10 +512,6 @@ object HTMLGenerator {
     state.previousWasBlockquote = false
     state.previousWasCodeBlock = false
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Container Closing Helpers
-  // ─────────────────────────────────────────────────────────────────────────────
 
   private fun closeCodeBlockIfOpen(
     html: StringBuilder,
@@ -615,10 +566,6 @@ object HTMLGenerator {
     closeListsIfOpen(html, state)
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Inline HTML Generation
-  // ─────────────────────────────────────────────────────────────────────────────
-
   private fun generateInlineHTML(
     buffer: StringBuilder,
     text: Spannable,
@@ -634,18 +581,15 @@ object HTMLGenerator {
       val char = text[i]
 
       when {
-        // Skip trailing newline
         char == '\n' && i == end - 1 -> {
           i++
         }
 
-        // Handle images
         char == OBJECT_REPLACEMENT_CHAR -> {
           appendImageIfPresent(html, text, i, styles)
           i++
         }
 
-        // Handle text segment
         else -> {
           val segmentEnd = minOf(text.nextSpanTransition(i, end, Any::class.java), end)
           val segmentText = text.subSequence(i, segmentEnd).toString()
@@ -698,7 +642,6 @@ object HTMLGenerator {
     styles: CachedStyles,
     isCodeBlock: Boolean,
   ) {
-    // Get all spans once
     val strongSpans = text.getSpans(start, end, StrongSpan::class.java)
     val styleSpans = text.getSpans(start, end, StyleSpan::class.java)
     val emphasisSpans = text.getSpans(start, end, EmphasisSpan::class.java)
@@ -707,7 +650,6 @@ object HTMLGenerator {
     val linkSpans = text.getSpans(start, end, LinkSpan::class.java)
     val inlineCodeSpans = text.getSpans(start, end, InlineCodeSpan::class.java)
 
-    // Detect formatting
     val isBold =
       strongSpans.isNotEmpty() ||
         styleSpans.any { it.style == Typeface.BOLD || it.style == Typeface.BOLD_ITALIC }
@@ -719,7 +661,6 @@ object HTMLGenerator {
     val link = linkSpans.firstOrNull()
     val isInlineCode = inlineCodeSpans.isNotEmpty() && !isCodeBlock
 
-    // Opening tags
     link?.let {
       html.append("<a href=\"")
       escapeHTMLTo(html, it.url)
@@ -759,10 +700,8 @@ object HTMLGenerator {
     if (isStrikethrough) html.append("<s>")
     if (isUnderline && link == null) html.append("<u>")
 
-    // Content (escaped)
     escapeHTMLTo(html, content.trimEnd('\n'))
 
-    // Closing tags (reverse order)
     if (isUnderline && link == null) html.append("</u>")
     if (isStrikethrough) html.append("</s>")
     if (isItalic) html.append("</em>")
@@ -770,10 +709,6 @@ object HTMLGenerator {
     if (isInlineCode) html.append("</code>")
     if (link != null) html.append("</a>")
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Paragraph Collection
-  // ─────────────────────────────────────────────────────────────────────────────
 
   private fun collectParagraphs(text: Spannable): ArrayList<ParagraphInfo> {
     val string = text.toString()
@@ -800,29 +735,14 @@ object HTMLGenerator {
   ): Int {
     val end = minOf(start + 1, text.length)
 
-    // Check code block first (most common special case)
-    if (text.getSpans(start, end, CodeBlockSpan::class.java).isNotEmpty()) {
-      return TYPE_CODE_BLOCK
-    }
+    if (text.getSpans(start, end, CodeBlockSpan::class.java).isNotEmpty()) return TYPE_CODE_BLOCK
 
-    // Check heading
     val headingSpans = text.getSpans(start, end, HeadingSpan::class.java)
-    if (headingSpans.isNotEmpty()) {
-      return headingSpans[0].level.coerceIn(1, 6)
-    }
+    if (headingSpans.isNotEmpty()) return headingSpans[0].level.coerceIn(1, 6)
 
-    // Check blockquote
-    if (text.getSpans(start, end, BlockquoteSpan::class.java).isNotEmpty()) {
-      return TYPE_BLOCKQUOTE
-    }
-
-    // Check lists
-    if (text.getSpans(start, end, OrderedListSpan::class.java).isNotEmpty()) {
-      return TYPE_ORDERED_LIST
-    }
-    if (text.getSpans(start, end, UnorderedListSpan::class.java).isNotEmpty()) {
-      return TYPE_UNORDERED_LIST
-    }
+    if (text.getSpans(start, end, BlockquoteSpan::class.java).isNotEmpty()) return TYPE_BLOCKQUOTE
+    if (text.getSpans(start, end, OrderedListSpan::class.java).isNotEmpty()) return TYPE_ORDERED_LIST
+    if (text.getSpans(start, end, UnorderedListSpan::class.java).isNotEmpty()) return TYPE_UNORDERED_LIST
 
     return TYPE_NORMAL
   }
@@ -841,21 +761,14 @@ object HTMLGenerator {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // HTML Escaping (Single Pass, Direct to StringBuilder)
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Fast HTML escape that writes directly to StringBuilder.
-   * Uses single-pass character scanning instead of multiple replace() calls.
-   */
+  /** Fast HTML escape using single-pass character scanning. */
   private fun escapeHTMLTo(
     output: StringBuilder,
     text: String,
   ) {
     val len = text.length
 
-    // Fast path: check if escaping is needed
+    // Fast path: skip if no escaping needed
     var needsEscape = false
     for (i in 0 until len) {
       val c = text[i]
@@ -864,13 +777,11 @@ object HTMLGenerator {
         break
       }
     }
-
     if (!needsEscape) {
       output.append(text)
       return
     }
 
-    // Slow path: escape character by character
     for (i in 0 until len) {
       when (val c = text[i]) {
         '&' -> output.append("&amp;")

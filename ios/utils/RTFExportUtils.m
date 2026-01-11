@@ -1,5 +1,6 @@
 #import "RTFExportUtils.h"
 #import "BlockquoteBorder.h"
+#import "CodeBackground.h"
 #import "CodeBlockBackground.h"
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
@@ -30,6 +31,24 @@ static void collectLineStartsInRange(NSString *string, NSRange range, void (^han
     NSRange lineRange = [string lineRangeForRange:NSMakeRange(pos, 0)];
     pos = NSMaxRange(lineRange);
   }
+}
+
+#pragma mark - Inline Code Processing
+
+static void processInlineCodes(NSMutableAttributedString *text, UIColor *bgColor)
+{
+  if (!bgColor)
+    return;
+
+  [text enumerateAttribute:RichTextCodeAttributeName
+                   inRange:NSMakeRange(0, text.length)
+                   options:0
+                usingBlock:^(id value, NSRange range, BOOL *stop) {
+                  if (![value boolValue])
+                    return;
+
+                  [text addAttribute:NSBackgroundColorAttributeName value:bgColor range:range];
+                }];
 }
 
 #pragma mark - Code Block Processing
@@ -242,9 +261,11 @@ NSAttributedString *prepareAttributedStringForRTFExport(NSAttributedString *attr
 
   NSMutableAttributedString *prepared = [attributedString mutableCopy];
 
+  UIColor *inlineCodeBgColor = [styleConfig codeBackgroundColor];
   UIColor *codeBlockBgColor = [styleConfig codeBlockBackgroundColor];
   UIColor *blockquoteBgColor = [styleConfig blockquoteBackgroundColor];
 
+  processInlineCodes(prepared, inlineCodeBgColor);
   processCodeBlocks(prepared, codeBlockBgColor);
   processBlockquotes(prepared, blockquoteBgColor);
   processLists(prepared);

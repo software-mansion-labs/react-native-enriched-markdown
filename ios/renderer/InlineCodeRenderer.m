@@ -51,12 +51,6 @@
     }
     codeAttributes[RichTextCodeAttributeName] = @YES;
 
-    // Background color for RTF export (visual rendering uses custom CodeBackground drawing)
-    UIColor *codeBackgroundColor = _config.codeBackgroundColor;
-    if (codeBackgroundColor) {
-      codeAttributes[NSBackgroundColorAttributeName] = codeBackgroundColor;
-    }
-
     // Store block line height directly for CodeBackground to use
     codeAttributes[@"RichTextBlockLineHeight"] = @(blockFont.lineHeight);
 

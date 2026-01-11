@@ -5,7 +5,6 @@ import android.text.Spannable
 import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
-import android.util.Log
 import com.richtext.spans.BlockquoteSpan
 import com.richtext.spans.CodeBlockSpan
 import com.richtext.spans.EmphasisSpan
@@ -259,9 +258,7 @@ object HTMLGenerator {
     closeRemainingContainers(html, state, styles)
     html.append("</html>")
 
-    val result = html.toString()
-    Log.d("HTMLGenerator", "=== Generated HTML ===\n$result\n=== End HTML ===")
-    return result
+    return html.toString()
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

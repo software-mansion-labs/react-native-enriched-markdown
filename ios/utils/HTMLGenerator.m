@@ -762,7 +762,5 @@ NSString *_Nullable generateHTML(NSAttributedString *attributedString, StyleConf
 
   [html appendString:@"</body></html>"];
 
-  NSLog(@"=== Generated HTML ===\n%@\n=== End HTML ===", html);
-
   return html;
 }

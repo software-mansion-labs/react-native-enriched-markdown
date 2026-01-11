@@ -45,7 +45,8 @@ class OrderedListSpan(
         )
     }
 
-  private var itemNumber: Int = 1
+  var itemNumber: Int = 1
+    private set
 
   override fun drawMarker(
     c: Canvas,

@@ -10,7 +10,7 @@ import com.richtext.styles.StyleConfig
 import com.richtext.utils.applyBlockStyleFont
 
 class LinkSpan(
-  private val url: String,
+  val url: String,
   private val onLinkPress: ((String) -> Unit)?,
   private val style: StyleConfig,
   private val blockStyle: BlockStyle,

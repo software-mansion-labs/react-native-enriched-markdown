@@ -2,7 +2,6 @@ package com.richtext
 
 import android.content.Context
 import android.graphics.Color
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Spannable
@@ -16,6 +15,7 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.richtext.parser.Parser
 import com.richtext.renderer.Renderer
 import com.richtext.styles.StyleConfig
+import com.richtext.utils.createSelectionActionModeCallback
 import java.util.concurrent.Executors
 
 /**
@@ -41,13 +41,15 @@ class RichTextView
     var richTextStyle: StyleConfig? = null
       private set
 
-    private var currentMarkdown: String = ""
+    var currentMarkdown: String = ""
+      private set
 
     init {
       movementMethod = LinkMovementMethod.getInstance()
       setTextIsSelectable(true)
       setPadding(0, 0, 0, 0)
       setBackgroundColor(Color.TRANSPARENT)
+      customSelectionActionModeCallback = createSelectionActionModeCallback(this)
     }
 
     fun setMarkdownContent(markdown: String) {

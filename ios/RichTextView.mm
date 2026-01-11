@@ -1,8 +1,10 @@
 #import "RichTextView.h"
 #import "AttributedRenderer.h"
+#import "EditMenuUtils.h"
 #import "FontUtils.h"
 #import "ImageAttachment.h"
 #import "MarkdownASTNode.h"
+#import "MarkdownExtractor.h"
 #import "MarkdownParser.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
@@ -24,7 +26,7 @@ using namespace facebook::react;
 static const CGFloat kMinimumHeight = 100.0;
 static const CGFloat kLabelPadding = 10.0;
 
-@interface RichTextView () <RCTRichTextViewViewProtocol>
+@interface RichTextView () <RCTRichTextViewViewProtocol, UITextViewDelegate>
 - (void)setupTextView;
 - (void)setupConstraints;
 - (void)renderMarkdownContent:(NSString *)markdownString withProps:(const RichTextViewProps &)props;
@@ -40,6 +42,7 @@ static const CGFloat kLabelPadding = 10.0;
   RenderContext *_renderContext;
   MarkdownASTNode *_cachedAST;
   NSString *_cachedMarkdown;
+  StyleConfig *_config;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -72,6 +75,7 @@ static const CGFloat kLabelPadding = 10.0;
   _textView.backgroundColor = [UIColor clearColor];
   _textView.textColor = [UIColor blackColor];
   _textView.editable = NO;
+  _textView.delegate = self;
   // TODO: Calculate proper height to fit all content including images
   // Currently scrollEnabled = NO means content beyond viewport may not render
   _textView.scrollEnabled = NO;
@@ -933,6 +937,16 @@ Class<RCTComponentViewProtocol> RichTextViewCls(void)
       eventEmitter.onLinkPress({.url = std::string([url UTF8String])});
     }
   }
+}
+
+#pragma mark - UITextViewDelegate (Edit Menu)
+
+// Customizes the edit menu
+- (UIMenu *)textView:(UITextView *)textView
+    editMenuForTextInRange:(NSRange)range
+          suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
+{
+  return buildEditMenuForSelection(_textView.attributedText, range, _cachedMarkdown, _config, suggestedActions);
 }
 
 @end

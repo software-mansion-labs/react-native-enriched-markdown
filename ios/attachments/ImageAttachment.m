@@ -5,7 +5,7 @@
 #import <objc/runtime.h>
 
 @interface ImageAttachment ()
-@property (nonatomic, strong) NSString *imageURL;
+@property (nonatomic, readwrite) NSString *imageURL;
 @property (nonatomic, weak) StyleConfig *config;
 @property (nonatomic, assign) BOOL isInline;
 @property (nonatomic, assign) CGFloat cachedHeight;
@@ -82,9 +82,16 @@
 
     dispatch_async(dispatch_get_main_queue(), ^{
       strongSelf.loadedImage = scaled;
-      // Update self.image with ORIGINAL (non-rounded) image for native iOS actions
-      // This ensures "Save to Camera Roll" saves the proper image without baked-in rounded corners
-      strongSelf.image = image;
+
+      if (strongSelf.isInline) {
+        // Use scaled image for RTF export (RTF uses self.image dimensions)
+        strongSelf.image = scaled;
+        strongSelf.bounds = CGRectMake(0, 0, strongSelf.cachedHeight, strongSelf.cachedHeight);
+      } else {
+        // Use original for "Save to Camera Roll" (no baked-in rounded corners)
+        strongSelf.image = image;
+      }
+
       [strongSelf updateUI];
     });
   });

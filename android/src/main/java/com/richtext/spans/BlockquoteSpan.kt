@@ -64,7 +64,7 @@ class BlockquoteSpan(
     p.color = style.borderColor
 
     val borderTop = top.toFloat()
-    val borderBottom = calculateBorderBottom(bottom, text, start, layout)
+    val borderBottom = bottom.toFloat()
     val containerLeft = layout?.getLineLeft(0) ?: 0f
 
     for (level in 0..depth) {
@@ -100,28 +100,10 @@ class BlockquoteSpan(
       richTextStyle.getLinkColor().takeIf { it != 0 }?.let { add(it) }
       richTextStyle
         .getCodeStyle()
-        ?.color
-        ?.takeIf { it != 0 }
+        .color
+        .takeIf { it != 0 }
         ?.let { add(it) }
     }
-  }
-
-  private fun calculateBorderBottom(
-    bottom: Int,
-    text: CharSequence?,
-    start: Int,
-    layout: Layout?,
-  ): Float {
-    if (layout == null || text !is Spanned || start >= layout.text.length) return bottom.toFloat()
-    val line = layout.getLineForOffset(start)
-    if (line >= layout.lineCount - 1) return bottom.toFloat()
-
-    val nextStart = layout.getLineStart(line + 1)
-    val continues = text.getSpans(nextStart, nextStart + 1, BlockquoteSpan::class.java).any { it === this }
-
-    // Bridging logic to connect fragmented line borders
-    val gap = layout.getLineTop(line + 1) - bottom
-    return if (continues && gap > 0 && gap < 1f) (bottom + gap).toFloat() else bottom.toFloat()
   }
 
   private fun shouldSkipDrawing(

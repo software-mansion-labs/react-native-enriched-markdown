@@ -41,7 +41,6 @@ class RichTextView
     var richTextStyle: StyleConfig? = null
       private set
 
-    // Stored for "Copy Markdown" feature
     var currentMarkdown: String = ""
       private set
 

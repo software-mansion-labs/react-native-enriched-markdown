@@ -4,9 +4,7 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
-import com.facebook.react.uimanager.ViewDefaults
 import com.facebook.react.uimanager.ViewManagerDelegate
-import com.facebook.react.uimanager.ViewProps
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.RichTextViewManagerDelegate
 import com.facebook.react.viewmanagers.RichTextViewManagerInterface

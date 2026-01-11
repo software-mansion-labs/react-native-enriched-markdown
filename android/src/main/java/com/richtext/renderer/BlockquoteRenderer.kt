@@ -1,7 +1,6 @@
 package com.richtext.renderer
 
 import android.text.SpannableStringBuilder
-import android.text.style.LineHeightSpan
 import com.richtext.parser.MarkdownASTNode
 import com.richtext.spans.BlockquoteSpan
 import com.richtext.spans.MarginBottomSpan

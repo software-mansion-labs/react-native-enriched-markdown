@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
-import android.text.Spannable
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.util.Log

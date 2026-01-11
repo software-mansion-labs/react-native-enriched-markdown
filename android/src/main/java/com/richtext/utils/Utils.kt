@@ -3,7 +3,6 @@ package com.richtext.utils
 import android.content.Context
 import android.graphics.Typeface
 import android.os.Build
-import android.text.Layout
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.TextPaint
@@ -117,63 +116,6 @@ fun TextPaint.applyBlockStyleFont(
       blockStyle.fontFamily.takeIf { it.isNotEmpty() },
       context.assets,
     )
-}
-
-// ============================================================================
-// Layout Extensions
-// ============================================================================
-
-private const val DEFAULT_LINESPACING_EXTRA = 0f
-private const val DEFAULT_LINESPACING_MULTIPLIER = 1f
-
-/**
- * Get the line bottom discarding the line spacing added.
- */
-fun Layout.getLineBottomWithoutSpacing(line: Int): Int {
-  val lineBottom = getLineBottom(line)
-  val isLastLine = line == lineCount - 1
-
-  val lineSpacingExtra = spacingAdd
-  val lineSpacingMultiplier = spacingMultiplier
-  val hasLineSpacing =
-    lineSpacingExtra != DEFAULT_LINESPACING_EXTRA ||
-      lineSpacingMultiplier != DEFAULT_LINESPACING_MULTIPLIER
-
-  if (!hasLineSpacing || isLastLine) {
-    return lineBottom
-  }
-
-  val extra: Float =
-    if (lineSpacingMultiplier.compareTo(DEFAULT_LINESPACING_MULTIPLIER) != 0) {
-      val lineHeight = getLineTop(line + 1) - getLineTop(line)
-      lineHeight - (lineHeight - lineSpacingExtra) / lineSpacingMultiplier
-    } else {
-      lineSpacingExtra
-    }
-
-  return (lineBottom - extra).toInt()
-}
-
-/**
- * Returns the top of the Layout after removing the extra padding applied by the Layout.
- */
-fun Layout.getLineTopWithoutPadding(line: Int): Int {
-  val lineTop = getLineTop(line)
-  if (line == 0 && topPadding != 0) {
-    return lineTop - topPadding
-  }
-  return lineTop
-}
-
-/**
- * Returns the bottom of the Layout after removing the extra padding applied by the Layout.
- */
-fun Layout.getLineBottomWithoutPadding(line: Int): Int {
-  val lineBottom = getLineBottomWithoutSpacing(line)
-  if (line == lineCount - 1 && bottomPadding != 0) {
-    return lineBottom - bottomPadding
-  }
-  return lineBottom
 }
 
 // ============================================================================

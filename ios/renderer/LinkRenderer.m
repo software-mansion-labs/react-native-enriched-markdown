@@ -44,15 +44,21 @@
   [output enumerateAttributesInRange:range
                              options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
                           usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
+                            NSMutableDictionary *newAttributes = [NSMutableDictionary dictionary];
+
                             // Only apply link color if the subrange isn't already colored by the link style
                             if (linkColor && ![attrs[NSForegroundColorAttributeName] isEqual:linkColor]) {
-                              [output addAttribute:NSForegroundColorAttributeName value:linkColor range:subrange];
-                              [output addAttribute:NSUnderlineColorAttributeName value:linkColor range:subrange];
+                              newAttributes[NSForegroundColorAttributeName] = linkColor;
+                              newAttributes[NSUnderlineColorAttributeName] = linkColor;
                             }
 
                             // Only update underline style if it differs from the config
                             if (![attrs[NSUnderlineStyleAttributeName] isEqual:underlineStyle]) {
-                              [output addAttribute:NSUnderlineStyleAttributeName value:underlineStyle range:subrange];
+                              newAttributes[NSUnderlineStyleAttributeName] = underlineStyle;
+                            }
+
+                            if (newAttributes.count > 0) {
+                              [output addAttributes:newAttributes range:subrange];
                             }
                           }];
 

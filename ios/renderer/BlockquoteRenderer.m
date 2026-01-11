@@ -128,12 +128,13 @@ static NSString *const kNestedInfoRangeKey = @"range";
   paragraphStyle.firstLineHeadIndent = totalIndent;
   paragraphStyle.headIndent = totalIndent;
 
-  [output addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:blockquoteRange];
-  [output addAttribute:RichTextBlockquoteDepthAttributeName value:@(currentDepth) range:blockquoteRange];
-
+  NSMutableDictionary *newAttributes =
+      [NSMutableDictionary dictionaryWithObjectsAndKeys:paragraphStyle, NSParagraphStyleAttributeName, @(currentDepth),
+                                                        RichTextBlockquoteDepthAttributeName, nil];
   if (backgroundColor) {
-    [output addAttribute:RichTextBlockquoteBackgroundColorAttributeName value:backgroundColor range:blockquoteRange];
+    newAttributes[RichTextBlockquoteBackgroundColorAttributeName] = backgroundColor;
   }
+  [output addAttributes:newAttributes range:blockquoteRange];
 
   applyLineHeight(output, blockquoteRange, lineHeight);
 }
@@ -168,8 +169,11 @@ static NSString *const kNestedInfoRangeKey = @"range";
     style.headIndent = indent;
     style.tailIndent = 0;
 
-    [output addAttribute:NSParagraphStyleAttributeName value:style range:nestedRange];
-    [output addAttribute:RichTextBlockquoteDepthAttributeName value:info[kNestedInfoDepthKey] range:nestedRange];
+    [output addAttributes:@{
+      NSParagraphStyleAttributeName : style,
+      RichTextBlockquoteDepthAttributeName : info[kNestedInfoDepthKey]
+    }
+                    range:nestedRange];
   }
 }
 

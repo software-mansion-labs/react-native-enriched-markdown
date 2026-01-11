@@ -55,9 +55,12 @@
 
   // 3. CONTENT STYLING
   UIFont *codeFont = cachedFontFromBlockStyle([context getBlockStyle], context);
-  [output addAttribute:NSFontAttributeName value:codeFont range:contentRange];
-  if ([_config codeBlockColor]) {
-    [output addAttribute:NSForegroundColorAttributeName value:[_config codeBlockColor] range:contentRange];
+  UIColor *codeColor = [_config codeBlockColor];
+  if (codeColor) {
+    [output addAttributes:@{NSFontAttributeName : codeFont, NSForegroundColorAttributeName : codeColor}
+                    range:contentRange];
+  } else {
+    [output addAttribute:NSFontAttributeName value:codeFont range:contentRange];
   }
 
   if (lineHeight > 0) {

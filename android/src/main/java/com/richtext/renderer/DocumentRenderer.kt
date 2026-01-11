@@ -3,9 +3,7 @@ package com.richtext.renderer
 import android.text.SpannableStringBuilder
 import com.richtext.parser.MarkdownASTNode
 
-class DocumentRenderer(
-  private val config: RendererConfig? = null,
-) : NodeRenderer {
+class DocumentRenderer : NodeRenderer {
   override fun render(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,

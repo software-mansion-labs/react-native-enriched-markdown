@@ -32,7 +32,7 @@ class RendererFactory(
 
   private val renderers: Map<MarkdownASTNode.NodeType, NodeRenderer> by lazy {
     mapOf(
-      MarkdownASTNode.NodeType.Document to DocumentRenderer(config),
+      MarkdownASTNode.NodeType.Document to DocumentRenderer(),
       MarkdownASTNode.NodeType.Paragraph to ParagraphRenderer(config),
       MarkdownASTNode.NodeType.Heading to HeadingRenderer(config),
       MarkdownASTNode.NodeType.Blockquote to BlockquoteRenderer(config),

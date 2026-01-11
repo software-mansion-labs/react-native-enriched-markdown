@@ -63,7 +63,6 @@ void copyAttributedStringToPasteboard(NSAttributedString *attributedString, NSSt
     return;
 
   NSMutableDictionary *items = [NSMutableDictionary dictionary];
-  NSRange fullRange = NSMakeRange(0, attributedString.length);
 
   items[kUTIPlainText] = attributedString.string;
 

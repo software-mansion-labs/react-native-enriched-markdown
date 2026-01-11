@@ -5,6 +5,7 @@ import android.text.Spannable
 import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
+import android.util.Log
 import com.richtext.spans.BlockquoteSpan
 import com.richtext.spans.CodeBlockSpan
 import com.richtext.spans.EmphasisSpan
@@ -75,6 +76,17 @@ object HTMLGenerator {
     // Image
     val imageMarginBottom: Int
     val imageBorderRadius: Int
+
+    // Fixed HTML values (not from StyleConfig)
+    val blockquotePaddingVertical = "8px"
+    val blockquoteBorderRadiusCorners = "0 8px 8px 0"
+    val blockquoteNestedMargin = "8px 0 0 0"
+    val blockquoteParagraphMargin = "0 0 4px 0"
+    val inlineImageHeight = "1.2em"
+    val inlineImageVerticalAlign = "-0.2em"
+    val inlineCodePadding = "2px 4px"
+    val inlineCodeBorderRadius = "4px"
+    val inlineCodeFontSize = "0.7em"
 
     // Headings (array for O(1) lookup)
     val headingFontSizes: IntArray
@@ -187,16 +199,12 @@ object HTMLGenerator {
     var previousWasBlockquote = false
 
     var listDepth = -1
-    val openListTypes = ArrayList<Int>(4) // 0 = ul, 1 = ol
+    val openListTypes = ArrayList<Boolean>(4) // true = ol, false = ul
   }
 
-  // Paragraph type constants
+  // Paragraph type constants (H1-H6 = 1-6 directly from HeadingSpan.level)
   private const val TYPE_NORMAL = 0
   private const val TYPE_H1 = 1
-  private const val TYPE_H2 = 2
-  private const val TYPE_H3 = 3
-  private const val TYPE_H4 = 4
-  private const val TYPE_H5 = 5
   private const val TYPE_H6 = 6
   private const val TYPE_CODE_BLOCK = 7
   private const val TYPE_BLOCKQUOTE = 8
@@ -250,7 +258,7 @@ object HTMLGenerator {
 
     // Handle empty paragraphs
     if (paraText.isEmpty() && para.type == TYPE_NORMAL) {
-      closeBlockquotesIfOpen(html, state)
+      closeAllBlockquotes(html, state)
       state.previousWasBlockquote = false
       return
     }
@@ -258,11 +266,11 @@ object HTMLGenerator {
     // Get content range (trim trailing newline)
     val contentEnd = if (para.end > para.start && text[para.end - 1] == '\n') para.end - 1 else para.end
     val isCodeBlock = para.type == TYPE_CODE_BLOCK
-    val inlineContent = generateInlineHTML(html, text, para.start, contentEnd, styles, isCodeBlock)
+    val inlineContent = generateInlineHTML(text, para.start, contentEnd, styles, isCodeBlock)
 
     // Handle different paragraph types
     when (para.type) {
-      TYPE_CODE_BLOCK -> handleCodeBlock(html, inlineContent, styles, state)
+      TYPE_CODE_BLOCK -> handleCodeBlock(inlineContent, state)
       TYPE_BLOCKQUOTE -> handleBlockquote(html, inlineContent, para, styles, state)
       TYPE_ORDERED_LIST, TYPE_UNORDERED_LIST -> handleList(html, inlineContent, para, styles, state)
       in TYPE_H1..TYPE_H6 -> handleHeading(html, inlineContent, para.type, styles, state)
@@ -271,9 +279,7 @@ object HTMLGenerator {
   }
 
   private fun handleCodeBlock(
-    html: StringBuilder,
     content: String,
-    styles: CachedStyles,
     state: GeneratorState,
   ) {
     if (!state.inCodeBlock) {
@@ -349,11 +355,15 @@ object HTMLGenerator {
           .append(styles.blockquoteBorderWidth)
           .append("px solid ")
           .append(styles.blockquoteBorderColor)
-          .append("; padding: 8px ")
+          .append("; padding: ")
+          .append(styles.blockquotePaddingVertical)
+          .append(" ")
           .append(styles.blockquoteGapWidth)
           .append("px; margin: 0 0 ")
           .append(styles.blockquoteMarginBottom)
-          .append("px 0; border-radius: 0 8px 8px 0;\">")
+          .append("px 0; border-radius: ")
+          .append(styles.blockquoteBorderRadiusCorners)
+          .append(";\">")
       } else {
         html
           .append("<blockquote style=\"border-left: ")
@@ -362,12 +372,16 @@ object HTMLGenerator {
           .append(styles.blockquoteBorderColor)
           .append("; padding-left: ")
           .append(styles.blockquoteGapWidth)
-          .append("px; margin: 8px 0 0 0;\">")
+          .append("px; margin: ")
+          .append(styles.blockquoteNestedMargin)
+          .append(";\">")
       }
     }
 
     html
-      .append("<p style=\"margin: 0 0 4px 0; color: ")
+      .append("<p style=\"margin: ")
+      .append(styles.blockquoteParagraphMargin)
+      .append("; color: ")
       .append(styles.blockquoteColor)
       .append("; font-size: ")
       .append(styles.blockquoteFontSize)
@@ -387,23 +401,22 @@ object HTMLGenerator {
     state: GeneratorState,
   ) {
     closeCodeBlockIfOpen(html, state, styles)
-    closeBlockquotesIfOpen(html, state)
+    closeAllBlockquotes(html, state)
 
     val depth = para.depth
     val isOrdered = para.type == TYPE_ORDERED_LIST
-    val listTypeValue = if (isOrdered) 1 else 0
 
     // Close lists to shallower depth
     while (state.listDepth > depth) {
-      html.append(if (state.openListTypes.lastOrNull() == 1) "</ol>" else "</ul>")
+      html.append(if (state.openListTypes.lastOrNull() == true) "</ol>" else "</ul>")
       if (state.openListTypes.isNotEmpty()) state.openListTypes.removeAt(state.openListTypes.lastIndex)
       state.listDepth--
     }
 
     // Handle list type change at same depth (ul <-> ol)
     if (state.listDepth == depth && state.openListTypes.isNotEmpty()) {
-      if (state.openListTypes.last() != listTypeValue) {
-        html.append(if (state.openListTypes.last() == 1) "</ol>" else "</ul>")
+      if (state.openListTypes.last() != isOrdered) {
+        html.append(if (state.openListTypes.last()) "</ol>" else "</ul>")
         state.openListTypes.removeAt(state.openListTypes.lastIndex)
         state.listDepth--
       }
@@ -426,7 +439,7 @@ object HTMLGenerator {
           .append("padding-left: ")
           .append(styles.listMarginLeft)
           .append("px;\">")
-        state.openListTypes.add(1)
+        state.openListTypes.add(true)
       } else {
         html
           .append("<ul style=\"")
@@ -434,7 +447,7 @@ object HTMLGenerator {
           .append("padding-left: ")
           .append(styles.listMarginLeft)
           .append("px; list-style-type: disc;\">")
-        state.openListTypes.add(0)
+        state.openListTypes.add(false)
       }
     }
 
@@ -461,7 +474,7 @@ object HTMLGenerator {
     state: GeneratorState,
   ) {
     closeCodeBlockIfOpen(html, state, styles)
-    closeBlockquotesIfOpen(html, state)
+    closeAllBlockquotes(html, state)
     closeListsIfOpen(html, state)
 
     val level = type // TYPE_H1..TYPE_H6 = 1..6
@@ -495,7 +508,7 @@ object HTMLGenerator {
     state: GeneratorState,
   ) {
     closeCodeBlockIfOpen(html, state, styles)
-    closeBlockquotesIfOpen(html, state)
+    closeAllBlockquotes(html, state)
     closeListsIfOpen(html, state)
 
     html
@@ -525,15 +538,6 @@ object HTMLGenerator {
     }
   }
 
-  private fun closeBlockquotesIfOpen(
-    html: StringBuilder,
-    state: GeneratorState,
-  ) {
-    if (state.inBlockquote) {
-      closeAllBlockquotes(html, state)
-    }
-  }
-
   private fun closeAllBlockquotes(
     html: StringBuilder,
     state: GeneratorState,
@@ -550,7 +554,7 @@ object HTMLGenerator {
     state: GeneratorState,
   ) {
     while (state.openListTypes.isNotEmpty()) {
-      html.append(if (state.openListTypes.last() == 1) "</ol>" else "</ul>")
+      html.append(if (state.openListTypes.last()) "</ol>" else "</ul>")
       state.openListTypes.removeAt(state.openListTypes.lastIndex)
     }
     state.listDepth = -1
@@ -567,7 +571,6 @@ object HTMLGenerator {
   }
 
   private fun generateInlineHTML(
-    buffer: StringBuilder,
     text: Spannable,
     start: Int,
     end: Int,
@@ -619,7 +622,12 @@ object HTMLGenerator {
     if (imgSpan.isInline) {
       html.append("<img src=\"")
       escapeHTMLTo(html, imgSpan.imageUrl)
-      html.append("\" style=\"height: 1.2em; width: auto; vertical-align: -0.2em;\">")
+      html
+        .append("\" style=\"height: ")
+        .append(styles.inlineImageHeight)
+        .append("; width: auto; vertical-align: ")
+        .append(styles.inlineImageVerticalAlign)
+        .append(";\">")
     } else {
       html
         .append("</p><div style=\"margin-bottom: ")
@@ -678,7 +686,13 @@ object HTMLGenerator {
         .append(styles.codeBgColor)
         .append("; color: ")
         .append(styles.codeColor)
-        .append("; padding: 2px 4px; border-radius: 4px; font-size: 0.7em; font-family: Menlo, Monaco, Consolas, monospace;\">")
+        .append("; padding: ")
+        .append(styles.inlineCodePadding)
+        .append("; border-radius: ")
+        .append(styles.inlineCodeBorderRadius)
+        .append("; font-size: ")
+        .append(styles.inlineCodeFontSize)
+        .append("; font-family: Menlo, Monaco, Consolas, monospace;\">")
     }
 
     if (isBold) {

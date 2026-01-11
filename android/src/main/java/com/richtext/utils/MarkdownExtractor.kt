@@ -14,21 +14,11 @@ import com.richtext.spans.OrderedListSpan
 import com.richtext.spans.StrongSpan
 import com.richtext.spans.UnorderedListSpan
 
-/**
- * Extracts markdown from styled text (Spannable).
- *
- * Supports: headings, bold, italic, links, images, inline code,
- * code blocks, blockquotes, and lists.
- */
+/** Extracts markdown from styled text (Spannable). */
 object MarkdownExtractor {
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Public API
-  // ═══════════════════════════════════════════════════════════════════════════
-
   /**
    * Gets markdown for the current text selection.
-   * - Full selection: Returns original markdown (if available)
-   * - Partial selection: Reconstructs from spans
+   * Full selection returns original markdown, partial reconstructs from spans.
    */
   fun getMarkdownForSelection(textView: TextView): String? {
     val start = textView.selectionStart
@@ -37,21 +27,16 @@ object MarkdownExtractor {
 
     val spannable = textView.text as? Spannable ?: return null
 
-    // Full selection: use original markdown if available
     val isFullSelection = start == 0 && end >= textView.text.length - 1
     if (isFullSelection && textView is RichTextView) {
       val original = textView.currentMarkdown
       if (original.isNotEmpty()) return original
     }
 
-    // Partial selection: reconstruct from spans
     return extractFromSpannable(spannable, start, end)
   }
 
-  /**
-   * Extracts markdown from a Spannable within a given range.
-   * Best-effort reconstruction - may not match original exactly.
-   */
+  /** Extracts markdown from a Spannable within a given range. */
   fun extractFromSpannable(
     spannable: Spannable,
     start: Int,
@@ -85,20 +70,11 @@ object MarkdownExtractor {
       i = nextTransition
     }
 
-    // Flush remaining heading
     headingAccumulator.flush(result, state)
-
     return result.toString()
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Segment Processing
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Processes special segments (images, newlines, headings, code blocks).
-   * Returns true if segment was handled, false if it needs default processing.
-   */
+  /** Returns true if segment was handled specially. */
   private fun processSegment(
     spannable: Spannable,
     segmentText: String,
@@ -108,7 +84,6 @@ object MarkdownExtractor {
     state: ExtractionState,
     headingAccumulator: HeadingAccumulator,
   ): Boolean {
-    // Images
     if (segmentText == "\uFFFC") {
       val imageSpans = spannable.getSpans(segmentStart, segmentEnd, ImageSpan::class.java)
       if (imageSpans.isNotEmpty()) {
@@ -117,16 +92,13 @@ object MarkdownExtractor {
       }
     }
 
-    // Empty segments
     if (segmentText.isEmpty()) return true
 
-    // Newlines (paragraph breaks)
     if (segmentText == "\n" || segmentText == "\n\n") {
       handleNewline(spannable, segmentStart, segmentEnd, result, state)
       return true
     }
 
-    // Headings
     val headingSpans = spannable.getSpans(segmentStart, segmentEnd, HeadingSpan::class.java)
     if (headingSpans.isNotEmpty()) {
       headingAccumulator.accumulate(headingSpans[0].level, segmentText, result, state)
@@ -135,7 +107,6 @@ object MarkdownExtractor {
       headingAccumulator.flush(result, state)
     }
 
-    // Code blocks
     val codeBlockSpans = spannable.getSpans(segmentStart, segmentEnd, CodeBlockSpan::class.java)
     if (codeBlockSpans.isNotEmpty()) {
       appendCodeBlock(segmentText, result, state)
@@ -145,9 +116,6 @@ object MarkdownExtractor {
     return false
   }
 
-  /**
-   * Appends a formatted text segment with inline styles and block prefixes.
-   */
   private fun appendFormattedSegment(
     spannable: Spannable,
     segmentText: String,
@@ -156,19 +124,14 @@ object MarkdownExtractor {
     result: StringBuilder,
     state: ExtractionState,
   ) {
-    // Detect block context
     val blockquotePrefix = detectBlockquote(spannable, segmentStart, segmentEnd, state)
     val listPrefix = detectList(spannable, segmentStart, segmentEnd, state)
-
-    // Apply inline formatting
     var segment = applyInlineFormatting(spannable, segmentText, segmentStart, segmentEnd)
 
-    // Add block prefixes at line start
     if (result.isAtLineStart() && !segmentText.startsWith("\n")) {
       segment = buildBlockPrefix(blockquotePrefix, listPrefix) + segment
     }
 
-    // Ensure spacing after block elements
     if (state.needsBlankLine && result.isNotEmpty()) {
       result.ensureBlankLine()
       state.needsBlankLine = false
@@ -176,10 +139,6 @@ object MarkdownExtractor {
 
     result.append(segment)
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Block Element Handlers
-  // ═══════════════════════════════════════════════════════════════════════════
 
   private fun appendImage(
     img: ImageSpan,
@@ -210,24 +169,20 @@ object MarkdownExtractor {
         spannable.getSpans(start, end, UnorderedListSpan::class.java).isNotEmpty()
 
     when {
-      // Exiting blockquote
       !inBlockquote && state.blockquoteDepth >= 0 -> {
         result.ensureBlankLine()
         state.blockquoteDepth = -1
       }
 
-      // Exiting list
       !inList && state.listDepth >= 0 -> {
         result.ensureBlankLine()
         state.listDepth = -1
       }
 
-      // Inside block: single newline
       inBlockquote || inList -> {
         if (!result.endsWith("\n")) result.append("\n")
       }
 
-      // Outside blocks: blank line
       else -> {
         result.ensureBlankLine()
       }
@@ -254,10 +209,6 @@ object MarkdownExtractor {
       state.needsBlankLine = true
     }
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Block Context Detection
-  // ═══════════════════════════════════════════════════════════════════════════
 
   private fun detectBlockquote(
     spannable: Spannable,
@@ -304,10 +255,6 @@ object MarkdownExtractor {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Inline Formatting
-  // ═══════════════════════════════════════════════════════════════════════════
-
   private fun applyInlineFormatting(
     spannable: Spannable,
     text: String,
@@ -321,7 +268,7 @@ object MarkdownExtractor {
 
     var result = text
 
-    // Apply formatting (innermost first)
+    // Innermost first
     if (hasInlineCode && linkSpans.isEmpty()) {
       result = "`$result`"
     }
@@ -347,19 +294,13 @@ object MarkdownExtractor {
       listPrefix?.let { append(it) }
     }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Helper Types
-  // ═══════════════════════════════════════════════════════════════════════════
-
   private data class ExtractionState(
     var blockquoteDepth: Int = -1,
     var listDepth: Int = -1,
     var needsBlankLine: Boolean = false,
   )
 
-  /**
-   * Accumulates heading content across multiple span segments.
-   */
+  /** Accumulates heading content across multiple span segments. */
   private class HeadingAccumulator {
     private var level: Int? = null
     private val content = StringBuilder()
@@ -395,10 +336,6 @@ object MarkdownExtractor {
       state.needsBlankLine = true
     }
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Extensions
-  // ═══════════════════════════════════════════════════════════════════════════
 
   private fun StringBuilder.ensureBlankLine() {
     if (isEmpty() || endsWith("\n\n")) return

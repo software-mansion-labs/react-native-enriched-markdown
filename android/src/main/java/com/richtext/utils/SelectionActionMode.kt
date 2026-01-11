@@ -100,7 +100,7 @@ private fun TextView.copyWithHTML() {
     val displayMetrics = context.resources.displayMetrics
     val html =
       HTMLGenerator.generateHTML(
-        selectedText as Spannable,
+        selectedText,
         styleConfig,
         displayMetrics.scaledDensity,
         displayMetrics.density,

@@ -35,10 +35,8 @@
   NSUInteger blockStart = output.length;
 
   // 1. TOP PADDING: Inside the background
-  [output appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
-  NSMutableParagraphStyle *topSpacerStyle = [[NSMutableParagraphStyle alloc] init];
-  topSpacerStyle.minimumLineHeight = padding;
-  topSpacerStyle.maximumLineHeight = padding;
+  [output appendAttributedString:kNewlineAttributedString];
+  NSMutableParagraphStyle *topSpacerStyle = [context spacerStyleWithHeight:padding spacing:0];
   [output addAttribute:NSParagraphStyleAttributeName value:topSpacerStyle range:NSMakeRange(blockStart, 1)];
 
   // 2. RENDER CONTENT
@@ -75,10 +73,8 @@
 
   // 4. BOTTOM PADDING: Inside the background
   NSUInteger bottomPaddingStart = output.length;
-  [output appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
-  NSMutableParagraphStyle *bottomPaddingStyle = [[NSMutableParagraphStyle alloc] init];
-  bottomPaddingStyle.minimumLineHeight = padding;
-  bottomPaddingStyle.maximumLineHeight = padding;
+  [output appendAttributedString:kNewlineAttributedString];
+  NSMutableParagraphStyle *bottomPaddingStyle = [context spacerStyleWithHeight:padding spacing:0];
   [output addAttribute:NSParagraphStyleAttributeName value:bottomPaddingStyle range:NSMakeRange(bottomPaddingStart, 1)];
 
   // MARK BACKGROUND: Ends here to exclude the margin

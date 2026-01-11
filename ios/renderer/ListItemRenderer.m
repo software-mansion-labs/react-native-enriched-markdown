@@ -1,5 +1,6 @@
 #import "ListItemRenderer.h"
 #import "MarkdownASTNode.h"
+#import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
 #import "StyleConfig.h"
@@ -37,7 +38,7 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
 
   // 2. Structural Fix: Ensure paragraph isolation to prevent merged lines
   if (output.length > start && ![output.string hasSuffix:@"\n"]) {
-    [output appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
+    [output appendAttributedString:kNewlineAttributedString];
   }
 
   NSRange itemRange = NSMakeRange(start, output.length - start);

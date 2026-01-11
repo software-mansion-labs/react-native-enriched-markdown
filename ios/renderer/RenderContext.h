@@ -37,6 +37,8 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 - (void)reset;
 
 - (UIFont *)cachedFontForSize:(CGFloat)fontSize family:(NSString *)fontFamily weight:(NSString *)fontWeight;
+- (NSMutableParagraphStyle *)spacerStyleWithHeight:(CGFloat)height spacing:(CGFloat)spacing;
+- (NSMutableParagraphStyle *)blockSpacerStyleWithMargin:(CGFloat)margin;
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url;
 - (void)setBlockStyle:(BlockType)type
              fontSize:(CGFloat)fontSize

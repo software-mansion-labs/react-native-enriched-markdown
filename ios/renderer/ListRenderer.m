@@ -39,7 +39,7 @@
 
   // Ensure isolation for nested lists
   if (prevDepth > 0 && output.length > 0 && ![output.string hasSuffix:@"\n"]) {
-    [output appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
+    [output appendAttributedString:kNewlineAttributedString];
   }
 
   [context setBlockStyle:_isOrdered ? BlockTypeOrderedList : BlockTypeUnorderedList

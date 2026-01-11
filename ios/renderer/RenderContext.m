@@ -7,6 +7,8 @@
 
 @implementation RenderContext {
   NSMutableDictionary<NSString *, UIFont *> *_fontCache;
+  NSParagraphStyle *_baseSpacerTemplate;
+  NSParagraphStyle *_baseBlockSpacerTemplate;
 }
 
 - (instancetype)init
@@ -16,6 +18,15 @@
     _linkURLs = [NSMutableArray array];
     _fontCache = [NSMutableDictionary dictionary];
     _currentBlockStyle = [[BlockStyle alloc] init];
+
+    NSMutableParagraphStyle *spacerTemplate = [[NSMutableParagraphStyle alloc] init];
+    _baseSpacerTemplate = [spacerTemplate copy];
+
+    NSMutableParagraphStyle *blockSpacerTemplate = [[NSMutableParagraphStyle alloc] init];
+    blockSpacerTemplate.minimumLineHeight = 1;
+    blockSpacerTemplate.maximumLineHeight = 1;
+    _baseBlockSpacerTemplate = [blockSpacerTemplate copy];
+
     [self reset];
   }
   return self;
@@ -44,6 +55,24 @@
     _fontCache[key] = font;
   }
   return font;
+}
+
+#pragma mark - Paragraph Style Factory
+
+- (NSMutableParagraphStyle *)spacerStyleWithHeight:(CGFloat)height spacing:(CGFloat)spacing
+{
+  NSMutableParagraphStyle *style = [_baseSpacerTemplate mutableCopy];
+  style.minimumLineHeight = height;
+  style.maximumLineHeight = height;
+  style.paragraphSpacing = spacing;
+  return style;
+}
+
+- (NSMutableParagraphStyle *)blockSpacerStyleWithMargin:(CGFloat)margin
+{
+  NSMutableParagraphStyle *style = [_baseBlockSpacerTemplate mutableCopy];
+  style.paragraphSpacing = margin;
+  return style;
 }
 
 #pragma mark - Link Registry

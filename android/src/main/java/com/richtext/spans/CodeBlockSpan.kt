@@ -11,6 +11,7 @@ import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineBackgroundSpan
 import android.text.style.MetricAffectingSpan
+import androidx.core.graphics.withSave
 import com.richtext.renderer.BlockStyle
 import com.richtext.styles.CodeBlockStyle
 import com.richtext.styles.StyleConfig
@@ -91,7 +92,7 @@ class CodeBlockSpan(
 
     val spanStart = text.getSpanStart(this)
     val spanEnd = text.getSpanEnd(this)
-    if (spanStart < 0 || spanEnd <= spanStart) return
+    if (spanStart !in 0 until spanEnd) return
 
     val isFirstLine = start == spanStart
     val isLastLine = end == spanEnd || (spanEnd <= end && (spanEnd == text.length || text[spanEnd - 1] == '\n'))
@@ -126,55 +127,55 @@ class CodeBlockSpan(
     path.reset()
     path.addRoundRect(rect, radiiArray, Path.Direction.CW)
 
-    canvas.save()
-    canvas.drawPath(path, bgPaint)
+    canvas.withSave {
+      drawPath(path, bgPaint)
 
-    if (style.borderWidth > 0) {
-      val bLeft = rect.left
-      val bRight = rect.right
-      val bTop = rect.top
-      val bBottom = rect.bottom
+      if (style.borderWidth > 0) {
+        val bLeft = rect.left
+        val bRight = rect.right
+        val bTop = rect.top
+        val bBottom = rect.bottom
 
-      when {
-        // Case: Single-line code block
-        isFirstLine && isLastLine -> {
-          canvas.drawPath(path, borderPaint)
-        }
+        when {
+          // Case: Single-line code block
+          isFirstLine && isLastLine -> {
+            drawPath(path, borderPaint)
+          }
 
-        // Case: Top of a multi-line block
-        isFirstLine -> {
-          canvas.drawLine(bLeft + adjRadius, bTop, bRight - adjRadius, bTop, borderPaint)
-          canvas.drawLine(bLeft, bTop + adjRadius, bLeft, bBottom, borderPaint)
-          canvas.drawLine(bRight, bTop + adjRadius, bRight, bBottom, borderPaint)
+          // Case: Top of a multi-line block
+          isFirstLine -> {
+            drawLine(bLeft + adjRadius, bTop, bRight - adjRadius, bTop, borderPaint)
+            drawLine(bLeft, bTop + adjRadius, bLeft, bBottom, borderPaint)
+            drawLine(bRight, bTop + adjRadius, bRight, bBottom, borderPaint)
 
-          arcRect.set(bLeft, bTop, bLeft + 2 * adjRadius, bTop + 2 * adjRadius)
-          canvas.drawArc(arcRect, 180f, 90f, false, borderPaint)
+            arcRect.set(bLeft, bTop, bLeft + 2 * adjRadius, bTop + 2 * adjRadius)
+            drawArc(arcRect, 180f, 90f, false, borderPaint)
 
-          arcRect.set(bRight - 2 * adjRadius, bTop, bRight, bTop + 2 * adjRadius)
-          canvas.drawArc(arcRect, 270f, 90f, false, borderPaint)
-        }
+            arcRect.set(bRight - 2 * adjRadius, bTop, bRight, bTop + 2 * adjRadius)
+            drawArc(arcRect, 270f, 90f, false, borderPaint)
+          }
 
-        // Case: Bottom of a multi-line block
-        isLastLine -> {
-          canvas.drawLine(bLeft + adjRadius, bBottom, bRight - adjRadius, bBottom, borderPaint)
-          canvas.drawLine(bLeft, bTop, bLeft, bBottom - adjRadius, borderPaint)
-          canvas.drawLine(bRight, bTop, bRight, bBottom - adjRadius, borderPaint)
+          // Case: Bottom of a multi-line block
+          isLastLine -> {
+            drawLine(bLeft + adjRadius, bBottom, bRight - adjRadius, bBottom, borderPaint)
+            drawLine(bLeft, bTop, bLeft, bBottom - adjRadius, borderPaint)
+            drawLine(bRight, bTop, bRight, bBottom - adjRadius, borderPaint)
 
-          arcRect.set(bLeft, bBottom - 2 * adjRadius, bLeft + 2 * adjRadius, bBottom)
-          canvas.drawArc(arcRect, 90f, 90f, false, borderPaint)
+            arcRect.set(bLeft, bBottom - 2 * adjRadius, bLeft + 2 * adjRadius, bBottom)
+            drawArc(arcRect, 90f, 90f, false, borderPaint)
 
-          arcRect.set(bRight - 2 * adjRadius, bBottom - 2 * adjRadius, bRight, bBottom)
-          canvas.drawArc(arcRect, 0f, 90f, false, borderPaint)
-        }
+            arcRect.set(bRight - 2 * adjRadius, bBottom - 2 * adjRadius, bRight, bBottom)
+            drawArc(arcRect, 0f, 90f, false, borderPaint)
+          }
 
-        // Case: Middle lines only need vertical sides
-        else -> {
-          canvas.drawLine(bLeft, bTop, bLeft, bBottom, borderPaint)
-          canvas.drawLine(bRight, bTop, bRight, bBottom, borderPaint)
+          // Case: Middle lines only need vertical sides
+          else -> {
+            drawLine(bLeft, bTop, bLeft, bBottom, borderPaint)
+            drawLine(bRight, bTop, bRight, bBottom, borderPaint)
+          }
         }
       }
     }
-    canvas.restore()
   }
 
   private fun applyTextStyle(tp: TextPaint) {

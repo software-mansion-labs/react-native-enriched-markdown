@@ -40,6 +40,7 @@ object MeasurementStore {
   /**
    * Called after RichTextView finishes rendering.
    * Updates the cached measurement with the actual rendered Spannable.
+   * Uses cached width from getMeasureById to ensure consistency with Yoga's layout.
    * Returns true if height changed (triggers layout recalculation).
    */
   fun store(
@@ -50,12 +51,9 @@ object MeasurementStore {
     val cached = data[id]
     val width = cached?.cachedWidth ?: 0f
     val oldSize = cached?.cachedSize ?: 0L
-
-    if (width <= 0f) return false
-
     val paintParams = PaintParams(paint.typeface ?: Typeface.DEFAULT, paint.textSize)
-    val newSize = measure(width, spannable, paint)
 
+    val newSize = measure(width, spannable, paint)
     data[id] = MeasurementParams(width, newSize, spannable, paintParams)
     return oldSize != newSize
   }
@@ -77,14 +75,15 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Long {
     val size = getMeasureByIdInternal(id, width, props)
+    val resultHeight = YogaMeasureOutput.getHeight(size)
 
     // Handle AT_MOST height mode (constrain to max height)
     if (heightMode === YogaMeasureMode.AT_MOST) {
-      val calculatedHeight = YogaMeasureOutput.getHeight(size)
       val maxHeight = PixelUtil.toDIPFromPixel(height)
+      val finalHeight = resultHeight.coerceAtMost(maxHeight)
       return YogaMeasureOutput.make(
         YogaMeasureOutput.getWidth(size),
-        calculatedHeight.coerceAtMost(maxHeight),
+        finalHeight,
       )
     }
 
@@ -104,15 +103,16 @@ object MeasurementStore {
       return initialMeasure(safeId, width, props)
     }
 
-    // Same width - return cached size
-    if (width == cached.cachedWidth) {
-      return cached.cachedSize
+    // If spannable was stored but not measured (store() was called before getMeasureById)
+    // OR width changed - re-measure with cached content
+    if (cached.cachedWidth != width || cached.cachedSize == 0L) {
+      val newSize = measure(width, cached.spannable, cached.paintParams)
+      data[safeId] = MeasurementParams(width, newSize, cached.spannable, cached.paintParams)
+      return newSize
     }
 
-    // Width changed - re-measure with cached content
-    val newSize = measure(width, cached.spannable, cached.paintParams)
-    data[safeId] = MeasurementParams(width, newSize, cached.spannable, cached.paintParams)
-    return newSize
+    // Same width and valid cached size - return cached
+    return cached.cachedSize
   }
 
   /**
@@ -162,12 +162,12 @@ object MeasurementStore {
     paint: TextPaint,
   ): Long {
     val content = text ?: ""
-    val safeWidth = maxWidth.toInt().coerceAtLeast(1)
+    val safeWidth = ceil(maxWidth).toInt().coerceAtLeast(1)
 
     val builder =
       StaticLayout.Builder
         .obtain(content, 0, content.length, paint, safeWidth)
-        .setIncludePad(true)
+        .setIncludePad(false)
         .setLineSpacing(0f, 1f)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -179,9 +179,11 @@ object MeasurementStore {
     }
 
     val layout = builder.build()
+    // Add small buffer to prevent edge-case clipping
+    val measuredHeight = layout.height.toFloat() + 1f
     return YogaMeasureOutput.make(
       PixelUtil.toDIPFromPixel(maxWidth),
-      PixelUtil.toDIPFromPixel(layout.height.toFloat()),
+      PixelUtil.toDIPFromPixel(measuredHeight),
     )
   }
 }

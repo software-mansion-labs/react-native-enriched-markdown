@@ -1,6 +1,7 @@
 package com.richtext
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.text.method.LinkMovementMethod
@@ -45,6 +46,8 @@ class RichTextView
       private set
 
     init {
+      setBackgroundColor(Color.TRANSPARENT)
+      includeFontPadding = false // Must match setIncludePad(false) in MeasurementStore
       movementMethod = LinkMovementMethod.getInstance()
       setTextIsSelectable(true)
       customSelectionActionModeCallback = createSelectionActionModeCallback(this)

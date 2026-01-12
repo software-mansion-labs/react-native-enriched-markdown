@@ -17,8 +17,8 @@ import com.richtext.utils.applyColorPreserving
 
 abstract class BaseListSpan(
   val depth: Int,
-  protected val context: Context?,
-  protected val styleCache: SpanStyleCache?,
+  protected val context: Context,
+  protected val styleCache: SpanStyleCache,
   protected val blockStyle: BlockStyle,
   protected val marginLeft: Float,
   protected val gapWidth: Float,
@@ -75,17 +75,15 @@ abstract class BaseListSpan(
 
   @SuppressLint("WrongConstant") // Result of mask is always valid: 0, 1, 2, or 3
   private fun applyTextStyle(tp: TextPaint) {
-    val ctx = context ?: return
     tp.textSize = blockStyle.fontSize
 
     val preservedStyle = (tp.typeface?.style ?: 0) and BOLD_ITALIC_MASK
-    tp.applyBlockStyleFont(blockStyle, ctx)
+    tp.applyBlockStyleFont(blockStyle, context)
     if (preservedStyle != 0) {
       tp.typeface?.let { base -> tp.typeface = Typeface.create(base, preservedStyle) }
     }
 
-    styleCache?.let { tp.applyColorPreserving(blockStyle.color, *it.colorsToPreserve) }
-      ?: run { tp.color = blockStyle.color }
+    tp.applyColorPreserving(blockStyle.color, *styleCache.colorsToPreserve)
   }
 
   companion object {

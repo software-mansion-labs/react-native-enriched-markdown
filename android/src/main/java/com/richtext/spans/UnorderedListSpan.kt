@@ -11,8 +11,8 @@ import com.richtext.styles.ListStyle
 class UnorderedListSpan(
   private val style: ListStyle,
   depth: Int,
-  context: Context? = null,
-  styleCache: SpanStyleCache? = null,
+  context: Context,
+  styleCache: SpanStyleCache,
 ) : BaseListSpan(
     depth = depth,
     context = context,

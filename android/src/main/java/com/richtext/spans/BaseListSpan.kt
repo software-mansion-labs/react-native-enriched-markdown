@@ -1,5 +1,6 @@
 package com.richtext.spans
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -72,18 +73,23 @@ abstract class BaseListSpan(
     start: Int,
   )
 
+  @SuppressLint("WrongConstant") // Result of mask is always valid: 0, 1, 2, or 3
   private fun applyTextStyle(tp: TextPaint) {
     val ctx = context ?: return
     tp.textSize = blockStyle.fontSize
 
-    val preservedStyle = (tp.typeface?.style ?: 0) and (Typeface.BOLD or Typeface.ITALIC)
+    val preservedStyle = (tp.typeface?.style ?: 0) and BOLD_ITALIC_MASK
     tp.applyBlockStyleFont(blockStyle, ctx)
     if (preservedStyle != 0) {
-      tp.typeface = tp.typeface?.let { Typeface.create(it, it.style or preservedStyle) }
+      tp.typeface?.let { base -> tp.typeface = Typeface.create(base, preservedStyle) }
     }
 
     styleCache?.let { tp.applyColorPreserving(blockStyle.color, *it.colorsToPreserve) }
       ?: run { tp.color = blockStyle.color }
+  }
+
+  companion object {
+    private const val BOLD_ITALIC_MASK = Typeface.BOLD or Typeface.ITALIC // 3
   }
 
   // --- Helper Methods ---

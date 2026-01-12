@@ -6,6 +6,10 @@ class Parser {
   companion object {
     init {
       try {
+        // Library name must follow react_codegen_<ComponentName> convention
+        // required by React Native Fabric's CMake build system.
+        // md4c parser is bundled in the same shared library to avoid
+        // multiple library loading and complex linking dependencies.
         System.loadLibrary("react_codegen_RichTextViewSpec")
       } catch (e: UnsatisfiedLinkError) {
         Log.e("MarkdownParser", "Failed to load native library", e)

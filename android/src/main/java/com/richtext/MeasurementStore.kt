@@ -14,13 +14,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
 /**
- * Stores and manages text measurements for ShadowNode layout calculations.
- *
- * Flow:
- * 1. Initial measurement (getMeasureById) - uses raw markdown text for fast estimate
- * 2. RichTextView renders markdown to Spannable on background thread
- * 3. store() is called with rendered Spannable - provides accurate measurement
- * 4. Layout recalculates with correct height
+ * Manages text measurements for ShadowNode layout.
+ * Initial estimate uses raw markdown; accurate measurement after rendering via store().
  */
 object MeasurementStore {
   private data class PaintParams(
@@ -37,12 +32,7 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
-  /**
-   * Called after RichTextView finishes rendering.
-   * Updates the cached measurement with the actual rendered Spannable.
-   * Uses cached width from getMeasureById to ensure consistency with Yoga's layout.
-   * Returns true if height changed (triggers layout recalculation).
-   */
+  /** Updates measurement with rendered Spannable. Returns true if height changed. */
   fun store(
     id: Int,
     spannable: CharSequence?,
@@ -62,10 +52,7 @@ object MeasurementStore {
     data.remove(id)
   }
 
-  /**
-   * Main entry point for ShadowNode measurement.
-   * Returns cached size or calculates initial estimate.
-   */
+  /** Main entry point for ShadowNode measurement. */
   fun getMeasureById(
     context: Context,
     id: Int?,
@@ -77,7 +64,6 @@ object MeasurementStore {
     val size = getMeasureByIdInternal(id, width, props)
     val resultHeight = YogaMeasureOutput.getHeight(size)
 
-    // Handle AT_MOST height mode (constrain to max height)
     if (heightMode === YogaMeasureMode.AT_MOST) {
       val maxHeight = PixelUtil.toDIPFromPixel(height)
       val finalHeight = resultHeight.coerceAtMost(maxHeight)
@@ -96,29 +82,19 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Long {
     val safeId = id ?: return initialMeasure(null, width, props)
-    val cached = data[safeId]
+    val cached = data[safeId] ?: return initialMeasure(safeId, width, props)
 
-    // No cache - do initial measurement
-    if (cached == null) {
-      return initialMeasure(safeId, width, props)
-    }
-
-    // If spannable was stored but not measured (store() was called before getMeasureById)
-    // OR width changed - re-measure with cached content
+    // Width changed or not yet measured - re-measure with cached content
     if (cached.cachedWidth != width || cached.cachedSize == 0L) {
       val newSize = measure(width, cached.spannable, cached.paintParams)
       data[safeId] = MeasurementParams(width, newSize, cached.spannable, cached.paintParams)
       return newSize
     }
 
-    // Same width and valid cached size - return cached
     return cached.cachedSize
   }
 
-  /**
-   * Initial measurement using raw markdown text.
-   * This is a fast estimate - accurate measurement comes from store() after rendering.
-   */
+  /** Fast estimate using raw markdown text. */
   private fun initialMeasure(
     id: Int?,
     width: Float,

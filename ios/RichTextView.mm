@@ -41,9 +41,8 @@ using namespace facebook::react;
   // Background rendering support
   dispatch_queue_t _renderQueue;
   NSUInteger _currentRenderId;
-  BOOL _blockAsyncRender; // For mock views that use sync rendering
+  BOOL _blockAsyncRender;
 
-  // Shadow node state for automatic height
   RichTextViewShadowNode::ConcreteState::Shared _state;
   int _heightUpdateCounter;
 }
@@ -266,7 +265,6 @@ using namespace facebook::react;
   _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
 
-  // Parse and render synchronously
   MarkdownASTNode *ast = [_parser parseMarkdown:markdownString];
   if (!ast) {
     return;
@@ -276,7 +274,6 @@ using namespace facebook::react;
   RenderContext *context = [RenderContext new];
   NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
-  // Add link attributes
   for (NSUInteger i = 0; i < context.linkRanges.count; i++) {
     NSValue *rangeValue = context.linkRanges[i];
     NSRange range = [rangeValue rangeValue];

@@ -8,22 +8,27 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
-import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
-import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
-import com.richtext.styles.StyleConfig
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
+/**
+ * Stores and manages text measurements for ShadowNode layout calculations.
+ *
+ * Flow:
+ * 1. Initial measurement (getMeasureById) - uses raw markdown text for fast estimate
+ * 2. RichTextView renders markdown to Spannable on background thread
+ * 3. store() is called with rendered Spannable - provides accurate measurement
+ * 4. Layout recalculates with correct height
+ */
 object MeasurementStore {
-  data class PaintParams(
+  private data class PaintParams(
     val typeface: Typeface,
     val fontSize: Float,
   )
 
-  data class MeasurementParams(
-    val initialized: Boolean,
+  private data class MeasurementParams(
     val cachedWidth: Float,
     val cachedSize: Long,
     val spannable: CharSequence?,
@@ -32,29 +37,115 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
+  /**
+   * Called after RichTextView finishes rendering.
+   * Updates the cached measurement with the actual rendered Spannable.
+   * Returns true if height changed (triggers layout recalculation).
+   */
   fun store(
     id: Int,
     spannable: CharSequence?,
     paint: TextPaint,
   ): Boolean {
-    val cachedWidth = data[id]?.cachedWidth ?: 0f
-    val cachedSize = data[id]?.cachedSize ?: 0L
-    val initialized = data[id]?.initialized ?: true
+    val cached = data[id]
+    val width = cached?.cachedWidth ?: 0f
+    val oldSize = cached?.cachedSize ?: 0L
 
-    val size = measure(cachedWidth, spannable, paint)
+    if (width <= 0f) return false
+
     val paintParams = PaintParams(paint.typeface ?: Typeface.DEFAULT, paint.textSize)
+    val newSize = measure(width, spannable, paint)
 
-    data[id] = MeasurementParams(initialized, cachedWidth, size, spannable, paintParams)
-    return cachedSize != size
+    data[id] = MeasurementParams(width, newSize, spannable, paintParams)
+    return oldSize != newSize
   }
 
   fun release(id: Int) {
     data.remove(id)
   }
 
+  /**
+   * Main entry point for ShadowNode measurement.
+   * Returns cached size or calculates initial estimate.
+   */
+  fun getMeasureById(
+    context: Context,
+    id: Int?,
+    width: Float,
+    height: Float,
+    heightMode: YogaMeasureMode?,
+    props: ReadableMap?,
+  ): Long {
+    val size = getMeasureByIdInternal(id, width, props)
+
+    // Handle AT_MOST height mode (constrain to max height)
+    if (heightMode === YogaMeasureMode.AT_MOST) {
+      val calculatedHeight = YogaMeasureOutput.getHeight(size)
+      val maxHeight = PixelUtil.toDIPFromPixel(height)
+      return YogaMeasureOutput.make(
+        YogaMeasureOutput.getWidth(size),
+        calculatedHeight.coerceAtMost(maxHeight),
+      )
+    }
+
+    return size
+  }
+
+  private fun getMeasureByIdInternal(
+    id: Int?,
+    width: Float,
+    props: ReadableMap?,
+  ): Long {
+    val safeId = id ?: return initialMeasure(null, width, props)
+    val cached = data[safeId]
+
+    // No cache - do initial measurement
+    if (cached == null) {
+      return initialMeasure(safeId, width, props)
+    }
+
+    // Same width - return cached size
+    if (width == cached.cachedWidth) {
+      return cached.cachedSize
+    }
+
+    // Width changed - re-measure with cached content
+    val newSize = measure(width, cached.spannable, cached.paintParams)
+    data[safeId] = MeasurementParams(width, newSize, cached.spannable, cached.paintParams)
+    return newSize
+  }
+
+  /**
+   * Initial measurement using raw markdown text.
+   * This is a fast estimate - accurate measurement comes from store() after rendering.
+   */
+  private fun initialMeasure(
+    id: Int?,
+    width: Float,
+    props: ReadableMap?,
+  ): Long {
+    val markdown = props?.getString("markdown")?.ifEmpty { "I" } ?: "I"
+    val fontSize = getInitialFontSize(props)
+    val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
+
+    val size = measure(width, markdown, paintParams)
+
+    if (id != null) {
+      data[id] = MeasurementParams(width, size, markdown, paintParams)
+    }
+
+    return size
+  }
+
+  private fun getInitialFontSize(props: ReadableMap?): Float {
+    val styleMap = props?.getMap("richTextStyle")
+    val fontSize = styleMap?.getMap("paragraph")?.getDouble("fontSize")?.toFloat() ?: 16f
+    return ceil(PixelUtil.toPixelFromSP(fontSize))
+  }
+
   private fun measure(
     maxWidth: Float,
-    spannable: CharSequence?,
+    text: CharSequence?,
     paintParams: PaintParams,
   ): Long {
     val paint =
@@ -62,20 +153,20 @@ object MeasurementStore {
         typeface = paintParams.typeface
         textSize = paintParams.fontSize
       }
-
-    return measure(maxWidth, spannable, paint)
+    return measure(maxWidth, text, paint)
   }
 
   private fun measure(
     maxWidth: Float,
-    spannable: CharSequence?,
+    text: CharSequence?,
     paint: TextPaint,
   ): Long {
-    val text = spannable ?: ""
-    val textLength = text.length
+    val content = text ?: ""
+    val safeWidth = maxWidth.toInt().coerceAtLeast(1)
+
     val builder =
       StaticLayout.Builder
-        .obtain(text, 0, textLength, paint, maxWidth.toInt().coerceAtLeast(1))
+        .obtain(content, 0, content.length, paint, safeWidth)
         .setIncludePad(true)
         .setLineSpacing(0f, 1f)
 
@@ -87,108 +178,10 @@ object MeasurementStore {
       builder.setUseLineSpacingFromFallbacks(true)
     }
 
-    val staticLayout = builder.build()
-    val heightInSP = PixelUtil.toDIPFromPixel(staticLayout.height.toFloat())
-    val widthInSP = PixelUtil.toDIPFromPixel(maxWidth)
-    return YogaMeasureOutput.make(widthInSP, heightInSP)
-  }
-
-  // Returns raw markdown for quick initial measurement, or "I" if no markdown
-  private fun getInitialText(
-    context: Context,
-    props: ReadableMap?,
-  ): CharSequence {
-    val markdown = props?.getString("markdown")
-    // If there is no markdown, assume text is one line, "I" is a good approximation of height
-    if (markdown == null || markdown.isEmpty()) return "I"
-
-    // Return raw markdown for quick initial estimation
-    // The actual styled text will be used after the view renders and calls invalidateLayout()
-    return markdown
-  }
-
-  private fun getInitialFontSize(
-    context: Context,
-    props: ReadableMap?,
-  ): Float {
-    val styleMap = props?.getMap("richTextStyle") ?: return ceil(PixelUtil.toPixelFromSP(16f))
-    val styleConfig = StyleConfig(styleMap, context)
-    return ceil(PixelUtil.toPixelFromSP(styleConfig.getParagraphStyle().fontSize))
-  }
-
-  // Called when view measurements are not available in the store.
-  // Most likely first measurement, we can use raw markdown as no native state is set yet.
-  private fun initialMeasure(
-    context: Context,
-    id: Int?,
-    width: Float,
-    props: ReadableMap?,
-  ): Long {
-    val text = getInitialText(context, props)
-    val fontSize = getInitialFontSize(context, props)
-
-    val styleMap = props?.getMap("richTextStyle")
-    val fontFamily: String
-    val fontWeight: Int
-
-    if (styleMap != null) {
-      val styleConfig = StyleConfig(styleMap, context)
-      fontFamily = styleConfig.getParagraphStyle().fontFamily
-      fontWeight = parseFontWeight(styleConfig.getParagraphStyle().fontWeight)
-    } else {
-      fontFamily = ""
-      fontWeight = parseFontWeight(null)
-    }
-
-    val typeface = applyStyles(Typeface.DEFAULT, 0, fontWeight, fontFamily, context.assets)
-    val paintParams = PaintParams(typeface, fontSize)
-    val size = measure(width, text, paintParams)
-
-    if (id != null) {
-      data[id] = MeasurementParams(true, width, size, text, paintParams)
-    }
-
-    return size
-  }
-
-  fun getMeasureById(
-    context: Context,
-    id: Int?,
-    width: Float,
-    height: Float,
-    heightMode: YogaMeasureMode?,
-    props: ReadableMap?,
-  ): Long {
-    val size = getMeasureById(context, id, width, props)
-    if (heightMode !== YogaMeasureMode.AT_MOST) {
-      return size
-    }
-
-    val calculatedHeight = YogaMeasureOutput.getHeight(size)
-    val atMostHeight = PixelUtil.toDIPFromPixel(height)
-    val finalHeight = calculatedHeight.coerceAtMost(atMostHeight)
-    return YogaMeasureOutput.make(YogaMeasureOutput.getWidth(size), finalHeight)
-  }
-
-  private fun getMeasureById(
-    context: Context,
-    id: Int?,
-    width: Float,
-    props: ReadableMap?,
-  ): Long {
-    val id = id ?: return initialMeasure(context, id, width, props)
-    val value = data[id] ?: return initialMeasure(context, id, width, props)
-
-    // First measure has to be done using initialMeasure.
-    // That way it's free of any side effects and async initializations.
-    if (!value.initialized) return initialMeasure(context, id, width, props)
-
-    if (width == value.cachedWidth) {
-      return value.cachedSize
-    }
-
-    val size = measure(width, value.spannable, value.paintParams)
-    data[id] = MeasurementParams(true, width, size, value.spannable, value.paintParams)
-    return size
+    val layout = builder.build()
+    return YogaMeasureOutput.make(
+      PixelUtil.toDIPFromPixel(maxWidth),
+      PixelUtil.toDIPFromPixel(layout.height.toFloat()),
+    )
   }
 }

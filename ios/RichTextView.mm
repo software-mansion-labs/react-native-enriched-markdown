@@ -41,6 +41,7 @@ using namespace facebook::react;
   // Background rendering support
   dispatch_queue_t _renderQueue;
   NSUInteger _currentRenderId;
+  BOOL _blockAsyncRender; // For mock views that use sync rendering
 
   // Shadow node state for automatic height
   RichTextViewShadowNode::ConcreteState::Shared _state;
@@ -190,6 +191,11 @@ using namespace facebook::react;
 
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
+  // Skip async render for mock views (they use renderMarkdownSynchronously)
+  if (_blockAsyncRender) {
+    return;
+  }
+
   _cachedMarkdown = [markdownString copy];
 
   // Increment render ID to invalidate any in-flight renders
@@ -256,6 +262,8 @@ using namespace facebook::react;
     return;
   }
 
+  // Block any async renders triggered by updateProps
+  _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
 
   // Parse and render synchronously

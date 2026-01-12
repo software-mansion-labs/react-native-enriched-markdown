@@ -7,7 +7,6 @@ import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.util.Log
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.text.PrecomputedTextCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.UIManagerHelper
 import com.richtext.parser.Parser
@@ -69,32 +68,39 @@ class RichTextView
       val style = richTextStyle ?: return
       val markdown = currentMarkdown
       val renderId = ++currentRenderId
+      val scheduleStart = System.currentTimeMillis()
 
       executor.execute {
         try {
-          // 1. Parsing (C++ Native)
+          // 1. Parse Markdown → AST (C++ md4c parser)
+          val parseStart = System.currentTimeMillis()
           val ast =
             parser.parseMarkdown(markdown) ?: run {
               mainHandler.post { if (renderId == currentRenderId) text = "" }
               return@execute
             }
+          val parseTime = System.currentTimeMillis() - parseStart
 
-          // 2. Rendering (Spannable Construction)
+          // 2. Render AST → Spannable
+          val renderStart = System.currentTimeMillis()
           renderer.configure(style, context)
           val styledText = renderer.renderDocument(ast, onLinkPressCallback)
+          val renderTime = System.currentTimeMillis() - renderStart
 
-          // 3. Precompute Layout
-          // This calculates line breaks and measurements on this background thread
-          val finalParams = getTextMetricsParamsCompat()
-          val processedText = PrecomputedTextCompat.create(styledText, finalParams)
+          Log.i(TAG, "┌──────────────────────────────────────────────")
+          Log.i(TAG, "│ 📝 Input: ${markdown.length} chars of Markdown")
+          Log.i(TAG, "│ ⚡ md4c (C++ native): ${parseTime}ms → ${ast.children.size} AST nodes")
+          Log.i(TAG, "│ 🎨 Spannable render: ${renderTime}ms → ${styledText.length} styled chars")
+          Log.i(TAG, "└──────────────────────────────────────────────")
 
           mainHandler.post {
             if (renderId == currentRenderId) {
-              applyRenderedText(processedText)
+              applyRenderedText(styledText)
+              Log.i(TAG, "✅ Total time to display: ${System.currentTimeMillis() - scheduleStart}ms")
             }
           }
         } catch (e: Exception) {
-          Log.e("RichTextView", "Error rendering: ${e.message}", e)
+          Log.e(TAG, "❌ Render failed: ${e.message}", e)
           mainHandler.post { if (renderId == currentRenderId) text = "" }
         }
       }
@@ -137,5 +143,9 @@ class RichTextView
 
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
       onLinkPressCallback = callback
+    }
+
+    companion object {
+      private const val TAG = "RichTextMeasurement"
     }
   }

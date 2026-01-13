@@ -37,7 +37,7 @@ class ListItemRenderer(
 
     // 4. Calculate Depth and Style
     val depth = styleContext.listDepth - 1
-    val listStyle = config.style.getListStyle()
+    val listStyle = config.style.listStyle
 
     // 5. Apply the correct Span
     val span =

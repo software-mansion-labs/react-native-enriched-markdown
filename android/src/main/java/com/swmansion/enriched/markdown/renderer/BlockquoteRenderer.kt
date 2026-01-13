@@ -17,7 +17,7 @@ class BlockquoteRenderer(
     factory: RendererFactory,
   ) {
     val start = builder.length
-    val style = config.style.getBlockquoteStyle()
+    val style = config.style.blockquoteStyle
     val context = factory.blockStyleContext
     val depth = context.blockquoteDepth
 

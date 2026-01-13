@@ -19,7 +19,7 @@ class CodeBlockRenderer(
     factory: RendererFactory,
   ) {
     val start = builder.length
-    val style = config.style.getCodeBlockStyle()
+    val style = config.style.codeBlockStyle
     val context = factory.blockStyleContext
 
     // Set code block style in context for children to inherit

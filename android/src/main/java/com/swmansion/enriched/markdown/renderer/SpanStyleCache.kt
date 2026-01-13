@@ -10,19 +10,25 @@ class SpanStyleCache(
   // Colors to preserve when applying inline styles (links, code, strong, emphasis)
   val colorsToPreserve: IntArray = buildColorsToPreserve(style)
 
-  val strongColor: Int? = style.getStrongColor()
-  val emphasisColor: Int? = style.getEmphasisColor()
-  val linkColor: Int = style.getLinkColor()
-  val linkUnderline: Boolean = style.getLinkUnderline()
-  val codeColor: Int = style.getCodeStyle().color
+  val strongColor: Int? = style.strongStyle.color
+  val emphasisColor: Int? = style.emphasisStyle.color
+  val linkColor: Int = style.linkStyle.color
+  val linkUnderline: Boolean = style.linkStyle.underline
+  val codeColor: Int = style.codeStyle.color
 
   private fun buildColorsToPreserve(style: StyleConfig): IntArray =
     buildList {
-      style.getStrongColor()?.takeIf { it != 0 }?.let { add(it) }
-      style.getEmphasisColor()?.takeIf { it != 0 }?.let { add(it) }
-      style.getLinkColor().takeIf { it != 0 }?.let { add(it) }
+      style.strongStyle.color
+        ?.takeIf { it != 0 }
+        ?.let { add(it) }
+      style.emphasisStyle.color
+        ?.takeIf { it != 0 }
+        ?.let { add(it) }
+      style.linkStyle.color
+        .takeIf { it != 0 }
+        ?.let { add(it) }
       style
-        .getCodeStyle()
+        .codeStyle
         .color
         .takeIf { it != 0 }
         ?.let { add(it) }

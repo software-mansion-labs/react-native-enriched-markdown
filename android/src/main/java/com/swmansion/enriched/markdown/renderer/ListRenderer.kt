@@ -17,7 +17,7 @@ class ListRenderer(
     factory: RendererFactory,
   ) {
     val start = builder.length
-    val listStyle = config.style.getListStyle()
+    val listStyle = config.style.listStyle
     val listType = if (isOrdered) BlockStyleContext.ListType.ORDERED else BlockStyleContext.ListType.UNORDERED
 
     // 1. Context Lifecycle Management

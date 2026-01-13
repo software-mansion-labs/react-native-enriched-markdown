@@ -95,13 +95,13 @@ object HTMLGenerator {
 
     init {
       // Paragraph
-      val pStyle = style.getParagraphStyle()
+      val pStyle = style.paragraphStyle
       paragraphColor = colorToCSS(pStyle.color)
       paragraphFontSize = fontPx(pStyle.fontSize)
       paragraphMarginBottom = dimPx(pStyle.marginBottom)
 
       // Code block
-      val cbStyle = style.getCodeBlockStyle()
+      val cbStyle = style.codeBlockStyle
       codeBlockColor = colorToCSS(cbStyle.color)
       codeBlockBgColor = colorToCSS(cbStyle.backgroundColor)
       codeBlockFontSize = fontPx(cbStyle.fontSize)
@@ -110,12 +110,12 @@ object HTMLGenerator {
       codeBlockMarginBottom = dimPx(cbStyle.marginBottom)
 
       // Inline code
-      val cStyle = style.getCodeStyle()
+      val cStyle = style.codeStyle
       codeColor = colorToCSS(cStyle.color)
       codeBgColor = colorToCSS(cStyle.backgroundColor)
 
       // Blockquote
-      val bqStyle = style.getBlockquoteStyle()
+      val bqStyle = style.blockquoteStyle
       blockquoteColor = colorToCSS(bqStyle.color)
       blockquoteBgColor = colorToCSS(bqStyle.backgroundColor ?: 0)
       blockquoteBorderColor = colorToCSS(bqStyle.borderColor)
@@ -125,24 +125,24 @@ object HTMLGenerator {
       blockquoteFontSize = fontPx(bqStyle.fontSize)
 
       // List
-      val lStyle = style.getListStyle()
+      val lStyle = style.listStyle
       listColor = colorToCSS(lStyle.color)
       listFontSize = fontPx(lStyle.fontSize)
       listMarginBottom = dimPx(lStyle.marginBottom)
       listMarginLeft = dimPx(lStyle.marginLeft)
 
       // Link
-      linkColor = colorToCSS(style.getLinkColor())
-      linkUnderline = style.getLinkUnderline()
+      linkColor = colorToCSS(style.linkStyle.color)
+      linkUnderline = style.linkStyle.underline
 
       // Strong/Emphasis (nullable for inherit)
-      val sc = style.getStrongColor()
+      val sc = style.strongStyle.color
       strongColor = if (sc != null && sc != 0) colorToCSS(sc) else null
-      val ec = style.getEmphasisColor()
+      val ec = style.emphasisStyle.color
       emphasisColor = if (ec != null && ec != 0) colorToCSS(ec) else null
 
       // Image
-      val imgStyle = style.getImageStyle()
+      val imgStyle = style.imageStyle
       imageMarginBottom = dimPx(imgStyle.marginBottom)
       imageBorderRadius = dimPx(imgStyle.borderRadius)
 
@@ -153,7 +153,7 @@ object HTMLGenerator {
       headingMarginBottoms = IntArray(6)
 
       for (level in 1..6) {
-        val hStyle = style.getHeadingStyle(level)
+        val hStyle = style.headingStyles[level]!!
         val idx = level - 1
         headingFontSizes[idx] = fontPx(hStyle.fontSize)
         headingFontWeights[idx] = fontWeightToCSS(hStyle.fontWeight)

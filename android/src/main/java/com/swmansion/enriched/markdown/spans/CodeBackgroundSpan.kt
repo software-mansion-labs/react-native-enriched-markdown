@@ -64,7 +64,7 @@ class CodeBackgroundSpan(
     rect.set(min(startX, endX), top.toFloat(), max(startX, endX), finalBottom.toFloat())
 
     // 3. Apply Style
-    val codeStyle = style.getCodeStyle()
+    val codeStyle = style.codeStyle
     sharedBackgroundPaint.color = codeStyle.backgroundColor
     sharedBorderPaint.color = codeStyle.borderColor
 

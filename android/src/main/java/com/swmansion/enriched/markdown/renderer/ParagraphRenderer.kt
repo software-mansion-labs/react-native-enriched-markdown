@@ -29,7 +29,7 @@ class ParagraphRenderer(
 
     // Top-level paragraph rendering
     val start = builder.length
-    val style = config.style.getParagraphStyle()
+    val style = config.style.paragraphStyle
 
     context.setParagraphStyle(style)
     try {

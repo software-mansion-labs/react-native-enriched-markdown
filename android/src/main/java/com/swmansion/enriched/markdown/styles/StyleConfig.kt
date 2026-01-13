@@ -6,155 +6,120 @@ import com.facebook.react.bridge.ReadableMap
 
 /**
  * Main style configuration class that parses and caches all markdown element styles.
+ * Uses lazy initialization to defer parsing until styles are actually needed,
+ * improving startup time for documents that don't use all markdown features.
  */
 class StyleConfig(
-  style: ReadableMap,
+  private val style: ReadableMap,
   context: Context,
 ) {
-  private lateinit var paragraphStyle: ParagraphStyle
-  private val headingStyles = arrayOfNulls<HeadingStyle>(7)
-
-  // Cache typefaces for heading levels (1-6) to avoid recreating them for each span
-  private val headingTypefaces = arrayOfNulls<Typeface?>(7)
-  private lateinit var linkStyle: LinkStyle
-  private lateinit var strongStyle: StrongStyle
-  private lateinit var emphasisStyle: EmphasisStyle
-  private lateinit var codeStyle: CodeStyle
-  private lateinit var imageStyle: ImageStyle
-  private lateinit var inlineImageStyle: InlineImageStyle
-  private lateinit var blockquoteStyle: BlockquoteStyle
-  private lateinit var listStyle: ListStyle
-  private lateinit var codeBlockStyle: CodeBlockStyle
-
   private val styleParser = StyleParser(context)
 
-  init {
-    parseStyles(style)
-    initializeHeadingTypefaces()
-  }
-
-  fun getParagraphStyle(): ParagraphStyle = paragraphStyle
-
-  fun getHeadingStyle(level: Int): HeadingStyle =
-    headingStyles[level]
-      ?: error("Heading style for level $level not found. JS should always provide defaults.")
-
-  fun getHeadingFontSize(level: Int): Float =
-    headingStyles[level]?.fontSize
-      ?: error("Heading style for level $level not found. JS should always provide defaults.")
-
-  fun getHeadingFontFamily(level: Int): String = headingStyles[level]?.fontFamily ?: ""
-
-  fun getLinkColor(): Int = linkStyle.color
-
-  fun getLinkUnderline(): Boolean = linkStyle.underline
-
-  fun getStrongColor(): Int? = strongStyle.color
-
-  fun getEmphasisColor(): Int? = emphasisStyle.color
-
-  fun getCodeStyle(): CodeStyle = codeStyle
-
-  fun getImageStyle(): ImageStyle = imageStyle
-
-  fun getInlineImageStyle(): InlineImageStyle = inlineImageStyle
-
-  fun getBlockquoteStyle(): BlockquoteStyle = blockquoteStyle
-
-  fun getListStyle(): ListStyle = listStyle
-
-  fun getCodeBlockStyle(): CodeBlockStyle = codeBlockStyle
-
-  /**
-   * Gets the cached typeface for a heading level.
-   * Returns null if no custom font family is configured for this level.
-   * The typeface is cached at StyleConfig initialization to avoid recreating it for each span.
-   */
-  fun getHeadingTypeface(level: Int): Typeface? = headingTypefaces[level]
-
-  /**
-   * Initializes cached typefaces for all heading levels (1-6).
-   * This avoids recreating typefaces for each HeadingSpan instance.
-   */
-  private fun initializeHeadingTypefaces() {
-    (1..6).forEach { level ->
-      val fontFamily = getHeadingFontFamily(level)
-      headingTypefaces[level] =
-        fontFamily.takeIf { it.isNotEmpty() }?.let {
-          Typeface.create(it, Typeface.NORMAL)
-        }
-    }
-  }
-
-  private fun parseStyles(style: ReadableMap) {
-    val paragraphStyleMap =
+  val paragraphStyle: ParagraphStyle by lazy {
+    val map =
       requireNotNull(style.getMap("paragraph")) {
         "Paragraph style not found. JS should always provide defaults."
       }
-    paragraphStyle = ParagraphStyle.fromReadableMap(paragraphStyleMap, styleParser)
+    ParagraphStyle.fromReadableMap(map, styleParser)
+  }
 
-    (1..6).forEach { level ->
-      val levelKey = "h$level"
-      val levelStyle =
-        requireNotNull(style.getMap(levelKey)) {
-          "Style for $levelKey not found. JS should always provide defaults."
-        }
-      headingStyles[level] = HeadingStyle.fromReadableMap(levelStyle, styleParser)
+  val headingStyles: Array<HeadingStyle?> by lazy {
+    Array(7) { index ->
+      if (index == 0) {
+        null
+      } else {
+        val levelKey = "h$index"
+        val map =
+          requireNotNull(style.getMap(levelKey)) {
+            "Style for $levelKey not found. JS should always provide defaults."
+          }
+        HeadingStyle.fromReadableMap(map, styleParser)
+      }
     }
+  }
 
-    val linkStyleMap =
+  // Cache typefaces for heading levels (1-6) - lazily initialized after headingStyles
+  val headingTypefaces: Array<Typeface?> by lazy {
+    Array(7) { level ->
+      if (level == 0) {
+        null
+      } else {
+        val fontFamily = headingStyles[level]?.fontFamily ?: ""
+        fontFamily.takeIf { it.isNotEmpty() }?.let { Typeface.create(it, Typeface.NORMAL) }
+      }
+    }
+  }
+
+  val linkStyle: LinkStyle by lazy {
+    val map =
       requireNotNull(style.getMap("link")) {
         "Link style not found. JS should always provide defaults."
       }
-    linkStyle = LinkStyle.fromReadableMap(linkStyleMap, styleParser)
+    LinkStyle.fromReadableMap(map, styleParser)
+  }
 
-    val strongStyleMap =
+  val strongStyle: StrongStyle by lazy {
+    val map =
       requireNotNull(style.getMap("strong")) {
         "Strong style not found. JS should always provide defaults."
       }
-    strongStyle = StrongStyle.fromReadableMap(strongStyleMap, styleParser)
+    StrongStyle.fromReadableMap(map, styleParser)
+  }
 
-    val emphasisStyleMap =
+  val emphasisStyle: EmphasisStyle by lazy {
+    val map =
       requireNotNull(style.getMap("em")) {
         "Emphasis style not found. JS should always provide defaults."
       }
-    emphasisStyle = EmphasisStyle.fromReadableMap(emphasisStyleMap, styleParser)
+    EmphasisStyle.fromReadableMap(map, styleParser)
+  }
 
-    val codeStyleMap =
+  val codeStyle: CodeStyle by lazy {
+    val map =
       requireNotNull(style.getMap("code")) {
         "Code style not found. JS should always provide defaults."
       }
-    codeStyle = CodeStyle.fromReadableMap(codeStyleMap, styleParser)
+    CodeStyle.fromReadableMap(map, styleParser)
+  }
 
-    val imageStyleMap =
+  val imageStyle: ImageStyle by lazy {
+    val map =
       requireNotNull(style.getMap("image")) {
         "Image style not found. JS should always provide defaults."
       }
-    imageStyle = ImageStyle.fromReadableMap(imageStyleMap, styleParser)
+    ImageStyle.fromReadableMap(map, styleParser)
+  }
 
-    val inlineImageStyleMap =
+  val inlineImageStyle: InlineImageStyle by lazy {
+    val map =
       requireNotNull(style.getMap("inlineImage")) {
         "InlineImage style not found. JS should always provide defaults."
       }
-    inlineImageStyle = InlineImageStyle.fromReadableMap(inlineImageStyleMap, styleParser)
+    InlineImageStyle.fromReadableMap(map, styleParser)
+  }
 
-    val blockquoteStyleMap =
+  val blockquoteStyle: BlockquoteStyle by lazy {
+    val map =
       requireNotNull(style.getMap("blockquote")) {
         "Blockquote style not found. JS should always provide defaults."
       }
-    blockquoteStyle = BlockquoteStyle.fromReadableMap(blockquoteStyleMap, styleParser)
+    BlockquoteStyle.fromReadableMap(map, styleParser)
+  }
 
-    val listStyleMap =
+  val listStyle: ListStyle by lazy {
+    val map =
       requireNotNull(style.getMap("listStyle")) {
         "ListStyle style not found. JS should always provide defaults."
       }
-    listStyle = ListStyle.fromReadableMap(listStyleMap, styleParser)
+    ListStyle.fromReadableMap(map, styleParser)
+  }
 
-    val codeBlockStyleMap =
+  val codeBlockStyle: CodeBlockStyle by lazy {
+    val map =
       requireNotNull(style.getMap("codeBlock")) {
         "CodeBlock style not found. JS should always provide defaults."
       }
-    codeBlockStyle = CodeBlockStyle.fromReadableMap(codeBlockStyleMap, styleParser)
+    CodeBlockStyle.fromReadableMap(map, styleParser)
   }
 
   override fun equals(other: Any?): Boolean {

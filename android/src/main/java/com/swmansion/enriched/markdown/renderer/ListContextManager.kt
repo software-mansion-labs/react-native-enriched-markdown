@@ -92,11 +92,11 @@ class ListContextManager(
   private fun restoreParentListContext(parentListType: BlockStyleContext.ListType?) {
     when (parentListType) {
       BlockStyleContext.ListType.UNORDERED -> {
-        context.setUnorderedListStyle(styleConfig.getListStyle())
+        context.setUnorderedListStyle(styleConfig.listStyle)
       }
 
       BlockStyleContext.ListType.ORDERED -> {
-        context.setOrderedListStyle(styleConfig.getListStyle())
+        context.setOrderedListStyle(styleConfig.listStyle)
       }
 
       null -> {}

@@ -10,9 +10,9 @@ class HeadingSpan(
   val level: Int,
   style: StyleConfig,
 ) : MetricAffectingSpan() {
-  private val fontSize: Float = style.getHeadingFontSize(level)
-  private val color: Int = style.getHeadingStyle(level).color
-  private val cachedTypeface: Typeface? = style.getHeadingTypeface(level)
+  private val fontSize: Float = style.headingStyles[level]!!.fontSize
+  private val color: Int = style.headingStyles[level]!!.color
+  private val cachedTypeface: Typeface? = style.headingTypefaces[level]
 
   override fun updateDrawState(tp: TextPaint) {
     applyHeadingStyle(tp)

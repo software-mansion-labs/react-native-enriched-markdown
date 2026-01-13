@@ -19,7 +19,7 @@ class HeadingRenderer(
     val level = node.getAttribute("level")?.toIntOrNull() ?: 1
     val start = builder.length
 
-    val headingStyle = config.style.getHeadingStyle(level)
+    val headingStyle = config.style.headingStyles[level]!!
     factory.blockStyleContext.setHeadingStyle(headingStyle, level)
 
     try {

@@ -116,7 +116,7 @@ fun getMarginBottomForParagraph(
     when (paragraph.children.first().type) {
       MarkdownASTNode.NodeType.Image -> {
         // Image: use image's marginBottom
-        return style.getImageStyle().marginBottom
+        return style.imageStyle.marginBottom
       }
 
       // Future: Add other block elements here as they're implemented

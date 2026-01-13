@@ -35,7 +35,7 @@ class ImageSpan(
   ),
   AndroidLineHeightSpan {
   private var loadedDrawable: Drawable? = null
-  private val imageStyle = style.getImageStyle()
+  private val imageStyle = style.imageStyle
   private val height: Int = if (isInline) calculateInlineImageSize(style) else imageStyle.height.toInt()
   private val borderRadiusPx: Int = (imageStyle.borderRadius * context.resources.displayMetrics.density).toInt()
 
@@ -267,14 +267,14 @@ class ImageSpan(
   companion object {
     private const val MINIMUM_VALID_DIMENSION = 0
 
-    private fun calculateInlineImageSize(style: StyleConfig): Int = style.getInlineImageStyle().size.toInt()
+    private fun calculateInlineImageSize(style: StyleConfig): Int = style.inlineImageStyle.size.toInt()
 
     private fun createInitialDrawable(
       style: StyleConfig,
       url: String,
       isInline: Boolean,
     ): Drawable {
-      val imgStyle = style.getImageStyle()
+      val imgStyle = style.imageStyle
       val size = if (isInline) calculateInlineImageSize(style) else imgStyle.height.toInt()
 
       return prepareDrawable(url, size, size) ?: PlaceholderDrawable(size, size)

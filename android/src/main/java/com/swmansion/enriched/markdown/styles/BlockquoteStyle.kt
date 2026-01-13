@@ -9,7 +9,6 @@ data class BlockquoteStyle(
   override val color: Int,
   override val marginBottom: Float,
   override val lineHeight: Float,
-  val nestedMarginBottom: Float,
   val borderColor: Int,
   val borderWidth: Float,
   val gapWidth: Float,
@@ -25,7 +24,6 @@ data class BlockquoteStyle(
       val fontWeight = parser.parseString(map, "fontWeight", "normal")
       val color = parser.parseColor(map, "color")
       val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
-      val nestedMarginBottom = parser.toPixelFromDIP(map.getDouble("nestedMarginBottom").toFloat())
       val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
       val borderColor = parser.parseColor(map, "borderColor")
@@ -40,7 +38,6 @@ data class BlockquoteStyle(
         color,
         marginBottom,
         lineHeight,
-        nestedMarginBottom,
         borderColor,
         borderWidth,
         gapWidth,

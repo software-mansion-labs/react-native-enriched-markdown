@@ -93,7 +93,6 @@
   NSString *_blockquoteFontWeight;
   UIColor *_blockquoteColor;
   CGFloat _blockquoteMarginBottom;
-  CGFloat _blockquoteNestedMarginBottom;
   CGFloat _blockquoteLineHeight;
   UIColor *_blockquoteBorderColor;
   CGFloat _blockquoteBorderWidth;
@@ -1005,16 +1004,6 @@
 - (void)setBlockquoteMarginBottom:(CGFloat)newValue
 {
   _blockquoteMarginBottom = newValue;
-}
-
-- (CGFloat)blockquoteNestedMarginBottom
-{
-  return _blockquoteNestedMarginBottom;
-}
-
-- (void)setBlockquoteNestedMarginBottom:(CGFloat)newValue
-{
-  _blockquoteNestedMarginBottom = newValue;
 }
 
 - (CGFloat)blockquoteLineHeight

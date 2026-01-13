@@ -68,19 +68,8 @@ static NSString *const kNestedInfoRangeKey = @"range";
                  backgroundColor:[_config blockquoteBackgroundColor]
                       lineHeight:[_config blockquoteLineHeight]];
 
-  // Apply nested spacing only when there are nested blockquotes
-  CGFloat nestedSpacing = [_config blockquoteNestedMarginBottom];
-  if (nestedSpacing > 0 && nestedInfo.count > 0) {
-    [self applyNestedSpacing:output nestedInfo:nestedInfo spacing:nestedSpacing];
-
-    // Also apply spacing to the parent blockquote
-    NSMutableParagraphStyle *parentStyle = getOrCreateParagraphStyle(output, blockquoteRange.location);
-    parentStyle.paragraphSpacing = nestedSpacing;
-    [output addAttribute:NSParagraphStyleAttributeName value:parentStyle range:blockquoteRange];
-  }
-
-  // Re-apply nested blockquote styles to preserve their indentation
-  // This must come after applyNestedSpacing to preserve the spacing we just set
+  // Re-apply nested blockquote styles to restore their correct indentation
+  // (applyBaseBlockquoteStyle overwrites nested indents with the parent's indent)
   [self reapplyNestedStyles:output nestedInfo:nestedInfo levelSpacing:levelSpacing];
 
   // Apply bottom margin for top-level blockquotes only
@@ -138,26 +127,12 @@ static NSString *const kNestedInfoRangeKey = @"range";
   applyLineHeight(output, blockquoteRange, lineHeight);
 }
 
-- (void)applyNestedSpacing:(NSMutableAttributedString *)output
-                nestedInfo:(NSArray<NSDictionary *> *)nestedInfo
-                   spacing:(CGFloat)spacing
-{
-  // Apply paragraphSpacing to each nested blockquote
-  // This creates spacing after each nested blockquote without needing spacer characters
-  for (NSDictionary *info in nestedInfo) {
-    NSRange nestedRange = [info[kNestedInfoRangeKey] rangeValue];
-    NSMutableParagraphStyle *style = getOrCreateParagraphStyle(output, nestedRange.location);
-    style.paragraphSpacing = spacing;
-    [output addAttribute:NSParagraphStyleAttributeName value:style range:nestedRange];
-  }
-}
-
 - (void)reapplyNestedStyles:(NSMutableAttributedString *)output
                  nestedInfo:(NSArray<NSDictionary *> *)nestedInfo
                levelSpacing:(CGFloat)levelSpacing
 {
-  // Re-apply indentation to nested blockquotes
-  // This preserves paragraphSpacing that was set by applyNestedSpacing
+  // Re-apply indentation to nested blockquotes since applyBaseBlockquoteStyle
+  // overwrote them with the parent's indentation
   for (NSDictionary *info in nestedInfo) {
     NSRange nestedRange = [info[kNestedInfoRangeKey] rangeValue];
     NSInteger nestedDepth = [info[kNestedInfoDepthKey] integerValue];

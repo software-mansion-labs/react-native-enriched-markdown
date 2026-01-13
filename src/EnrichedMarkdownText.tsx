@@ -29,7 +29,6 @@ interface BlockquoteStyle {
   fontWeight?: string;
   color?: string;
   marginBottom?: number;
-  nestedMarginBottom?: number;
   lineHeight?: number;
   borderColor?: string;
   borderWidth?: number;

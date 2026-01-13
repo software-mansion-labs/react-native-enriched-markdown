@@ -140,7 +140,6 @@ const defaultBlockquoteStyle: MarkdownStyleInternal['blockquote'] = {
   fontWeight: 'normal',
   color: processColor('#374151') as ColorValue,
   marginBottom: 20,
-  nestedMarginBottom: 16,
   lineHeight: 16 * getLineHeightMultiplier(1.6),
   borderColor: defaultBlockquoteBorderColor,
   borderWidth: 4,
@@ -266,9 +265,6 @@ export const normalizeMarkdownStyle = (
       normalizeColor(style.blockquote?.color) ?? defaultBlockquoteStyle.color,
     marginBottom:
       style.blockquote?.marginBottom ?? defaultBlockquoteStyle.marginBottom,
-    nestedMarginBottom:
-      style.blockquote?.nestedMarginBottom ??
-      defaultBlockquoteStyle.nestedMarginBottom,
     lineHeight:
       style.blockquote?.lineHeight ?? defaultBlockquoteStyle.lineHeight,
     borderColor:

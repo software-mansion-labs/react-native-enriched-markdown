@@ -55,16 +55,7 @@ class BlockquoteRenderer(
     // We apply line height and margin specifically to the segments that are NOT nested quotes.
     applySpansExcludingNested(builder, nestedRanges, start, end, createLineHeightSpan(style.lineHeight))
 
-    // 5. Internal Paragraph Spacing
-    // This ensures the internal gap between text blocks inside the blockquote is correct.
-    if (style.nestedMarginBottom > 0 && nestedRanges.isNotEmpty()) {
-      val contentEnd = getContentEndExcludingLastNewline(builder, start, end)
-      if (contentEnd > start) {
-        applySpansExcludingNested(builder, nestedRanges, start, contentEnd, MarginBottomSpan(style.nestedMarginBottom))
-      }
-    }
-
-    // 6. Root-level Spacing
+    // 5. Root-level Spacing
     if (depth == 0 && style.marginBottom > 0) {
       val spacerLocation = builder.length
       builder.append("\n") // Physical break
@@ -95,10 +86,4 @@ class BlockquoteRenderer(
       builder.setSpan(span, currentPos, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
     }
   }
-
-  private fun getContentEndExcludingLastNewline(
-    builder: SpannableStringBuilder,
-    start: Int,
-    end: Int,
-  ): Int = if (end > start && builder[end - 1] == '\n') end - 1 else end
 }

@@ -20,7 +20,6 @@ interface ParagraphStyleInternal extends BaseBlockStyleInternal {}
 interface HeadingStyleInternal extends BaseBlockStyleInternal {}
 
 interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
-  nestedMarginBottom: CodegenTypes.Float;
   borderColor: ColorValue;
   borderWidth: CodegenTypes.Float;
   gapWidth: CodegenTypes.Float;

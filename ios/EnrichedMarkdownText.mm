@@ -681,12 +681,6 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.blockquote.nestedMarginBottom !=
-      oldViewProps.markdownStyle.blockquote.nestedMarginBottom) {
-    [_config setBlockquoteNestedMarginBottom:newViewProps.markdownStyle.blockquote.nestedMarginBottom];
-    stylePropChanged = YES;
-  }
-
   if (newViewProps.markdownStyle.blockquote.lineHeight != oldViewProps.markdownStyle.blockquote.lineHeight) {
     [_config setBlockquoteLineHeight:newViewProps.markdownStyle.blockquote.lineHeight];
     stylePropChanged = YES;

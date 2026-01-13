@@ -2,7 +2,7 @@
 #import "StyleConfig.h"
 
 // Attribute constants for identifying blockquote segments in text storage
-NSString *const RichTextBlockquoteDepthAttributeName = @"RichTextBlockquoteDepth";
+NSString *const BlockquoteDepthAttributeName = @"BlockquoteDepth";
 NSString *const RichTextBlockquoteBackgroundColorAttributeName = @"RichTextBlockquoteBackgroundColor";
 
 @implementation BlockquoteBorder {
@@ -56,7 +56,7 @@ NSString *const RichTextBlockquoteBackgroundColorAttributeName = @"RichTextBlock
                                             // Perform a single attribute lookup for the current line fragment
                                             NSDictionary *attrs = [textStorage attributesAtIndex:charRange.location
                                                                                   effectiveRange:NULL];
-                                            NSNumber *depthNum = attrs[RichTextBlockquoteDepthAttributeName];
+                                            NSNumber *depthNum = attrs[BlockquoteDepthAttributeName];
 
                                             // If no depth is found, this fragment is not part of a blockquote
                                             if (!depthNum) {

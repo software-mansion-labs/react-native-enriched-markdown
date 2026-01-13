@@ -98,7 +98,7 @@ static void processBlockquotes(NSMutableAttributedString *text, UIColor *bgColor
   // Collect marker positions (using C array for performance)
   NSMutableData *markersData = [NSMutableData data];
 
-  [text enumerateAttribute:RichTextBlockquoteDepthAttributeName
+  [text enumerateAttribute:BlockquoteDepthAttributeName
                    inRange:NSMakeRange(0, text.length)
                    options:0
                 usingBlock:^(id value, NSRange range, BOOL *stop) {
@@ -142,7 +142,7 @@ static void processBlockquotes(NSMutableAttributedString *text, UIColor *bgColor
   }
 
   // Normalize styles (background, spacing, remove indentation since markers provide visual indication)
-  [text enumerateAttribute:RichTextBlockquoteDepthAttributeName
+  [text enumerateAttribute:BlockquoteDepthAttributeName
                    inRange:NSMakeRange(0, text.length)
                    options:0
                 usingBlock:^(id value, NSRange range, BOOL *stop) {

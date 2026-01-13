@@ -4,7 +4,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const RichTextBlockquoteDepthAttributeName;
+extern NSString *const BlockquoteDepthAttributeName;
 extern NSString *const RichTextBlockquoteBackgroundColorAttributeName;
 
 @interface BlockquoteBorder : NSObject

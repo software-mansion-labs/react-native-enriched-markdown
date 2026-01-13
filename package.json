@@ -1,7 +1,7 @@
 {
-  "name": "react-native-rich-text",
+  "name": "react-native-enriched-markdown",
   "version": "0.1.0",
-  "description": "react-native-rich-text is a React Native library that provides a customizable Text component capable of parsing and rendering markdown content. It seamlessly transforms markdown tags into styled native text elements for a rich text display experience.",
+  "description": "react-native-enriched-markdown is a React Native library that provides a customizable Text component capable of parsing and rendering markdown content. It seamlessly transforms markdown tags into styled native text elements for a rich text display experience.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -32,7 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace react-native-rich-text-example",
+    "example": "yarn workspace react-native-enriched-markdown-example",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -42,8 +42,8 @@
     "lint-clang:android:fix": "find android/ \\( -iname \"*.h\" -o -iname \"*.cpp\" \\) | grep -v -e build | xargs npx clang-format -i",
     "lint-clang": "yarn lint-clang:ios && yarn lint-clang:android",
     "lint-clang:fix": "yarn lint-clang:ios:fix && yarn lint-clang:android:fix",
-    "lint-kotlin": "cd example/android && ./gradlew :react-native-rich-text:ktlintCheck",
-    "lint-kotlin:fix": "cd example/android && ./gradlew :react-native-rich-text:ktlintFormat",
+    "lint-kotlin": "cd example/android && ./gradlew :react-native-enriched-markdown:ktlintCheck",
+    "lint-kotlin:fix": "cd example/android && ./gradlew :react-native-enriched-markdown:ktlintFormat",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
     "release": "release-it --only-version"
@@ -51,18 +51,19 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "markdown"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/software-mansion-labs/react-native-rich-text.git"
+    "url": "git+https://github.com/software-mansion-labs/react-native-enriched-markdown.git"
   },
   "author": "Gregory Moskaliuk <mosckalyuck@gmail.com> (https://github.com/hryhoriiK97)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/software-mansion-labs/react-native-rich-text/issues"
+    "url": "https://github.com/software-mansion-labs/react-native-enriched-markdown/issues"
   },
-  "homepage": "https://github.com/software-mansion-labs/react-native-rich-text#readme",
+  "homepage": "https://github.com/software-mansion-labs/react-native-enriched-markdown#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -143,6 +144,7 @@
     "source": "src",
     "output": "lib",
     "targets": [
+      "codegen",
       [
         "module",
         {
@@ -158,7 +160,7 @@
     ]
   },
   "codegenConfig": {
-    "name": "RichTextViewSpec",
+    "name": "EnrichedMarkdownTextSpec",
     "type": "components",
     "jsSrcsDir": "src",
     "outputDir": {
@@ -166,12 +168,12 @@
       "android": "android/generated"
     },
     "android": {
-      "javaPackageName": "com.richtext"
+      "javaPackageName": "com.swmansion.enriched.markdown"
     },
     "ios": {
       "components": {
-        "RichTextView": {
-          "className": "RichTextView"
+        "EnrichedMarkdownText": {
+          "className": "EnrichedMarkdownText"
         }
       }
     },

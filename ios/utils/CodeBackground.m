@@ -1,7 +1,7 @@
 #import "CodeBackground.h"
 #import "RenderContext.h"
 
-NSString *const RichTextCodeAttributeName = @"RichTextCode";
+NSString *const CodeAttributeName = @"Code";
 
 static const CGFloat kCodeBackgroundCornerRadius = 2.0;
 static const CGFloat kCodeBackgroundBorderWidth = 0.5;
@@ -33,7 +33,7 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
   if (charRange.location == NSNotFound || charRange.length == 0)
     return;
 
-  [textStorage enumerateAttribute:RichTextCodeAttributeName
+  [textStorage enumerateAttribute:CodeAttributeName
                           inRange:NSMakeRange(0, textStorage.length)
                           options:0
                        usingBlock:^(id value, NSRange range, BOOL *stop) {
@@ -184,9 +184,7 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
   if (range.location == NSNotFound || range.length == 0 || !textStorage) {
     return [_config paragraphFontSize] * 1.2;
   }
-  NSNumber *lineHeightValue = [textStorage attribute:@"RichTextBlockLineHeight"
-                                             atIndex:range.location
-                                      effectiveRange:NULL];
+  NSNumber *lineHeightValue = [textStorage attribute:@"BlockLineHeight" atIndex:range.location effectiveRange:NULL];
   return lineHeightValue ? [lineHeightValue doubleValue] : ([_config paragraphFontSize] * 1.2);
 }
 

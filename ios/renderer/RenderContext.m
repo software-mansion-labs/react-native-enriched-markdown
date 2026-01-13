@@ -193,7 +193,7 @@
  */
 + (BOOL)shouldPreserveColors:(NSDictionary *)attrs
 {
-  return (attrs[NSLinkAttributeName] != nil || attrs[RichTextCodeAttributeName] != nil);
+  return (attrs[NSLinkAttributeName] != nil || attrs[CodeAttributeName] != nil);
 }
 
 /**

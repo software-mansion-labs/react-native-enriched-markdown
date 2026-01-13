@@ -1,6 +1,6 @@
 buildscript {
   ext.getExtOrDefault = {name ->
-    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['RichText_' + name]
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['EnrichedMarkdown_' + name]
   }
 
   repositories {
@@ -24,11 +24,11 @@ apply plugin: "kotlin-android"
 apply plugin: "com.facebook.react"
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["RichText_" + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["EnrichedMarkdown_" + name]).toInteger()
 }
 
 android {
-  namespace "com.richtext"
+  namespace "com.swmansion.enriched.markdown"
 
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
@@ -96,6 +96,6 @@ ktlint {
 
 react {
   jsRootDir = file("../src/")
-  libraryName = "RichTextView"
-  codegenJavaPackageName = "com.richtext"
+  libraryName = "EnrichedMarkdownText"
+  codegenJavaPackageName = "com.swmansion.enriched.markdown"
 }

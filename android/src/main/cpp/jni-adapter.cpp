@@ -5,9 +5,9 @@
 
 using namespace Markdown;
 
-#define RICHTEXT_LOG_TAG "RichTextJNI"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, RICHTEXT_LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, RICHTEXT_LOG_TAG, __VA_ARGS__)
+#define ENRICHEDMARKDOWN_LOG_TAG "EnrichedMarkdownJNI"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, ENRICHEDMARKDOWN_LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, ENRICHEDMARKDOWN_LOG_TAG, __VA_ARGS__)
 
 // Helper function to convert C++ NodeType to Kotlin enum ordinal
 static jint nodeTypeToJavaOrdinal(NodeType type) {
@@ -54,22 +54,22 @@ static jobject createJavaNode(JNIEnv *env, std::shared_ptr<MarkdownASTNode> node
   }
 
   // Find the MarkdownASTNode class
-  jclass nodeClass = env->FindClass("com/richtext/parser/MarkdownASTNode");
+  jclass nodeClass = env->FindClass("com/swmansion/enriched/markdown/parser/MarkdownASTNode");
   if (!nodeClass) {
     LOGE("Failed to find MarkdownASTNode class");
     return nullptr;
   }
 
   // Find the NodeType enum class
-  jclass nodeTypeClass = env->FindClass("com/richtext/parser/MarkdownASTNode$NodeType");
+  jclass nodeTypeClass = env->FindClass("com/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType");
   if (!nodeTypeClass) {
     LOGE("Failed to find NodeType enum class");
     return nullptr;
   }
 
   // Get the enum values array
-  jmethodID valuesMethod =
-      env->GetStaticMethodID(nodeTypeClass, "values", "()[Lcom/richtext/parser/MarkdownASTNode$NodeType;");
+  jmethodID valuesMethod = env->GetStaticMethodID(
+      nodeTypeClass, "values", "()[Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType;");
   if (!valuesMethod) {
     LOGE("Failed to find NodeType.values() method");
     return nullptr;
@@ -127,10 +127,10 @@ static jobject createJavaNode(JNIEnv *env, std::shared_ptr<MarkdownASTNode> node
   }
 
   // Find the MarkdownASTNode constructor
-  // Constructor signature: (Lcom/richtext/parser/MarkdownASTNode$NodeType;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V
-  jmethodID constructor = env->GetMethodID(
-      nodeClass, "<init>",
-      "(Lcom/richtext/parser/MarkdownASTNode$NodeType;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V");
+  // Constructor signature: (Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V
+  jmethodID constructor = env->GetMethodID(nodeClass, "<init>",
+                                           "(Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType;Ljava/"
+                                           "lang/String;Ljava/util/Map;Ljava/util/List;)V");
   if (!constructor) {
     LOGE("Failed to find MarkdownASTNode constructor");
     return nullptr;
@@ -153,8 +153,9 @@ static jobject createJavaNode(JNIEnv *env, std::shared_ptr<MarkdownASTNode> node
 
 extern "C" {
 
-JNIEXPORT jobject JNICALL Java_com_richtext_parser_Parser_nativeParseMarkdown(JNIEnv *env, jobject /* this */,
-                                                                              jstring markdown) {
+JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nativeParseMarkdown(JNIEnv *env,
+                                                                                                 jobject /* this */,
+                                                                                                 jstring markdown) {
   if (!markdown) {
     LOGE("Markdown string is null");
     return nullptr;

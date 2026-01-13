@@ -1,12 +1,12 @@
-# react-native-rich-text
+# react-native-enriched-markdown
 
-react-native-rich-text is a React Native library that provides a customizable Text component capable of parsing and rendering markdown content. It seamlessly transforms markdown tags into styled native text elements for a rich text display experience.
+react-native-enriched-markdown is a React Native library that provides a customizable Text component capable of parsing and rendering markdown content. It seamlessly transforms markdown tags into styled native text elements for a rich text display experience.
 
 ## Installation
 
 
 ```sh
-npm install react-native-rich-text
+npm install react-native-enriched-markdown
 ```
 
 
@@ -14,11 +14,11 @@ npm install react-native-rich-text
 
 
 ```js
-import { RichTextView } from "react-native-rich-text";
+import { EnrichedMarkdownText } from "react-native-enriched-markdown";
 
 // ...
 
-<RichTextView color="tomato" />
+<EnrichedMarkdownText markdown="# Hello **World**" />
 ```
 
 

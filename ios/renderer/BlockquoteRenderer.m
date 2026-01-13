@@ -101,7 +101,7 @@ static NSString *const kNestedInfoRangeKey = @"range";
   NSMutableArray<NSDictionary *> *nestedInfo = [NSMutableArray array];
 
   [output
-      enumerateAttribute:RichTextBlockquoteDepthAttributeName
+      enumerateAttribute:BlockquoteDepthAttributeName
                  inRange:blockquoteRange
                  options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
               usingBlock:^(id value, NSRange range, BOOL *stop) {
@@ -129,9 +129,9 @@ static NSString *const kNestedInfoRangeKey = @"range";
 
   NSMutableDictionary *newAttributes =
       [NSMutableDictionary dictionaryWithObjectsAndKeys:paragraphStyle, NSParagraphStyleAttributeName, @(currentDepth),
-                                                        RichTextBlockquoteDepthAttributeName, nil];
+                                                        BlockquoteDepthAttributeName, nil];
   if (backgroundColor) {
-    newAttributes[RichTextBlockquoteBackgroundColorAttributeName] = backgroundColor;
+    newAttributes[BlockquoteBackgroundColorAttributeName] = backgroundColor;
   }
   [output addAttributes:newAttributes range:blockquoteRange];
 
@@ -168,11 +168,9 @@ static NSString *const kNestedInfoRangeKey = @"range";
     style.headIndent = indent;
     style.tailIndent = 0;
 
-    [output addAttributes:@{
-      NSParagraphStyleAttributeName : style,
-      RichTextBlockquoteDepthAttributeName : info[kNestedInfoDepthKey]
-    }
-                    range:nestedRange];
+    [output
+        addAttributes:@{NSParagraphStyleAttributeName : style, BlockquoteDepthAttributeName : info[kNestedInfoDepthKey]}
+                range:nestedRange];
   }
 }
 

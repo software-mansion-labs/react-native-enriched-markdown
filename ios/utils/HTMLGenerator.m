@@ -287,7 +287,7 @@ static BOOL isInlineCodeSpan(NSDictionary *attrs, BOOL isCodeBlock)
   if (isCodeBlock)
     return NO;
 
-  NSNumber *codeAttr = attrs[RichTextCodeAttributeName];
+  NSNumber *codeAttr = attrs[CodeAttributeName];
   if ([codeAttr boolValue])
     return YES;
 
@@ -314,7 +314,7 @@ static ParagraphType getParagraphType(NSDictionary *attrs)
       return ParagraphTypeCodeBlock;
   }
 
-  NSNumber *blockquoteDepth = attrs[RichTextBlockquoteDepthAttributeName];
+  NSNumber *blockquoteDepth = attrs[BlockquoteDepthAttributeName];
   if (blockquoteDepth && [blockquoteDepth integerValue] >= 0)
     return ParagraphTypeBlockquote;
 
@@ -348,7 +348,7 @@ static NSData *collectParagraphsData(NSAttributedString *attributedString, NSUIn
       para.type = getParagraphType(attrs);
 
       NSNumber *listDepth = attrs[ListDepthAttribute];
-      NSNumber *blockquoteDepth = attrs[RichTextBlockquoteDepthAttributeName];
+      NSNumber *blockquoteDepth = attrs[BlockquoteDepthAttributeName];
       NSNumber *listNumber = attrs[ListItemNumberAttribute];
 
       para.depth = listDepth ? [listDepth integerValue] : (blockquoteDepth ? [blockquoteDepth integerValue] : 0);

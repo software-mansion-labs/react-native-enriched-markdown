@@ -2340,7 +2340,7 @@ PODS:
     - React-perflogger (= 0.81.1)
     - React-utils (= 0.81.1)
     - SocketRocket
-  - RichText (0.1.0):
+  - ReactNativeEnrichedMarkdown (0.1.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2444,7 +2444,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - RichText (from `../..`)
+  - ReactNativeEnrichedMarkdown (from `../..`)
   - SocketRocket (~> 0.7.1)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2596,7 +2596,7 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RichText:
+  ReactNativeEnrichedMarkdown:
     :path: "../.."
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
@@ -2673,10 +2673,10 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 3eb9096cb139eb433965693bbe541d96eb3d3ec9
   ReactCodegen: 4d203eddf6f977caa324640a20f92e70408d648b
   ReactCommon: ce5d4226dfaf9d5dacbef57b4528819e39d3a120
-  RichText: fed91ff1986008c61cf8d4bad41584bbd0580b57
+  ReactNativeEnrichedMarkdown: 305a640ad7fa7f821cbeaf7905f34f49e3e346f2
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: 1c8cebf751362f0491665ba9b34598d3bcac09ce
+PODFILE CHECKSUM: 3bf41d366c31c78dea05f6bb58f3cec81d6efc31
 
 COCOAPODS: 1.16.2

@@ -49,10 +49,10 @@
     if (codeColor) {
       codeAttributes[NSForegroundColorAttributeName] = codeColor;
     }
-    codeAttributes[RichTextCodeAttributeName] = @YES;
+    codeAttributes[CodeAttributeName] = @YES;
 
     // Store block line height directly for CodeBackground to use
-    codeAttributes[@"RichTextBlockLineHeight"] = @(blockFont.lineHeight);
+    codeAttributes[@"BlockLineHeight"] = @(blockFont.lineHeight);
 
     [output setAttributes:codeAttributes range:range];
   }

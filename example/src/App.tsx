@@ -1,18 +1,19 @@
-import {
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  Alert,
-  Linking,
-} from 'react-native';
-import { RichTextView } from 'react-native-rich-text';
+import { StyleSheet, ScrollView, Alert, Linking } from 'react-native';
+import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const sampleMarkdown = `
 # Welcome to the ***React Native*** Markdown component!
+
 ## Welcome to the ***React Native*** Markdown component!
+
 ### Welcome to the ***React Native*** Markdown component!
+
 #### Welcome to the ***React Native*** Markdown component!
+
 ##### Welcome to the ***React Native*** Markdown component!
+
 ###### Welcome to the ***React Native*** Markdown component!
 
 This is a simple text with links and __bold text__.
@@ -57,6 +58,7 @@ console.log(x, y);
 > This is a nested blockquote example.
 > > This is a nested blockquote inside another blockquote.
 > > > This is a nested blockquote inside another blockquote.
+> > > > This is a nested blockquote inside another blockquote.
 
 ## Lists
 
@@ -71,8 +73,9 @@ Here's an unordered list with some items:
     - Another third level item
 - Third item with a [link](https://reactnative.dev)
   - Second level nested item
-    - Third level nested item
-    - Another third level item
+    - Third level nested item with a [link](https://reactnative.dev). This is a link to the React Native website.
+    - Another third level item with a [link](https://reactnative.dev). This is a link to the React Native website.
+      - Fourth level nested item with a [link](https://reactnative.dev). This is a link to the React Native website.
 - Fourth item with inline \`code\`
 
 1. First item with **bold text**
@@ -83,7 +86,89 @@ Here's an unordered list with some items:
 3. Third item with a [link](https://reactnative.dev)
 4. Fourth item with inline \`code\`
 
-Built with ❤️ using **React Native Fabric Architecture**`;
+Built with ❤️ using **React Native Fabric Architecture**
+`;
+
+// const twitterBlockquote = `
+// ## Blockquotes
+
+// > "Simplicity is the ultimate sophistication."
+// >
+// > — *Leonardo da Vinci*
+
+// > **Pro tip:** Blockquotes are perfect for highlighting important information or displaying quotes in your app.
+// >
+// > They support **bold**, *italic*, and [links](https://reactnative.dev)!
+
+// > Scalable nesting depth — no limits!
+// > > Level 2: Nested content goes here
+// > > > Level 3: Handles unlimited depth
+// > > > > Level 4: Perfect for threaded discussions
+// > > > > > Level 5: And beyond...
+// `;
+
+// const twitterLists = `
+// ## Lists
+
+// **Project Structure:**
+
+// - 📁 src
+//   - 📁 components — *reusable UI elements*
+//     - 📁 common
+//       - 📁 buttons
+//         - PrimaryButton.tsx — **main CTA**
+//         - SecondaryButton.tsx
+//       - 📁 inputs
+//         - TextInput.tsx
+//         - SearchInput.tsx
+//     - 📁 screens
+//       - Home.tsx
+//       - Profile.tsx
+//   - 📁 hooks — *custom React hooks*
+//     - useAuth.ts — [auth docs](https://reactnative.dev)
+//     - useTheme.ts
+
+// **Release Checklist:**
+
+// 1. **Code review** completed
+//    1. Unit tests *passing*
+//       1. Component tests
+//       2. Hook tests
+//    2. Integration tests *passing*
+//       1. E2E scenarios — [testing guide](https://reactnative.dev)
+//       2. API mocks verified
+// 2. **Documentation** updated
+//    1. README changes
+//    2. Changelog entry
+// 3. Ready for release 🚀
+
+// *Supports unlimited nesting depth!*`;
+
+// const twitterCodeBlocks = `
+// ## Code Blocks
+
+// \`\`\`typescript
+// interface User {
+//   id: string;
+//   name: string;
+//   email: string;
+// }
+
+// async function getUser(id: string) {
+//   const response = await fetch(\`/api/users/\${id}\`);
+//   return response.json();
+// }
+// \`\`\`
+
+// \`\`\`javascript
+// const greet = (name) => {
+//   console.log(\`Hello, \${name}!\`);
+// };
+
+// greet('World');
+// \`\`\`
+
+// `;
 
 export default function App() {
   const handleLinkPress = (event: { nativeEvent: { url: string } }) => {
@@ -103,14 +188,13 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
       >
-        <RichTextView
+        <EnrichedMarkdownText
           markdown={sampleMarkdown}
-          containerStyle={styles.markdown}
           onLinkPress={handleLinkPress}
         />
       </ScrollView>
@@ -119,19 +203,11 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollView: {
-    flex: 1,
+    // flex: 1,
+    paddingHorizontal: 16,
   },
   content: {
-    padding: 20,
-  },
-  markdown: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    height: 3800,
+    paddingVertical: 16,
   },
 });

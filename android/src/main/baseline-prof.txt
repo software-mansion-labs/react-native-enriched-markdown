@@ -1,65 +1,65 @@
-# Baseline Profile for react-native-rich-text
+# Baseline Profile for react-native-enriched-markdown
 # These classes will be AOT compiled during app install
 # to improve cold start performance.
 
 # Core View and Rendering
-Lcom/richtext/RichTextView;
-Lcom/richtext/RichTextViewManager;
-Lcom/richtext/RichTextViewLayoutManager;
+Lcom/swmansion/enriched/markdown/EnrichedMarkdownText;
+Lcom/swmansion/enriched/markdown/EnrichedMarkdownTextManager;
+Lcom/swmansion/enriched/markdown/EnrichedMarkdownTextLayoutManager;
 
 # Renderer Classes
-Lcom/richtext/renderer/Renderer;
-Lcom/richtext/renderer/RendererFactory;
-Lcom/richtext/renderer/RendererConfig;
-Lcom/richtext/renderer/BlockStyleContext;
-Lcom/richtext/renderer/BlockStyle;
-Lcom/richtext/renderer/SpanStyleCache;
-Lcom/richtext/renderer/NodeRenderer;
-Lcom/richtext/renderer/TextRenderer;
-Lcom/richtext/renderer/ParagraphRenderer;
-Lcom/richtext/renderer/HeadingRenderer;
-Lcom/richtext/renderer/StrongRenderer;
-Lcom/richtext/renderer/EmphasisRenderer;
-Lcom/richtext/renderer/LinkRenderer;
-Lcom/richtext/renderer/ListRenderer;
-Lcom/richtext/renderer/ListItemRenderer;
-Lcom/richtext/renderer/BlockquoteRenderer;
-Lcom/richtext/renderer/CodeBlockRenderer;
-Lcom/richtext/renderer/InlineCodeRenderer;
-Lcom/richtext/renderer/ImageRenderer;
-Lcom/richtext/renderer/LineBreakRenderer;
-Lcom/richtext/renderer/DocumentRenderer;
+Lcom/swmansion/enriched/markdown/renderer/Renderer;
+Lcom/swmansion/enriched/markdown/renderer/RendererFactory;
+Lcom/swmansion/enriched/markdown/renderer/RendererConfig;
+Lcom/swmansion/enriched/markdown/renderer/BlockStyleContext;
+Lcom/swmansion/enriched/markdown/renderer/BlockStyle;
+Lcom/swmansion/enriched/markdown/renderer/SpanStyleCache;
+Lcom/swmansion/enriched/markdown/renderer/NodeRenderer;
+Lcom/swmansion/enriched/markdown/renderer/TextRenderer;
+Lcom/swmansion/enriched/markdown/renderer/ParagraphRenderer;
+Lcom/swmansion/enriched/markdown/renderer/HeadingRenderer;
+Lcom/swmansion/enriched/markdown/renderer/StrongRenderer;
+Lcom/swmansion/enriched/markdown/renderer/EmphasisRenderer;
+Lcom/swmansion/enriched/markdown/renderer/LinkRenderer;
+Lcom/swmansion/enriched/markdown/renderer/ListRenderer;
+Lcom/swmansion/enriched/markdown/renderer/ListItemRenderer;
+Lcom/swmansion/enriched/markdown/renderer/BlockquoteRenderer;
+Lcom/swmansion/enriched/markdown/renderer/CodeBlockRenderer;
+Lcom/swmansion/enriched/markdown/renderer/InlineCodeRenderer;
+Lcom/swmansion/enriched/markdown/renderer/ImageRenderer;
+Lcom/swmansion/enriched/markdown/renderer/LineBreakRenderer;
+Lcom/swmansion/enriched/markdown/renderer/DocumentRenderer;
 
 # Spans
-Lcom/richtext/spans/StrongSpan;
-Lcom/richtext/spans/EmphasisSpan;
-Lcom/richtext/spans/InlineCodeSpan;
-Lcom/richtext/spans/TextSpan;
-Lcom/richtext/spans/HeadingSpan;
-Lcom/richtext/spans/LinkSpan;
-Lcom/richtext/spans/LineHeightSpan;
-Lcom/richtext/spans/MarginBottomSpan;
-Lcom/richtext/spans/BaseListSpan;
-Lcom/richtext/spans/UnorderedListSpan;
-Lcom/richtext/spans/OrderedListSpan;
-Lcom/richtext/spans/BlockquoteSpan;
-Lcom/richtext/spans/CodeBlockSpan;
-Lcom/richtext/spans/InlineCodeBackgroundSpan;
-Lcom/richtext/spans/ImageSpan;
+Lcom/swmansion/enriched/markdown/spans/StrongSpan;
+Lcom/swmansion/enriched/markdown/spans/EmphasisSpan;
+Lcom/swmansion/enriched/markdown/spans/InlineCodeSpan;
+Lcom/swmansion/enriched/markdown/spans/TextSpan;
+Lcom/swmansion/enriched/markdown/spans/HeadingSpan;
+Lcom/swmansion/enriched/markdown/spans/LinkSpan;
+Lcom/swmansion/enriched/markdown/spans/LineHeightSpan;
+Lcom/swmansion/enriched/markdown/spans/MarginBottomSpan;
+Lcom/swmansion/enriched/markdown/spans/BaseListSpan;
+Lcom/swmansion/enriched/markdown/spans/UnorderedListSpan;
+Lcom/swmansion/enriched/markdown/spans/OrderedListSpan;
+Lcom/swmansion/enriched/markdown/spans/BlockquoteSpan;
+Lcom/swmansion/enriched/markdown/spans/CodeBlockSpan;
+Lcom/swmansion/enriched/markdown/spans/InlineCodeBackgroundSpan;
+Lcom/swmansion/enriched/markdown/spans/ImageSpan;
 
 # Style Configuration
-Lcom/richtext/styles/StyleConfig;
-Lcom/richtext/styles/ParagraphStyle;
-Lcom/richtext/styles/HeadingStyle;
-Lcom/richtext/styles/ListStyle;
-Lcom/richtext/styles/BlockquoteStyle;
-Lcom/richtext/styles/CodeBlockStyle;
-Lcom/richtext/styles/CodeStyle;
+Lcom/swmansion/enriched/markdown/styles/StyleConfig;
+Lcom/swmansion/enriched/markdown/styles/ParagraphStyle;
+Lcom/swmansion/enriched/markdown/styles/HeadingStyle;
+Lcom/swmansion/enriched/markdown/styles/ListStyle;
+Lcom/swmansion/enriched/markdown/styles/BlockquoteStyle;
+Lcom/swmansion/enriched/markdown/styles/CodeBlockStyle;
+Lcom/swmansion/enriched/markdown/styles/CodeStyle;
 
 # Parser
-Lcom/richtext/parser/Parser;
-Lcom/richtext/parser/MarkdownASTNode;
-Lcom/richtext/parser/MarkdownASTNode$NodeType;
+Lcom/swmansion/enriched/markdown/parser/Parser;
+Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode;
+Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType;
 
 # Utilities
-Lcom/richtext/utils/UtilsKt;
+Lcom/swmansion/enriched/markdown/utils/UtilsKt;

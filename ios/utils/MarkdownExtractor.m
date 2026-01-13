@@ -149,7 +149,7 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
 
                         // Newlines
                         if ([text isEqualToString:@"\n"] || [text isEqualToString:@"\n\n"]) {
-                          NSNumber *bqDepth = attrs[RichTextBlockquoteDepthAttributeName];
+                          NSNumber *bqDepth = attrs[BlockquoteDepthAttributeName];
                           NSNumber *listDepth = attrs[@"ListDepth"];
                           BOOL inBlockquote = (bqDepth != nil);
                           BOOL inList = (listDepth != nil);
@@ -216,7 +216,7 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         }
 
                         // Blockquotes
-                        NSNumber *bqDepthNum = attrs[RichTextBlockquoteDepthAttributeName];
+                        NSNumber *bqDepthNum = attrs[BlockquoteDepthAttributeName];
                         NSInteger currentBqDepth = bqDepthNum ? [bqDepthNum integerValue] : -1;
                         NSString *blockquotePrefix = nil;
 

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-rich-text": ["./src/index"]
+      "react-native-enriched-markdown": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

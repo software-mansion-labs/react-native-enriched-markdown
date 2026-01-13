@@ -4,9 +4,9 @@
 #import <UIKit/UIPasteboard.h>
 
 static NSString *const kMenuIdentifierStandardEdit = @"com.apple.menu.standard-edit";
-static NSString *const kActionIdentifierCopy = @"com.richtext.copy";
-static NSString *const kActionIdentifierCopyMarkdown = @"com.richtext.copyMarkdown";
-static NSString *const kActionIdentifierCopyImageURL = @"com.richtext.copyImageURL";
+static NSString *const kActionIdentifierCopy = @"com.swmansion.enriched.markdown.copy";
+static NSString *const kActionIdentifierCopyMarkdown = @"com.swmansion.enriched.markdown.copyMarkdown";
+static NSString *const kActionIdentifierCopyImageURL = @"com.swmansion.enriched.markdown.copyImageURL";
 
 #pragma mark - Action Creators
 

@@ -15,11 +15,9 @@ class CodeRenderer(
     onLinkPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    val codeText = node.children.joinToString("") { it.content }
+    if (node.children.isEmpty() || node.children.all { it.content.isEmpty() }) return
 
-    if (codeText.isEmpty()) return
-
-    factory.renderWithSpan(builder, { builder.append(codeText) }) { start, end, blockStyle ->
+    factory.renderWithSpan(builder, { node.children.forEach { builder.append(it.content) } }) { start, end, blockStyle ->
       builder.setSpan(
         CodeSpan(factory.styleCache, blockStyle),
         start,

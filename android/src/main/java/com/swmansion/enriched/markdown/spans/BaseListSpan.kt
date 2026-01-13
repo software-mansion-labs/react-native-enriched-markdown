@@ -24,6 +24,10 @@ abstract class BaseListSpan(
   protected val gapWidth: Float,
 ) : MetricAffectingSpan(),
   LeadingMarginSpan {
+  // Cache for shouldSkipDrawing to avoid repeated getSpans() calls during draw passes
+  private var cachedText: CharSequence? = null
+  private var cachedHasDeeperSpanByPosition = mutableMapOf<Int, Boolean>()
+
   // --- MetricAffectingSpan Implementation ---
 
   override fun updateMeasureState(tp: TextPaint) = applyTextStyle(tp)
@@ -107,8 +111,15 @@ abstract class BaseListSpan(
     start: Int,
   ): Boolean {
     if (text !is Spanned) return false
-    // Determine if a deeper nested list exists at this start point
-    val spans = text.getSpans(start, start + 1, BaseListSpan::class.java)
-    return spans.any { it.depth > depth }
+
+    if (cachedText !== text) {
+      cachedText = text
+      cachedHasDeeperSpanByPosition.clear()
+    }
+
+    return cachedHasDeeperSpanByPosition.getOrPut(start) {
+      val spans = text.getSpans(start, start + 1, BaseListSpan::class.java)
+      spans.any { it.depth > depth }
+    }
   }
 }

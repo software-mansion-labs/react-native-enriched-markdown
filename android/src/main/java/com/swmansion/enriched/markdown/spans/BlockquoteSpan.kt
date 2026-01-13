@@ -33,6 +33,10 @@ class BlockquoteSpan(
       color = style.color,
     )
 
+  // Cache for shouldSkipDrawing to avoid repeated getSpans() calls during draw passes
+  private var cachedText: CharSequence? = null
+  private var cachedMaxDepthByPosition = mutableMapOf<Int, Int>()
+
   override fun updateMeasureState(tp: TextPaint) = applyTextStyle(tp)
 
   override fun updateDrawState(tp: TextPaint) = applyTextStyle(tp)
@@ -98,8 +102,19 @@ class BlockquoteSpan(
     start: Int,
   ): Boolean {
     if (text !is Spanned) return false
-    val spans = text.getSpans(start, start + 1, BlockquoteSpan::class.java)
-    return (spans.maxOfOrNull { it.depth } ?: -1) > depth
+
+    if (cachedText !== text) {
+      cachedText = text
+      cachedMaxDepthByPosition.clear()
+    }
+
+    val maxDepth =
+      cachedMaxDepthByPosition.getOrPut(start) {
+        val spans = text.getSpans(start, start + 1, BlockquoteSpan::class.java)
+        spans.maxOfOrNull { it.depth } ?: -1
+      }
+
+    return maxDepth > depth
   }
 
   private fun drawBackground(

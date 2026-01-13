@@ -5,7 +5,7 @@ import EnrichedMarkdownTextNativeComponent, {
 import { normalizeMarkdownStyle } from './normalizeMarkdownStyle';
 import type { ViewStyle, TextStyle } from 'react-native';
 
-interface ParagraphStyle {
+interface BaseBlockStyle {
   fontSize?: number;
   fontFamily?: string;
   fontWeight?: string;
@@ -14,35 +14,18 @@ interface ParagraphStyle {
   lineHeight?: number;
 }
 
-interface HeadingStyle {
-  fontSize?: number;
-  fontFamily?: string;
-  fontWeight?: string;
-  color?: string;
-  marginBottom?: number;
-  lineHeight?: number;
-}
+interface ParagraphStyle extends BaseBlockStyle {}
 
-interface BlockquoteStyle {
-  fontSize?: number;
-  fontFamily?: string;
-  fontWeight?: string;
-  color?: string;
-  marginBottom?: number;
-  lineHeight?: number;
+interface HeadingStyle extends BaseBlockStyle {}
+
+interface BlockquoteStyle extends BaseBlockStyle {
   borderColor?: string;
   borderWidth?: number;
   gapWidth?: number;
   backgroundColor?: string;
 }
 
-interface ListStyle {
-  fontSize?: number;
-  fontFamily?: string;
-  fontWeight?: string;
-  color?: string;
-  marginBottom?: number;
-  lineHeight?: number;
+interface ListStyle extends BaseBlockStyle {
   bulletColor?: string;
   bulletSize?: number;
   markerColor?: string;
@@ -51,13 +34,7 @@ interface ListStyle {
   marginLeft?: number;
 }
 
-interface CodeBlockStyle {
-  fontSize?: number;
-  fontFamily?: string;
-  fontWeight?: string;
-  color?: string;
-  marginBottom?: number;
-  lineHeight?: number;
+interface CodeBlockStyle extends BaseBlockStyle {
   backgroundColor?: string;
   borderColor?: string;
   borderRadius?: number;

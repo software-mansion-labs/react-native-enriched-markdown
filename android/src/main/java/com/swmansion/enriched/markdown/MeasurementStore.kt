@@ -32,6 +32,8 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
+  private val measurePaint = TextPaint()
+
   /** Updates measurement with rendered Spannable. Returns true if height changed. */
   fun store(
     id: Int,
@@ -124,12 +126,10 @@ object MeasurementStore {
     text: CharSequence?,
     paintParams: PaintParams,
   ): Long {
-    val paint =
-      TextPaint().apply {
-        typeface = paintParams.typeface
-        textSize = paintParams.fontSize
-      }
-    return measure(maxWidth, text, paint)
+    measurePaint.reset()
+    measurePaint.typeface = paintParams.typeface
+    measurePaint.textSize = paintParams.fontSize
+    return measure(maxWidth, text, measurePaint)
   }
 
   private fun measure(

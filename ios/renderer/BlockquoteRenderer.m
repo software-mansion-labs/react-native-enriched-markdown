@@ -131,7 +131,7 @@ static NSString *const kNestedInfoRangeKey = @"range";
       [NSMutableDictionary dictionaryWithObjectsAndKeys:paragraphStyle, NSParagraphStyleAttributeName, @(currentDepth),
                                                         BlockquoteDepthAttributeName, nil];
   if (backgroundColor) {
-    newAttributes[RichTextBlockquoteBackgroundColorAttributeName] = backgroundColor;
+    newAttributes[BlockquoteBackgroundColorAttributeName] = backgroundColor;
   }
   [output addAttributes:newAttributes range:blockquoteRange];
 

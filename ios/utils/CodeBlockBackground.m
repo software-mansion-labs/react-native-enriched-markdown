@@ -1,7 +1,6 @@
 #import "CodeBlockBackground.h"
+#import "LastElementUtils.h"
 #import "StyleConfig.h"
-
-NSString *const CodeBlockAttributeName = @"CodeBlock";
 
 @implementation CodeBlockBackground {
   StyleConfig *_config;
@@ -13,28 +12,6 @@ NSString *const CodeBlockAttributeName = @"CodeBlock";
     _config = config;
   }
   return self;
-}
-
-+ (BOOL)isLastElementCodeBlock:(NSAttributedString *)text
-{
-  if (text.length == 0)
-    return NO;
-
-  // Find the last non-newline character (actual content)
-  NSRange lastContent = [text.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
-                                                     options:NSBackwardsSearch];
-  if (lastContent.location == NSNotFound)
-    return NO;
-
-  // Check if it's inside a code block
-  NSNumber *isCodeBlock = [text attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:nil];
-  if (!isCodeBlock.boolValue)
-    return NO;
-
-  // Verify the code block extends to the end of text
-  NSRange codeBlockRange;
-  [text attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeBlockRange];
-  return NSMaxRange(codeBlockRange) == text.length;
 }
 
 - (void)drawBackgroundsForGlyphRange:(NSRange)glyphsToShow
@@ -73,11 +50,17 @@ NSString *const CodeBlockAttributeName = @"CodeBlock";
   blockRect.origin.y += origin.y;
   blockRect.size.width = textContainer.size.width;
 
-  // Compensate for iOS not measuring trailing newlines (bottom padding)
-  // Only for the LAST code block (the one that ends at text.length)
+  // For the last code block, extend to the full view height
+  // (iOS doesn't properly measure trailing newlines with custom line heights)
   BOOL isLastCodeBlock = (NSMaxRange(range) == layoutManager.textStorage.length);
   if (isLastCodeBlock) {
-    blockRect.size.height += [_config codeBlockPadding];
+    CGFloat viewHeight = textContainer.size.height;
+    if (viewHeight > 0 && viewHeight < CGFLOAT_MAX) {
+      blockRect.size.height = viewHeight - blockRect.origin.y + origin.y;
+    } else {
+      // Fallback: add padding if container height not set
+      blockRect.size.height += [_config codeBlockPadding];
+    }
   }
 
   CGFloat borderWidth = [_config codeBlockBorderWidth];

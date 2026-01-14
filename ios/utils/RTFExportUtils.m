@@ -1,7 +1,7 @@
 #import "RTFExportUtils.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
-#import "CodeBlockBackground.h"
+#import "LastElementUtils.h"
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
 #import "StyleConfig.h"

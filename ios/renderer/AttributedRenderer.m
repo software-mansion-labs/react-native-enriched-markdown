@@ -1,5 +1,6 @@
 #import "AttributedRenderer.h"
 #import "CodeBlockBackground.h"
+#import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
 #import "NodeRenderer.h"
 #import "RenderContext.h"
@@ -66,7 +67,7 @@
   if (lastContent.location == NSNotFound)
     return;
 
-  if ([CodeBlockBackground isLastElementCodeBlock:output]) {
+  if (isLastElementCodeBlock(output)) {
     // Code block: preserve bottom padding, only trim external margin
     NSRange codeBlockRange;
     [output attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeBlockRange];
@@ -75,16 +76,21 @@
       [output deleteCharactersInRange:NSMakeRange(codeBlockEnd, output.length - codeBlockEnd)];
     }
   } else {
-    // Other elements: trim trailing newlines and zero paragraph spacing
+    // Other elements: trim trailing newlines and zero all spacing
     [output deleteCharactersInRange:NSMakeRange(NSMaxRange(lastContent), output.length - NSMaxRange(lastContent))];
 
     NSRange range;
     NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName
                                         atIndex:lastContent.location
                                  effectiveRange:&range];
-    if (style.paragraphSpacing > 0) {
+    if (style) {
       NSMutableParagraphStyle *fixed = [style mutableCopy];
       fixed.paragraphSpacing = 0;
+      fixed.paragraphSpacingBefore = 0;
+      // For images: zero line spacing to eliminate baseline gaps
+      if (isLastElementImage(output)) {
+        fixed.lineSpacing = 0;
+      }
       [output addAttribute:NSParagraphStyleAttributeName value:fixed range:range];
     }
   }

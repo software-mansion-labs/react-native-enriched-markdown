@@ -4,6 +4,7 @@
 #import "EditMenuUtils.h"
 #import "FontUtils.h"
 #import "ImageAttachment.h"
+#import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
 #import "MarkdownExtractor.h"
 #import "MarkdownParser.h"
@@ -72,15 +73,21 @@ using namespace facebook::react;
   }
 
   NSAttributedString *contentToMeasure = [text attributedSubstringFromRange:NSMakeRange(0, NSMaxRange(lastContent))];
-  CGRect boundingRect =
-      [contentToMeasure boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)
-                                     options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
-                                     context:nil];
+
+  // Use NSStringDrawingUsesDeviceMetrics for tighter bounds (especially for images)
+  NSStringDrawingOptions options = NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading;
+  if (isLastElementImage(text)) {
+    options |= NSStringDrawingUsesDeviceMetrics;
+  }
+
+  CGRect boundingRect = [contentToMeasure boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)
+                                                       options:options
+                                                       context:nil];
 
   CGFloat measuredHeight = boundingRect.size.height;
 
   // Compensate for iOS not measuring trailing newlines (code block bottom padding)
-  if ([CodeBlockBackground isLastElementCodeBlock:text]) {
+  if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }
 

@@ -73,6 +73,15 @@ npx expo prebuild
 > [!NOTE]
 > The library won't work in Expo Go as it needs native changes.
 
+> [!IMPORTANT]
+> **iOS: Save to Camera Roll**
+>
+> If your markdown content includes images and you want users to save them to their photo library, add the following to your `Info.plist`:
+> ```xml
+> <key>NSPhotoLibraryAddUsageDescription</key>
+> <string>This app needs access to your photo library to save images.</string>
+> ```
+
 ## Usage
 
 Here's a simple example of rendering markdown content:

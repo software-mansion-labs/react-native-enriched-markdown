@@ -108,8 +108,8 @@ class StyleConfig(
 
   val listStyle: ListStyle by lazy {
     val map =
-      requireNotNull(style.getMap("listStyle")) {
-        "ListStyle style not found. JS should always provide defaults."
+      requireNotNull(style.getMap("list")) {
+        "List style not found. JS should always provide defaults."
       }
     ListStyle.fromReadableMap(map, styleParser)
   }

@@ -150,7 +150,7 @@ const defaultBlockquoteStyle: MarkdownStyleInternal['blockquote'] = {
 const defaultListBulletColor = processColor('#6B7280') as ColorValue;
 const defaultListMarkerColor = processColor('#1F2937') as ColorValue;
 
-const defaultListStyle: MarkdownStyleInternal['listStyle'] = {
+const defaultListStyle: MarkdownStyleInternal['list'] = {
   fontSize: 17,
   fontFamily: getSystemFont(),
   fontWeight: 'normal',
@@ -278,25 +278,22 @@ export const normalizeMarkdownStyle = (
       defaultBlockquoteStyle.backgroundColor,
   };
 
-  const listStyle: MarkdownStyleInternal['listStyle'] = {
-    fontSize: style.listStyle?.fontSize ?? defaultListStyle.fontSize,
-    fontFamily: style.listStyle?.fontFamily ?? defaultListStyle.fontFamily,
-    fontWeight: style.listStyle?.fontWeight ?? defaultListStyle.fontWeight,
-    color: normalizeColor(style.listStyle?.color) ?? defaultListStyle.color,
-    marginBottom:
-      style.listStyle?.marginBottom ?? defaultListStyle.marginBottom,
-    lineHeight: style.listStyle?.lineHeight ?? defaultListStyle.lineHeight,
+  const list: MarkdownStyleInternal['list'] = {
+    fontSize: style.list?.fontSize ?? defaultListStyle.fontSize,
+    fontFamily: style.list?.fontFamily ?? defaultListStyle.fontFamily,
+    fontWeight: style.list?.fontWeight ?? defaultListStyle.fontWeight,
+    color: normalizeColor(style.list?.color) ?? defaultListStyle.color,
+    marginBottom: style.list?.marginBottom ?? defaultListStyle.marginBottom,
+    lineHeight: style.list?.lineHeight ?? defaultListStyle.lineHeight,
     bulletColor:
-      normalizeColor(style.listStyle?.bulletColor) ??
-      defaultListStyle.bulletColor,
-    bulletSize: style.listStyle?.bulletSize ?? defaultListStyle.bulletSize,
+      normalizeColor(style.list?.bulletColor) ?? defaultListStyle.bulletColor,
+    bulletSize: style.list?.bulletSize ?? defaultListStyle.bulletSize,
     markerColor:
-      normalizeColor(style.listStyle?.markerColor) ??
-      defaultListStyle.markerColor,
+      normalizeColor(style.list?.markerColor) ?? defaultListStyle.markerColor,
     markerFontWeight:
-      style.listStyle?.markerFontWeight ?? defaultListStyle.markerFontWeight,
-    gapWidth: style.listStyle?.gapWidth ?? defaultListStyle.gapWidth,
-    marginLeft: style.listStyle?.marginLeft ?? defaultListStyle.marginLeft,
+      style.list?.markerFontWeight ?? defaultListStyle.markerFontWeight,
+    gapWidth: style.list?.gapWidth ?? defaultListStyle.gapWidth,
+    marginLeft: style.list?.marginLeft ?? defaultListStyle.marginLeft,
   };
 
   const codeBlock: MarkdownStyleInternal['codeBlock'] = {
@@ -330,7 +327,7 @@ export const normalizeMarkdownStyle = (
     h5,
     h6,
     blockquote,
-    listStyle,
+    list,
     codeBlock,
     link: {
       ...defaultLinkStyle,

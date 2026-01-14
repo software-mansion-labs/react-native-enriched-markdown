@@ -80,7 +80,7 @@ export interface MarkdownStyle {
   h5?: HeadingStyle;
   h6?: HeadingStyle;
   blockquote?: BlockquoteStyle;
-  listStyle?: ListStyle;
+  list?: ListStyle;
   codeBlock?: CodeBlockStyle;
   link?: LinkStyle;
   strong?: StrongStyle;

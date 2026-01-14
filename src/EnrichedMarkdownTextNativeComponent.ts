@@ -81,7 +81,7 @@ export interface MarkdownStyleInternal {
   h5: HeadingStyleInternal;
   h6: HeadingStyleInternal;
   blockquote: BlockquoteStyleInternal;
-  listStyle: ListStyleInternal;
+  list: ListStyleInternal;
   codeBlock: CodeBlockStyleInternal;
   link: LinkStyleInternal;
   strong: StrongStyleInternal;

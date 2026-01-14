@@ -791,72 +791,70 @@ using namespace facebook::react;
   }
 
   // List style
-  if (newViewProps.markdownStyle.listStyle.fontSize != oldViewProps.markdownStyle.listStyle.fontSize) {
-    [_config setListStyleFontSize:newViewProps.markdownStyle.listStyle.fontSize];
+  if (newViewProps.markdownStyle.list.fontSize != oldViewProps.markdownStyle.list.fontSize) {
+    [_config setListStyleFontSize:newViewProps.markdownStyle.list.fontSize];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.fontFamily != oldViewProps.markdownStyle.listStyle.fontFamily) {
-    NSString *fontFamily =
-        [[NSString alloc] initWithUTF8String:newViewProps.markdownStyle.listStyle.fontFamily.c_str()];
+  if (newViewProps.markdownStyle.list.fontFamily != oldViewProps.markdownStyle.list.fontFamily) {
+    NSString *fontFamily = [[NSString alloc] initWithUTF8String:newViewProps.markdownStyle.list.fontFamily.c_str()];
     [_config setListStyleFontFamily:fontFamily];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.fontWeight != oldViewProps.markdownStyle.listStyle.fontWeight) {
-    NSString *fontWeight =
-        [[NSString alloc] initWithUTF8String:newViewProps.markdownStyle.listStyle.fontWeight.c_str()];
+  if (newViewProps.markdownStyle.list.fontWeight != oldViewProps.markdownStyle.list.fontWeight) {
+    NSString *fontWeight = [[NSString alloc] initWithUTF8String:newViewProps.markdownStyle.list.fontWeight.c_str()];
     [_config setListStyleFontWeight:fontWeight];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.color != oldViewProps.markdownStyle.listStyle.color) {
-    UIColor *listColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.listStyle.color);
+  if (newViewProps.markdownStyle.list.color != oldViewProps.markdownStyle.list.color) {
+    UIColor *listColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.list.color);
     [_config setListStyleColor:listColor];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.marginBottom != oldViewProps.markdownStyle.listStyle.marginBottom) {
-    [_config setListStyleMarginBottom:newViewProps.markdownStyle.listStyle.marginBottom];
+  if (newViewProps.markdownStyle.list.marginBottom != oldViewProps.markdownStyle.list.marginBottom) {
+    [_config setListStyleMarginBottom:newViewProps.markdownStyle.list.marginBottom];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.lineHeight != oldViewProps.markdownStyle.listStyle.lineHeight) {
-    [_config setListStyleLineHeight:newViewProps.markdownStyle.listStyle.lineHeight];
+  if (newViewProps.markdownStyle.list.lineHeight != oldViewProps.markdownStyle.list.lineHeight) {
+    [_config setListStyleLineHeight:newViewProps.markdownStyle.list.lineHeight];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.bulletColor != oldViewProps.markdownStyle.listStyle.bulletColor) {
-    UIColor *bulletColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.listStyle.bulletColor);
+  if (newViewProps.markdownStyle.list.bulletColor != oldViewProps.markdownStyle.list.bulletColor) {
+    UIColor *bulletColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.list.bulletColor);
     [_config setListStyleBulletColor:bulletColor];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.bulletSize != oldViewProps.markdownStyle.listStyle.bulletSize) {
-    [_config setListStyleBulletSize:newViewProps.markdownStyle.listStyle.bulletSize];
+  if (newViewProps.markdownStyle.list.bulletSize != oldViewProps.markdownStyle.list.bulletSize) {
+    [_config setListStyleBulletSize:newViewProps.markdownStyle.list.bulletSize];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.markerColor != oldViewProps.markdownStyle.listStyle.markerColor) {
-    UIColor *markerColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.listStyle.markerColor);
+  if (newViewProps.markdownStyle.list.markerColor != oldViewProps.markdownStyle.list.markerColor) {
+    UIColor *markerColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.list.markerColor);
     [_config setListStyleMarkerColor:markerColor];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.markerFontWeight != oldViewProps.markdownStyle.listStyle.markerFontWeight) {
+  if (newViewProps.markdownStyle.list.markerFontWeight != oldViewProps.markdownStyle.list.markerFontWeight) {
     NSString *markerFontWeight =
-        [[NSString alloc] initWithUTF8String:newViewProps.markdownStyle.listStyle.markerFontWeight.c_str()];
+        [[NSString alloc] initWithUTF8String:newViewProps.markdownStyle.list.markerFontWeight.c_str()];
     [_config setListStyleMarkerFontWeight:markerFontWeight];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.gapWidth != oldViewProps.markdownStyle.listStyle.gapWidth) {
-    [_config setListStyleGapWidth:newViewProps.markdownStyle.listStyle.gapWidth];
+  if (newViewProps.markdownStyle.list.gapWidth != oldViewProps.markdownStyle.list.gapWidth) {
+    [_config setListStyleGapWidth:newViewProps.markdownStyle.list.gapWidth];
     stylePropChanged = YES;
   }
 
-  if (newViewProps.markdownStyle.listStyle.marginLeft != oldViewProps.markdownStyle.listStyle.marginLeft) {
-    [_config setListStyleMarginLeft:newViewProps.markdownStyle.listStyle.marginLeft];
+  if (newViewProps.markdownStyle.list.marginLeft != oldViewProps.markdownStyle.list.marginLeft) {
+    [_config setListStyleMarginLeft:newViewProps.markdownStyle.list.marginLeft];
     stylePropChanged = YES;
   }
 

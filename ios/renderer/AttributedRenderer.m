@@ -1,4 +1,6 @@
 #import "AttributedRenderer.h"
+#import "CodeBlockBackground.h"
+#import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
 #import "NodeRenderer.h"
 #import "RenderContext.h"
@@ -54,26 +56,43 @@
   return output;
 }
 
-/// Removes trailing newlines and paragraphSpacing to eliminate bottom margin
+/// Removes trailing margin spacing while preserving code block padding
 - (void)removeTrailingSpacing:(NSMutableAttributedString *)output
 {
-  NSRange last = [output.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
-                                                options:NSBackwardsSearch];
-  if (last.location == NSNotFound)
+  if (output.length == 0)
     return;
 
-  // Trim trailing newlines
-  [output deleteCharactersInRange:NSMakeRange(NSMaxRange(last), output.length - NSMaxRange(last))];
+  NSRange lastContent = [output.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
+                                                       options:NSBackwardsSearch];
+  if (lastContent.location == NSNotFound)
+    return;
 
-  // Zero paragraphSpacing on last paragraph
-  NSRange range;
-  NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName
-                                      atIndex:last.location
-                               effectiveRange:&range];
-  if (style.paragraphSpacing > 0) {
-    NSMutableParagraphStyle *fixed = [style mutableCopy];
-    fixed.paragraphSpacing = 0;
-    [output addAttribute:NSParagraphStyleAttributeName value:fixed range:range];
+  if (isLastElementCodeBlock(output)) {
+    // Code block: preserve bottom padding, only trim external margin
+    NSRange codeBlockRange;
+    [output attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeBlockRange];
+    NSUInteger codeBlockEnd = NSMaxRange(codeBlockRange);
+    if (codeBlockEnd < output.length) {
+      [output deleteCharactersInRange:NSMakeRange(codeBlockEnd, output.length - codeBlockEnd)];
+    }
+  } else {
+    // Other elements: trim trailing newlines and zero all spacing
+    [output deleteCharactersInRange:NSMakeRange(NSMaxRange(lastContent), output.length - NSMaxRange(lastContent))];
+
+    NSRange range;
+    NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName
+                                        atIndex:lastContent.location
+                                 effectiveRange:&range];
+    if (style) {
+      NSMutableParagraphStyle *fixed = [style mutableCopy];
+      fixed.paragraphSpacing = 0;
+      fixed.paragraphSpacingBefore = 0;
+      // For images: zero line spacing to eliminate baseline gaps
+      if (isLastElementImage(output)) {
+        fixed.lineSpacing = 0;
+      }
+      [output addAttribute:NSParagraphStyleAttributeName value:fixed range:range];
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 #import "MarkdownExtractor.h"
 #import "BlockquoteBorder.h"
-#import "CodeBlockBackground.h"
 #import "ImageAttachment.h"
+#import "LastElementUtils.h"
 #import "RuntimeKeys.h"
 
 #pragma mark - Extraction Context

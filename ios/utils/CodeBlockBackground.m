@@ -1,7 +1,6 @@
 #import "CodeBlockBackground.h"
+#import "LastElementUtils.h"
 #import "StyleConfig.h"
-
-NSString *const CodeBlockAttributeName = @"CodeBlock";
 
 @implementation CodeBlockBackground {
   StyleConfig *_config;
@@ -42,29 +41,30 @@ NSString *const CodeBlockAttributeName = @"CodeBlock";
                                 atPoint:(CGPoint)origin
 {
   NSRange glyphRange = [layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
+  CGRect blockRect = [layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textContainer];
 
-  __block CGRect blockRect = CGRectNull;
-  [layoutManager enumerateLineFragmentsForGlyphRange:glyphRange
-                                          usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *tc,
-                                                       NSRange lineRange, BOOL *stop) {
-                                            CGRect lineRect = rect;
-                                            lineRect.origin.x += origin.x;
-                                            lineRect.origin.y += origin.y;
-                                            // Union the rects to create a single block
-                                            blockRect =
-                                                CGRectIsNull(blockRect) ? lineRect : CGRectUnion(blockRect, lineRect);
-                                          }];
-
-  if (CGRectIsNull(blockRect))
+  if (CGRectIsEmpty(blockRect))
     return;
 
   blockRect.origin.x = origin.x;
+  blockRect.origin.y += origin.y;
   blockRect.size.width = textContainer.size.width;
+
+  // For the last code block, extend to the full view height
+  // (iOS doesn't properly measure trailing newlines with custom line heights)
+  BOOL isLastCodeBlock = (NSMaxRange(range) == layoutManager.textStorage.length);
+  if (isLastCodeBlock) {
+    CGFloat viewHeight = textContainer.size.height;
+    if (viewHeight > 0 && viewHeight < CGFLOAT_MAX) {
+      blockRect.size.height = viewHeight - blockRect.origin.y + origin.y;
+    } else {
+      // Fallback: add padding if container height not set
+      blockRect.size.height += [_config codeBlockPadding];
+    }
+  }
 
   CGFloat borderWidth = [_config codeBlockBorderWidth];
   CGFloat borderRadius = [_config codeBlockBorderRadius];
-
-  // Inset the drawing by half the border width
   CGFloat inset = borderWidth / 2.0;
   CGRect insetRect = CGRectInset(blockRect, inset, inset);
   UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:insetRect cornerRadius:MAX(0, borderRadius - inset)];

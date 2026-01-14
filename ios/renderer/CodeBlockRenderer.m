@@ -1,5 +1,6 @@
 #import "CodeBlockRenderer.h"
 #import "CodeBlockBackground.h"
+#import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
 #import "ParagraphStyleUtils.h"
 #import "RenderContext.h"

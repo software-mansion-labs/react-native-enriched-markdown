@@ -1,7 +1,7 @@
 {
   "name": "react-native-enriched-markdown",
   "version": "0.1.0",
-  "description": "react-native-enriched-markdown is a React Native library that provides a customizable Text component capable of parsing and rendering markdown content. It seamlessly transforms markdown tags into styled native text elements for a rich text display experience.",
+  "description": "Markdown Text component for React Native",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {

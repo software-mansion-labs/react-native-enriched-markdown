@@ -289,7 +289,7 @@ The library provides sensible defaults optimized for each platform:
 
 ## Customizing Styles
 
-All markdown elements can be styled using the `style` prop:
+The library provides sensible default styles for all markdown elements out of the box. You can override any of these defaults using the `style` prop — only specify the properties you want to change:
 
 ```tsx
 <EnrichedMarkdownText

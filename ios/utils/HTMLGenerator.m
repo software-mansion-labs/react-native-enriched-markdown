@@ -7,6 +7,7 @@
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
+#import "ThematicBreakAttachment.h"
 
 static NSString *const kObjectReplacementChar = @"\uFFFC";
 static const CGFloat kBlockquoteVerticalPadding = 8.0;
@@ -95,6 +96,10 @@ typedef struct {
 @property (nonatomic, copy) NSString *h5FontWeight;
 @property (nonatomic, copy) NSString *h6FontWeight;
 @property (nonatomic) BOOL linkUnderline;
+@property (nonatomic, copy) NSString *thematicBreakColor;
+@property (nonatomic) CGFloat thematicBreakHeight;
+@property (nonatomic) CGFloat thematicBreakMarginTop;
+@property (nonatomic) CGFloat thematicBreakMarginBottom;
 @end
 
 @implementation CachedStyles
@@ -267,6 +272,10 @@ static CachedStyles *cacheStyles(StyleConfig *styleConfig)
   cache.h5FontWeight = fontWeightToCSS([styleConfig h5FontWeight]);
   cache.h6FontWeight = fontWeightToCSS([styleConfig h6FontWeight]);
   cache.linkUnderline = [styleConfig linkUnderline];
+  cache.thematicBreakColor = colorToCSS([styleConfig thematicBreakColor]);
+  cache.thematicBreakHeight = [styleConfig thematicBreakHeight];
+  cache.thematicBreakMarginTop = [styleConfig thematicBreakMarginTop];
+  cache.thematicBreakMarginBottom = [styleConfig thematicBreakMarginBottom];
 
   return cache;
 }
@@ -436,6 +445,12 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                                           styles.imageMarginBottom, img.imageURL, styles.imageBorderRadius];
                               }
                             }
+                          } else if ([attachment isKindOfClass:[ThematicBreakAttachment class]]) {
+                            [html appendFormat:
+                                      @"</p><hr style=\"border: none; border-top: %.0fpx solid %@; "
+                                      @"margin: %.0fpx 0 %.0fpx 0;\"><p>",
+                                      styles.thematicBreakHeight, styles.thematicBreakColor,
+                                      styles.thematicBreakMarginTop, styles.thematicBreakMarginBottom];
                           }
                           return;
                         }

@@ -3,6 +3,7 @@
 #import "ImageAttachment.h"
 #import "LastElementUtils.h"
 #import "RuntimeKeys.h"
+#import "ThematicBreakAttachment.h"
 
 #pragma mark - Extraction Context
 
@@ -125,7 +126,7 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         if (text.length == 0)
                           return;
 
-                        // Images
+                        // Images and Thematic Breaks
                         NSTextAttachment *attachment = attrs[NSAttachmentAttributeName];
                         if ([attachment isKindOfClass:[ImageAttachment class]]) {
                           ImageAttachment *img = (ImageAttachment *)attachment;
@@ -141,6 +142,15 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                             state.blockquoteDepth = -1;
                             state.listDepth = -1;
                           }
+                          return;
+                        }
+
+                        if ([attachment isKindOfClass:[ThematicBreakAttachment class]]) {
+                          ensureBlankLine(result);
+                          [result appendString:@"---\n"];
+                          state.needsBlankLine = YES;
+                          state.blockquoteDepth = -1;
+                          state.listDepth = -1;
                           return;
                         }
 

@@ -935,6 +935,28 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  // Thematic break style
+  if (newViewProps.markdownStyle.thematicBreak.color != oldViewProps.markdownStyle.thematicBreak.color) {
+    UIColor *thematicBreakColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.thematicBreak.color);
+    [_config setThematicBreakColor:thematicBreakColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.thematicBreak.height != oldViewProps.markdownStyle.thematicBreak.height) {
+    [_config setThematicBreakHeight:newViewProps.markdownStyle.thematicBreak.height];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.thematicBreak.marginTop != oldViewProps.markdownStyle.thematicBreak.marginTop) {
+    [_config setThematicBreakMarginTop:newViewProps.markdownStyle.thematicBreak.marginTop];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.thematicBreak.marginBottom != oldViewProps.markdownStyle.thematicBreak.marginBottom) {
+    [_config setThematicBreakMarginBottom:newViewProps.markdownStyle.thematicBreak.marginBottom];
+    stylePropChanged = YES;
+  }
+
   // Update config reference on layout manager if it's not already set
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {

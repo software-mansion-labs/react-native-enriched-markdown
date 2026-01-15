@@ -139,6 +139,11 @@ public:
         break;
       }
 
+      case MD_BLOCK_HR: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::ThematicBreak));
+        break;
+      }
+
       default:
         // Other block types not yet implemented
         break;

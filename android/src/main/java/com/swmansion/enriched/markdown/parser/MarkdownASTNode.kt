@@ -22,6 +22,7 @@ data class MarkdownASTNode(
     OrderedList,
     ListItem,
     CodeBlock,
+    ThematicBreak,
   }
 
   fun getAttribute(key: String): String? = attributes[key]

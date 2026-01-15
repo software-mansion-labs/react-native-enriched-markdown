@@ -12,6 +12,7 @@ import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
+import com.swmansion.enriched.markdown.spans.ThematicBreakSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
 
 /** Extracts markdown from styled text (Spannable). */
@@ -84,7 +85,14 @@ object MarkdownExtractor {
     state: ExtractionState,
     headingAccumulator: HeadingAccumulator,
   ): Boolean {
-    if (segmentText == "\uFFFC") {
+    // Check for thematic breaks first (uses " \n" as placeholder)
+    val thematicBreakSpans = spannable.getSpans(segmentStart, segmentEnd, ThematicBreakSpan::class.java)
+    if (thematicBreakSpans.isNotEmpty()) {
+      appendThematicBreak(result, state)
+      return true
+    }
+
+    if (segmentText == "\uFFFC" || segmentText == "\u200B") {
       val imageSpans = spannable.getSpans(segmentStart, segmentEnd, ImageSpan::class.java)
       if (imageSpans.isNotEmpty()) {
         appendImage(imageSpans[0], result, state)
@@ -154,6 +162,17 @@ object MarkdownExtractor {
       state.blockquoteDepth = -1
       state.listDepth = -1
     }
+  }
+
+  private fun appendThematicBreak(
+    result: StringBuilder,
+    state: ExtractionState,
+  ) {
+    result.ensureBlankLine()
+    result.append("---\n")
+    state.needsBlankLine = true
+    state.blockquoteDepth = -1
+    state.listDepth = -1
   }
 
   private fun handleNewline(

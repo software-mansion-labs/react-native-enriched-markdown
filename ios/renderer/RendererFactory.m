@@ -13,6 +13,7 @@
 #import "StrongRenderer.h"
 #import "StyleConfig.h"
 #import "TextRenderer.h"
+#import "ThematicBreakRenderer.h"
 
 @implementation RendererFactory {
   StyleConfig *_config;
@@ -83,6 +84,8 @@
       return [[ListRenderer alloc] initWithRendererFactory:self config:_config isOrdered:YES];
     case MarkdownNodeTypeCodeBlock:
       return [[CodeBlockRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeThematicBreak:
+      return [[ThematicBreakRenderer alloc] initWithRendererFactory:self config:_config];
     default:
       return nil;
   }

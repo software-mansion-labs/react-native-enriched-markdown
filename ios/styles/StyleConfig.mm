@@ -129,6 +129,11 @@
   BOOL _codeBlockFontNeedsRecreation;
   UIFont *_blockquoteFont;
   BOOL _blockquoteFontNeedsRecreation;
+  // Thematic break properties
+  UIColor *_thematicBreakColor;
+  CGFloat _thematicBreakHeight;
+  CGFloat _thematicBreakMarginTop;
+  CGFloat _thematicBreakMarginBottom;
 }
 
 - (instancetype)init
@@ -251,6 +256,10 @@
   copy->_codeBlockPadding = _codeBlockPadding;
   copy->_codeBlockFontNeedsRecreation = YES;
   copy->_blockquoteFontNeedsRecreation = YES;
+  copy->_thematicBreakColor = [_thematicBreakColor copy];
+  copy->_thematicBreakHeight = _thematicBreakHeight;
+  copy->_thematicBreakMarginTop = _thematicBreakMarginTop;
+  copy->_thematicBreakMarginBottom = _thematicBreakMarginBottom;
 
   return copy;
 }
@@ -1358,6 +1367,47 @@ static const CGFloat kDefaultMinGap = 4.0;
     _codeBlockFontNeedsRecreation = NO;
   }
   return _codeBlockFont;
+}
+
+// Thematic break properties
+- (UIColor *)thematicBreakColor
+{
+  return _thematicBreakColor;
+}
+
+- (void)setThematicBreakColor:(UIColor *)newValue
+{
+  _thematicBreakColor = newValue;
+}
+
+- (CGFloat)thematicBreakHeight
+{
+  return _thematicBreakHeight;
+}
+
+- (void)setThematicBreakHeight:(CGFloat)newValue
+{
+  _thematicBreakHeight = newValue;
+}
+
+- (CGFloat)thematicBreakMarginTop
+{
+  return _thematicBreakMarginTop;
+}
+
+- (void)setThematicBreakMarginTop:(CGFloat)newValue
+{
+  _thematicBreakMarginTop = newValue;
+}
+
+- (CGFloat)thematicBreakMarginBottom
+{
+  return _thematicBreakMarginBottom;
+}
+
+- (void)setThematicBreakMarginBottom:(CGFloat)newValue
+{
+  _thematicBreakMarginBottom = newValue;
 }
 
 @end

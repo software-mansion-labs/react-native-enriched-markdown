@@ -71,6 +71,13 @@ interface InlineImageStyle {
   size?: number;
 }
 
+interface ThematicBreakStyle {
+  color?: string;
+  height?: number;
+  marginTop?: number;
+  marginBottom?: number;
+}
+
 export interface MarkdownStyle {
   paragraph?: ParagraphStyle;
   h1?: HeadingStyle;
@@ -88,6 +95,7 @@ export interface MarkdownStyle {
   code?: CodeStyle;
   image?: ImageStyle;
   inlineImage?: InlineImageStyle;
+  thematicBreak?: ThematicBreakStyle;
 }
 
 export interface EnrichedMarkdownTextProps

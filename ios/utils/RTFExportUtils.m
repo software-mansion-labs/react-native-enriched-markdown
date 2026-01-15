@@ -5,6 +5,7 @@
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
 #import "StyleConfig.h"
+#import "ThematicBreakAttachment.h"
 
 static const CGFloat kListIndentPerLevel = 12.0;
 static const CGFloat kMinParagraphSpacing = 4.0;
@@ -251,6 +252,27 @@ static void processLists(NSMutableAttributedString *text)
                 }];
 }
 
+#pragma mark - Thematic Break Processing
+
+static void processThematicBreaks(NSMutableAttributedString *text)
+{
+  [text enumerateAttribute:NSAttachmentAttributeName
+                   inRange:NSMakeRange(0, text.length)
+                   options:NSAttributedStringEnumerationReverse
+                usingBlock:^(id attachment, NSRange range, BOOL *stop) {
+                  if (![attachment isKindOfClass:[ThematicBreakAttachment class]])
+                    return;
+
+                  NSMutableDictionary *attrs = [[text attributesAtIndex:range.location
+                                                         effectiveRange:NULL] mutableCopy];
+                  [attrs removeObjectForKey:NSAttachmentAttributeName];
+
+                  NSAttributedString *replacement = [[NSAttributedString alloc] initWithString:@"\n---\n"
+                                                                                    attributes:attrs];
+                  [text replaceCharactersInRange:range withAttributedString:replacement];
+                }];
+}
+
 #pragma mark - Public API
 
 NSAttributedString *prepareAttributedStringForRTFExport(NSAttributedString *attributedString,
@@ -265,6 +287,7 @@ NSAttributedString *prepareAttributedStringForRTFExport(NSAttributedString *attr
   UIColor *codeBlockBgColor = [styleConfig codeBlockBackgroundColor];
   UIColor *blockquoteBgColor = [styleConfig blockquoteBackgroundColor];
 
+  processThematicBreaks(prepared);
   processCodes(prepared, codeBgColor);
   processCodeBlocks(prepared, codeBlockBgColor);
   processBlockquotes(prepared, blockquoteBgColor);

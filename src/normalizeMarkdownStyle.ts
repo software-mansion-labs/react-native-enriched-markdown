@@ -185,6 +185,15 @@ const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
   padding: 16,
 };
 
+const defaultThematicBreakColor = processColor('#D1D5DB') as ColorValue;
+
+const defaultThematicBreakStyle: MarkdownStyleInternal['thematicBreak'] = {
+  color: defaultThematicBreakColor,
+  height: 1,
+  marginTop: 16,
+  marginBottom: 16,
+};
+
 export const normalizeMarkdownStyle = (
   style: MarkdownStyle
 ): MarkdownStyleInternal => {
@@ -358,6 +367,17 @@ export const normalizeMarkdownStyle = (
     inlineImage: {
       ...defaultInlineImageStyle,
       size: style.inlineImage?.size ?? defaultInlineImageStyle.size,
+    },
+    thematicBreak: {
+      color:
+        normalizeColor(style.thematicBreak?.color) ??
+        defaultThematicBreakStyle.color,
+      height: style.thematicBreak?.height ?? defaultThematicBreakStyle.height,
+      marginTop:
+        style.thematicBreak?.marginTop ?? defaultThematicBreakStyle.marginTop,
+      marginBottom:
+        style.thematicBreak?.marginBottom ??
+        defaultThematicBreakStyle.marginBottom,
     },
   };
 };

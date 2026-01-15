@@ -22,7 +22,8 @@ enum class NodeType {
     UnorderedList,
     OrderedList,
     ListItem,
-    CodeBlock
+    CodeBlock,
+    ThematicBreak
 };
 
 struct MarkdownASTNode {

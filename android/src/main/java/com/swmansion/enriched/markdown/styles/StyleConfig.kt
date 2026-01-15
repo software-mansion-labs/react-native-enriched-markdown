@@ -122,6 +122,14 @@ class StyleConfig(
     CodeBlockStyle.fromReadableMap(map, styleParser)
   }
 
+  val thematicBreakStyle: ThematicBreakStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("thematicBreak")) {
+        "ThematicBreak style not found. JS should always provide defaults."
+      }
+    ThematicBreakStyle.fromReadableMap(map, styleParser)
+  }
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is StyleConfig) return false
@@ -136,7 +144,8 @@ class StyleConfig(
       inlineImageStyle == other.inlineImageStyle &&
       blockquoteStyle == other.blockquoteStyle &&
       listStyle == other.listStyle &&
-      codeBlockStyle == other.codeBlockStyle
+      codeBlockStyle == other.codeBlockStyle &&
+      thematicBreakStyle == other.thematicBreakStyle
   }
 
   override fun hashCode(): Int {
@@ -151,6 +160,7 @@ class StyleConfig(
     result = 31 * result + blockquoteStyle.hashCode()
     result = 31 * result + listStyle.hashCode()
     result = 31 * result + codeBlockStyle.hashCode()
+    result = 31 * result + thematicBreakStyle.hashCode()
     return result
   }
 }

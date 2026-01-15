@@ -213,5 +213,14 @@
 - (CGFloat)codeBlockPadding;
 - (void)setCodeBlockPadding:(CGFloat)newValue;
 - (UIFont *)codeBlockFont;
+// Thematic break properties
+- (UIColor *)thematicBreakColor;
+- (void)setThematicBreakColor:(UIColor *)newValue;
+- (CGFloat)thematicBreakHeight;
+- (void)setThematicBreakHeight:(CGFloat)newValue;
+- (CGFloat)thematicBreakMarginTop;
+- (void)setThematicBreakMarginTop:(CGFloat)newValue;
+- (CGFloat)thematicBreakMarginBottom;
+- (void)setThematicBreakMarginBottom:(CGFloat)newValue;
 
 @end

@@ -133,6 +133,7 @@ export default function App() {
 | Code Blocks | ` ``` code ``` ` | Multi-line code blocks |
 | Unordered Lists | `- Item`, `* Item`, or `+ Item` | Bullet lists with unlimited nesting |
 | Ordered Lists | `1. Item` | Numbered lists with unlimited nesting |
+| Thematic Break | `---`, `***`, or `___` | Visual separator line |
 | Images | `![alt](url)` | Block-level images |
 
 ### Inline Elements
@@ -440,6 +441,15 @@ The library provides sensible default styles for all Markdown elements out of th
 | Property | Type | Description |
 |----------|------|-------------|
 | `size` | `number` | Image size (square) |
+
+#### Thematic Break (Horizontal Rule)-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `color` | `string` | Line color |
+| `height` | `number` | Line thickness |
+| `marginTop` | `number` | Top margin |
+| `marginBottom` | `number` | Bottom margin |
 
 ## API Reference
 

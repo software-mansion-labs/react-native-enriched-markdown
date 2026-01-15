@@ -42,6 +42,8 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 13;
     case NodeType::CodeBlock:
       return 14;
+    case NodeType::ThematicBreak:
+      return 15;
     default:
       return 0;
   }

@@ -72,6 +72,13 @@ interface InlineImageStyleInternal {
   size: CodegenTypes.Float;
 }
 
+interface ThematicBreakStyleInternal {
+  color: ColorValue;
+  height: CodegenTypes.Float;
+  marginTop: CodegenTypes.Float;
+  marginBottom: CodegenTypes.Float;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -89,6 +96,7 @@ export interface MarkdownStyleInternal {
   code: CodeStyleInternal;
   image: ImageStyleInternal;
   inlineImage: InlineImageStyleInternal;
+  thematicBreak: ThematicBreakStyleInternal;
 }
 
 export interface NativeProps extends ViewProps {

@@ -185,7 +185,7 @@ const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
   padding: 16,
 };
 
-const defaultThematicBreakColor = processColor('#D1D5DB') as ColorValue; // Gray-300
+const defaultThematicBreakColor = processColor('#D1D5DB') as ColorValue;
 
 const defaultThematicBreakStyle: MarkdownStyleInternal['thematicBreak'] = {
   color: defaultThematicBreakColor,

@@ -22,17 +22,14 @@
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
-  // 1. Ensure the line starts on a fresh line
   [self ensureStartingNewline:output];
 
-  // 2. Setup the attachment with config values
   ThematicBreakAttachment *attachment = [[ThematicBreakAttachment alloc] init];
   attachment.lineColor = _config.thematicBreakColor ?: [UIColor separatorColor];
   attachment.lineHeight = _config.thematicBreakHeight > 0 ? _config.thematicBreakHeight : 1.0;
   attachment.marginTop = _config.thematicBreakMarginTop;
   attachment.marginBottom = _config.thematicBreakMarginBottom;
 
-  // 3. Define attributes (using the standard Object Replacement Character \uFFFC)
   NSDictionary *attributes = @{
     NSAttachmentAttributeName : attachment,
     NSParagraphStyleAttributeName : [NSParagraphStyle defaultParagraphStyle]
@@ -40,7 +37,6 @@
 
   NSAttributedString *breakString = [[NSAttributedString alloc] initWithString:@"\uFFFC" attributes:attributes];
 
-  // 4. Assemble
   [output appendAttributedString:breakString];
   [output appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
 }

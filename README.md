@@ -1,9 +1,9 @@
 # react-native-enriched-markdown
 
-`react-native-enriched-markdown` is a powerful React Native library that renders markdown content as native text:
+`react-native-enriched-markdown` is a powerful React Native library that renders Markdown content as native text:
 
 - ⚡ Fully native text rendering (no WebView)
-- 🎯 High-performance markdown parsing with MD4C
+- 🎯 High-performance Markdown parsing with [md4c](https://github.com/mity/md4c)
 - 📐 CommonMark standard compliant
 - 🎨 Fully customizable styles for all elements
 - 📱 iOS and Android support
@@ -76,7 +76,7 @@ npx expo prebuild
 > [!IMPORTANT]
 > **iOS: Save to Camera Roll**
 >
-> If your markdown content includes images and you want users to save them to their photo library, add the following to your `Info.plist`:
+> If your Markdown content includes images and you want users to save them to their photo library, add the following to your `Info.plist`:
 > ```xml
 > <key>NSPhotoLibraryAddUsageDescription</key>
 > <string>This app needs access to your photo library to save images.</string>
@@ -84,11 +84,11 @@ npx expo prebuild
 
 ## Usage
 
-Here's a simple example of rendering markdown content:
+Here's a simple example of rendering Markdown content:
 
 ```tsx
 import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
-import { ScrollView, Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 
 const markdown = `
 # Welcome to Markdown!
@@ -111,19 +111,17 @@ export default function App() {
   };
 
   return (
-    <ScrollView>
-      <EnrichedMarkdownText
-        markdown={markdown}
-        onLinkPress={handleLinkPress}
-      />
-    </ScrollView>
+    <EnrichedMarkdownText
+      markdown={markdown}
+      onLinkPress={handleLinkPress}
+    />
   );
 }
 ```
 
 ## Supported Markdown Elements
 
-`react-native-enriched-markdown` supports a comprehensive set of markdown elements:
+`react-native-enriched-markdown` supports a comprehensive set of Markdown elements:
 
 ### Block Elements
 
@@ -133,7 +131,7 @@ export default function App() {
 | Paragraphs | Plain text | Regular text paragraphs |
 | Blockquotes | `> Quote` | Quoted text with unlimited nesting |
 | Code Blocks | ` ``` code ``` ` | Multi-line code blocks |
-| Unordered Lists | `- Item` | Bullet lists with unlimited nesting |
+| Unordered Lists | `- Item`, `* Item`, or `+ Item` | Bullet lists with unlimited nesting |
 | Ordered Lists | `1. Item` | Numbered lists with unlimited nesting |
 | Images | `![alt](url)` | Block-level images |
 
@@ -143,7 +141,7 @@ export default function App() {
 |---------|--------|-------------|
 | Bold | `**text**` or `__text__` | Strong emphasis |
 | Italic | `*text*` or `_text_` | Emphasis |
-| Bold + Italic | `***text***` | Combined emphasis |
+| Bold + Italic | `***text***`, `___text___`, `**_text_**`, `__*text*__`, `_**text**_`, `*__text__*` | Combined emphasis |
 | Links | `[text](url)` | Clickable links |
 | Inline Code | `` `code` `` | Inline code snippets |
 | Inline Images | `![alt](url)` | Images within text flow |
@@ -173,7 +171,7 @@ export default function App() {
 
 ## Link Handling
 
-Links in markdown are interactive and can be handled with the `onLinkPress` callback:
+Links in Markdown are interactive and can be handled with the `onLinkPress` callback:
 
 ```tsx
 <EnrichedMarkdownText
@@ -201,7 +199,7 @@ Copies in multiple formats simultaneously — receiving apps pick the richest fo
 | Format | Description |
 |--------|-------------|
 | **Plain Text** | Basic text without formatting |
-| **Markdown** | Original markdown syntax preserved |
+| **Markdown** | Original Markdown syntax preserved |
 | **HTML** | Rich HTML representation |
 | **RTF** | Rich Text Format for apps like Notes, Pages |
 | **RTFD** | RTF with embedded images |
@@ -212,7 +210,7 @@ Copies as both **Plain Text** and **HTML** — apps that support rich text (like
 
 ### Copy as Markdown
 
-A dedicated **Copy as Markdown** option is available in the context menu on both platforms. This copies only the markdown source text, useful when you want to preserve the original syntax.
+A dedicated **Copy as Markdown** option is available in the context menu on both platforms. This copies only the Markdown source text, useful when you want to preserve the original syntax.
 
 ### Copy Image URL
 
@@ -220,7 +218,7 @@ When selecting text that contains images, a **Copy Image URL** option appears to
 
 ## Styling Architecture
 
-Understanding how `react-native-enriched-markdown` handles styling helps you create consistent, well-designed markdown content.
+Understanding how `react-native-enriched-markdown` handles styling helps you create consistent, well-designed Markdown content.
 
 ### Block vs Inline Elements
 
@@ -289,12 +287,12 @@ The library provides sensible defaults optimized for each platform:
 
 ## Customizing Styles
 
-The library provides sensible default styles for all markdown elements out of the box. You can override any of these defaults using the `style` prop — only specify the properties you want to change:
+The library provides sensible default styles for all Markdown elements out of the box. You can override any of these defaults using the `markdownStyle` prop — only specify the properties you want to change:
 
 ```tsx
 <EnrichedMarkdownText
   markdown={content}
-  style={{
+  markdownStyle={{
     paragraph: {
       fontSize: 16,
       color: '#333',
@@ -359,6 +357,17 @@ The library provides sensible default styles for all markdown elements out of th
   }}
 />
 ```
+
+> [!NOTE]
+> **Performance:** Memoize the `markdownStyle` prop with `useMemo` to avoid unnecessary re-renders:
+> ```tsx
+> import type { MarkdownStyle } from 'react-native-enriched-markdown';
+>
+> const markdownStyle: MarkdownStyle = useMemo(() => ({
+>   paragraph: { fontSize: 16 },
+>   h1: { fontSize: 32 },
+> }), []);
+> ```
 
 ### Style Properties Reference
 
@@ -438,8 +447,8 @@ The library provides sensible default styles for all markdown elements out of th
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `markdown` | `string` | Required | The markdown content to render |
-| `style` | `MarkdownStyle` | `{}` | Style configuration for markdown elements |
+| `markdown` | `string` | Required | The Markdown content to render |
+| `markdownStyle` | `MarkdownStyle` | `{}` | Style configuration for Markdown elements |
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
 | `onLinkPress` | `(event) => void` | - | Callback when a link is pressed |
 | `isSelectable` | `boolean` | `true` | Whether text can be selected |

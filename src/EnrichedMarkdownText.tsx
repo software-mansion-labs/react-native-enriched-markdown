@@ -95,7 +95,7 @@ export interface EnrichedMarkdownTextProps
   /**
    * Style configuration for markdown elements
    */
-  style?: MarkdownStyle;
+  markdownStyle?: MarkdownStyle;
   /**
    * Style for the container view.
    */
@@ -104,13 +104,16 @@ export interface EnrichedMarkdownTextProps
 
 export const EnrichedMarkdownText = ({
   markdown,
-  style = {},
+  markdownStyle = {},
   containerStyle,
   onLinkPress,
   isSelectable = true,
   ...rest
 }: EnrichedMarkdownTextProps) => {
-  const normalizedStyle = useMemo(() => normalizeMarkdownStyle(style), [style]);
+  const normalizedStyle = useMemo(
+    () => normalizeMarkdownStyle(markdownStyle),
+    [markdownStyle]
+  );
 
   return (
     <EnrichedMarkdownTextNativeComponent

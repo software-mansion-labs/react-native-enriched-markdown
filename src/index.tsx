@@ -4,3 +4,4 @@ export type {
   EnrichedMarkdownTextProps,
   MarkdownStyle,
 } from './EnrichedMarkdownText';
+export type { LinkPressEvent } from './EnrichedMarkdownTextNativeComponent';

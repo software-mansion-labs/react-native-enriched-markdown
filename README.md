@@ -460,7 +460,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `markdown` | `string` | Required | The Markdown content to render |
 | `markdownStyle` | `MarkdownStyle` | `{}` | Style configuration for Markdown elements |
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
-| `onLinkPress` | `(event) => void` | - | Callback when a link is pressed |
+| `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
 | `isSelectable` | `boolean` | `true` | Whether text can be selected |
 
 ## Contributing

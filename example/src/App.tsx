@@ -1,5 +1,8 @@
 import { StyleSheet, ScrollView, Alert, Linking } from 'react-native';
-import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
+import {
+  EnrichedMarkdownText,
+  type LinkPressEvent,
+} from 'react-native-enriched-markdown';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -171,8 +174,8 @@ Built with ❤️ using **React Native Fabric Architecture**
 // `;
 
 export default function App() {
-  const handleLinkPress = (event: { nativeEvent: { url: string } }) => {
-    const { url } = event.nativeEvent;
+  const handleLinkPress = (event: LinkPressEvent) => {
+    const { url } = event;
     Alert.alert('Link Pressed!', `You tapped on: ${url}`, [
       {
         text: 'Open in Browser',

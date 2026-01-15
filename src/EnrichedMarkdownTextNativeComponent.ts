@@ -99,6 +99,10 @@ export interface MarkdownStyleInternal {
   thematicBreak: ThematicBreakStyleInternal;
 }
 
+export interface LinkPressEvent {
+  url: string;
+}
+
 export interface NativeProps extends ViewProps {
   /**
    * Markdown content to render.
@@ -114,7 +118,7 @@ export interface NativeProps extends ViewProps {
    * Callback fired when a link is pressed.
    * Receives the URL that was tapped.
    */
-  onLinkPress?: CodegenTypes.BubblingEventHandler<{ url: string }>;
+  onLinkPress?: CodegenTypes.BubblingEventHandler<LinkPressEvent>;
   /**
    * - iOS: Controls text selection and link previews on long press.
    * - Android: Controls text selection.

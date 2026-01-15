@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import EnrichedMarkdownTextNativeComponent, {
   type NativeProps,
+  type LinkPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';
 import { normalizeMarkdownStyle } from './normalizeMarkdownStyle';
-import type { ViewStyle, TextStyle } from 'react-native';
+import type { ViewStyle, TextStyle, NativeSyntheticEvent } from 'react-native';
 
 interface BaseBlockStyle {
   fontSize?: number;
@@ -99,7 +100,7 @@ export interface MarkdownStyle {
 }
 
 export interface EnrichedMarkdownTextProps
-  extends Omit<NativeProps, 'markdownStyle' | 'style'> {
+  extends Omit<NativeProps, 'markdownStyle' | 'style' | 'onLinkPress'> {
   /**
    * Style configuration for markdown elements
    */
@@ -108,6 +109,11 @@ export interface EnrichedMarkdownTextProps
    * Style for the container view.
    */
   containerStyle?: ViewStyle | TextStyle;
+  /**
+   * Callback fired when a link is pressed.
+   * Receives the link URL directly.
+   */
+  onLinkPress?: (event: LinkPressEvent) => void;
 }
 
 export const EnrichedMarkdownText = ({
@@ -123,11 +129,19 @@ export const EnrichedMarkdownText = ({
     [markdownStyle]
   );
 
+  const handleLinkPress = useCallback(
+    (e: NativeSyntheticEvent<LinkPressEvent>) => {
+      const { url } = e.nativeEvent;
+      onLinkPress?.({ url });
+    },
+    [onLinkPress]
+  );
+
   return (
     <EnrichedMarkdownTextNativeComponent
       markdown={markdown}
       markdownStyle={normalizedStyle}
-      onLinkPress={onLinkPress}
+      onLinkPress={handleLinkPress}
       isSelectable={isSelectable}
       style={containerStyle}
       {...rest}

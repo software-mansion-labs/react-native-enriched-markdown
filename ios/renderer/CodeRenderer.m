@@ -29,12 +29,11 @@
   UIColor *codeColor = _config.codeColor;
 
   UIFont *blockFont = cachedFontFromBlockStyle(blockStyle, context);
-  CGFloat codeFontSize = blockStyle.fontSize * 0.85;
 
   UIFontDescriptorSymbolicTraits traits = blockFont.fontDescriptor.symbolicTraits;
   UIFontWeight weight = (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
 
-  UIFont *monospacedFont = [UIFont monospacedSystemFontOfSize:codeFontSize weight:weight];
+  UIFont *monospacedFont = [UIFont monospacedSystemFontOfSize:blockStyle.fontSize weight:weight];
 
   NSUInteger start = output.length;
 

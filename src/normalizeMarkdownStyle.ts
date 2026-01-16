@@ -29,67 +29,69 @@ const getSystemFont = () =>
     default: 'sans-serif',
   });
 
+// fontWeight: '' allows custom PostScript fonts (e.g., 'Montserrat-Bold') to work on Android
+// Setting a default weight like '700' would interfere with Android's font resolution
 const paragraphDefaultStyles: MarkdownStyleInternal['paragraph'] = {
   fontSize: 16,
   fontFamily: getSystemFont(),
-  fontWeight: 'normal',
+  fontWeight: '',
   color: defaultTextColor,
-  marginBottom: 20,
-  lineHeight: 16,
+  lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  marginBottom: 16,
 };
 
 const defaultH1Style: MarkdownStyleInternal['h1'] = {
-  fontSize: 32,
+  fontSize: 30,
   fontFamily: getSystemFont(),
-  fontWeight: 'bold',
+  fontWeight: '',
   color: defaultHeadingColor,
-  marginBottom: 12,
-  lineHeight: 32,
+  lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
+  marginBottom: 8,
 };
 
 const defaultH2Style: MarkdownStyleInternal['h2'] = {
   fontSize: 24,
   fontFamily: getSystemFont(),
-  fontWeight: 'bold',
+  fontWeight: '',
   color: defaultHeadingColor,
-  marginBottom: 12,
-  lineHeight: 24,
+  lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
+  marginBottom: 8,
 };
 
 const defaultH3Style: MarkdownStyleInternal['h3'] = {
   fontSize: 20,
   fontFamily: getSystemFont(),
-  fontWeight: 'bold',
+  fontWeight: '',
   color: defaultHeadingColor,
-  marginBottom: 12,
-  lineHeight: 20,
+  lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
+  marginBottom: 8,
 };
 
 const defaultH4Style: MarkdownStyleInternal['h4'] = {
   fontSize: 18,
   fontFamily: getSystemFont(),
-  fontWeight: 'bold',
+  fontWeight: '',
   color: defaultHeadingColor,
-  marginBottom: 12,
-  lineHeight: 18,
+  lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  marginBottom: 8,
 };
 
 const defaultH5Style: MarkdownStyleInternal['h5'] = {
-  fontSize: 17,
+  fontSize: 16,
   fontFamily: getSystemFont(),
-  fontWeight: 'bold',
-  color: defaultHeadingColor,
-  marginBottom: 12,
-  lineHeight: 17,
+  fontWeight: '',
+  color: processColor('#374151') as ColorValue,
+  lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
+  marginBottom: 8,
 };
 
 const defaultH6Style: MarkdownStyleInternal['h6'] = {
-  fontSize: 16,
+  fontSize: 14,
   fontFamily: getSystemFont(),
-  fontWeight: 'bold',
-  color: defaultHeadingColor,
-  marginBottom: 12,
-  lineHeight: 16,
+  fontWeight: '',
+  color: processColor('#4B5563') as ColorValue,
+  lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+  marginBottom: 8,
 };
 
 const defaultLinkColor = processColor('#2563EB') as ColorValue;
@@ -99,11 +101,9 @@ const defaultLinkStyle: MarkdownStyleInternal['link'] = {
   underline: true,
 };
 
-const defaultCodeColor = processColor('#D72B3F') as ColorValue;
-const defaultCodeBackgroundColor = processColor(
-  'rgba(248, 248, 248, 0.7)'
-) as ColorValue;
-const defaultCodeBorderColor = processColor('#E1E1E1') as ColorValue;
+const defaultCodeColor = processColor('#E01E5A') as ColorValue;
+const defaultCodeBackgroundColor = processColor('#FDF2F4') as ColorValue;
+const defaultCodeBorderColor = processColor('#F8D7DA') as ColorValue;
 
 const defaultCodeStyle: MarkdownStyleInternal['code'] = {
   color: defaultCodeColor,
@@ -113,63 +113,64 @@ const defaultCodeStyle: MarkdownStyleInternal['code'] = {
 
 const defaultImageStyle: MarkdownStyleInternal['image'] = {
   height: 200,
-  borderRadius: 10,
-  marginBottom: 32,
+  borderRadius: 8,
+  marginBottom: 16,
 };
 
 const defaultInlineImageStyle: MarkdownStyleInternal['inlineImage'] = {
-  size: 16,
+  size: 20,
 };
 
-const defaultBlockquoteBorderColor = processColor('#3B82F6') as ColorValue;
-const defaultBlockquoteBackgroundColor = processColor(
-  'rgba(239, 246, 255, 0.7)'
-) as ColorValue;
+// Blockquote - subtle but distinct
+const defaultBlockquoteBorderColor = processColor('#D1D5DB') as ColorValue;
+const defaultBlockquoteBackgroundColor = processColor('#F9FAFB') as ColorValue;
 
 const defaultBlockquoteStyle: MarkdownStyleInternal['blockquote'] = {
   fontSize: 16,
   fontFamily: getSystemFont(),
-  fontWeight: 'normal',
-  color: processColor('#374151') as ColorValue,
-  marginBottom: 20,
-  lineHeight: 16,
+  fontWeight: '',
+  color: processColor('#4B5563') as ColorValue,
+  lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  marginBottom: 16,
   borderColor: defaultBlockquoteBorderColor,
-  borderWidth: 4,
+  borderWidth: 3,
   gapWidth: 16,
   backgroundColor: defaultBlockquoteBackgroundColor,
 };
 
 const defaultListBulletColor = processColor('#6B7280') as ColorValue;
-const defaultListMarkerColor = processColor('#1F2937') as ColorValue;
+const defaultListMarkerColor = processColor('#6B7280') as ColorValue;
 
 const defaultListStyle: MarkdownStyleInternal['list'] = {
-  fontSize: 17,
+  fontSize: 16,
   fontFamily: getSystemFont(),
-  fontWeight: 'normal',
+  fontWeight: '',
   color: defaultTextColor,
+  lineHeight: Platform.select({
+    ios: 22,
+    android: 26,
+    default: 26,
+  }),
   marginBottom: 16,
-  lineHeight: 17,
   bulletColor: defaultListBulletColor,
   bulletSize: 6,
   markerColor: defaultListMarkerColor,
-  markerFontWeight: '600',
+  markerFontWeight: '500',
   gapWidth: 12,
-  marginLeft: 20,
+  marginLeft: 24,
 };
 
-const defaultCodeBlockBackgroundColor = processColor(
-  'rgba(31, 41, 55, 0.9)'
-) as ColorValue;
-const defaultCodeBlockBorderColor = processColor('#374151') as ColorValue; // Gray-700 border
-const defaultCodeBlockTextColor = processColor('#F9FAFB') as ColorValue; // Gray-50 text for contrast
+const defaultCodeBlockBackgroundColor = processColor('#1F2937') as ColorValue;
+const defaultCodeBlockBorderColor = processColor('#374151') as ColorValue;
+const defaultCodeBlockTextColor = processColor('#F3F4F6') as ColorValue;
 
 const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
   fontSize: 14,
   fontFamily: getMonospaceFont(),
-  fontWeight: 'normal',
+  fontWeight: '',
   color: defaultCodeBlockTextColor,
-  marginBottom: 24,
-  lineHeight: 14,
+  lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+  marginBottom: 16,
   backgroundColor: defaultCodeBlockBackgroundColor,
   borderColor: defaultCodeBlockBorderColor,
   borderRadius: 8,
@@ -177,13 +178,13 @@ const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
   padding: 16,
 };
 
-const defaultThematicBreakColor = processColor('#D1D5DB') as ColorValue;
+const defaultThematicBreakColor = processColor('#E5E7EB') as ColorValue;
 
 const defaultThematicBreakStyle: MarkdownStyleInternal['thematicBreak'] = {
   color: defaultThematicBreakColor,
   height: 1,
-  marginTop: 16,
-  marginBottom: 16,
+  marginTop: 24,
+  marginBottom: 24,
 };
 
 export const normalizeMarkdownStyle = (

@@ -29,11 +29,7 @@
   BOOL isTopLevel = (context.currentBlockType == BlockTypeNone);
 
   if (isTopLevel) {
-    [context setBlockStyle:BlockTypeParagraph
-                  fontSize:_config.paragraphFontSize
-                fontFamily:_config.paragraphFontFamily
-                fontWeight:_config.paragraphFontWeight
-                     color:_config.paragraphColor];
+    [context setBlockStyle:BlockTypeParagraph font:_config.paragraphFont color:_config.paragraphColor headingLevel:0];
   }
 
   NSUInteger start = output.length;

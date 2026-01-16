@@ -21,10 +21,10 @@ class EmphasisSpan(
   }
 
   private fun applyEmphasisStyle(tp: TextPaint) {
-    // Preserve bold if already applied (e.g., from StrongSpan)
-    val isBold = (tp.typeface?.style ?: 0) and Typeface.BOLD != 0
+    val currentTypeface = tp.typeface ?: Typeface.DEFAULT
+    val isBold = (currentTypeface.style) and Typeface.BOLD != 0
     val style = if (isBold) Typeface.BOLD_ITALIC else Typeface.ITALIC
-    tp.typeface = SpanStyleCache.getTypeface(blockStyle.fontFamily, style)
+    tp.typeface = Typeface.create(currentTypeface, style)
   }
 
   private fun applyEmphasisColor(tp: TextPaint) {

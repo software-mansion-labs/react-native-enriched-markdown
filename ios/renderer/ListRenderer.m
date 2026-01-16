@@ -43,10 +43,9 @@
   }
 
   [context setBlockStyle:_isOrdered ? BlockTypeOrderedList : BlockTypeUnorderedList
-                fontSize:[_config listStyleFontSize]
-              fontFamily:[_config listStyleFontFamily]
-              fontWeight:[_config listStyleFontWeight]
-                   color:[_config listStyleColor]];
+                    font:[_config listStyleFont]
+                   color:[_config listStyleColor]
+            headingLevel:0];
 
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];

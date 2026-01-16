@@ -26,6 +26,7 @@
 - (void)setParagraphMarginBottom:(CGFloat)newValue;
 - (CGFloat)paragraphLineHeight;
 - (void)setParagraphLineHeight:(CGFloat)newValue;
+- (UIFont *)paragraphFont;
 // H1 properties
 - (CGFloat)h1FontSize;
 - (void)setH1FontSize:(CGFloat)newValue;
@@ -186,6 +187,7 @@
 - (CGFloat)listStyleMarginLeft;
 - (void)setListStyleMarginLeft:(CGFloat)newValue;
 - (UIFont *)listMarkerFont;
+- (UIFont *)listStyleFont;
 - (CGFloat)effectiveListGapWidth;
 - (CGFloat)effectiveListMarginLeftForBullet;
 - (CGFloat)effectiveListMarginLeftForNumber;

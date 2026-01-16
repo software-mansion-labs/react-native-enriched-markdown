@@ -28,9 +28,10 @@ class StrongSpan(
     if (kotlin.math.abs(tp.textSize - codeFontSize) > 0.1f) {
       tp.textSize = blockStyle.fontSize
     }
-    // Preserve italic if already applied (e.g., from EmphasisSpan)
-    val isItalic = (tp.typeface?.style ?: 0) and Typeface.ITALIC != 0
+
+    val currentTypeface = tp.typeface ?: Typeface.DEFAULT
+    val isItalic = (currentTypeface.style) and Typeface.ITALIC != 0
     val style = if (isItalic) Typeface.BOLD_ITALIC else Typeface.BOLD
-    tp.typeface = SpanStyleCache.getTypeface(blockStyle.fontFamily, style)
+    tp.typeface = Typeface.create(currentTypeface, style)
   }
 }

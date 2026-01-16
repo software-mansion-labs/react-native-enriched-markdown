@@ -36,17 +36,20 @@
 
 - (UIFont *)cachedFontForSize:(CGFloat)fontSize family:(NSString *)fontFamily weight:(NSString *)fontWeight
 {
-  NSString *key = [NSString stringWithFormat:@"%.1f|%@|%@", fontSize, fontFamily ?: @"", fontWeight ?: @"normal"];
+  NSString *weightKey = (fontWeight.length > 0) ? fontWeight : @"";
+  NSString *key = [NSString stringWithFormat:@"%.1f|%@|%@", fontSize, fontFamily ?: @"", weightKey];
 
   UIFont *cached = _fontCache[key];
   if (cached) {
     return cached;
   }
 
+  NSString *effectiveWeight = (fontWeight.length > 0) ? fontWeight : nil;
+
   UIFont *font = [RCTFont updateFont:nil
-                          withFamily:fontFamily.length > 0 ? fontFamily : nil
+                          withFamily:fontFamily
                                 size:@(fontSize)
-                              weight:fontWeight ?: @"normal"
+                              weight:effectiveWeight
                                style:nil
                              variant:nil
                      scaleMultiplier:1];

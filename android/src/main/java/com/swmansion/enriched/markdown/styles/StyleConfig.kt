@@ -1,8 +1,12 @@
 package com.swmansion.enriched.markdown.styles
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.graphics.Typeface
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.common.ReactConstants
+import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
+import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 
 /**
  * Main style configuration class that parses and caches all markdown element styles.
@@ -14,6 +18,7 @@ class StyleConfig(
   context: Context,
 ) {
   private val styleParser = StyleParser(context)
+  private val assets: AssetManager = context.assets
 
   val paragraphStyle: ParagraphStyle by lazy {
     val map =
@@ -39,13 +44,22 @@ class StyleConfig(
   }
 
   // Cache typefaces for heading levels (1-6) - lazily initialized after headingStyles
+  // Uses React Native's applyStyles to properly load custom fonts from assets
   val headingTypefaces: Array<Typeface?> by lazy {
     Array(7) { level ->
       if (level == 0) {
         null
       } else {
-        val fontFamily = headingStyles[level]?.fontFamily ?: ""
-        fontFamily.takeIf { it.isNotEmpty() }?.let { Typeface.create(it, Typeface.NORMAL) }
+        val headingStyle = headingStyles[level]
+        val fontFamily = headingStyle?.fontFamily?.takeIf { it.isNotEmpty() }
+        val fontWeight = parseFontWeight(headingStyle?.fontWeight)
+
+        if (fontFamily != null) {
+          // Use applyStyles with null base typeface to load from assets via ReactFontManager
+          applyStyles(null, ReactConstants.UNSET, fontWeight, fontFamily, assets)
+        } else {
+          null
+        }
       }
     }
   }

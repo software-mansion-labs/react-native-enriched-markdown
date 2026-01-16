@@ -1,6 +1,16 @@
 #import "StyleConfig.h"
 #import <React/RCTFont.h>
 
+static inline NSString *normalizedFontWeight(NSString *fontWeight)
+{
+  // If nil or empty string, return nil to let RCTFont use fontFamily as-is
+  if (fontWeight == nil || fontWeight.length == 0) {
+    return nil;
+  }
+
+  return fontWeight;
+}
+
 @implementation StyleConfig {
   // Primary font properties
   UIColor *_primaryColor;
@@ -16,6 +26,8 @@
   UIColor *_paragraphColor;
   CGFloat _paragraphMarginBottom;
   CGFloat _paragraphLineHeight;
+  UIFont *_paragraphFont;
+  BOOL _paragraphFontNeedsRecreation;
   // H1 properties
   CGFloat _h1FontSize;
   NSString *_h1FontFamily;
@@ -113,6 +125,8 @@
   CGFloat _listStyleMarginLeft;
   UIFont *_listMarkerFont;
   BOOL _listMarkerFontNeedsRecreation;
+  UIFont *_listStyleFont;
+  BOOL _listStyleFontNeedsRecreation;
   // Code block properties
   CGFloat _codeBlockFontSize;
   NSString *_codeBlockFontFamily;
@@ -140,6 +154,7 @@
 {
   self = [super init];
   _primaryFontNeedsRecreation = YES;
+  _paragraphFontNeedsRecreation = YES;
   _h1FontNeedsRecreation = YES;
   _h2FontNeedsRecreation = YES;
   _h3FontNeedsRecreation = YES;
@@ -147,6 +162,7 @@
   _h5FontNeedsRecreation = YES;
   _h6FontNeedsRecreation = YES;
   _listMarkerFontNeedsRecreation = YES;
+  _listStyleFontNeedsRecreation = YES;
   _codeBlockFontNeedsRecreation = YES;
   _blockquoteFontNeedsRecreation = YES;
   _linkUnderline = YES;
@@ -168,6 +184,7 @@
   copy->_paragraphColor = [_paragraphColor copy];
   copy->_paragraphMarginBottom = _paragraphMarginBottom;
   copy->_paragraphLineHeight = _paragraphLineHeight;
+  copy->_paragraphFontNeedsRecreation = YES;
   copy->_h1FontSize = _h1FontSize;
   copy->_h1FontFamily = [_h1FontFamily copy];
   copy->_h1FontWeight = [_h1FontWeight copy];
@@ -243,6 +260,7 @@
   copy->_listStyleMarkerFontWeight = [_listStyleMarkerFontWeight copy];
   copy->_listStyleGapWidth = _listStyleGapWidth;
   copy->_listStyleMarginLeft = _listStyleMarginLeft;
+  copy->_listStyleFontNeedsRecreation = YES;
   copy->_codeBlockFontSize = _codeBlockFontSize;
   copy->_codeBlockFontFamily = [_codeBlockFontFamily copy];
   copy->_codeBlockFontWeight = [_codeBlockFontWeight copy];
@@ -313,7 +331,7 @@
     _primaryFont = [RCTFont updateFont:nil
                             withFamily:_primaryFontFamily
                                   size:_primaryFontSize
-                                weight:_primaryFontWeight
+                                weight:normalizedFontWeight(_primaryFontWeight)
                                  style:nil
                                variant:nil
                        scaleMultiplier:1];
@@ -331,6 +349,7 @@
 - (void)setParagraphFontSize:(CGFloat)newValue
 {
   _paragraphFontSize = newValue;
+  _paragraphFontNeedsRecreation = YES;
 }
 
 - (NSString *)paragraphFontFamily
@@ -341,6 +360,7 @@
 - (void)setParagraphFontFamily:(NSString *)newValue
 {
   _paragraphFontFamily = newValue;
+  _paragraphFontNeedsRecreation = YES;
 }
 
 - (NSString *)paragraphFontWeight
@@ -351,6 +371,7 @@
 - (void)setParagraphFontWeight:(NSString *)newValue
 {
   _paragraphFontWeight = newValue;
+  _paragraphFontNeedsRecreation = YES;
 }
 
 - (UIColor *)paragraphColor
@@ -381,6 +402,21 @@
 - (void)setParagraphLineHeight:(CGFloat)newValue
 {
   _paragraphLineHeight = newValue;
+}
+
+- (UIFont *)paragraphFont
+{
+  if (_paragraphFontNeedsRecreation || !_paragraphFont) {
+    _paragraphFont = [RCTFont updateFont:nil
+                              withFamily:_paragraphFontFamily
+                                    size:@(_paragraphFontSize)
+                                  weight:normalizedFontWeight(_paragraphFontWeight)
+                                   style:nil
+                                 variant:nil
+                         scaleMultiplier:1];
+    _paragraphFontNeedsRecreation = NO;
+  }
+  return _paragraphFont;
 }
 
 - (CGFloat)h1FontSize
@@ -450,9 +486,9 @@
 {
   if (_h1FontNeedsRecreation || !_h1Font) {
     _h1Font = [RCTFont updateFont:nil
-                       withFamily:_h1FontFamily.length > 0 ? _h1FontFamily : nil
+                       withFamily:_h1FontFamily
                              size:@(_h1FontSize)
-                           weight:_h1FontWeight ?: @"bold"
+                           weight:normalizedFontWeight(_h1FontWeight)
                             style:nil
                           variant:nil
                   scaleMultiplier:1];
@@ -528,9 +564,9 @@
 {
   if (_h2FontNeedsRecreation || !_h2Font) {
     _h2Font = [RCTFont updateFont:nil
-                       withFamily:_h2FontFamily.length > 0 ? _h2FontFamily : nil
+                       withFamily:_h2FontFamily
                              size:@(_h2FontSize)
-                           weight:_h2FontWeight ?: @"bold"
+                           weight:normalizedFontWeight(_h2FontWeight)
                             style:nil
                           variant:nil
                   scaleMultiplier:1];
@@ -606,9 +642,9 @@
 {
   if (_h3FontNeedsRecreation || !_h3Font) {
     _h3Font = [RCTFont updateFont:nil
-                       withFamily:_h3FontFamily.length > 0 ? _h3FontFamily : nil
+                       withFamily:_h3FontFamily
                              size:@(_h3FontSize)
-                           weight:_h3FontWeight ?: @"bold"
+                           weight:normalizedFontWeight(_h3FontWeight)
                             style:nil
                           variant:nil
                   scaleMultiplier:1];
@@ -684,9 +720,9 @@
 {
   if (_h4FontNeedsRecreation || !_h4Font) {
     _h4Font = [RCTFont updateFont:nil
-                       withFamily:_h4FontFamily.length > 0 ? _h4FontFamily : nil
+                       withFamily:_h4FontFamily
                              size:@(_h4FontSize)
-                           weight:_h4FontWeight ?: @"bold"
+                           weight:normalizedFontWeight(_h4FontWeight)
                             style:nil
                           variant:nil
                   scaleMultiplier:1];
@@ -762,9 +798,9 @@
 {
   if (_h5FontNeedsRecreation || !_h5Font) {
     _h5Font = [RCTFont updateFont:nil
-                       withFamily:_h5FontFamily.length > 0 ? _h5FontFamily : nil
+                       withFamily:_h5FontFamily
                              size:@(_h5FontSize)
-                           weight:_h5FontWeight ?: @"bold"
+                           weight:normalizedFontWeight(_h5FontWeight)
                             style:nil
                           variant:nil
                   scaleMultiplier:1];
@@ -840,9 +876,9 @@
 {
   if (_h6FontNeedsRecreation || !_h6Font) {
     _h6Font = [RCTFont updateFont:nil
-                       withFamily:_h6FontFamily.length > 0 ? _h6FontFamily : nil
+                       withFamily:_h6FontFamily
                              size:@(_h6FontSize)
-                           weight:_h6FontWeight ?: @"bold"
+                           weight:normalizedFontWeight(_h6FontWeight)
                             style:nil
                           variant:nil
                   scaleMultiplier:1];
@@ -1029,9 +1065,9 @@
 {
   if (_blockquoteFontNeedsRecreation || !_blockquoteFont) {
     _blockquoteFont = [RCTFont updateFont:nil
-                               withFamily:_blockquoteFontFamily.length > 0 ? _blockquoteFontFamily : nil
+                               withFamily:_blockquoteFontFamily
                                      size:@(_blockquoteFontSize)
-                                   weight:_blockquoteFontWeight ?: @"normal"
+                                   weight:normalizedFontWeight(_blockquoteFontWeight)
                                     style:nil
                                   variant:nil
                           scaleMultiplier:1];
@@ -1090,6 +1126,7 @@
 {
   _listStyleFontSize = newValue;
   _listMarkerFontNeedsRecreation = YES;
+  _listStyleFontNeedsRecreation = YES;
 }
 
 - (NSString *)listStyleFontFamily
@@ -1101,6 +1138,7 @@
 {
   _listStyleFontFamily = newValue;
   _listMarkerFontNeedsRecreation = YES;
+  _listStyleFontNeedsRecreation = YES;
 }
 
 - (NSString *)listStyleFontWeight
@@ -1111,6 +1149,7 @@
 - (void)setListStyleFontWeight:(NSString *)newValue
 {
   _listStyleFontWeight = newValue;
+  _listStyleFontNeedsRecreation = YES;
 }
 
 - (UIColor *)listStyleColor
@@ -1208,15 +1247,30 @@
 {
   if (_listMarkerFontNeedsRecreation || !_listMarkerFont) {
     _listMarkerFont = [RCTFont updateFont:nil
-                               withFamily:_listStyleFontFamily.length > 0 ? _listStyleFontFamily : nil
+                               withFamily:_listStyleFontFamily
                                      size:@(_listStyleFontSize)
-                                   weight:_listStyleMarkerFontWeight ?: @"normal"
+                                   weight:normalizedFontWeight(_listStyleMarkerFontWeight)
                                     style:nil
                                   variant:nil
                           scaleMultiplier:1];
     _listMarkerFontNeedsRecreation = NO;
   }
   return _listMarkerFont;
+}
+
+- (UIFont *)listStyleFont
+{
+  if (_listStyleFontNeedsRecreation || !_listStyleFont) {
+    _listStyleFont = [RCTFont updateFont:nil
+                              withFamily:_listStyleFontFamily
+                                    size:@(_listStyleFontSize)
+                                  weight:normalizedFontWeight(_listStyleFontWeight)
+                                   style:nil
+                                 variant:nil
+                         scaleMultiplier:1];
+    _listStyleFontNeedsRecreation = NO;
+  }
+  return _listStyleFont;
 }
 
 static const CGFloat kDefaultMinGap = 4.0;
@@ -1358,9 +1412,9 @@ static const CGFloat kDefaultMinGap = 4.0;
 {
   if (_codeBlockFontNeedsRecreation || !_codeBlockFont) {
     _codeBlockFont = [RCTFont updateFont:nil
-                              withFamily:_codeBlockFontFamily.length > 0 ? _codeBlockFontFamily : nil
+                              withFamily:_codeBlockFontFamily
                                     size:@(_codeBlockFontSize)
-                                  weight:_codeBlockFontWeight ?: @"normal"
+                                  weight:normalizedFontWeight(_codeBlockFontWeight)
                                    style:nil
                                  variant:nil
                          scaleMultiplier:1];

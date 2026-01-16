@@ -33,11 +33,7 @@
 
   // 1. Establish the global baseline style.
   // This ensures that leaf nodes (like Text) have valid attributes if they appear at the root.
-  [context setBlockStyle:BlockTypeParagraph
-                fontSize:_config.paragraphFontSize
-              fontFamily:_config.paragraphFontFamily
-              fontWeight:_config.paragraphFontWeight
-                   color:_config.paragraphColor];
+  [context setBlockStyle:BlockTypeParagraph font:_config.paragraphFont color:_config.paragraphColor headingLevel:0];
 
   NSMutableAttributedString *output = [[NSMutableAttributedString alloc] init];
 

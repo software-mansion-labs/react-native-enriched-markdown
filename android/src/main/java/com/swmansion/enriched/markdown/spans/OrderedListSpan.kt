@@ -3,8 +3,12 @@ package com.swmansion.enriched.markdown.spans
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Typeface
 import android.text.Layout
 import android.text.TextPaint
+import com.facebook.react.common.ReactConstants
+import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
+import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.renderer.SpanStyleCache
 import com.swmansion.enriched.markdown.styles.ListStyle
@@ -32,7 +36,12 @@ class OrderedListSpan(
     private val sharedMarkerPaint = TextPaint().apply { isAntiAlias = true }
   }
 
-  private val markerTypeface = SpanStyleCache.getTypefaceWithWeight(listStyle.fontFamily, listStyle.markerFontWeight)
+  private val markerTypeface: Typeface =
+    run {
+      val fontFamily = listStyle.fontFamily.takeIf { it.isNotEmpty() }
+      val fontWeight = parseFontWeight(listStyle.markerFontWeight)
+      applyStyles(null, ReactConstants.UNSET, fontWeight, fontFamily, context.assets)
+    }
 
   private fun configureMarkerPaint(): TextPaint =
     sharedMarkerPaint.apply {

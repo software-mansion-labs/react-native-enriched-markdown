@@ -23,11 +23,7 @@
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
-  [context setBlockStyle:BlockTypeCodeBlock
-                fontSize:[_config codeBlockFontSize]
-              fontFamily:[_config codeBlockFontFamily]
-              fontWeight:[_config codeBlockFontWeight]
-                   color:[_config codeBlockColor]];
+  [context setBlockStyle:BlockTypeCodeBlock font:[_config codeBlockFont] color:[_config codeBlockColor] headingLevel:0];
 
   CGFloat padding = [_config codeBlockPadding];
   CGFloat lineHeight = [_config codeBlockLineHeight];

@@ -62,20 +62,16 @@ fun TextPaint.applyBlockStyleFont(
     return
   }
 
-  val baseTypeface =
-    blockStyle.fontFamily
-      .takeIf { it.isNotEmpty() }
-      ?.let { Typeface.create(it, Typeface.NORMAL) }
-      ?: Typeface.DEFAULT
-
   val fontWeight =
     fontWeightCache.getOrPut(blockStyle.fontWeight) {
       parseFontWeight(blockStyle.fontWeight)
     }
 
+  // Pass null as base typeface - this matches React Native Text behavior
+  // applyStyles will use ReactFontManager to load custom fonts from assets
   val newTypeface =
     applyStyles(
-      baseTypeface,
+      null, // Let applyStyles handle font loading from assets
       ReactConstants.UNSET,
       fontWeight,
       blockStyle.fontFamily.takeIf { it.isNotEmpty() },

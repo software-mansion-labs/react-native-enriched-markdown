@@ -102,7 +102,7 @@ The largest terrestrial biome, spanning across **Northern Russia, Canada, and Sc
 
 Did you know that trees communicate through an underground network? Scientists call this the \`Wood Wide Web\` — a fungal network connecting tree roots across entire forests.
 
-> > Trees share nutrients and information through mycorrhizal networks, essentially "talking" to each other underground.
+> Trees share nutrients and information through mycorrhizal networks, essentially "talking" to each other underground.
 
 ### The Science of Tree Communication
 

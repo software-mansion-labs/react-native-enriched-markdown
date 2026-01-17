@@ -34,7 +34,7 @@ We can help you build your next dream product –
 ## Prerequisites
 
 - `react-native-enriched-markdown` currently supports only Android and iOS platforms
-- It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page)
+- It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82` and `0.83`
 
 ## Installation
 

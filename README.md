@@ -144,7 +144,7 @@ export default function App() {
 |---------|--------|-------------|
 | Bold | `**text**` or `__text__` | Strong emphasis |
 | Italic | `*text*` or `_text_` | Emphasis |
-| Strikethrough | `~~text~~` | Struck-through text |
+| Strikethrough | `~~text~~` | Strikethrough text |
 | Bold + Italic | `***text***`, `___text___`, `**_text_**`, `__*text*__`, `_**text**_`, `*__text__*` | Combined emphasis |
 | Links | `[text](url)` | Clickable links |
 | Inline Code | `` `code` `` | Inline code snippets |

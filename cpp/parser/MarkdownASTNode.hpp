@@ -16,6 +16,7 @@ enum class NodeType {
     LineBreak,
     Strong,
     Emphasis,
+    Strikethrough,
     Code,
     Image,
     Blockquote,

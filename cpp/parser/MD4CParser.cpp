@@ -199,6 +199,11 @@ public:
         break;
       }
 
+      case MD_SPAN_DEL: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::Strikethrough));
+        break;
+      }
+
       case MD_SPAN_IMG: {
         auto node = std::make_shared<MarkdownASTNode>(NodeType::Image);
         if (detail) {
@@ -281,8 +286,8 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) 
 
   // Configure MD4C parser with callbacks
   MD_PARSER parser = {
-      0,              // abi_version
-      MD_FLAG_NOHTML, // flags - disable HTML for security
+      0,                                      // abi_version
+      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH, // flags - disable HTML
       &Impl::enterBlock,
       &Impl::leaveBlock,
       &Impl::enterSpan,

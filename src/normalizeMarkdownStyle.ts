@@ -178,6 +178,8 @@ const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
   padding: 16,
 };
 
+const defaultStrikethroughColor = processColor('#9CA3AF') as ColorValue;
+
 const defaultThematicBreakColor = processColor('#E5E7EB') as ColorValue;
 
 const defaultThematicBreakStyle: MarkdownStyleInternal['thematicBreak'] = {
@@ -342,6 +344,10 @@ export const normalizeMarkdownStyle = (
     },
     em: {
       color: normalizeColor(style.em?.color),
+    },
+    strikethrough: {
+      color:
+        normalizeColor(style.strikethrough?.color) ?? defaultStrikethroughColor,
     },
     code: {
       ...defaultCodeStyle,

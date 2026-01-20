@@ -122,6 +122,9 @@
 // Emphasis properties
 - (UIColor *)emphasisColor;
 - (void)setEmphasisColor:(UIColor *)newValue;
+// Strikethrough properties
+- (UIColor *)strikethroughColor;
+- (void)setStrikethroughColor:(UIColor *)newValue;
 // Code properties
 - (UIColor *)codeColor;
 - (void)setCodeColor:(UIColor *)newValue;

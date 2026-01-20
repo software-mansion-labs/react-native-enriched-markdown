@@ -89,6 +89,8 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_strongColor;
   // Emphasis properties
   UIColor *_emphasisColor;
+  // Strikethrough properties
+  UIColor *_strikethroughColor;
   // Code properties
   UIColor *_codeColor;
   UIColor *_codeBackgroundColor;
@@ -231,6 +233,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_linkUnderline = _linkUnderline;
   copy->_strongColor = [_strongColor copy];
   copy->_emphasisColor = [_emphasisColor copy];
+  copy->_strikethroughColor = [_strikethroughColor copy];
   copy->_codeColor = [_codeColor copy];
   copy->_codeBackgroundColor = [_codeBackgroundColor copy];
   copy->_codeBorderColor = [_codeBorderColor copy];
@@ -925,6 +928,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setEmphasisColor:(UIColor *)newValue
 {
   _emphasisColor = newValue;
+}
+
+- (UIColor *)strikethroughColor
+{
+  return _strikethroughColor;
+}
+
+- (void)setStrikethroughColor:(UIColor *)newValue
+{
+  _strikethroughColor = newValue;
 }
 
 - (UIColor *)codeColor

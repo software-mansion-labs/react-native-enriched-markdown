@@ -10,6 +10,7 @@
 #import "ListRenderer.h"
 #import "ParagraphRenderer.h"
 #import "RenderContext.h"
+#import "StrikethroughRenderer.h"
 #import "StrongRenderer.h"
 #import "StyleConfig.h"
 #import "TextRenderer.h"
@@ -64,6 +65,8 @@
       return [[StrongRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeEmphasis:
       return [[EmphasisRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeStrikethrough:
+      return [[StrikethroughRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeParagraph:
       return [[ParagraphRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeLink:

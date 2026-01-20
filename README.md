@@ -144,6 +144,7 @@ export default function App() {
 |---------|--------|-------------|
 | Bold | `**text**` or `__text__` | Strong emphasis |
 | Italic | `*text*` or `_text_` | Emphasis |
+| Strikethrough | `~~text~~` | Struck-through text |
 | Bold + Italic | `***text***`, `___text___`, `**_text_**`, `__*text*__`, `_**text**_`, `*__text__*` | Combined emphasis |
 | Links | `[text](url)` | Clickable links |
 | Inline Code | `` `code` `` | Inline code snippets |
@@ -247,6 +248,7 @@ Inline elements modify text within blocks. They inherit the parent block's base 
 |-------------|---------------|------|
 | `strong` | Parent block | Bold weight, optional color |
 | `em` | Parent block | Italic style, optional color |
+| `strikethrough` | Parent block | Strike line with custom color |
 | `code` | Parent block | Monospace font, background |
 | `link` | Parent block | Color, underline |
 
@@ -317,6 +319,9 @@ The library provides sensible default styles for all Markdown elements out of th
     },
     em: {
       color: '#666',
+    },
+    strikethrough: {
+      color: '#999',
     },
     link: {
       color: '#007AFF',
@@ -429,6 +434,12 @@ The library provides sensible default styles for all Markdown elements out of th
 |----------|------|-------------|
 | `color` | `string` | Link text color |
 | `underline` | `boolean` | Show underline |
+
+#### Strikethrough-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `color` | `string` | Strikethrough line color |
 
 #### Image-specific
 

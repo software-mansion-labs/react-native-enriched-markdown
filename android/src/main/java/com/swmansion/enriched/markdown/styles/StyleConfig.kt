@@ -88,6 +88,14 @@ class StyleConfig(
     EmphasisStyle.fromReadableMap(map, styleParser)
   }
 
+  val strikethroughStyle: StrikethroughStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("strikethrough")) {
+        "Strikethrough style not found. JS should always provide defaults."
+      }
+    StrikethroughStyle.fromReadableMap(map, styleParser)
+  }
+
   val codeStyle: CodeStyle by lazy {
     val map =
       requireNotNull(style.getMap("code")) {
@@ -153,6 +161,7 @@ class StyleConfig(
       linkStyle == other.linkStyle &&
       strongStyle == other.strongStyle &&
       emphasisStyle == other.emphasisStyle &&
+      strikethroughStyle == other.strikethroughStyle &&
       codeStyle == other.codeStyle &&
       imageStyle == other.imageStyle &&
       inlineImageStyle == other.inlineImageStyle &&
@@ -168,6 +177,7 @@ class StyleConfig(
     result = 31 * result + linkStyle.hashCode()
     result = 31 * result + strongStyle.hashCode()
     result = 31 * result + emphasisStyle.hashCode()
+    result = 31 * result + strikethroughStyle.hashCode()
     result = 31 * result + codeStyle.hashCode()
     result = 31 * result + imageStyle.hashCode()
     result = 31 * result + inlineImageStyle.hashCode()

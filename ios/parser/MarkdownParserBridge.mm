@@ -36,6 +36,9 @@ static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownAS
     case Markdown::NodeType::Emphasis:
       objcType = MarkdownNodeTypeEmphasis;
       break;
+    case Markdown::NodeType::Strikethrough:
+      objcType = MarkdownNodeTypeStrikethrough;
+      break;
     case Markdown::NodeType::Code:
       objcType = MarkdownNodeTypeCode;
       break;

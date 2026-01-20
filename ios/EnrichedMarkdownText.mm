@@ -754,6 +754,12 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.strikethrough.color != oldViewProps.markdownStyle.strikethrough.color) {
+    UIColor *strikethroughColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.strikethrough.color);
+    [_config setStrikethroughColor:strikethroughColor];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.code.color != oldViewProps.markdownStyle.code.color) {
     if (newViewProps.markdownStyle.code.color) {
       UIColor *codeColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.code.color);

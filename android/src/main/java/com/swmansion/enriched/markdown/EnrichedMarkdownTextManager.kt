@@ -3,9 +3,7 @@ package com.swmansion.enriched.markdown
 import android.content.Context
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.ReactStylesDiffMap
 import com.facebook.react.uimanager.SimpleViewManager
-import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.ViewManagerDelegate
@@ -30,15 +28,6 @@ class EnrichedMarkdownTextManager :
   override fun onDropViewInstance(view: EnrichedMarkdownText) {
     super.onDropViewInstance(view)
     view.layoutManager.releaseMeasurementStore()
-  }
-
-  override fun updateState(
-    view: EnrichedMarkdownText,
-    props: ReactStylesDiffMap?,
-    stateWrapper: StateWrapper?,
-  ): Any? {
-    view.layoutManager.stateWrapper = stateWrapper
-    return super.updateState(view, props, stateWrapper)
   }
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {

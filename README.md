@@ -248,7 +248,7 @@ Inline elements modify text within blocks. They inherit the parent block's base 
 |-------------|---------------|------|
 | `strong` | Parent block | Bold weight, optional color |
 | `em` | Parent block | Italic style, optional color |
-| `strikethrough` | Parent block | Strike line with custom color |
+| `strikethrough` | Parent block | Strike line with custom color (iOS only) |
 | `code` | Parent block | Monospace font, background |
 | `link` | Parent block | Color, underline |
 
@@ -439,7 +439,7 @@ The library provides sensible default styles for all Markdown elements out of th
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `color` | `string` | Strikethrough line color |
+| `color` | `string` | Strikethrough line color (iOS only) |
 
 #### Image-specific
 

@@ -5,21 +5,18 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
-class StrikethroughRenderer : NodeRenderer {
+class StrikethroughRenderer(
+  private val config: RendererConfig,
+) : NodeRenderer {
   override fun render(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    val start = builder.length
-    factory.renderChildren(node, builder, onLinkPress)
-    val end = builder.length
-
-    if (end > start) {
-      val strikethroughColor = factory.styleCache.strikethroughColor
+    factory.renderWithSpan(builder, { factory.renderChildren(node, builder, onLinkPress) }) { start, end, blockStyle ->
       builder.setSpan(
-        StrikethroughSpan(strikethroughColor),
+        StrikethroughSpan(factory.styleCache.strikethroughColor),
         start,
         end,
         SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,

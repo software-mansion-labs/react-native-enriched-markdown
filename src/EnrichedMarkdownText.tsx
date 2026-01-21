@@ -57,6 +57,10 @@ interface EmphasisStyle {
 }
 
 interface StrikethroughStyle {
+  /**
+   * Color of the strikethrough line.
+   * @platform iOS
+   */
   color?: string;
 }
 

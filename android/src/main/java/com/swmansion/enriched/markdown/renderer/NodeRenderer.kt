@@ -49,7 +49,7 @@ class RendererFactory(
       MarkdownASTNode.NodeType.Link to LinkRenderer(config),
       MarkdownASTNode.NodeType.Strong to StrongRenderer(config),
       MarkdownASTNode.NodeType.Emphasis to EmphasisRenderer(config),
-      MarkdownASTNode.NodeType.Strikethrough to StrikethroughRenderer(),
+      MarkdownASTNode.NodeType.Strikethrough to StrikethroughRenderer(config),
       MarkdownASTNode.NodeType.Code to CodeRenderer(config),
       MarkdownASTNode.NodeType.Image to ImageRenderer(config, context),
       MarkdownASTNode.NodeType.LineBreak to lineBreakRenderer,

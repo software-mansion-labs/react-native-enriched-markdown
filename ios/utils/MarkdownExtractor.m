@@ -67,13 +67,17 @@ static void extractFontTraits(NSDictionary *attrs, BOOL *isBold, BOOL *isItalic,
   }
 }
 
-static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItalic, BOOL isMonospace, NSString *linkURL)
+static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItalic, BOOL isMonospace,
+                                       BOOL isStrikethrough, NSString *linkURL)
 {
   NSMutableString *result = [NSMutableString stringWithString:text];
 
   // Innermost first
   if (isMonospace && !linkURL) {
     result = [NSMutableString stringWithFormat:@"`%@`", result];
+  }
+  if (isStrikethrough) {
+    result = [NSMutableString stringWithFormat:@"~~%@~~", result];
   }
   if (isItalic) {
     result = [NSMutableString stringWithFormat:@"*%@*", result];
@@ -255,8 +259,12 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         BOOL isBold, isItalic, isMonospace;
                         extractFontTraits(attrs, &isBold, &isItalic, &isMonospace);
 
+                        NSNumber *strikethroughStyle = attrs[NSStrikethroughStyleAttributeName];
+                        BOOL isStrikethrough = (strikethroughStyle != nil && [strikethroughStyle integerValue] != 0);
+
                         NSString *linkURL = attrs[NSLinkAttributeName];
-                        NSString *segment = applyInlineFormatting(text, isBold, isItalic, isMonospace, linkURL);
+                        NSString *segment =
+                            applyInlineFormatting(text, isBold, isItalic, isMonospace, isStrikethrough, linkURL);
 
                         // Add block prefixes at line start
                         if (isAtLineStart(result)) {

@@ -11,6 +11,7 @@ import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
+import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
 import com.swmansion.enriched.markdown.spans.ThematicBreakSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
@@ -283,6 +284,7 @@ object MarkdownExtractor {
     val hasStrong = spannable.getSpans(start, end, StrongSpan::class.java).isNotEmpty()
     val hasEmphasis = spannable.getSpans(start, end, EmphasisSpan::class.java).isNotEmpty()
     val hasCode = spannable.getSpans(start, end, CodeSpan::class.java).isNotEmpty()
+    val hasStrikethrough = spannable.getSpans(start, end, StrikethroughSpan::class.java).isNotEmpty()
     val linkSpans = spannable.getSpans(start, end, LinkSpan::class.java)
 
     var result = text
@@ -290,6 +292,9 @@ object MarkdownExtractor {
     // Innermost first
     if (hasCode && linkSpans.isEmpty()) {
       result = "`$result`"
+    }
+    if (hasStrikethrough) {
+      result = "~~$result~~"
     }
     if (hasEmphasis) {
       result = "*$result*"

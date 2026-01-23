@@ -56,6 +56,9 @@
     applyLineHeight(output, range, _config.paragraphLineHeight);
   }
 
+  // Apply text alignment for paragraphs
+  applyTextAlignment(output, range, _config.paragraphTextAlign);
+
   // 3. Margin Application
   // Only top-level paragraphs apply bottom margins; nested paragraphs defer to their parents.
   CGFloat marginBottom = 0;

@@ -38,6 +38,7 @@ const paragraphDefaultStyles: MarkdownStyleInternal['paragraph'] = {
   color: defaultTextColor,
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
   marginBottom: 16,
+  textAlign: 'left',
 };
 
 const defaultH1Style: MarkdownStyleInternal['h1'] = {
@@ -47,6 +48,7 @@ const defaultH1Style: MarkdownStyleInternal['h1'] = {
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
   marginBottom: 8,
+  textAlign: 'left',
 };
 
 const defaultH2Style: MarkdownStyleInternal['h2'] = {
@@ -56,6 +58,7 @@ const defaultH2Style: MarkdownStyleInternal['h2'] = {
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
   marginBottom: 8,
+  textAlign: 'left',
 };
 
 const defaultH3Style: MarkdownStyleInternal['h3'] = {
@@ -65,6 +68,7 @@ const defaultH3Style: MarkdownStyleInternal['h3'] = {
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
   marginBottom: 8,
+  textAlign: 'left',
 };
 
 const defaultH4Style: MarkdownStyleInternal['h4'] = {
@@ -74,6 +78,7 @@ const defaultH4Style: MarkdownStyleInternal['h4'] = {
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
   marginBottom: 8,
+  textAlign: 'left',
 };
 
 const defaultH5Style: MarkdownStyleInternal['h5'] = {
@@ -83,6 +88,7 @@ const defaultH5Style: MarkdownStyleInternal['h5'] = {
   color: processColor('#374151') as ColorValue,
   lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
   marginBottom: 8,
+  textAlign: 'left',
 };
 
 const defaultH6Style: MarkdownStyleInternal['h6'] = {
@@ -92,6 +98,7 @@ const defaultH6Style: MarkdownStyleInternal['h6'] = {
   color: processColor('#4B5563') as ColorValue,
   lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
   marginBottom: 8,
+  textAlign: 'left',
 };
 
 const defaultLinkColor = processColor('#2563EB') as ColorValue;
@@ -202,6 +209,7 @@ export const normalizeMarkdownStyle = (
       style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom,
     lineHeight:
       style.paragraph?.lineHeight ?? paragraphDefaultStyles.lineHeight,
+    textAlign: style.paragraph?.textAlign ?? paragraphDefaultStyles.textAlign,
   };
 
   const h1: MarkdownStyleInternal['h1'] = {
@@ -211,6 +219,7 @@ export const normalizeMarkdownStyle = (
     color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
     marginBottom: style.h1?.marginBottom ?? defaultH1Style.marginBottom,
     lineHeight: style.h1?.lineHeight ?? defaultH1Style.lineHeight,
+    textAlign: style.h1?.textAlign ?? defaultH1Style.textAlign,
   };
 
   const h2: MarkdownStyleInternal['h2'] = {
@@ -220,6 +229,7 @@ export const normalizeMarkdownStyle = (
     color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
     marginBottom: style.h2?.marginBottom ?? defaultH2Style.marginBottom,
     lineHeight: style.h2?.lineHeight ?? defaultH2Style.lineHeight,
+    textAlign: style.h2?.textAlign ?? defaultH2Style.textAlign,
   };
 
   const h3: MarkdownStyleInternal['h3'] = {
@@ -229,6 +239,7 @@ export const normalizeMarkdownStyle = (
     color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
     marginBottom: style.h3?.marginBottom ?? defaultH3Style.marginBottom,
     lineHeight: style.h3?.lineHeight ?? defaultH3Style.lineHeight,
+    textAlign: style.h3?.textAlign ?? defaultH3Style.textAlign,
   };
 
   const h4: MarkdownStyleInternal['h4'] = {
@@ -238,6 +249,7 @@ export const normalizeMarkdownStyle = (
     color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
     marginBottom: style.h4?.marginBottom ?? defaultH4Style.marginBottom,
     lineHeight: style.h4?.lineHeight ?? defaultH4Style.lineHeight,
+    textAlign: style.h4?.textAlign ?? defaultH4Style.textAlign,
   };
 
   const h5: MarkdownStyleInternal['h5'] = {
@@ -247,6 +259,7 @@ export const normalizeMarkdownStyle = (
     color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
     marginBottom: style.h5?.marginBottom ?? defaultH5Style.marginBottom,
     lineHeight: style.h5?.lineHeight ?? defaultH5Style.lineHeight,
+    textAlign: style.h5?.textAlign ?? defaultH5Style.textAlign,
   };
 
   const h6: MarkdownStyleInternal['h6'] = {
@@ -256,6 +269,7 @@ export const normalizeMarkdownStyle = (
     color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
     marginBottom: style.h6?.marginBottom ?? defaultH6Style.marginBottom,
     lineHeight: style.h6?.lineHeight ?? defaultH6Style.lineHeight,
+    textAlign: style.h6?.textAlign ?? defaultH6Style.textAlign,
   };
 
   const blockquote: MarkdownStyleInternal['blockquote'] = {

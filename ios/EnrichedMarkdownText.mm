@@ -8,6 +8,7 @@
 #import "MarkdownASTNode.h"
 #import "MarkdownExtractor.h"
 #import "MarkdownParser.h"
+#import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
@@ -388,6 +389,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.paragraph.textAlign != oldViewProps.markdownStyle.paragraph.textAlign) {
+    [_config setParagraphTextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.paragraph.textAlign.c_str()))];
+    stylePropChanged = YES;
+  }
+
   // H1 style
   if (newViewProps.markdownStyle.h1.fontSize != oldViewProps.markdownStyle.h1.fontSize) {
     [_config setH1FontSize:newViewProps.markdownStyle.h1.fontSize];
@@ -431,6 +437,11 @@ using namespace facebook::react;
 
   if (newViewProps.markdownStyle.h1.lineHeight != oldViewProps.markdownStyle.h1.lineHeight) {
     [_config setH1LineHeight:newViewProps.markdownStyle.h1.lineHeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.h1.textAlign != oldViewProps.markdownStyle.h1.textAlign) {
+    [_config setH1TextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.h1.textAlign.c_str()))];
     stylePropChanged = YES;
   }
 
@@ -480,6 +491,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.h2.textAlign != oldViewProps.markdownStyle.h2.textAlign) {
+    [_config setH2TextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.h2.textAlign.c_str()))];
+    stylePropChanged = YES;
+  }
+
   // H3 style
   if (newViewProps.markdownStyle.h3.fontSize != oldViewProps.markdownStyle.h3.fontSize) {
     [_config setH3FontSize:newViewProps.markdownStyle.h3.fontSize];
@@ -523,6 +539,11 @@ using namespace facebook::react;
 
   if (newViewProps.markdownStyle.h3.lineHeight != oldViewProps.markdownStyle.h3.lineHeight) {
     [_config setH3LineHeight:newViewProps.markdownStyle.h3.lineHeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.h3.textAlign != oldViewProps.markdownStyle.h3.textAlign) {
+    [_config setH3TextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.h3.textAlign.c_str()))];
     stylePropChanged = YES;
   }
 
@@ -572,6 +593,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.h4.textAlign != oldViewProps.markdownStyle.h4.textAlign) {
+    [_config setH4TextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.h4.textAlign.c_str()))];
+    stylePropChanged = YES;
+  }
+
   // H5 style
   if (newViewProps.markdownStyle.h5.fontSize != oldViewProps.markdownStyle.h5.fontSize) {
     [_config setH5FontSize:newViewProps.markdownStyle.h5.fontSize];
@@ -618,6 +644,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.h5.textAlign != oldViewProps.markdownStyle.h5.textAlign) {
+    [_config setH5TextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.h5.textAlign.c_str()))];
+    stylePropChanged = YES;
+  }
+
   // H6 style
   if (newViewProps.markdownStyle.h6.fontSize != oldViewProps.markdownStyle.h6.fontSize) {
     [_config setH6FontSize:newViewProps.markdownStyle.h6.fontSize];
@@ -661,6 +692,11 @@ using namespace facebook::react;
 
   if (newViewProps.markdownStyle.h6.lineHeight != oldViewProps.markdownStyle.h6.lineHeight) {
     [_config setH6LineHeight:newViewProps.markdownStyle.h6.lineHeight];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.h6.textAlign != oldViewProps.markdownStyle.h6.textAlign) {
+    [_config setH6TextAlign:textAlignmentFromString(@(newViewProps.markdownStyle.h6.textAlign.c_str()))];
     stylePropChanged = YES;
   }
 

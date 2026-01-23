@@ -144,6 +144,15 @@ class StyleConfig(
     ThematicBreakStyle.fromReadableMap(map, styleParser)
   }
 
+  /**
+   * Returns true if any paragraph or heading style uses justify alignment.
+   * Used to enable justification mode on the TextView (API 26+).
+   */
+  val needsJustify: Boolean by lazy {
+    paragraphStyle.needsJustify ||
+      headingStyles.filterNotNull().any { it.needsJustify }
+  }
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is StyleConfig) return false

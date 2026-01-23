@@ -1,6 +1,8 @@
 package com.swmansion.enriched.markdown.renderer
 
+import android.text.Layout
 import android.text.SpannableStringBuilder
+import android.text.style.AlignmentSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.styles.ParagraphStyle
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
@@ -54,6 +56,18 @@ class ParagraphRenderer(
     if (!node.containsBlockImage()) {
       setSpan(
         createLineHeightSpan(style.lineHeight),
+        start,
+        end,
+        SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+      )
+    }
+
+    // Only apply AlignmentSpan for center/right.
+    // For left/auto: ALIGN_NORMAL is already the default, no span needed.
+    // For justify: handled at TextView level via setJustificationMode() (API 26+).
+    if (style.textAlign != Layout.Alignment.ALIGN_NORMAL) {
+      setSpan(
+        AlignmentSpan.Standard(style.textAlign),
         start,
         end,
         SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,

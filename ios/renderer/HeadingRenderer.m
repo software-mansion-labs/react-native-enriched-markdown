@@ -12,6 +12,7 @@ typedef struct {
   __unsafe_unretained UIColor *color;
   CGFloat marginBottom;
   CGFloat lineHeight;
+  NSTextAlignment textAlign;
 } HeadingStyle;
 
 // Static heading type strings (index 0 unused, 1-6 for h1-h6)
@@ -60,6 +61,7 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   [output addAttribute:MarkdownTypeAttributeName value:kHeadingTypes[level] range:range];
 
   applyLineHeight(output, range, style.lineHeight);
+  applyTextAlignment(output, range, style.textAlign);
   applyParagraphSpacing(output, start, style.marginBottom);
 }
 
@@ -72,22 +74,22 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
 
   switch (level) {
     case 1:
-      s = (HeadingStyle){c.h1Font, c.h1Color, c.h1MarginBottom, c.h1LineHeight};
+      s = (HeadingStyle){c.h1Font, c.h1Color, c.h1MarginBottom, c.h1LineHeight, c.h1TextAlign};
       break;
     case 2:
-      s = (HeadingStyle){c.h2Font, c.h2Color, c.h2MarginBottom, c.h2LineHeight};
+      s = (HeadingStyle){c.h2Font, c.h2Color, c.h2MarginBottom, c.h2LineHeight, c.h2TextAlign};
       break;
     case 3:
-      s = (HeadingStyle){c.h3Font, c.h3Color, c.h3MarginBottom, c.h3LineHeight};
+      s = (HeadingStyle){c.h3Font, c.h3Color, c.h3MarginBottom, c.h3LineHeight, c.h3TextAlign};
       break;
     case 4:
-      s = (HeadingStyle){c.h4Font, c.h4Color, c.h4MarginBottom, c.h4LineHeight};
+      s = (HeadingStyle){c.h4Font, c.h4Color, c.h4MarginBottom, c.h4LineHeight, c.h4TextAlign};
       break;
     case 5:
-      s = (HeadingStyle){c.h5Font, c.h5Color, c.h5MarginBottom, c.h5LineHeight};
+      s = (HeadingStyle){c.h5Font, c.h5Color, c.h5MarginBottom, c.h5LineHeight, c.h5TextAlign};
       break;
     case 6:
-      s = (HeadingStyle){c.h6Font, c.h6Color, c.h6MarginBottom, c.h6LineHeight};
+      s = (HeadingStyle){c.h6Font, c.h6Color, c.h6MarginBottom, c.h6LineHeight, c.h6TextAlign};
       break;
     default:
       return [self styleForLevel:1];

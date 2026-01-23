@@ -72,6 +72,12 @@ object MeasurementStore {
     heightMode: YogaMeasureMode?,
     props: ReadableMap?,
   ): Long {
+    // Early exit for empty markdown
+    val markdown = props?.getString("markdown")
+    if (markdown.isNullOrEmpty()) {
+      return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
+    }
+
     val size = getMeasureByIdInternal(context, id, width, props)
     val resultHeight = YogaMeasureOutput.getHeight(size)
 
@@ -126,7 +132,7 @@ object MeasurementStore {
     width: Float,
     props: ReadableMap?,
   ): Long {
-    val markdown = props?.getString("markdown")?.ifEmpty { "I" } ?: "I"
+    val markdown = props?.getString("markdown") ?: ""
     val styleMap = props?.getMap("markdownStyle")
     val fontSize = getInitialFontSize(styleMap)
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)

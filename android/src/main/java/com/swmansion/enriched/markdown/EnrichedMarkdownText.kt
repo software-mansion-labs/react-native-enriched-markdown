@@ -19,7 +19,7 @@ import java.util.concurrent.Executors
 
 /**
  * EnrichedMarkdownText that handles Markdown parsing and rendering on a background thread.
- * Utilizes PrecomputedText for smoother UI updates on supported Android versions.
+ * View starts invisible and becomes visible after render completes to avoid layout shift.
  */
 class EnrichedMarkdownText
   @JvmOverloads
@@ -32,7 +32,6 @@ class EnrichedMarkdownText
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
 
-    // Background processing tools
     private val mainHandler = Handler(Looper.getMainLooper())
     private val executor = Executors.newSingleThreadExecutor()
     private var currentRenderId = 0L
@@ -51,6 +50,8 @@ class EnrichedMarkdownText
       movementMethod = LinkMovementMethod.getInstance()
       setTextIsSelectable(true)
       customSelectionActionModeCallback = createSelectionActionModeCallback(this)
+      // Start invisible to avoid layout shift while measurement completes
+      alpha = 0f
     }
 
     fun setMarkdownContent(markdown: String) {
@@ -62,7 +63,6 @@ class EnrichedMarkdownText
     fun setMarkdownStyle(style: ReadableMap?) {
       val newStyle = style?.let { StyleConfig(it, context) }
       if (markdownStyle == newStyle) return
-
       markdownStyle = newStyle
       scheduleRender()
     }
@@ -70,8 +70,9 @@ class EnrichedMarkdownText
     private fun scheduleRender() {
       val style = markdownStyle ?: return
       val markdown = currentMarkdown
+      if (markdown.isEmpty()) return
+
       val renderId = ++currentRenderId
-      val scheduleStart = System.currentTimeMillis()
 
       executor.execute {
         try {
@@ -96,10 +97,10 @@ class EnrichedMarkdownText
           Log.i(TAG, "│ 🎨 Spannable render: ${renderTime}ms → ${styledText.length} styled chars")
           Log.i(TAG, "└──────────────────────────────────────────────")
 
+          // 3. Apply to view on main thread
           mainHandler.post {
             if (renderId == currentRenderId) {
               applyRenderedText(styledText)
-              Log.i(TAG, "✅ Total time to display: ${System.currentTimeMillis() - scheduleStart}ms")
             }
           }
         } catch (e: Exception) {
@@ -110,7 +111,6 @@ class EnrichedMarkdownText
     }
 
     private fun applyRenderedText(styledText: CharSequence) {
-      // Sets the text. If it's PrecomputedText, the UI thread skips the measure pass.
       text = styledText
 
       // LinkMovementMethod check (setText can sometimes reset it)
@@ -124,6 +124,9 @@ class EnrichedMarkdownText
       }
 
       layoutManager.invalidateLayout()
+
+      // Make visible after layout is complete to avoid shift
+      post { alpha = 1f }
     }
 
     fun setIsSelectable(selectable: Boolean) {

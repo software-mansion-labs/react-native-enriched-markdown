@@ -132,9 +132,8 @@ object MeasurementStore {
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
     val propsHash = computePropsHash(props)
 
-    // Try to parse and render markdown for accurate measurement
+    // Parse and render markdown for accurate measurement
     val spannable = tryRenderMarkdown(markdown, styleMap, context)
-
     val textToMeasure = spannable ?: markdown
     val size = measure(width, textToMeasure, paintParams)
 

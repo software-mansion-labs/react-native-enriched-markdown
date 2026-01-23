@@ -145,6 +145,8 @@ using namespace facebook::react;
   _textView.editable = NO;
   _textView.delegate = self;
   _textView.scrollEnabled = NO;
+  _textView.showsVerticalScrollIndicator = NO;
+  _textView.showsHorizontalScrollIndicator = NO;
   _textView.textContainerInset = UIEdgeInsetsZero;
   _textView.textContainer.lineFragmentPadding = 0;
   // Disable UITextView's default link styling - we handle it directly in attributed strings

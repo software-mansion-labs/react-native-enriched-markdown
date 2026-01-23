@@ -67,16 +67,4 @@ target_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 80)
-  target_compile_reactnative_options(${LIB_TARGET_NAME} PRIVATE)
-else()
-  target_compile_options(
-    ${LIB_TARGET_NAME}
-    PRIVATE
-    -DLOG_TAG=\"ReactNative\"
-    -fexceptions
-    -frtti
-    -std=c++20
-    -Wall
-  )
-endif()
+target_compile_reactnative_options(${LIB_TARGET_NAME} PRIVATE)

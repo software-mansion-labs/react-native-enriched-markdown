@@ -85,13 +85,14 @@ using namespace facebook::react;
                                                        context:nil];
 
   CGFloat measuredHeight = boundingRect.size.height;
+  CGFloat measuredWidth = boundingRect.size.width;
 
   // Compensate for iOS not measuring trailing newlines (code block bottom padding)
   if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }
 
-  return CGSizeMake(maxWidth, ceil(measuredHeight));
+  return CGSizeMake(ceil(measuredWidth), ceil(measuredHeight));
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state

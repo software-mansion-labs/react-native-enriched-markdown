@@ -209,8 +209,11 @@ object MeasurementStore {
     val layout = builder.build()
     val measuredHeight = layout.height.toFloat()
 
+    // Calculate actual content width (widest line)
+    val measuredWidth = (0 until layout.lineCount).maxOfOrNull { layout.getLineWidth(it) } ?: 0f
+
     return YogaMeasureOutput.make(
-      PixelUtil.toDIPFromPixel(maxWidth),
+      PixelUtil.toDIPFromPixel(ceil(measuredWidth)),
       PixelUtil.toDIPFromPixel(measuredHeight),
     )
   }

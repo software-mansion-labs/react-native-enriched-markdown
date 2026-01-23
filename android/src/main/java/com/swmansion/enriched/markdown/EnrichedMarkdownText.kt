@@ -50,8 +50,6 @@ class EnrichedMarkdownText
       movementMethod = LinkMovementMethod.getInstance()
       setTextIsSelectable(true)
       customSelectionActionModeCallback = createSelectionActionModeCallback(this)
-      // Start invisible to avoid layout shift while measurement completes
-      alpha = 0f
     }
 
     fun setMarkdownContent(markdown: String) {
@@ -124,9 +122,6 @@ class EnrichedMarkdownText
       }
 
       layoutManager.invalidateLayout()
-
-      // Make visible after layout is complete to avoid shift
-      post { alpha = 1f }
     }
 
     fun setIsSelectable(selectable: Boolean) {

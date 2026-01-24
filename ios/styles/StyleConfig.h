@@ -26,6 +26,8 @@
 - (void)setParagraphMarginBottom:(CGFloat)newValue;
 - (CGFloat)paragraphLineHeight;
 - (void)setParagraphLineHeight:(CGFloat)newValue;
+- (NSTextAlignment)paragraphTextAlign;
+- (void)setParagraphTextAlign:(NSTextAlignment)newValue;
 - (UIFont *)paragraphFont;
 // H1 properties
 - (CGFloat)h1FontSize;
@@ -40,6 +42,8 @@
 - (void)setH1MarginBottom:(CGFloat)newValue;
 - (CGFloat)h1LineHeight;
 - (void)setH1LineHeight:(CGFloat)newValue;
+- (NSTextAlignment)h1TextAlign;
+- (void)setH1TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h1Font;
 // H2 properties
 - (CGFloat)h2FontSize;
@@ -54,6 +58,8 @@
 - (void)setH2MarginBottom:(CGFloat)newValue;
 - (CGFloat)h2LineHeight;
 - (void)setH2LineHeight:(CGFloat)newValue;
+- (NSTextAlignment)h2TextAlign;
+- (void)setH2TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h2Font;
 // H3 properties
 - (CGFloat)h3FontSize;
@@ -68,6 +74,8 @@
 - (void)setH3MarginBottom:(CGFloat)newValue;
 - (CGFloat)h3LineHeight;
 - (void)setH3LineHeight:(CGFloat)newValue;
+- (NSTextAlignment)h3TextAlign;
+- (void)setH3TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h3Font;
 // H4 properties
 - (CGFloat)h4FontSize;
@@ -82,6 +90,8 @@
 - (void)setH4MarginBottom:(CGFloat)newValue;
 - (CGFloat)h4LineHeight;
 - (void)setH4LineHeight:(CGFloat)newValue;
+- (NSTextAlignment)h4TextAlign;
+- (void)setH4TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h4Font;
 // H5 properties
 - (CGFloat)h5FontSize;
@@ -96,6 +106,8 @@
 - (void)setH5MarginBottom:(CGFloat)newValue;
 - (CGFloat)h5LineHeight;
 - (void)setH5LineHeight:(CGFloat)newValue;
+- (NSTextAlignment)h5TextAlign;
+- (void)setH5TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h5Font;
 // H6 properties
 - (CGFloat)h6FontSize;
@@ -110,6 +122,8 @@
 - (void)setH6MarginBottom:(CGFloat)newValue;
 - (CGFloat)h6LineHeight;
 - (void)setH6LineHeight:(CGFloat)newValue;
+- (NSTextAlignment)h6TextAlign;
+- (void)setH6TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h6Font;
 // Link properties
 - (UIColor *)linkColor;

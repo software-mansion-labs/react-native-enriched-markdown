@@ -6,6 +6,8 @@ import EnrichedMarkdownTextNativeComponent, {
 import { normalizeMarkdownStyle } from './normalizeMarkdownStyle';
 import type { ViewStyle, TextStyle, NativeSyntheticEvent } from 'react-native';
 
+type TextAlign = 'auto' | 'left' | 'right' | 'center' | 'justify';
+
 interface BaseBlockStyle {
   fontSize?: number;
   fontFamily?: string;
@@ -15,9 +17,13 @@ interface BaseBlockStyle {
   lineHeight?: number;
 }
 
-interface ParagraphStyle extends BaseBlockStyle {}
+interface ParagraphStyle extends BaseBlockStyle {
+  textAlign?: TextAlign;
+}
 
-interface HeadingStyle extends BaseBlockStyle {}
+interface HeadingStyle extends BaseBlockStyle {
+  textAlign?: TextAlign;
+}
 
 interface BlockquoteStyle extends BaseBlockStyle {
   borderColor?: string;

@@ -9,6 +9,7 @@ data class HeadingStyle(
   override val color: Int,
   override val marginBottom: Float,
   override val lineHeight: Float,
+  val textAlign: TextAlignment,
 ) : BaseBlockStyle {
   companion object {
     fun fromReadableMap(
@@ -22,8 +23,9 @@ data class HeadingStyle(
       val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
       val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
+      val textAlign = parser.parseTextAlign(map, "textAlign")
 
-      return HeadingStyle(fontSize, fontFamily, fontWeight, color, marginBottom, lineHeight)
+      return HeadingStyle(fontSize, fontFamily, fontWeight, color, marginBottom, lineHeight, textAlign)
     }
   }
 }

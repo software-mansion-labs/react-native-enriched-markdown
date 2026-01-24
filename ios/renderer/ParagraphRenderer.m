@@ -56,6 +56,9 @@
     applyLineHeight(output, range, _config.paragraphLineHeight);
   }
 
+  // Apply text alignment for paragraphs
+  applyTextAlignment(output, range, _config.paragraphTextAlign);
+
   // 3. Margin Application
   // Apply margins for document-level paragraphs (None or Paragraph block type).
   // Nested paragraphs inside blockquotes/lists defer to their parents.

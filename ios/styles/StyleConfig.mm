@@ -26,6 +26,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_paragraphColor;
   CGFloat _paragraphMarginBottom;
   CGFloat _paragraphLineHeight;
+  NSTextAlignment _paragraphTextAlign;
   UIFont *_paragraphFont;
   BOOL _paragraphFontNeedsRecreation;
   // H1 properties
@@ -35,6 +36,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_h1Color;
   CGFloat _h1MarginBottom;
   CGFloat _h1LineHeight;
+  NSTextAlignment _h1TextAlign;
   UIFont *_h1Font;
   BOOL _h1FontNeedsRecreation;
   // H2 properties
@@ -44,6 +46,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_h2Color;
   CGFloat _h2MarginBottom;
   CGFloat _h2LineHeight;
+  NSTextAlignment _h2TextAlign;
   UIFont *_h2Font;
   BOOL _h2FontNeedsRecreation;
   // H3 properties
@@ -53,6 +56,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_h3Color;
   CGFloat _h3MarginBottom;
   CGFloat _h3LineHeight;
+  NSTextAlignment _h3TextAlign;
   UIFont *_h3Font;
   BOOL _h3FontNeedsRecreation;
   // H4 properties
@@ -62,6 +66,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_h4Color;
   CGFloat _h4MarginBottom;
   CGFloat _h4LineHeight;
+  NSTextAlignment _h4TextAlign;
   UIFont *_h4Font;
   BOOL _h4FontNeedsRecreation;
   // H5 properties
@@ -71,6 +76,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_h5Color;
   CGFloat _h5MarginBottom;
   CGFloat _h5LineHeight;
+  NSTextAlignment _h5TextAlign;
   UIFont *_h5Font;
   BOOL _h5FontNeedsRecreation;
   // H6 properties
@@ -80,6 +86,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_h6Color;
   CGFloat _h6MarginBottom;
   CGFloat _h6LineHeight;
+  NSTextAlignment _h6TextAlign;
   UIFont *_h6Font;
   BOOL _h6FontNeedsRecreation;
   // Link properties
@@ -186,6 +193,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_paragraphColor = [_paragraphColor copy];
   copy->_paragraphMarginBottom = _paragraphMarginBottom;
   copy->_paragraphLineHeight = _paragraphLineHeight;
+  copy->_paragraphTextAlign = _paragraphTextAlign;
   copy->_paragraphFontNeedsRecreation = YES;
   copy->_h1FontSize = _h1FontSize;
   copy->_h1FontFamily = [_h1FontFamily copy];
@@ -193,6 +201,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h1Color = [_h1Color copy];
   copy->_h1MarginBottom = _h1MarginBottom;
   copy->_h1LineHeight = _h1LineHeight;
+  copy->_h1TextAlign = _h1TextAlign;
   copy->_h1FontNeedsRecreation = YES;
   copy->_h2FontSize = _h2FontSize;
   copy->_h2FontFamily = [_h2FontFamily copy];
@@ -200,6 +209,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h2Color = [_h2Color copy];
   copy->_h2MarginBottom = _h2MarginBottom;
   copy->_h2LineHeight = _h2LineHeight;
+  copy->_h2TextAlign = _h2TextAlign;
   copy->_h2FontNeedsRecreation = YES;
   copy->_h3FontSize = _h3FontSize;
   copy->_h3FontFamily = [_h3FontFamily copy];
@@ -207,6 +217,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h3Color = [_h3Color copy];
   copy->_h3MarginBottom = _h3MarginBottom;
   copy->_h3LineHeight = _h3LineHeight;
+  copy->_h3TextAlign = _h3TextAlign;
   copy->_h3FontNeedsRecreation = YES;
   copy->_h4FontSize = _h4FontSize;
   copy->_h4FontFamily = [_h4FontFamily copy];
@@ -214,6 +225,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h4Color = [_h4Color copy];
   copy->_h4MarginBottom = _h4MarginBottom;
   copy->_h4LineHeight = _h4LineHeight;
+  copy->_h4TextAlign = _h4TextAlign;
   copy->_h4FontNeedsRecreation = YES;
   copy->_h5FontSize = _h5FontSize;
   copy->_h5FontFamily = [_h5FontFamily copy];
@@ -221,6 +233,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h5Color = [_h5Color copy];
   copy->_h5MarginBottom = _h5MarginBottom;
   copy->_h5LineHeight = _h5LineHeight;
+  copy->_h5TextAlign = _h5TextAlign;
   copy->_h5FontNeedsRecreation = YES;
   copy->_h6FontSize = _h6FontSize;
   copy->_h6FontFamily = [_h6FontFamily copy];
@@ -228,6 +241,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h6Color = [_h6Color copy];
   copy->_h6MarginBottom = _h6MarginBottom;
   copy->_h6LineHeight = _h6LineHeight;
+  copy->_h6TextAlign = _h6TextAlign;
   copy->_h6FontNeedsRecreation = YES;
   copy->_linkColor = [_linkColor copy];
   copy->_linkUnderline = _linkUnderline;
@@ -407,6 +421,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _paragraphLineHeight = newValue;
 }
 
+- (NSTextAlignment)paragraphTextAlign
+{
+  return _paragraphTextAlign;
+}
+
+- (void)setParagraphTextAlign:(NSTextAlignment)newValue
+{
+  _paragraphTextAlign = newValue;
+}
+
 - (UIFont *)paragraphFont
 {
   if (_paragraphFontNeedsRecreation || !_paragraphFont) {
@@ -483,6 +507,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setH1LineHeight:(CGFloat)newValue
 {
   _h1LineHeight = newValue;
+}
+
+- (NSTextAlignment)h1TextAlign
+{
+  return _h1TextAlign;
+}
+
+- (void)setH1TextAlign:(NSTextAlignment)newValue
+{
+  _h1TextAlign = newValue;
 }
 
 - (UIFont *)h1Font
@@ -563,6 +597,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h2LineHeight = newValue;
 }
 
+- (NSTextAlignment)h2TextAlign
+{
+  return _h2TextAlign;
+}
+
+- (void)setH2TextAlign:(NSTextAlignment)newValue
+{
+  _h2TextAlign = newValue;
+}
+
 - (UIFont *)h2Font
 {
   if (_h2FontNeedsRecreation || !_h2Font) {
@@ -639,6 +683,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setH3LineHeight:(CGFloat)newValue
 {
   _h3LineHeight = newValue;
+}
+
+- (NSTextAlignment)h3TextAlign
+{
+  return _h3TextAlign;
+}
+
+- (void)setH3TextAlign:(NSTextAlignment)newValue
+{
+  _h3TextAlign = newValue;
 }
 
 - (UIFont *)h3Font
@@ -719,6 +773,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h4LineHeight = newValue;
 }
 
+- (NSTextAlignment)h4TextAlign
+{
+  return _h4TextAlign;
+}
+
+- (void)setH4TextAlign:(NSTextAlignment)newValue
+{
+  _h4TextAlign = newValue;
+}
+
 - (UIFont *)h4Font
 {
   if (_h4FontNeedsRecreation || !_h4Font) {
@@ -797,6 +861,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h5LineHeight = newValue;
 }
 
+- (NSTextAlignment)h5TextAlign
+{
+  return _h5TextAlign;
+}
+
+- (void)setH5TextAlign:(NSTextAlignment)newValue
+{
+  _h5TextAlign = newValue;
+}
+
 - (UIFont *)h5Font
 {
   if (_h5FontNeedsRecreation || !_h5Font) {
@@ -873,6 +947,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setH6LineHeight:(CGFloat)newValue
 {
   _h6LineHeight = newValue;
+}
+
+- (NSTextAlignment)h6TextAlign
+{
+  return _h6TextAlign;
+}
+
+- (void)setH6TextAlign:(NSTextAlignment)newValue
+{
+  _h6TextAlign = newValue;
 }
 
 - (UIFont *)h6Font

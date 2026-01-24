@@ -72,4 +72,9 @@ class StyleParser(
   fun toPixelFromSP(value: Float): Float = PixelUtil.toPixelFromSP(value)
 
   fun toPixelFromDIP(value: Float): Float = PixelUtil.toPixelFromDIP(value)
+
+  fun parseTextAlign(
+    map: ReadableMap,
+    key: String,
+  ): TextAlignment = TextAlignment.fromString(parseString(map, key, "left"))
 }

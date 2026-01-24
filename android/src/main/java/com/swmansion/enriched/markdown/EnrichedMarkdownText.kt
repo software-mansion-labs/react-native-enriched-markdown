@@ -2,8 +2,10 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.text.Layout
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.util.Log
@@ -64,7 +66,19 @@ class EnrichedMarkdownText
       val newStyle = style?.let { StyleConfig(it, context) }
       if (markdownStyle == newStyle) return
       markdownStyle = newStyle
+      updateJustificationMode(newStyle)
       scheduleRender()
+    }
+
+    private fun updateJustificationMode(style: StyleConfig?) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        justificationMode =
+          if (style?.needsJustify == true) {
+            Layout.JUSTIFICATION_MODE_INTER_WORD
+          } else {
+            Layout.JUSTIFICATION_MODE_NONE
+          }
+      }
     }
 
     private fun scheduleRender() {

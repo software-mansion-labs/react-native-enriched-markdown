@@ -15,9 +15,13 @@ interface BaseBlockStyleInternal {
   lineHeight: CodegenTypes.Float;
 }
 
-interface ParagraphStyleInternal extends BaseBlockStyleInternal {}
+interface ParagraphStyleInternal extends BaseBlockStyleInternal {
+  textAlign: string;
+}
 
-interface HeadingStyleInternal extends BaseBlockStyleInternal {}
+interface HeadingStyleInternal extends BaseBlockStyleInternal {
+  textAlign: string;
+}
 
 interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
   borderColor: ColorValue;

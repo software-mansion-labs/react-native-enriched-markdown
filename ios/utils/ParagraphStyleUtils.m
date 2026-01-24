@@ -54,3 +54,25 @@ void applyLineHeight(NSMutableAttributedString *output, NSRange range, CGFloat l
 
   [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
 }
+
+void applyTextAlignment(NSMutableAttributedString *output, NSRange range, NSTextAlignment textAlign)
+{
+  NSMutableParagraphStyle *style = getOrCreateParagraphStyle(output, range.location);
+  style.alignment = textAlign;
+  [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
+}
+
+NSTextAlignment textAlignmentFromString(NSString *textAlign)
+{
+  if ([textAlign isEqualToString:@"center"]) {
+    return NSTextAlignmentCenter;
+  } else if ([textAlign isEqualToString:@"right"]) {
+    return NSTextAlignmentRight;
+  } else if ([textAlign isEqualToString:@"justify"]) {
+    return NSTextAlignmentJustified;
+  } else if ([textAlign isEqualToString:@"auto"]) {
+    return NSTextAlignmentNatural;
+  }
+  // Default to left for "left" or any unknown value
+  return NSTextAlignmentLeft;
+}

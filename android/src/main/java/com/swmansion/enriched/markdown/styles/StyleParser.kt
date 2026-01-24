@@ -1,7 +1,6 @@
 package com.swmansion.enriched.markdown.styles
 
 import android.content.Context
-import android.text.Layout
 import com.facebook.react.bridge.ColorPropConverter
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
@@ -77,23 +76,5 @@ class StyleParser(
   fun parseTextAlign(
     map: ReadableMap,
     key: String,
-  ): Layout.Alignment {
-    val value = parseString(map, key, "left")
-    return when (value) {
-      "center" -> Layout.Alignment.ALIGN_CENTER
-
-      "right" -> Layout.Alignment.ALIGN_OPPOSITE
-
-      // justify, left, auto all use ALIGN_NORMAL
-      // justify is handled separately at the TextView level
-      "justify", "left", "auto" -> Layout.Alignment.ALIGN_NORMAL
-
-      else -> Layout.Alignment.ALIGN_NORMAL
-    }
-  }
-
-  fun parseTextAlignString(
-    map: ReadableMap,
-    key: String,
-  ): String = parseString(map, key, "left")
+  ): TextAlignment = TextAlignment.fromString(parseString(map, key, "left"))
 }

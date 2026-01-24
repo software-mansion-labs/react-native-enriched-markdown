@@ -149,8 +149,8 @@ class StyleConfig(
    * Used to enable justification mode on the TextView (API 26+).
    */
   val needsJustify: Boolean by lazy {
-    paragraphStyle.needsJustify ||
-      headingStyles.filterNotNull().any { it.needsJustify }
+    paragraphStyle.textAlign.needsJustify ||
+      headingStyles.filterNotNull().any { it.textAlign.needsJustify }
   }
 
   override fun equals(other: Any?): Boolean {

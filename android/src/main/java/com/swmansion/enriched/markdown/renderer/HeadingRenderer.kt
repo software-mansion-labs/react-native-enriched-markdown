@@ -50,11 +50,11 @@ class HeadingRenderer(
       )
 
       // Only apply AlignmentSpan for center/right.
-      // For left/auto: ALIGN_NORMAL is already the default, no span needed.
+      // For left/auto: default alignment, no span needed.
       // For justify: handled at TextView level via setJustificationMode() (API 26+).
-      if (headingStyle.textAlign != android.text.Layout.Alignment.ALIGN_NORMAL) {
+      if (headingStyle.textAlign.needsAlignmentSpan) {
         builder.setSpan(
-          AlignmentSpan.Standard(headingStyle.textAlign),
+          AlignmentSpan.Standard(headingStyle.textAlign.layoutAlignment),
           start,
           end,
           SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,

@@ -50,6 +50,8 @@ class EnrichedMarkdownText
       movementMethod = LinkMovementMethod.getInstance()
       setTextIsSelectable(true)
       customSelectionActionModeCallback = createSelectionActionModeCallback(this)
+      isVerticalScrollBarEnabled = false
+      isHorizontalScrollBarEnabled = false
     }
 
     fun setMarkdownContent(markdown: String) {

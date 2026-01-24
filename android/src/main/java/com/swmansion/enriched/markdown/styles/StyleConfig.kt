@@ -96,6 +96,14 @@ class StyleConfig(
     StrikethroughStyle.fromReadableMap(map, styleParser)
   }
 
+  val underlineStyle: UnderlineStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("underline")) {
+        "Underline style not found. JS should always provide defaults."
+      }
+    UnderlineStyle.fromReadableMap(map, styleParser)
+  }
+
   val codeStyle: CodeStyle by lazy {
     val map =
       requireNotNull(style.getMap("code")) {
@@ -171,6 +179,7 @@ class StyleConfig(
       strongStyle == other.strongStyle &&
       emphasisStyle == other.emphasisStyle &&
       strikethroughStyle == other.strikethroughStyle &&
+      underlineStyle == other.underlineStyle &&
       codeStyle == other.codeStyle &&
       imageStyle == other.imageStyle &&
       inlineImageStyle == other.inlineImageStyle &&
@@ -187,6 +196,7 @@ class StyleConfig(
     result = 31 * result + strongStyle.hashCode()
     result = 31 * result + emphasisStyle.hashCode()
     result = 31 * result + strikethroughStyle.hashCode()
+    result = 31 * result + underlineStyle.hashCode()
     result = 31 * result + codeStyle.hashCode()
     result = 31 * result + imageStyle.hashCode()
     result = 31 * result + inlineImageStyle.hashCode()

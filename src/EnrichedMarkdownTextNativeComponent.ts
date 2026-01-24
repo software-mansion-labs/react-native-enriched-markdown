@@ -64,6 +64,10 @@ interface StrikethroughStyleInternal {
   color: ColorValue;
 }
 
+interface UnderlineStyleInternal {
+  color: ColorValue;
+}
+
 interface CodeStyleInternal {
   color: ColorValue;
   backgroundColor: ColorValue;
@@ -102,6 +106,7 @@ export interface MarkdownStyleInternal {
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;
   strikethrough: StrikethroughStyleInternal;
+  underline: UnderlineStyleInternal;
   code: CodeStyleInternal;
   image: ImageStyleInternal;
   inlineImage: InlineImageStyleInternal;

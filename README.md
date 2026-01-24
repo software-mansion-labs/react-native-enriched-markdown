@@ -142,13 +142,16 @@ export default function App() {
 
 | Element | Syntax | Description |
 |---------|--------|-------------|
-| Bold | `**text**` or `__text__` | Strong emphasis |
-| Italic | `*text*` or `_text_` | Emphasis |
+| Bold | `**text**` | Strong emphasis |
+| Italic | `*text*` | Emphasis |
+| Underline | `_text_` | Underlined text|
 | Strikethrough | `~~text~~` | Strikethrough text |
-| Bold + Italic | `***text***`, `___text___`, `**_text_**`, `__*text*__`, `_**text**_`, `*__text__*` | Combined emphasis |
+| Bold + Italic | `***text***` | Combined emphasis |
 | Links | `[text](url)` | Clickable links |
 | Inline Code | `` `code` `` | Inline code snippets |
 | Inline Images | `![alt](url)` | Images within text flow |
+
+> **Note:** When the underline extension is enabled (default), `_text_` is treated as underline instead of emphasis. Only `*text*` works for emphasis in this mode. This follows MD4C's underline extension behavior.
 
 ### Nested Lists Example
 
@@ -249,6 +252,7 @@ Inline elements modify text within blocks. They inherit the parent block's base 
 | `strong` | Parent block | Bold weight, optional color |
 | `em` | Parent block | Italic style, optional color |
 | `strikethrough` | Parent block | Strike line with custom color (iOS only) |
+| `underline` | Parent block | Underline with custom color (iOS only) |
 | `code` | Parent block | Monospace font, background |
 | `link` | Parent block | Color, underline |
 
@@ -324,6 +328,9 @@ The library provides sensible default styles for all Markdown elements out of th
     },
     strikethrough: {
       color: '#999',
+    },
+    underline: {
+      color: '#333',
     },
     link: {
       color: '#007AFF',
@@ -448,6 +455,12 @@ The library provides sensible default styles for all Markdown elements out of th
 | Property | Type | Description |
 |----------|------|-------------|
 | `color` | `string` | Strikethrough line color (iOS only) |
+
+#### Underline-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `color` | `string` | Underline color (iOS only) |
 
 #### Image-specific
 

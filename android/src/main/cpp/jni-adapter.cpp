@@ -30,22 +30,24 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 7;
     case NodeType::Strikethrough:
       return 8;
-    case NodeType::Code:
+    case NodeType::Underline:
       return 9;
-    case NodeType::Image:
+    case NodeType::Code:
       return 10;
-    case NodeType::Blockquote:
+    case NodeType::Image:
       return 11;
-    case NodeType::UnorderedList:
+    case NodeType::Blockquote:
       return 12;
-    case NodeType::OrderedList:
+    case NodeType::UnorderedList:
       return 13;
-    case NodeType::ListItem:
+    case NodeType::OrderedList:
       return 14;
-    case NodeType::CodeBlock:
+    case NodeType::ListItem:
       return 15;
-    case NodeType::ThematicBreak:
+    case NodeType::CodeBlock:
       return 16;
+    case NodeType::ThematicBreak:
+      return 17;
     default:
       return 0;
   }

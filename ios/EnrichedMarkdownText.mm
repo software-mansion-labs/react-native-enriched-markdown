@@ -799,6 +799,12 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.underline.color != oldViewProps.markdownStyle.underline.color) {
+    UIColor *underlineColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.underline.color);
+    [_config setUnderlineColor:underlineColor];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.code.color != oldViewProps.markdownStyle.code.color) {
     if (newViewProps.markdownStyle.code.color) {
       UIColor *codeColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.code.color);

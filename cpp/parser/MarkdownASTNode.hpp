@@ -17,6 +17,7 @@ enum class NodeType {
     Strong,
     Emphasis,
     Strikethrough,
+    Underline,
     Code,
     Image,
     Blockquote,

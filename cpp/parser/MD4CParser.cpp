@@ -194,6 +194,11 @@ public:
         break;
       }
 
+      case MD_SPAN_U: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::Underline));
+        break;
+      }
+
       case MD_SPAN_CODE: {
         impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::Code));
         break;
@@ -286,8 +291,8 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) 
 
   // Configure MD4C parser with callbacks
   MD_PARSER parser = {
-      0,                                      // abi_version
-      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH, // flags - disable HTML
+      0,                                                          // abi_version
+      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_UNDERLINE, // flags - disable HTML
       &Impl::enterBlock,
       &Impl::leaveBlock,
       &Impl::enterSpan,

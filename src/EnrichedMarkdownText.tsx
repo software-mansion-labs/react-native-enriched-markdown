@@ -70,6 +70,14 @@ interface StrikethroughStyle {
   color?: string;
 }
 
+interface UnderlineStyle {
+  /**
+   * Color of the underline.
+   * @platform iOS
+   */
+  color?: string;
+}
+
 interface CodeStyle {
   color?: string;
   backgroundColor?: string;
@@ -108,6 +116,7 @@ export interface MarkdownStyle {
   strong?: StrongStyle;
   em?: EmphasisStyle;
   strikethrough?: StrikethroughStyle;
+  underline?: UnderlineStyle;
   code?: CodeStyle;
   image?: ImageStyle;
   inlineImage?: InlineImageStyle;

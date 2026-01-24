@@ -101,6 +101,7 @@ typedef struct {
 @property (nonatomic) CGFloat thematicBreakMarginTop;
 @property (nonatomic) CGFloat thematicBreakMarginBottom;
 @property (nonatomic, copy) NSString *strikethroughColor;
+@property (nonatomic, copy) NSString *underlineColor;
 @end
 
 @implementation CachedStyles
@@ -278,6 +279,7 @@ static CachedStyles *cacheStyles(StyleConfig *styleConfig)
   cache.thematicBreakMarginTop = [styleConfig thematicBreakMarginTop];
   cache.thematicBreakMarginBottom = [styleConfig thematicBreakMarginBottom];
   cache.strikethroughColor = colorToCSS([styleConfig strikethroughColor]);
+  cache.underlineColor = colorToCSS([styleConfig underlineColor]);
 
   return cache;
 }
@@ -510,8 +512,13 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                             [html appendString:@"<s>"];
                           }
                         }
-                        if ([underline integerValue] > 0 && !linkAttr)
-                          [html appendString:@"<u>"];
+                        if ([underline integerValue] > 0 && !linkAttr) {
+                          if (styles.underlineColor && ![styles.underlineColor isEqualToString:@"inherit"]) {
+                            [html appendFormat:@"<u style=\"text-decoration-color: %@;\">", styles.underlineColor];
+                          } else {
+                            [html appendString:@"<u>"];
+                          }
+                        }
 
                         [html appendString:escapeHTML(text)];
 

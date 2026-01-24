@@ -306,11 +306,13 @@ The library provides sensible default styles for all Markdown elements out of th
       fontWeight: 'bold',
       color: '#000',
       marginBottom: 16,
+      textAlign: 'center',
     },
     h2: {
       fontSize: 24,
       fontWeight: '600',
       marginBottom: 12,
+      textAlign: 'left',
     },
     strong: {
       color: '#000',
@@ -384,6 +386,12 @@ The library provides sensible default styles for all Markdown elements out of th
 | `color` | `string` | Text color |
 | `marginBottom` | `number` | Bottom margin |
 | `lineHeight` | `number` | Line height |
+
+#### Paragraph and Heading-specific (paragraph, h1-h6)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `textAlign` | `'auto' \| 'left' \| 'right' \| 'center' \| 'justify'` | Text alignment (default: `'left'`) |
 
 #### Blockquote-specific
 

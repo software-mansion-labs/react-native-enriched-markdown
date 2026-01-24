@@ -2,7 +2,6 @@ package com.swmansion.enriched.markdown.utils
 
 import android.graphics.Typeface
 import android.text.Spannable
-import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
@@ -13,6 +12,7 @@ import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
+import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
@@ -68,9 +68,10 @@ object HTMLGenerator {
     val linkColor: String
     val linkUnderline: Boolean
 
-    // Strong/Emphasis
+    // Strong/Emphasis/Strikethrough
     val strongColor: String?
     val emphasisColor: String?
+    val strikethroughColor: String?
 
     // Image
     val imageMarginBottom: Int
@@ -135,11 +136,13 @@ object HTMLGenerator {
       linkColor = colorToCSS(style.linkStyle.color)
       linkUnderline = style.linkStyle.underline
 
-      // Strong/Emphasis (nullable for inherit)
+      // Strong/Emphasis/Strikethrough (nullable for inherit)
       val sc = style.strongStyle.color
       strongColor = if (sc != null && sc != 0) colorToCSS(sc) else null
       val ec = style.emphasisStyle.color
       emphasisColor = if (ec != null && ec != 0) colorToCSS(ec) else null
+      val strikeColor = style.strikethroughStyle.color
+      strikethroughColor = if (strikeColor != 0) colorToCSS(strikeColor) else null
 
       // Image
       val imgStyle = style.imageStyle
@@ -710,7 +713,13 @@ object HTMLGenerator {
       }
     }
 
-    if (isStrikethrough) html.append("<s>")
+    if (isStrikethrough) {
+      if (styles.strikethroughColor != null) {
+        html.append("<s style=\"text-decoration-color: ").append(styles.strikethroughColor).append(";\">")
+      } else {
+        html.append("<s>")
+      }
+    }
     if (isUnderline && link == null) html.append("<u>")
 
     escapeHTMLTo(html, content.trimEnd('\n'))

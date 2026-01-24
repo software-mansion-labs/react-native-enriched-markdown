@@ -100,6 +100,7 @@ typedef struct {
 @property (nonatomic) CGFloat thematicBreakHeight;
 @property (nonatomic) CGFloat thematicBreakMarginTop;
 @property (nonatomic) CGFloat thematicBreakMarginBottom;
+@property (nonatomic, copy) NSString *strikethroughColor;
 @end
 
 @implementation CachedStyles
@@ -276,6 +277,7 @@ static CachedStyles *cacheStyles(StyleConfig *styleConfig)
   cache.thematicBreakHeight = [styleConfig thematicBreakHeight];
   cache.thematicBreakMarginTop = [styleConfig thematicBreakMarginTop];
   cache.thematicBreakMarginBottom = [styleConfig thematicBreakMarginBottom];
+  cache.strikethroughColor = colorToCSS([styleConfig strikethroughColor]);
 
   return cache;
 }
@@ -501,8 +503,13 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                           }
                         }
 
-                        if ([strikethrough integerValue] > 0)
-                          [html appendString:@"<s>"];
+                        if ([strikethrough integerValue] > 0) {
+                          if (styles.strikethroughColor && ![styles.strikethroughColor isEqualToString:@"inherit"]) {
+                            [html appendFormat:@"<s style=\"text-decoration-color: %@;\">", styles.strikethroughColor];
+                          } else {
+                            [html appendString:@"<s>"];
+                          }
+                        }
                         if ([underline integerValue] > 0 && !linkAttr)
                           [html appendString:@"<u>"];
 

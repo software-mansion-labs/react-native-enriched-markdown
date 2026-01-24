@@ -57,9 +57,11 @@
   }
 
   // 3. Margin Application
-  // Only top-level paragraphs apply bottom margins; nested paragraphs defer to their parents.
+  // Apply margins for document-level paragraphs (None or Paragraph block type).
+  // Nested paragraphs inside blockquotes/lists defer to their parents.
+  BOOL shouldApplyMargin = (context.currentBlockType == BlockTypeNone || context.currentBlockType == BlockTypeParagraph);
   CGFloat marginBottom = 0;
-  if (isTopLevel) {
+  if (shouldApplyMargin) {
     marginBottom = isBlockImage ? _config.imageMarginBottom : _config.paragraphMarginBottom;
   }
 

@@ -84,7 +84,14 @@ class EnrichedMarkdownText
     private fun scheduleRender() {
       val style = markdownStyle ?: return
       val markdown = currentMarkdown
-      if (markdown.isEmpty()) return
+
+      // Handle empty markdown - clear the view immediately
+      if (markdown.isEmpty()) {
+        ++currentRenderId // Invalidate any pending renders
+        text = ""
+        layoutManager.invalidateLayout()
+        return
+      }
 
       val renderId = ++currentRenderId
 

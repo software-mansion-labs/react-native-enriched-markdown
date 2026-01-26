@@ -56,7 +56,16 @@ static NSString *const kNestedInfoRangeKey = @"range";
                            end:(NSUInteger)end
                   currentDepth:(NSInteger)currentDepth
 {
-  NSRange blockquoteRange = NSMakeRange(start, end - start);
+  NSUInteger contentStart = start;
+  if (currentDepth == 0) {
+    CGFloat marginTop = [_config blockquoteMarginTop];
+    if (marginTop > 0) {
+      applyBlockSpacingBefore(output, start, marginTop);
+      contentStart = start + 1;
+    }
+  }
+
+  NSRange blockquoteRange = NSMakeRange(contentStart, end - start);
   CGFloat levelSpacing = [_config blockquoteBorderWidth] + [_config blockquoteGapWidth];
   NSArray<NSDictionary *> *nestedInfo = [self collectNestedBlockquotes:output range:blockquoteRange depth:currentDepth];
 
@@ -72,12 +81,8 @@ static NSString *const kNestedInfoRangeKey = @"range";
   // (applyBaseBlockquoteStyle overwrites nested indents with the parent's indent)
   [self reapplyNestedStyles:output nestedInfo:nestedInfo levelSpacing:levelSpacing];
 
-  // Apply bottom margin for top-level blockquotes only
   if (currentDepth == 0) {
-    CGFloat marginBottom = [_config blockquoteMarginBottom];
-    if (marginBottom > 0) {
-      applyBlockSpacing(output, marginBottom);
-    }
+    applyBlockSpacing(output, [_config blockquoteMarginBottom]);
   }
 }
 

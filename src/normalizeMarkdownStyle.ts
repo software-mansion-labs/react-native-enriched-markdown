@@ -37,6 +37,7 @@ const paragraphDefaultStyles: MarkdownStyleInternal['paragraph'] = {
   fontWeight: '',
   color: defaultTextColor,
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  marginTop: 0,
   marginBottom: 16,
   textAlign: 'left',
 };
@@ -47,6 +48,7 @@ const defaultH1Style: MarkdownStyleInternal['h1'] = {
   fontWeight: '',
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
+  marginTop: 0,
   marginBottom: 8,
   textAlign: 'left',
 };
@@ -57,6 +59,7 @@ const defaultH2Style: MarkdownStyleInternal['h2'] = {
   fontWeight: '',
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
+  marginTop: 0,
   marginBottom: 8,
   textAlign: 'left',
 };
@@ -67,6 +70,7 @@ const defaultH3Style: MarkdownStyleInternal['h3'] = {
   fontWeight: '',
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
+  marginTop: 0,
   marginBottom: 8,
   textAlign: 'left',
 };
@@ -77,6 +81,7 @@ const defaultH4Style: MarkdownStyleInternal['h4'] = {
   fontWeight: '',
   color: defaultHeadingColor,
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  marginTop: 0,
   marginBottom: 8,
   textAlign: 'left',
 };
@@ -87,6 +92,7 @@ const defaultH5Style: MarkdownStyleInternal['h5'] = {
   fontWeight: '',
   color: processColor('#374151') as ColorValue,
   lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
+  marginTop: 0,
   marginBottom: 8,
   textAlign: 'left',
 };
@@ -97,6 +103,7 @@ const defaultH6Style: MarkdownStyleInternal['h6'] = {
   fontWeight: '',
   color: processColor('#4B5563') as ColorValue,
   lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+  marginTop: 0,
   marginBottom: 8,
   textAlign: 'left',
 };
@@ -121,6 +128,7 @@ const defaultCodeStyle: MarkdownStyleInternal['code'] = {
 const defaultImageStyle: MarkdownStyleInternal['image'] = {
   height: 200,
   borderRadius: 8,
+  marginTop: 0,
   marginBottom: 16,
 };
 
@@ -138,6 +146,7 @@ const defaultBlockquoteStyle: MarkdownStyleInternal['blockquote'] = {
   fontWeight: '',
   color: processColor('#4B5563') as ColorValue,
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  marginTop: 0,
   marginBottom: 16,
   borderColor: defaultBlockquoteBorderColor,
   borderWidth: 3,
@@ -158,6 +167,7 @@ const defaultListStyle: MarkdownStyleInternal['list'] = {
     android: 26,
     default: 26,
   }),
+  marginTop: 0,
   marginBottom: 16,
   bulletColor: defaultListBulletColor,
   bulletSize: 6,
@@ -177,6 +187,7 @@ const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
   fontWeight: '',
   color: defaultCodeBlockTextColor,
   lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+  marginTop: 0,
   marginBottom: 16,
   backgroundColor: defaultCodeBlockBackgroundColor,
   borderColor: defaultCodeBlockBorderColor,
@@ -207,6 +218,7 @@ export const normalizeMarkdownStyle = (
       style.paragraph?.fontWeight ?? paragraphDefaultStyles.fontWeight,
     color:
       normalizeColor(style.paragraph?.color) ?? paragraphDefaultStyles.color,
+    marginTop: style.paragraph?.marginTop ?? paragraphDefaultStyles.marginTop,
     marginBottom:
       style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom,
     lineHeight:
@@ -219,6 +231,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.h1?.fontFamily ?? defaultH1Style.fontFamily,
     fontWeight: style.h1?.fontWeight ?? defaultH1Style.fontWeight,
     color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
+    marginTop: style.h1?.marginTop ?? defaultH1Style.marginTop,
     marginBottom: style.h1?.marginBottom ?? defaultH1Style.marginBottom,
     lineHeight: style.h1?.lineHeight ?? defaultH1Style.lineHeight,
     textAlign: style.h1?.textAlign ?? defaultH1Style.textAlign,
@@ -229,6 +242,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.h2?.fontFamily ?? defaultH2Style.fontFamily,
     fontWeight: style.h2?.fontWeight ?? defaultH2Style.fontWeight,
     color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
+    marginTop: style.h2?.marginTop ?? defaultH2Style.marginTop,
     marginBottom: style.h2?.marginBottom ?? defaultH2Style.marginBottom,
     lineHeight: style.h2?.lineHeight ?? defaultH2Style.lineHeight,
     textAlign: style.h2?.textAlign ?? defaultH2Style.textAlign,
@@ -239,6 +253,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.h3?.fontFamily ?? defaultH3Style.fontFamily,
     fontWeight: style.h3?.fontWeight ?? defaultH3Style.fontWeight,
     color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
+    marginTop: style.h3?.marginTop ?? defaultH3Style.marginTop,
     marginBottom: style.h3?.marginBottom ?? defaultH3Style.marginBottom,
     lineHeight: style.h3?.lineHeight ?? defaultH3Style.lineHeight,
     textAlign: style.h3?.textAlign ?? defaultH3Style.textAlign,
@@ -249,6 +264,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.h4?.fontFamily ?? defaultH4Style.fontFamily,
     fontWeight: style.h4?.fontWeight ?? defaultH4Style.fontWeight,
     color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
+    marginTop: style.h4?.marginTop ?? defaultH4Style.marginTop,
     marginBottom: style.h4?.marginBottom ?? defaultH4Style.marginBottom,
     lineHeight: style.h4?.lineHeight ?? defaultH4Style.lineHeight,
     textAlign: style.h4?.textAlign ?? defaultH4Style.textAlign,
@@ -259,6 +275,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.h5?.fontFamily ?? defaultH5Style.fontFamily,
     fontWeight: style.h5?.fontWeight ?? defaultH5Style.fontWeight,
     color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
+    marginTop: style.h5?.marginTop ?? defaultH5Style.marginTop,
     marginBottom: style.h5?.marginBottom ?? defaultH5Style.marginBottom,
     lineHeight: style.h5?.lineHeight ?? defaultH5Style.lineHeight,
     textAlign: style.h5?.textAlign ?? defaultH5Style.textAlign,
@@ -269,6 +286,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.h6?.fontFamily ?? defaultH6Style.fontFamily,
     fontWeight: style.h6?.fontWeight ?? defaultH6Style.fontWeight,
     color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
+    marginTop: style.h6?.marginTop ?? defaultH6Style.marginTop,
     marginBottom: style.h6?.marginBottom ?? defaultH6Style.marginBottom,
     lineHeight: style.h6?.lineHeight ?? defaultH6Style.lineHeight,
     textAlign: style.h6?.textAlign ?? defaultH6Style.textAlign,
@@ -282,6 +300,7 @@ export const normalizeMarkdownStyle = (
       style.blockquote?.fontWeight ?? defaultBlockquoteStyle.fontWeight,
     color:
       normalizeColor(style.blockquote?.color) ?? defaultBlockquoteStyle.color,
+    marginTop: style.blockquote?.marginTop ?? defaultBlockquoteStyle.marginTop,
     marginBottom:
       style.blockquote?.marginBottom ?? defaultBlockquoteStyle.marginBottom,
     lineHeight:
@@ -302,6 +321,7 @@ export const normalizeMarkdownStyle = (
     fontFamily: style.list?.fontFamily ?? defaultListStyle.fontFamily,
     fontWeight: style.list?.fontWeight ?? defaultListStyle.fontWeight,
     color: normalizeColor(style.list?.color) ?? defaultListStyle.color,
+    marginTop: style.list?.marginTop ?? defaultListStyle.marginTop,
     marginBottom: style.list?.marginBottom ?? defaultListStyle.marginBottom,
     lineHeight: style.list?.lineHeight ?? defaultListStyle.lineHeight,
     bulletColor:
@@ -321,6 +341,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.codeBlock?.fontWeight ?? defaultCodeBlockStyle.fontWeight,
     color:
       normalizeColor(style.codeBlock?.color) ?? defaultCodeBlockStyle.color,
+    marginTop: style.codeBlock?.marginTop ?? defaultCodeBlockStyle.marginTop,
     marginBottom:
       style.codeBlock?.marginBottom ?? defaultCodeBlockStyle.marginBottom,
     lineHeight: style.codeBlock?.lineHeight ?? defaultCodeBlockStyle.lineHeight,
@@ -376,6 +397,7 @@ export const normalizeMarkdownStyle = (
       ...defaultImageStyle,
       height: style.image?.height ?? defaultImageStyle.height,
       borderRadius: style.image?.borderRadius ?? defaultImageStyle.borderRadius,
+      marginTop: style.image?.marginTop ?? defaultImageStyle.marginTop,
       marginBottom: style.image?.marginBottom ?? defaultImageStyle.marginBottom,
     },
     inlineImage: {

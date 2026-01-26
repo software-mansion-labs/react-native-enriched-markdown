@@ -5,10 +5,11 @@ import android.text.style.AlignmentSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.styles.ParagraphStyle
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 import com.swmansion.enriched.markdown.utils.applyMarginBottom
+import com.swmansion.enriched.markdown.utils.applyMarginTop
 import com.swmansion.enriched.markdown.utils.containsBlockImage
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
-import com.swmansion.enriched.markdown.utils.getMarginBottomForParagraph
 
 class ParagraphRenderer(
   private val config: RendererConfig,
@@ -73,7 +74,15 @@ class ParagraphRenderer(
       )
     }
 
-    val margin = getMarginBottomForParagraph(node, style, config.style)
-    applyMarginBottom(this, start, margin)
+    // For block images, use spacer-based approach (MarginTopSpan doesn't work with replacement spans)
+    // For text paragraphs, use MarginTopSpan
+    if (node.containsBlockImage()) {
+      applyBlockMarginTop(this, start, config.style.imageStyle.marginTop)
+    } else {
+      applyMarginTop(this, start, end, style.marginTop)
+    }
+
+    val marginBottom = if (node.containsBlockImage()) config.style.imageStyle.marginBottom else style.marginBottom
+    applyMarginBottom(this, start, marginBottom)
   }
 }

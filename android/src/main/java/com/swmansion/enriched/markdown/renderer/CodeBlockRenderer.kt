@@ -8,6 +8,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.CodeBlockSpan
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 
 class CodeBlockRenderer(
   private val config: RendererConfig,
@@ -22,6 +23,11 @@ class CodeBlockRenderer(
     val style = config.style.codeBlockStyle
     val context = factory.blockStyleContext
 
+    applyBlockMarginTop(builder, start, style.marginTop)
+
+    // Content starts after the marginTop spacer (which is 1 character)
+    val contentStart = start + (if (style.marginTop > 0) 1 else 0)
+
     // Set code block style in context for children to inherit
     context.setCodeBlockStyle(style)
 
@@ -33,24 +39,25 @@ class CodeBlockRenderer(
     }
 
     // Safety check for empty code blocks
-    if (builder.length == start) return
+    if (builder.length == contentStart) return
 
     val end = builder.length
     val padding = style.padding.toInt()
 
     // 1. Apply CodeBlockSpan (Handles Background, Borders, and Horizontal Padding)
-    // Matches the logic in the updated CodeBlockSpan for full-width support
+    // Apply only to the actual code content, NOT the marginTop spacer
     builder.setSpan(
       CodeBlockSpan(style, factory.context, factory.styleCache),
-      start,
+      contentStart,
       end,
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
     // 2. Apply Boundary Vertical Padding
+    // Apply only to the actual code content, NOT the marginTop spacer
     builder.setSpan(
       CodeBlockBoundaryPaddingSpan(padding),
-      start,
+      contentStart,
       end,
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )

@@ -4,6 +4,7 @@ import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
 
 class ListRenderer(
@@ -24,7 +25,12 @@ class ListRenderer(
     val contextManager = ListContextManager(factory.blockStyleContext, config.style)
     val entryState = contextManager.enterList(listType, listStyle)
 
-    // 2. Nested List Isolation
+    // 2. For top-level lists, insert marginTop spacer BEFORE rendering content
+    if (entryState.previousDepth == 0) {
+      applyBlockMarginTop(builder, start, listStyle.marginTop)
+    }
+
+    // 3. Nested List Isolation
     if (entryState.previousDepth > 0 && builder.isNotEmpty() && builder.last() != '\n') {
       builder.append("\n")
     }
@@ -35,7 +41,7 @@ class ListRenderer(
       contextManager.exitList(entryState)
     }
 
-    // 3. Spacing & Styling
+    // 4. Spacing & Styling
     if (builder.length > start) {
       applyListSpacing(builder, start, entryState.previousDepth, listStyle)
     }

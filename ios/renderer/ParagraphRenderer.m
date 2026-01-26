@@ -33,6 +33,24 @@
   }
 
   NSUInteger start = output.length;
+
+  // For first element, insert marginTop spacer BEFORE rendering content
+  // This ensures the spacer is outside the paragraph's styled area
+  BOOL shouldApplyMargin =
+      (context.currentBlockType == BlockTypeNone || context.currentBlockType == BlockTypeParagraph);
+
+  // Check if this paragraph is purely a wrapper for a block image.
+  // Images often require different spacing and should not have standard line height applied.
+  BOOL isBlockImage = (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
+  CGFloat marginTop = isBlockImage ? _config.imageMarginTop : _config.paragraphMarginTop;
+
+  NSUInteger contentStart = start;
+  if (shouldApplyMargin && start == 0 && marginTop > 0) {
+    applyBlockSpacingBefore(output, 0, marginTop);
+    contentStart = 1;
+    start = 1;
+  }
+
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];
   } @finally {
@@ -47,10 +65,6 @@
     return;
   NSRange range = NSMakeRange(start, output.length - start);
 
-  // Check if this paragraph is purely a wrapper for a block image.
-  // Images often require different spacing and should not have standard line height applied.
-  BOOL isBlockImage = (node.children.count == 1 && ((MarkdownASTNode *)node.children[0]).type == MarkdownNodeTypeImage);
-
   // Apply line height only for text paragraphs to avoid unwanted gaps above/below images.
   if (!isBlockImage) {
     applyLineHeight(output, range, _config.paragraphLineHeight);
@@ -60,14 +74,15 @@
   applyTextAlignment(output, range, _config.paragraphTextAlign);
 
   // 3. Margin Application
-  // Apply margins for document-level paragraphs (None or Paragraph block type).
-  // Nested paragraphs inside blockquotes/lists defer to their parents.
-  BOOL shouldApplyMargin = (context.currentBlockType == BlockTypeNone || context.currentBlockType == BlockTypeParagraph);
+  // Apply marginTop for non-first elements (first element already handled above)
+  if (shouldApplyMargin && contentStart != 1) {
+    applyParagraphSpacingBefore(output, range, marginTop);
+  }
+
   CGFloat marginBottom = 0;
   if (shouldApplyMargin) {
     marginBottom = isBlockImage ? _config.imageMarginBottom : _config.paragraphMarginBottom;
   }
-
   applyParagraphSpacing(output, start, marginBottom);
 }
 

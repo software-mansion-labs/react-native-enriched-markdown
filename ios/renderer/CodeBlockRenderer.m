@@ -27,8 +27,14 @@
 
   CGFloat padding = [_config codeBlockPadding];
   CGFloat lineHeight = [_config codeBlockLineHeight];
+  CGFloat marginTop = [_config codeBlockMarginTop];
   CGFloat marginBottom = [_config codeBlockMarginBottom];
+
   NSUInteger blockStart = output.length;
+  if (marginTop > 0) {
+    applyBlockSpacingBefore(output, blockStart, marginTop);
+    blockStart = output.length;
+  }
 
   // 1. TOP PADDING: Inside the background
   [output appendAttributedString:kNewlineAttributedString];

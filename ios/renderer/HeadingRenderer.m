@@ -10,6 +10,7 @@
 typedef struct {
   __unsafe_unretained UIFont *font;
   __unsafe_unretained UIColor *color;
+  CGFloat marginTop;
   CGFloat marginBottom;
   CGFloat lineHeight;
   NSTextAlignment textAlign;
@@ -47,6 +48,14 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   [context setBlockStyle:BlockTypeHeading font:style.font color:style.color headingLevel:level];
 
   NSUInteger start = output.length;
+
+  NSUInteger contentStart = start;
+  if (start == 0 && style.marginTop > 0) {
+    applyBlockSpacingBefore(output, 0, style.marginTop);
+    contentStart = 1;
+    start = 1;
+  }
+
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];
   } @finally {
@@ -62,6 +71,10 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
 
   applyLineHeight(output, range, style.lineHeight);
   applyTextAlignment(output, range, style.textAlign);
+
+  if (contentStart != 1) {
+    applyParagraphSpacingBefore(output, range, style.marginTop);
+  }
   applyParagraphSpacing(output, start, style.marginBottom);
 }
 
@@ -74,22 +87,22 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
 
   switch (level) {
     case 1:
-      s = (HeadingStyle){c.h1Font, c.h1Color, c.h1MarginBottom, c.h1LineHeight, c.h1TextAlign};
+      s = (HeadingStyle){c.h1Font, c.h1Color, c.h1MarginTop, c.h1MarginBottom, c.h1LineHeight, c.h1TextAlign};
       break;
     case 2:
-      s = (HeadingStyle){c.h2Font, c.h2Color, c.h2MarginBottom, c.h2LineHeight, c.h2TextAlign};
+      s = (HeadingStyle){c.h2Font, c.h2Color, c.h2MarginTop, c.h2MarginBottom, c.h2LineHeight, c.h2TextAlign};
       break;
     case 3:
-      s = (HeadingStyle){c.h3Font, c.h3Color, c.h3MarginBottom, c.h3LineHeight, c.h3TextAlign};
+      s = (HeadingStyle){c.h3Font, c.h3Color, c.h3MarginTop, c.h3MarginBottom, c.h3LineHeight, c.h3TextAlign};
       break;
     case 4:
-      s = (HeadingStyle){c.h4Font, c.h4Color, c.h4MarginBottom, c.h4LineHeight, c.h4TextAlign};
+      s = (HeadingStyle){c.h4Font, c.h4Color, c.h4MarginTop, c.h4MarginBottom, c.h4LineHeight, c.h4TextAlign};
       break;
     case 5:
-      s = (HeadingStyle){c.h5Font, c.h5Color, c.h5MarginBottom, c.h5LineHeight, c.h5TextAlign};
+      s = (HeadingStyle){c.h5Font, c.h5Color, c.h5MarginTop, c.h5MarginBottom, c.h5LineHeight, c.h5TextAlign};
       break;
     case 6:
-      s = (HeadingStyle){c.h6Font, c.h6Color, c.h6MarginBottom, c.h6LineHeight, c.h6TextAlign};
+      s = (HeadingStyle){c.h6Font, c.h6Color, c.h6MarginTop, c.h6MarginBottom, c.h6LineHeight, c.h6TextAlign};
       break;
     default:
       return [self styleForLevel:1];

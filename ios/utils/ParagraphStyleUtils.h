@@ -9,6 +9,8 @@ extern NSAttributedString *kNewlineAttributedString;
 
 NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *output, NSUInteger index);
 void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom);
+void applyParagraphSpacingBefore(NSMutableAttributedString *output, NSRange range, CGFloat marginTop);
+void applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop);
 void applyBlockSpacing(NSMutableAttributedString *output, CGFloat marginBottom);
 void applyLineHeight(NSMutableAttributedString *output, NSRange range, CGFloat lineHeight);
 void applyTextAlignment(NSMutableAttributedString *output, NSRange range, NSTextAlignment textAlign);

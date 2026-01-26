@@ -32,6 +32,17 @@
   ListType prevType = context.listType;
   NSInteger prevNum = context.listItemNumber;
 
+  NSUInteger start = output.length;
+
+  NSUInteger contentStart = start;
+  if (prevDepth == 0) {
+    CGFloat marginTop = [_config listStyleMarginTop];
+    if (marginTop > 0) {
+      applyBlockSpacingBefore(output, start, marginTop);
+      contentStart = start + 1;
+    }
+  }
+
   // Configure depth and type
   context.listDepth = prevDepth + 1;
   context.listType = _isOrdered ? ListTypeOrdered : ListTypeUnordered;
@@ -59,7 +70,7 @@
   }
 
   // Final spacing for root container
-  if (prevDepth == 0 && [_config listStyleMarginBottom] > 0) {
+  if (prevDepth == 0) {
     applyBlockSpacing(output, [_config listStyleMarginBottom]);
   }
 }

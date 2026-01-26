@@ -6,6 +6,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 import com.swmansion.enriched.markdown.utils.applyMarginBottom
+import com.swmansion.enriched.markdown.utils.applyMarginTop
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
 
 class HeadingRenderer(
@@ -61,6 +62,7 @@ class HeadingRenderer(
         )
       }
 
+      applyMarginTop(builder, start, end, headingStyle.marginTop)
       applyMarginBottom(builder, start, headingStyle.marginBottom)
     }
   }

@@ -7,6 +7,7 @@ data class ParagraphStyle(
   override val fontFamily: String,
   override val fontWeight: String,
   override val color: Int,
+  override val marginTop: Float,
   override val marginBottom: Float,
   override val lineHeight: Float,
   val textAlign: TextAlignment,
@@ -20,12 +21,13 @@ data class ParagraphStyle(
       val fontFamily = parser.parseString(map, "fontFamily")
       val fontWeight = parser.parseString(map, "fontWeight", "normal")
       val color = parser.parseColor(map, "color")
+      val marginTop = parser.toPixelFromDIP(map.getDouble("marginTop").toFloat())
       val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
       val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
       val textAlign = parser.parseTextAlign(map, "textAlign")
 
-      return ParagraphStyle(fontSize, fontFamily, fontWeight, color, marginBottom, lineHeight, textAlign)
+      return ParagraphStyle(fontSize, fontFamily, fontWeight, color, marginTop, marginBottom, lineHeight, textAlign)
     }
   }
 }

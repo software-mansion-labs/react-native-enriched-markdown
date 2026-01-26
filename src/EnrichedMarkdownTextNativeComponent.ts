@@ -11,6 +11,7 @@ interface BaseBlockStyleInternal {
   fontFamily: string;
   fontWeight: string;
   color: ColorValue;
+  marginTop: CodegenTypes.Float;
   marginBottom: CodegenTypes.Float;
   lineHeight: CodegenTypes.Float;
 }
@@ -73,6 +74,7 @@ interface CodeStyleInternal {
 interface ImageStyleInternal {
   height: CodegenTypes.Float;
   borderRadius: CodegenTypes.Float;
+  marginTop: CodegenTypes.Float;
   marginBottom: CodegenTypes.Float;
 }
 

@@ -30,8 +30,42 @@ void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, 
   [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
 }
 
+void applyParagraphSpacingBefore(NSMutableAttributedString *output, NSRange range, CGFloat marginTop)
+{
+  if (marginTop <= 0) {
+    return;
+  }
+
+  // Use paragraphSpacingBefore - does not insert characters, so no content shift.
+  // Note: First element (position 0) case is handled directly in renderers
+  // (ParagraphRenderer, HeadingRenderer, BlockquoteRenderer) using applyBlockSpacingBefore
+  // before rendering content, since paragraphSpacingBefore doesn't work at position 0.
+  NSMutableParagraphStyle *style = getOrCreateParagraphStyle(output, range.location);
+  style.paragraphSpacingBefore = marginTop;
+  [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
+}
+
+void applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop)
+{
+  if (marginTop <= 0) {
+    return;
+  }
+
+  NSMutableParagraphStyle *spacerStyle = [kBlockSpacerTemplate mutableCopy];
+  spacerStyle.paragraphSpacing = marginTop;
+
+  NSAttributedString *spacer =
+      [[NSAttributedString alloc] initWithString:@"\n" attributes:@{NSParagraphStyleAttributeName : spacerStyle}];
+
+  [output insertAttributedString:spacer atIndex:insertionPoint];
+}
+
 void applyBlockSpacing(NSMutableAttributedString *output, CGFloat marginBottom)
 {
+  if (marginBottom <= 0) {
+    return;
+  }
+
   NSUInteger spacerLocation = output.length;
   [output appendAttributedString:kNewlineAttributedString];
 

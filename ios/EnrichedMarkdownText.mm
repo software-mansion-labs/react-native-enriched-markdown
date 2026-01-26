@@ -382,6 +382,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.paragraph.marginTop != oldViewProps.markdownStyle.paragraph.marginTop) {
+    [_config setParagraphMarginTop:newViewProps.markdownStyle.paragraph.marginTop];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.paragraph.marginBottom != oldViewProps.markdownStyle.paragraph.marginBottom) {
     [_config setParagraphMarginBottom:newViewProps.markdownStyle.paragraph.marginBottom];
     stylePropChanged = YES;
@@ -430,6 +435,11 @@ using namespace facebook::react;
     } else {
       [_config setH1Color:nullptr];
     }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.h1.marginTop != oldViewProps.markdownStyle.h1.marginTop) {
+    [_config setH1MarginTop:newViewProps.markdownStyle.h1.marginTop];
     stylePropChanged = YES;
   }
 
@@ -484,6 +494,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.h2.marginTop != oldViewProps.markdownStyle.h2.marginTop) {
+    [_config setH2MarginTop:newViewProps.markdownStyle.h2.marginTop];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.h2.marginBottom != oldViewProps.markdownStyle.h2.marginBottom) {
     [_config setH2MarginBottom:newViewProps.markdownStyle.h2.marginBottom];
     stylePropChanged = YES;
@@ -532,6 +547,11 @@ using namespace facebook::react;
     } else {
       [_config setH3Color:nullptr];
     }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.h3.marginTop != oldViewProps.markdownStyle.h3.marginTop) {
+    [_config setH3MarginTop:newViewProps.markdownStyle.h3.marginTop];
     stylePropChanged = YES;
   }
 
@@ -586,6 +606,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.h4.marginTop != oldViewProps.markdownStyle.h4.marginTop) {
+    [_config setH4MarginTop:newViewProps.markdownStyle.h4.marginTop];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.h4.marginBottom != oldViewProps.markdownStyle.h4.marginBottom) {
     [_config setH4MarginBottom:newViewProps.markdownStyle.h4.marginBottom];
     stylePropChanged = YES;
@@ -634,6 +659,11 @@ using namespace facebook::react;
     } else {
       [_config setH5Color:nullptr];
     }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.h5.marginTop != oldViewProps.markdownStyle.h5.marginTop) {
+    [_config setH5MarginTop:newViewProps.markdownStyle.h5.marginTop];
     stylePropChanged = YES;
   }
 
@@ -688,6 +718,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.h6.marginTop != oldViewProps.markdownStyle.h6.marginTop) {
+    [_config setH6MarginTop:newViewProps.markdownStyle.h6.marginTop];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.h6.marginBottom != oldViewProps.markdownStyle.h6.marginBottom) {
     [_config setH6MarginBottom:newViewProps.markdownStyle.h6.marginBottom];
     stylePropChanged = YES;
@@ -726,6 +761,11 @@ using namespace facebook::react;
   if (newViewProps.markdownStyle.blockquote.color != oldViewProps.markdownStyle.blockquote.color) {
     UIColor *blockquoteColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.blockquote.color);
     [_config setBlockquoteColor:blockquoteColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.blockquote.marginTop != oldViewProps.markdownStyle.blockquote.marginTop) {
+    [_config setBlockquoteMarginTop:newViewProps.markdownStyle.blockquote.marginTop];
     stylePropChanged = YES;
   }
 
@@ -839,6 +879,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  if (newViewProps.markdownStyle.image.marginTop != oldViewProps.markdownStyle.image.marginTop) {
+    [_config setImageMarginTop:newViewProps.markdownStyle.image.marginTop];
+    stylePropChanged = YES;
+  }
+
   if (newViewProps.markdownStyle.image.marginBottom != oldViewProps.markdownStyle.image.marginBottom) {
     [_config setImageMarginBottom:newViewProps.markdownStyle.image.marginBottom];
     stylePropChanged = YES;
@@ -870,6 +915,11 @@ using namespace facebook::react;
   if (newViewProps.markdownStyle.list.color != oldViewProps.markdownStyle.list.color) {
     UIColor *listColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.list.color);
     [_config setListStyleColor:listColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.list.marginTop != oldViewProps.markdownStyle.list.marginTop) {
+    [_config setListStyleMarginTop:newViewProps.markdownStyle.list.marginTop];
     stylePropChanged = YES;
   }
 
@@ -940,6 +990,11 @@ using namespace facebook::react;
   if (newViewProps.markdownStyle.codeBlock.color != oldViewProps.markdownStyle.codeBlock.color) {
     UIColor *codeBlockColor = RCTUIColorFromSharedColor(newViewProps.markdownStyle.codeBlock.color);
     [_config setCodeBlockColor:codeBlockColor];
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.markdownStyle.codeBlock.marginTop != oldViewProps.markdownStyle.codeBlock.marginTop) {
+    [_config setCodeBlockMarginTop:newViewProps.markdownStyle.codeBlock.marginTop];
     stylePropChanged = YES;
   }
 

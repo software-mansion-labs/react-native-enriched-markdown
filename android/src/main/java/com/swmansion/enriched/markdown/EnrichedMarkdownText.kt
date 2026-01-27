@@ -13,6 +13,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.UIManagerHelper
 import com.swmansion.enriched.markdown.events.LinkPressEvent
+import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
@@ -46,6 +47,9 @@ class EnrichedMarkdownText
     var currentMarkdown: String = ""
       private set
 
+    var md4cFlags: Md4cFlags = Md4cFlags.DEFAULT
+      private set
+
     init {
       setBackgroundColor(Color.TRANSPARENT)
       includeFontPadding = false // Must match setIncludePad(false) in MeasurementStore
@@ -67,6 +71,12 @@ class EnrichedMarkdownText
       if (markdownStyle == newStyle) return
       markdownStyle = newStyle
       updateJustificationMode(newStyle)
+      scheduleRender()
+    }
+
+    fun setMd4cFlags(flags: Md4cFlags) {
+      if (md4cFlags == flags) return
+      md4cFlags = flags
       scheduleRender()
     }
 
@@ -93,7 +103,7 @@ class EnrichedMarkdownText
           // 1. Parse Markdown → AST (C++ md4c parser)
           val parseStart = System.currentTimeMillis()
           val ast =
-            parser.parseMarkdown(markdown) ?: run {
+            parser.parseMarkdown(markdown, md4cFlags) ?: run {
               mainHandler.post { if (renderId == currentRenderId) text = "" }
               return@execute
             }

@@ -271,7 +271,7 @@ MD4CParser::MD4CParser() : impl_(std::make_unique<Impl>()) {}
 
 MD4CParser::~MD4CParser() = default;
 
-std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) {
+std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, const Md4cFlags &md4cFlags) {
   if (markdown.empty()) {
     return std::make_shared<MarkdownASTNode>(NodeType::Document);
   }
@@ -289,15 +289,18 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown) 
   impl_->reset(estimatedDepth);
   impl_->inputText = markdown.c_str();
 
+  // MD_FLAG_NOHTML: Disable HTML parsing
+  // MD_FLAG_STRIKETHROUGH: Enable ~~strikethrough~~ syntax
+  // MD_FLAG_UNDERLINE: When enabled, __ creates underline; when disabled, __ creates emphasis
+  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH;
+  if (md4cFlags.underline) {
+    flags |= MD_FLAG_UNDERLINE;
+  }
+
   // Configure MD4C parser with callbacks
   MD_PARSER parser = {
-      0,                                                          // abi_version
-      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_UNDERLINE, // flags - disable HTML
-      &Impl::enterBlock,
-      &Impl::leaveBlock,
-      &Impl::enterSpan,
-      &Impl::leaveSpan,
-      &Impl::text,
+      0, // abi_version
+      flags,   &Impl::enterBlock, &Impl::leaveBlock, &Impl::enterSpan, &Impl::leaveSpan, &Impl::text,
       nullptr, // debug_log
       nullptr  // syntax
   };

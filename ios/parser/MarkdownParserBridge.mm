@@ -1,6 +1,7 @@
 #include "MD4CParser.hpp"
 #import "MarkdownASTNode.h"
 #include "MarkdownASTNode.hpp"
+#import "MarkdownParser.h"
 
 // Convert C++ AST node to Objective-C AST node
 static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownASTNode> cppNode)
@@ -92,7 +93,7 @@ static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownAS
 }
 
 // Public function to parse markdown using C++ parser and convert to Objective-C AST
-MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown)
+MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, Md4cFlags *flags)
 {
   if (markdown.length == 0) {
     return [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];
@@ -107,9 +108,12 @@ MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown)
 
   std::string cppMarkdown(utf8String);
 
-  // Parse using C++ parser
+  // Convert Objective-C flags to C++ flags
+  Markdown::Md4cFlags cppFlags;
+  cppFlags.underline = flags.underline;
+
   Markdown::MD4CParser parser;
-  auto cppAST = parser.parse(cppMarkdown);
+  auto cppAST = parser.parse(cppMarkdown, cppFlags);
 
   // Convert C++ AST to Objective-C AST
   return convertCppASTToObjC(cppAST);

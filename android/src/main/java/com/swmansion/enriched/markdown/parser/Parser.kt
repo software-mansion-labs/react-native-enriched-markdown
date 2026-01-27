@@ -2,6 +2,14 @@ package com.swmansion.enriched.markdown.parser
 
 import android.util.Log
 
+data class Md4cFlags(
+  val underline: Boolean = false,
+) {
+  companion object {
+    val DEFAULT = Md4cFlags()
+  }
+}
+
 class Parser {
   companion object {
     init {
@@ -17,7 +25,10 @@ class Parser {
     }
 
     @JvmStatic
-    private external fun nativeParseMarkdown(markdown: String): MarkdownASTNode?
+    private external fun nativeParseMarkdown(
+      markdown: String,
+      flags: Md4cFlags,
+    ): MarkdownASTNode?
 
     /**
      * Shared parser instance. Parser is stateless and thread-safe, so it can be reused
@@ -26,13 +37,21 @@ class Parser {
     val shared: Parser = Parser()
   }
 
-  fun parseMarkdown(markdown: String): MarkdownASTNode? {
+  /**
+   * Parse markdown string into an AST.
+   * @param markdown The markdown string to parse
+   * @param flags MD4C parser flags configuration
+   */
+  fun parseMarkdown(
+    markdown: String,
+    flags: Md4cFlags = Md4cFlags.DEFAULT,
+  ): MarkdownASTNode? {
     if (markdown.isBlank()) {
       return null
     }
 
     try {
-      val ast = nativeParseMarkdown(markdown)
+      val ast = nativeParseMarkdown(markdown, flags)
 
       if (ast != null) {
         return ast

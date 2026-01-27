@@ -161,7 +161,8 @@ extern "C" {
 
 JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nativeParseMarkdown(JNIEnv *env,
                                                                                                  jobject /* this */,
-                                                                                                 jstring markdown) {
+                                                                                                 jstring markdown,
+                                                                                                 jobject flags) {
   if (!markdown) {
     LOGE("Markdown string is null");
     return nullptr;
@@ -174,9 +175,23 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
   }
 
   try {
-    // Parse markdown using C++ MD4CParser
+    // Extract flags from Kotlin Md4cFlags data class
+    Md4cFlags md4cFlags;
+    if (flags) {
+      jclass flagsClass = env->GetObjectClass(flags);
+      if (flagsClass) {
+        // Get the underline field
+        jfieldID underlineField = env->GetFieldID(flagsClass, "underline", "Z");
+        if (underlineField) {
+          md4cFlags.underline = env->GetBooleanField(flags, underlineField) == JNI_TRUE;
+        }
+        env->DeleteLocalRef(flagsClass);
+      }
+    }
+
+    // Parse markdown using C++ MD4CParser with md4cFlags
     MD4CParser parser;
-    auto ast = parser.parse(std::string(markdownStr));
+    auto ast = parser.parse(std::string(markdownStr), md4cFlags);
 
     env->ReleaseStringUTFChars(markdown, markdownStr);
 

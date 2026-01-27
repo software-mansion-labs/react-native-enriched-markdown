@@ -40,6 +40,7 @@ using namespace facebook::react;
   MarkdownParser *_parser;
   NSString *_cachedMarkdown;
   StyleConfig *_config;
+  Md4cFlags *_md4cFlags;
 
   // Background rendering support
   dispatch_queue_t _renderQueue;
@@ -126,6 +127,7 @@ using namespace facebook::react;
 
     self.backgroundColor = [UIColor clearColor];
     _parser = [[MarkdownParser alloc] init];
+    _md4cFlags = [Md4cFlags defaultFlags]; // Default flags for standard Markdown behavior
 
     // Serial queue for background rendering
     _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.render", DISPATCH_QUEUE_SERIAL);
@@ -222,6 +224,7 @@ using namespace facebook::react;
   // Capture state needed for background rendering
   StyleConfig *config = [_config copy];
   MarkdownParser *parser = _parser;
+  Md4cFlags *md4cFlags = [_md4cFlags copy];
   NSUInteger inputLength = markdownString.length;
   NSDate *scheduleStart = [NSDate date];
 
@@ -229,7 +232,7 @@ using namespace facebook::react;
   dispatch_async(_renderQueue, ^{
     // 1. Parse Markdown → AST (C++ md4c parser)
     NSDate *parseStart = [NSDate date];
-    MarkdownASTNode *ast = [parser parseMarkdown:markdownString];
+    MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
     if (!ast) {
       return;
     }
@@ -283,7 +286,7 @@ using namespace facebook::react;
   _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
 
-  MarkdownASTNode *ast = [_parser parseMarkdown:markdownString];
+  MarkdownASTNode *ast = [_parser parseMarkdown:markdownString flags:_md4cFlags];
   if (!ast) {
     return;
   }
@@ -1025,9 +1028,16 @@ using namespace facebook::react;
     _textView.selectable = newViewProps.isSelectable;
   }
 
+  // Update md4cFlags
+  BOOL md4cFlagsChanged = NO;
+  if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
+    _md4cFlags.underline = newViewProps.md4cFlags.underline;
+    md4cFlagsChanged = YES;
+  }
+
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
 
-  if (markdownChanged || stylePropChanged) {
+  if (markdownChanged || stylePropChanged || md4cFlagsChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
   }

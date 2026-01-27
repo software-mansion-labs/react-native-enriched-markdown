@@ -3,9 +3,9 @@ package com.swmansion.enriched.markdown.renderer
 import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
-import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
+import com.swmansion.enriched.markdown.utils.applyMarginBottom
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
 
 class BlockquoteRenderer(
@@ -59,16 +59,8 @@ class BlockquoteRenderer(
     // 5. Root-level Spacing
     if (depth == 0) {
       applyBlockMarginTop(builder, start, style.marginTop)
-
       if (style.marginBottom > 0) {
-        val spacerLocation = builder.length
-        builder.append("\n") // Physical break
-        builder.setSpan(
-          MarginBottomSpan(style.marginBottom),
-          spacerLocation,
-          builder.length,
-          SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-        )
+        applyMarginBottom(builder, builder.length, style.marginBottom)
       }
     }
   }

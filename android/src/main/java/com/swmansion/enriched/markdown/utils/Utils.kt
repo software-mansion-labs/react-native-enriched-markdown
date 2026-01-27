@@ -144,11 +144,6 @@ fun applyMarginTop(
   }
 }
 
-/**
- * Applies marginTop spacing to a block element by inserting a spacer newline before the content.
- * This creates visible spacing BEFORE the block, similar to how applyMarginBottom works AFTER.
- * Used for blockquotes where MarginTopSpan doesn't work correctly due to nested content.
- */
 fun applyBlockMarginTop(
   builder: SpannableStringBuilder,
   insertionPoint: Int,

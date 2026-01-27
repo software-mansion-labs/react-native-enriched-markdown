@@ -75,7 +75,6 @@ class ParagraphRenderer(
     }
 
     // For block images, use spacer-based approach (MarginTopSpan doesn't work with replacement spans)
-    // For text paragraphs, use MarginTopSpan
     if (node.containsBlockImage()) {
       applyBlockMarginTop(this, start, config.style.imageStyle.marginTop)
     } else {

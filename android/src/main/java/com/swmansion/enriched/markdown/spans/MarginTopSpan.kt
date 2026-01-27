@@ -15,8 +15,6 @@ class MarginTopSpan(
     lineHeight: Int,
     fm: Paint.FontMetricsInt,
   ) {
-    // Only apply margin to the first line of the span
-    // The first line is identified by checking if `start` matches the span's start position
     if (start == spanStart && marginTop > 0) {
       val marginPixels = marginTop.toInt()
       fm.top -= marginPixels

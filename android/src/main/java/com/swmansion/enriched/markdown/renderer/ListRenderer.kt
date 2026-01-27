@@ -30,6 +30,9 @@ class ListRenderer(
       applyBlockMarginTop(builder, start, listStyle.marginTop)
     }
 
+    // Track where actual content starts (after marginTop spacer if present)
+    val contentStart = if (entryState.previousDepth == 0 && listStyle.marginTop > 0) start + 1 else start
+
     // 3. Nested List Isolation
     if (entryState.previousDepth > 0 && builder.isNotEmpty() && builder.last() != '\n') {
       builder.append("\n")
@@ -42,8 +45,8 @@ class ListRenderer(
     }
 
     // 4. Spacing & Styling
-    if (builder.length > start) {
-      applyListSpacing(builder, start, entryState.previousDepth, listStyle)
+    if (builder.length > contentStart) {
+      applyListSpacing(builder, contentStart, entryState.previousDepth, listStyle)
     }
   }
 

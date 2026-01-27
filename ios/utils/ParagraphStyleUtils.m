@@ -19,7 +19,7 @@ NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *ou
   return existing ? [existing mutableCopy] : [[NSMutableParagraphStyle alloc] init];
 }
 
-void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom)
+void applyParagraphSpacingAfter(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom)
 {
   [output appendAttributedString:kNewlineAttributedString];
 
@@ -60,7 +60,7 @@ void applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger inser
   [output insertAttributedString:spacer atIndex:insertionPoint];
 }
 
-void applyBlockSpacing(NSMutableAttributedString *output, CGFloat marginBottom)
+void applyBlockSpacingAfter(NSMutableAttributedString *output, CGFloat marginBottom)
 {
   if (marginBottom <= 0) {
     return;

@@ -82,7 +82,7 @@ static NSString *const kNestedInfoRangeKey = @"range";
   [self reapplyNestedStyles:output nestedInfo:nestedInfo levelSpacing:levelSpacing];
 
   if (currentDepth == 0) {
-    applyBlockSpacing(output, [_config blockquoteMarginBottom]);
+    applyBlockSpacingAfter(output, [_config blockquoteMarginBottom]);
   }
 }
 

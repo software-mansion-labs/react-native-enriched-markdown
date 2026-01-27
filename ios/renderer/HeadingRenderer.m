@@ -75,7 +75,7 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   if (contentStart != 1) {
     applyParagraphSpacingBefore(output, range, style.marginTop);
   }
-  applyParagraphSpacing(output, start, style.marginBottom);
+  applyParagraphSpacingAfter(output, start, style.marginBottom);
 }
 
 #pragma mark - Optimized Style Provider

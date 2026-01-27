@@ -83,7 +83,7 @@
   if (shouldApplyMargin) {
     marginBottom = isBlockImage ? _config.imageMarginBottom : _config.paragraphMarginBottom;
   }
-  applyParagraphSpacing(output, start, marginBottom);
+  applyParagraphSpacingAfter(output, start, marginBottom);
 }
 
 @end

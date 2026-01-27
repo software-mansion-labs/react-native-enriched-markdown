@@ -71,7 +71,7 @@
 
   // Final spacing for root container
   if (prevDepth == 0) {
-    applyBlockSpacing(output, [_config listStyleMarginBottom]);
+    applyBlockSpacingAfter(output, [_config listStyleMarginBottom]);
   }
 }
 

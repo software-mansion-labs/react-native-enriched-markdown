@@ -88,7 +88,7 @@
 
   // 5. EXTERNAL MARGIN: Outside the background
   if (marginBottom > 0) {
-    applyBlockSpacing(output, marginBottom);
+    applyBlockSpacingAfter(output, marginBottom);
   }
 }
 

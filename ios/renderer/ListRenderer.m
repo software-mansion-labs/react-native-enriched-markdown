@@ -36,11 +36,7 @@
 
   NSUInteger contentStart = start;
   if (prevDepth == 0) {
-    CGFloat marginTop = [_config listStyleMarginTop];
-    if (marginTop > 0) {
-      applyBlockSpacingBefore(output, start, marginTop);
-      contentStart = start + 1;
-    }
+    contentStart += applyBlockSpacingBefore(output, start, [_config listStyleMarginTop]);
   }
 
   // Configure depth and type

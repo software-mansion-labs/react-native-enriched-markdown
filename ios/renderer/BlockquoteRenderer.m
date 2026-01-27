@@ -58,11 +58,7 @@ static NSString *const kNestedInfoRangeKey = @"range";
 {
   NSUInteger contentStart = start;
   if (currentDepth == 0) {
-    CGFloat marginTop = [_config blockquoteMarginTop];
-    if (marginTop > 0) {
-      applyBlockSpacingBefore(output, start, marginTop);
-      contentStart = start + 1;
-    }
+    contentStart += applyBlockSpacingBefore(output, start, [_config blockquoteMarginTop]);
   }
 
   NSRange blockquoteRange = NSMakeRange(contentStart, end - start);

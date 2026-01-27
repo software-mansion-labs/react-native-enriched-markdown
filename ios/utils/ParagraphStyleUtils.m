@@ -36,19 +36,17 @@ void applyParagraphSpacingBefore(NSMutableAttributedString *output, NSRange rang
     return;
   }
 
-  // Use paragraphSpacingBefore - does not insert characters, so no content shift.
-  // Note: First element (position 0) case is handled directly in renderers
-  // (ParagraphRenderer, HeadingRenderer, BlockquoteRenderer) using applyBlockSpacingBefore
-  // before rendering content, since paragraphSpacingBefore doesn't work at position 0.
+  // Note: paragraphSpacingBefore does not work at index 0 in TextKit.
+  // Leading spacing for the first element is handled by renderers via applyBlockSpacingBefore.
   NSMutableParagraphStyle *style = getOrCreateParagraphStyle(output, range.location);
   style.paragraphSpacingBefore = marginTop;
   [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
 }
 
-void applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop)
+NSUInteger applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop)
 {
   if (marginTop <= 0) {
-    return;
+    return 0;
   }
 
   NSMutableParagraphStyle *spacerStyle = [kBlockSpacerTemplate mutableCopy];
@@ -58,6 +56,7 @@ void applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger inser
       [[NSAttributedString alloc] initWithString:@"\n" attributes:@{NSParagraphStyleAttributeName : spacerStyle}];
 
   [output insertAttributedString:spacer atIndex:insertionPoint];
+  return 1;
 }
 
 void applyBlockSpacingAfter(NSMutableAttributedString *output, CGFloat marginBottom)

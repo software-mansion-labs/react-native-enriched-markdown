@@ -10,7 +10,7 @@ extern NSAttributedString *kNewlineAttributedString;
 NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *output, NSUInteger index);
 void applyParagraphSpacingAfter(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom);
 void applyParagraphSpacingBefore(NSMutableAttributedString *output, NSRange range, CGFloat marginTop);
-void applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop);
+NSUInteger applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop);
 void applyBlockSpacingAfter(NSMutableAttributedString *output, CGFloat marginBottom);
 void applyLineHeight(NSMutableAttributedString *output, NSRange range, CGFloat lineHeight);
 void applyTextAlignment(NSMutableAttributedString *output, NSRange range, NSTextAlignment textAlign);

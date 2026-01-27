@@ -50,10 +50,10 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   NSUInteger start = output.length;
 
   NSUInteger contentStart = start;
-  if (start == 0 && style.marginTop > 0) {
-    applyBlockSpacingBefore(output, 0, style.marginTop);
-    contentStart = 1;
-    start = 1;
+  if (start == 0) {
+    NSUInteger offset = applyBlockSpacingBefore(output, 0, style.marginTop);
+    contentStart += offset;
+    start += offset;
   }
 
   @try {

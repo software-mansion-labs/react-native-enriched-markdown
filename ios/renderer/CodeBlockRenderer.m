@@ -31,10 +31,7 @@
   CGFloat marginBottom = [_config codeBlockMarginBottom];
 
   NSUInteger blockStart = output.length;
-  if (marginTop > 0) {
-    applyBlockSpacingBefore(output, blockStart, marginTop);
-    blockStart = output.length;
-  }
+  blockStart += applyBlockSpacingBefore(output, blockStart, marginTop);
 
   // 1. TOP PADDING: Inside the background
   [output appendAttributedString:kNewlineAttributedString];

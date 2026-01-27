@@ -45,10 +45,10 @@
   CGFloat marginTop = isBlockImage ? _config.imageMarginTop : _config.paragraphMarginTop;
 
   NSUInteger contentStart = start;
-  if (shouldApplyMargin && start == 0 && marginTop > 0) {
-    applyBlockSpacingBefore(output, 0, marginTop);
-    contentStart = 1;
-    start = 1;
+  if (shouldApplyMargin && start == 0) {
+    NSUInteger offset = applyBlockSpacingBefore(output, 0, marginTop);
+    contentStart += offset;
+    start += offset;
   }
 
   @try {

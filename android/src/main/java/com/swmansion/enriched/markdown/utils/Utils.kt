@@ -151,11 +151,10 @@ fun applyBlockMarginTop(
 ) {
   if (marginTop <= 0) return
 
-  // Insert a spacer newline at the insertion point
+  // Insert a newline character to act as a vertical spacer
   builder.insert(insertionPoint, "\n")
 
-  // Apply MarginBottomSpan to the spacer character to create the gap
-  // We use MarginBottomSpan because we want spacing AFTER this spacer (which is BEFORE the content)
+  // Apply MarginBottomSpan to the spacer character to create the gap before the content
   builder.setSpan(
     MarginBottomSpan(marginTop),
     insertionPoint,

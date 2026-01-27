@@ -21,19 +21,18 @@ class ListRenderer(
     val listStyle = config.style.listStyle
     val listType = if (isOrdered) BlockStyleContext.ListType.ORDERED else BlockStyleContext.ListType.UNORDERED
 
-    // 1. Context Lifecycle Management
     val contextManager = ListContextManager(factory.blockStyleContext, config.style)
     val entryState = contextManager.enterList(listType, listStyle)
 
-    // 2. For top-level lists, insert marginTop spacer BEFORE rendering content
+    // For top-level lists, insert marginTop spacer before rendering content
     if (entryState.previousDepth == 0) {
       applyBlockMarginTop(builder, start, listStyle.marginTop)
     }
 
-    // Track where actual content starts (after marginTop spacer if present)
+    // Track start index after the potential 1-character marginTop spacer
     val contentStart = if (entryState.previousDepth == 0 && listStyle.marginTop > 0) start + 1 else start
 
-    // 3. Nested List Isolation
+    // Ensure nested lists start on a new line if the parent hasn't provided one
     if (entryState.previousDepth > 0 && builder.isNotEmpty() && builder.last() != '\n') {
       builder.append("\n")
     }
@@ -44,7 +43,6 @@ class ListRenderer(
       contextManager.exitList(entryState)
     }
 
-    // 4. Spacing & Styling
     if (builder.length > contentStart) {
       applyListSpacing(builder, contentStart, entryState.previousDepth, listStyle)
     }
@@ -56,7 +54,6 @@ class ListRenderer(
     depth: Int,
     style: com.swmansion.enriched.markdown.styles.BaseBlockStyle,
   ) {
-    // Apply line height to the entire list block
     builder.setSpan(
       createLineHeightSpan(style.lineHeight),
       start,
@@ -64,7 +61,7 @@ class ListRenderer(
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // Only apply bottom margin for top-level lists
+    // External bottom margin is only handled by the root-level list
     if (depth == 0 && style.marginBottom > 0) {
       builder.append("\n")
       builder.setSpan(

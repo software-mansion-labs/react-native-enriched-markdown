@@ -22,14 +22,13 @@ class ParagraphRenderer(
   ) {
     val context = factory.blockStyleContext
 
-    // If nested, just render content and a newline
+    // If nested (e.g., inside a list or blockquote), render content simply with a newline
     if (context.isInsideBlockElement()) {
       factory.renderChildren(node, builder, onLinkPress)
       builder.append("\n")
       return
     }
 
-    // Top-level paragraph rendering
     val start = builder.length
     val style = config.style.paragraphStyle
 
@@ -40,7 +39,6 @@ class ParagraphRenderer(
       context.clearBlockStyle()
     }
 
-    // Apply spans only if content was actually added
     if (builder.length > start) {
       builder.applySpans(node, style, start)
     }
@@ -51,8 +49,9 @@ class ParagraphRenderer(
     style: ParagraphStyle,
     start: Int,
   ) {
-    val end = length // Current length is the end point
+    val end = length
 
+    // LineHeightSpan is avoided for block images to prevent clipping/overlapping
     if (!node.containsBlockImage()) {
       setSpan(
         createLineHeightSpan(style.lineHeight),
@@ -62,9 +61,7 @@ class ParagraphRenderer(
       )
     }
 
-    // Only apply AlignmentSpan for center/right.
-    // For left/auto: default alignment, no span needed.
-    // For justify: handled at TextView level via setJustificationMode() (API 26+).
+    // Only apply AlignmentSpan for non-default alignments (Center/Right)
     if (style.textAlign.needsAlignmentSpan) {
       setSpan(
         AlignmentSpan.Standard(style.textAlign.layoutAlignment),
@@ -74,7 +71,7 @@ class ParagraphRenderer(
       )
     }
 
-    // For block images, use spacer-based approach (MarginTopSpan doesn't work with replacement spans)
+    // Block images use a spacer-based margin because MarginTopSpan conflicts with ReplacementSpans
     if (node.containsBlockImage()) {
       applyBlockMarginTop(this, start, config.style.imageStyle.marginTop)
     } else {

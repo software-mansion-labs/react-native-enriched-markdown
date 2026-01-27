@@ -25,27 +25,23 @@ class CodeBlockRenderer(
 
     applyBlockMarginTop(builder, start, style.marginTop)
 
-    // Content starts after the marginTop spacer (which is 1 character)
+    // Content starts after the potential 1-character marginTop spacer
     val contentStart = start + (if (style.marginTop > 0) 1 else 0)
 
-    // Set code block style in context for children to inherit
     context.setCodeBlockStyle(style)
 
     try {
-      // Render children (code content)
       factory.renderChildren(node, builder, onLinkPress)
     } finally {
       context.clearBlockStyle()
     }
 
-    // Safety check for empty code blocks
     if (builder.length == contentStart) return
 
     val end = builder.length
     val padding = style.padding.toInt()
 
-    // 1. Apply CodeBlockSpan (Handles Background, Borders, and Horizontal Padding)
-    // Apply only to the actual code content, NOT the marginTop spacer
+    // Apply background, borders, and horizontal padding to content only
     builder.setSpan(
       CodeBlockSpan(style, factory.context, factory.styleCache),
       contentStart,
@@ -53,8 +49,7 @@ class CodeBlockRenderer(
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // 2. Apply Boundary Vertical Padding
-    // Apply only to the actual code content, NOT the marginTop spacer
+    // Apply vertical padding via line height manipulation
     builder.setSpan(
       CodeBlockBoundaryPaddingSpan(padding),
       contentStart,
@@ -62,7 +57,6 @@ class CodeBlockRenderer(
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // 3. Apply External Margin Bottom
     if (style.marginBottom > 0) {
       val marginStart = builder.length
       builder.append("\n")
@@ -94,14 +88,13 @@ class CodeBlockRenderer(
       val spanStart = text.getSpanStart(this)
       val spanEnd = text.getSpanEnd(this)
 
-      // Apply top vertical padding to the first line fragment
+      // Adjust ascent/top for the first line to create internal top padding
       if (startLine == spanStart) {
         fm.ascent -= padding
         fm.top -= padding
       }
 
-      // Apply bottom vertical padding to the last line fragment
-      // Checks for both character index and trailing newlines to ensure a tight fit
+      // Adjust descent/bottom for the last line (handling trailing newlines)
       val isLastLine = endLine == spanEnd || (spanEnd <= endLine && text[spanEnd - 1] == '\n')
       if (isLastLine) {
         fm.descent += padding

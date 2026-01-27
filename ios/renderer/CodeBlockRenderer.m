@@ -33,12 +33,11 @@
   NSUInteger blockStart = output.length;
   blockStart += applyBlockSpacingBefore(output, blockStart, marginTop);
 
-  // 1. TOP PADDING: Inside the background
+  // Top Padding: Inserted as a spacer character inside the background area
   [output appendAttributedString:kNewlineAttributedString];
   NSMutableParagraphStyle *topSpacerStyle = [context spacerStyleWithHeight:padding spacing:0];
   [output addAttribute:NSParagraphStyleAttributeName value:topSpacerStyle range:NSMakeRange(blockStart, 1)];
 
-  // 2. RENDER CONTENT
   NSUInteger contentStart = output.length;
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];
@@ -52,7 +51,6 @@
 
   NSRange contentRange = NSMakeRange(contentStart, contentEnd - contentStart);
 
-  // 3. CONTENT STYLING
   UIFont *codeFont = [_config codeBlockFont];
   UIColor *codeColor = [_config codeBlockColor];
   if (codeColor) {
@@ -66,24 +64,24 @@
     applyLineHeight(output, contentRange, lineHeight);
   }
 
-  // HORIZONTAL INDENTS
+  // Apply horizontal indents to the content
   NSMutableParagraphStyle *baseStyle = [getOrCreateParagraphStyle(output, contentStart) mutableCopy];
   baseStyle.firstLineHeadIndent = padding;
   baseStyle.headIndent = padding;
   baseStyle.tailIndent = -padding;
   [output addAttribute:NSParagraphStyleAttributeName value:baseStyle range:contentRange];
 
-  // 4. BOTTOM PADDING: Inside the background
+  // Bottom Padding: Inserted as a spacer character inside the background area
   NSUInteger bottomPaddingStart = output.length;
   [output appendAttributedString:kNewlineAttributedString];
   NSMutableParagraphStyle *bottomPaddingStyle = [context spacerStyleWithHeight:padding spacing:0];
   [output addAttribute:NSParagraphStyleAttributeName value:bottomPaddingStyle range:NSMakeRange(bottomPaddingStart, 1)];
 
-  // MARK BACKGROUND: Ends here to exclude the margin
+  // Define the range for background rendering (includes padding, excludes margins)
   NSRange backgroundRange = NSMakeRange(blockStart, output.length - blockStart);
   [output addAttribute:CodeBlockAttributeName value:@YES range:backgroundRange];
 
-  // 5. EXTERNAL MARGIN: Outside the background
+  // External Margin: Applied outside the background range
   if (marginBottom > 0) {
     applyBlockSpacingAfter(output, marginBottom);
   }

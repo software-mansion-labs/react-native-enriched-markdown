@@ -16,7 +16,6 @@ typedef struct {
   NSTextAlignment textAlign;
 } HeadingStyle;
 
-// Static heading type strings (index 0 unused, 1-6 for h1-h6)
 static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-2", @"heading-3",
                                           @"heading-4", @"heading-5", @"heading-6"};
 
@@ -34,22 +33,19 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   return self;
 }
 
-#pragma mark - Rendering
-
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   NSInteger level = [node.attributes[@"level"] integerValue];
   if (level < 1 || level > 6)
     level = 1;
 
-  // Fetch style struct with pre-cached font from StyleConfig
   HeadingStyle style = [self styleForLevel:level];
-
   [context setBlockStyle:BlockTypeHeading font:style.font color:style.color headingLevel:level];
 
   NSUInteger start = output.length;
-
   NSUInteger contentStart = start;
+
+  // Spacing at the very start of the document requires a spacer character (index 0 check)
   if (start == 0) {
     NSUInteger offset = applyBlockSpacingBefore(output, 0, style.marginTop);
     contentStart += offset;
@@ -66,48 +62,40 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   if (range.length == 0)
     return;
 
-  // Mark as heading for HTML generation and Copy as Markdown
+  // Metadata attribute used for post-processing (e.g., Export to Markdown/HTML)
   [output addAttribute:MarkdownTypeAttributeName value:kHeadingTypes[level] range:range];
 
   applyLineHeight(output, range, style.lineHeight);
   applyTextAlignment(output, range, style.textAlign);
 
+  // Use paragraphSpacingBefore for internal elements; applyBlockSpacingBefore handles index 0
   if (contentStart != 1) {
     applyParagraphSpacingBefore(output, range, style.marginTop);
   }
   applyParagraphSpacingAfter(output, start, style.marginBottom);
 }
 
-#pragma mark - Optimized Style Provider
+#pragma mark - Style Mapping
 
 - (HeadingStyle)styleForLevel:(NSInteger)level
 {
   StyleConfig *c = _config;
-  HeadingStyle s;
-
   switch (level) {
     case 1:
-      s = (HeadingStyle){c.h1Font, c.h1Color, c.h1MarginTop, c.h1MarginBottom, c.h1LineHeight, c.h1TextAlign};
-      break;
+      return (HeadingStyle){c.h1Font, c.h1Color, c.h1MarginTop, c.h1MarginBottom, c.h1LineHeight, c.h1TextAlign};
     case 2:
-      s = (HeadingStyle){c.h2Font, c.h2Color, c.h2MarginTop, c.h2MarginBottom, c.h2LineHeight, c.h2TextAlign};
-      break;
+      return (HeadingStyle){c.h2Font, c.h2Color, c.h2MarginTop, c.h2MarginBottom, c.h2LineHeight, c.h2TextAlign};
     case 3:
-      s = (HeadingStyle){c.h3Font, c.h3Color, c.h3MarginTop, c.h3MarginBottom, c.h3LineHeight, c.h3TextAlign};
-      break;
+      return (HeadingStyle){c.h3Font, c.h3Color, c.h3MarginTop, c.h3MarginBottom, c.h3LineHeight, c.h3TextAlign};
     case 4:
-      s = (HeadingStyle){c.h4Font, c.h4Color, c.h4MarginTop, c.h4MarginBottom, c.h4LineHeight, c.h4TextAlign};
-      break;
+      return (HeadingStyle){c.h4Font, c.h4Color, c.h4MarginTop, c.h4MarginBottom, c.h4LineHeight, c.h4TextAlign};
     case 5:
-      s = (HeadingStyle){c.h5Font, c.h5Color, c.h5MarginTop, c.h5MarginBottom, c.h5LineHeight, c.h5TextAlign};
-      break;
+      return (HeadingStyle){c.h5Font, c.h5Color, c.h5MarginTop, c.h5MarginBottom, c.h5LineHeight, c.h5TextAlign};
     case 6:
-      s = (HeadingStyle){c.h6Font, c.h6Color, c.h6MarginTop, c.h6MarginBottom, c.h6LineHeight, c.h6TextAlign};
-      break;
+      return (HeadingStyle){c.h6Font, c.h6Color, c.h6MarginTop, c.h6MarginBottom, c.h6LineHeight, c.h6TextAlign};
     default:
       return [self styleForLevel:1];
   }
-  return s;
 }
 
 @end

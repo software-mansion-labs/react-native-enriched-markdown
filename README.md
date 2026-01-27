@@ -230,7 +230,7 @@ Markdown elements are divided into two categories:
 
 #### Block Elements
 
-Block elements are structural containers that define the layout. Each block has its own typography settings (`fontSize`, `fontFamily`, `fontWeight`, `color`, `lineHeight`, `marginBottom`).
+Block elements are structural containers that define the layout. Each block has its own typography settings (`fontSize`, `fontFamily`, `fontWeight`, `color`, `lineHeight`, `marginTop`, `marginBottom`).
 
 | Block Type | Description |
 |------------|-------------|
@@ -389,6 +389,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `fontFamily` | `string` | Font family name |
 | `fontWeight` | `string` | Font weight |
 | `color` | `string` | Text color |
+| `marginTop` | `number` | Top margin |
 | `marginBottom` | `number` | Bottom margin |
 | `lineHeight` | `number` | Line height |
 
@@ -455,6 +456,7 @@ The library provides sensible default styles for all Markdown elements out of th
 |----------|------|-------------|
 | `height` | `number` | Image height |
 | `borderRadius` | `number` | Corner radius |
+| `marginTop` | `number` | Top margin |
 | `marginBottom` | `number` | Bottom margin |
 
 #### Inline Image-specific

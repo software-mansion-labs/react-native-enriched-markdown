@@ -151,7 +151,7 @@ export default function App() {
 | Inline Code | `` `code` `` | Inline code snippets |
 | Inline Images | `![alt](url)` | Images within text flow |
 
-> **Note:** When the underline extension is enabled (default), `_text_` is treated as underline instead of emphasis. Only `*text*` works for emphasis in this mode. This follows MD4C's underline extension behavior.
+> **Note:** Underline support (`MD_FLAG_UNDERLINE`) is disabled by default. Enable it via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis. When enabled, only `*text*` works for emphasis.
 
 ### Nested Lists Example
 
@@ -496,6 +496,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
 | `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
 | `isSelectable` | `boolean` | `true` | Whether text can be selected |
+| `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |
 
 ## Contributing
 

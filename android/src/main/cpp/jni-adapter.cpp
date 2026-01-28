@@ -180,7 +180,6 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
     if (flags) {
       jclass flagsClass = env->GetObjectClass(flags);
       if (flagsClass) {
-        // Get the underline field
         jfieldID underlineField = env->GetFieldID(flagsClass, "underline", "Z");
         if (underlineField) {
           md4cFlags.underline = env->GetBooleanField(flags, underlineField) == JNI_TRUE;
@@ -189,7 +188,6 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
       }
     }
 
-    // Parse markdown using C++ MD4CParser with md4cFlags
     MD4CParser parser;
     auto ast = parser.parse(std::string(markdownStr), md4cFlags);
 

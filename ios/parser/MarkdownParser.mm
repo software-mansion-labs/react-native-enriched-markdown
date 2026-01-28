@@ -31,7 +31,6 @@ extern MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, Md4cFlags
 
 - (MarkdownASTNode *)parseMarkdown:(NSString *)markdown
 {
-  // Default flags for backward compatibility
   return [self parseMarkdown:markdown flags:[Md4cFlags defaultFlags]];
 }
 

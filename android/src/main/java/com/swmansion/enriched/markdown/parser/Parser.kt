@@ -37,11 +37,6 @@ class Parser {
     val shared: Parser = Parser()
   }
 
-  /**
-   * Parse markdown string into an AST.
-   * @param markdown The markdown string to parse
-   * @param flags MD4C parser flags configuration
-   */
   fun parseMarkdown(
     markdown: String,
     flags: Md4cFlags = Md4cFlags.DEFAULT,

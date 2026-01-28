@@ -127,7 +127,7 @@ using namespace facebook::react;
 
     self.backgroundColor = [UIColor clearColor];
     _parser = [[MarkdownParser alloc] init];
-    _md4cFlags = [Md4cFlags defaultFlags]; // Default flags for standard Markdown behavior
+    _md4cFlags = [Md4cFlags defaultFlags];
 
     // Serial queue for background rendering
     _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.render", DISPATCH_QUEUE_SERIAL);

@@ -142,16 +142,16 @@ export default function App() {
 
 | Element | Syntax | Description |
 |---------|--------|-------------|
-| Bold | `**text**` | Strong emphasis |
-| Italic | `*text*` | Emphasis |
-| Underline | `_text_` | Underlined text|
+| Bold | `**text**` or `__text__` | Strong emphasis |
+| Italic | `*text*` or `_text_` | Emphasis |
+| Underline | `_text_` | Underlined text (requires `md4cFlags`) |
 | Strikethrough | `~~text~~` | Strikethrough text |
-| Bold + Italic | `***text***` | Combined emphasis |
+| Bold + Italic | `***text***`, `___text___`, etc. | Combined emphasis |
 | Links | `[text](url)` | Clickable links |
 | Inline Code | `` `code` `` | Inline code snippets |
 | Inline Images | `![alt](url)` | Images within text flow |
 
-> **Note:** Underline support (`MD_FLAG_UNDERLINE`) is disabled by default. Enable it via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis. When enabled, only `*text*` works for emphasis.
+> **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
 
 ### Nested Lists Example
 

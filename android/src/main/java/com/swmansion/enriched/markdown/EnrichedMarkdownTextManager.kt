@@ -12,6 +12,7 @@ import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.events.LinkPressEvent
+import com.swmansion.enriched.markdown.parser.Md4cFlags
 
 @ReactModule(name = EnrichedMarkdownTextManager.NAME)
 class EnrichedMarkdownTextManager :
@@ -62,6 +63,18 @@ class EnrichedMarkdownTextManager :
     selectable: Boolean,
   ) {
     view?.setIsSelectable(selectable)
+  }
+
+  @ReactProp(name = "md4cFlags")
+  override fun setMd4cFlags(
+    view: EnrichedMarkdownText?,
+    flags: ReadableMap?,
+  ) {
+    val md4cFlags =
+      Md4cFlags(
+        underline = flags?.getBoolean("underline") ?: false,
+      )
+    view?.setMd4cFlags(md4cFlags)
   }
 
   override fun setPadding(

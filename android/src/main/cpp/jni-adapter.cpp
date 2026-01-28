@@ -30,22 +30,24 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 7;
     case NodeType::Strikethrough:
       return 8;
-    case NodeType::Code:
+    case NodeType::Underline:
       return 9;
-    case NodeType::Image:
+    case NodeType::Code:
       return 10;
-    case NodeType::Blockquote:
+    case NodeType::Image:
       return 11;
-    case NodeType::UnorderedList:
+    case NodeType::Blockquote:
       return 12;
-    case NodeType::OrderedList:
+    case NodeType::UnorderedList:
       return 13;
-    case NodeType::ListItem:
+    case NodeType::OrderedList:
       return 14;
-    case NodeType::CodeBlock:
+    case NodeType::ListItem:
       return 15;
-    case NodeType::ThematicBreak:
+    case NodeType::CodeBlock:
       return 16;
+    case NodeType::ThematicBreak:
+      return 17;
     default:
       return 0;
   }
@@ -159,7 +161,8 @@ extern "C" {
 
 JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nativeParseMarkdown(JNIEnv *env,
                                                                                                  jobject /* this */,
-                                                                                                 jstring markdown) {
+                                                                                                 jstring markdown,
+                                                                                                 jobject flags) {
   if (!markdown) {
     LOGE("Markdown string is null");
     return nullptr;
@@ -172,9 +175,21 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
   }
 
   try {
-    // Parse markdown using C++ MD4CParser
+    // Extract flags from Kotlin Md4cFlags data class
+    Md4cFlags md4cFlags;
+    if (flags) {
+      jclass flagsClass = env->GetObjectClass(flags);
+      if (flagsClass) {
+        jfieldID underlineField = env->GetFieldID(flagsClass, "underline", "Z");
+        if (underlineField) {
+          md4cFlags.underline = env->GetBooleanField(flags, underlineField) == JNI_TRUE;
+        }
+        env->DeleteLocalRef(flagsClass);
+      }
+    }
+
     MD4CParser parser;
-    auto ast = parser.parse(std::string(markdownStr));
+    auto ast = parser.parse(std::string(markdownStr), md4cFlags);
 
     env->ReleaseStringUTFChars(markdown, markdownStr);
 

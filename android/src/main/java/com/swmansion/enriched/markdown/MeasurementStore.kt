@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
+import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
@@ -122,8 +123,9 @@ object MeasurementStore {
   private fun computePropsHash(props: ReadableMap?): Int {
     val markdown = props?.getString("markdown") ?: ""
     val styleMap = props?.getMap("markdownStyle")
-    // Combine markdown hash with style hash for change detection
-    return markdown.hashCode() * 31 + (styleMap?.hashCode() ?: 0)
+    val md4cFlagsMap = props?.getMap("md4cFlags")
+    // Combine markdown hash with style hash and md4cFlags for change detection
+    return markdown.hashCode() * 31 + (styleMap?.hashCode() ?: 0) * 31 + (md4cFlagsMap?.hashCode() ?: 0)
   }
 
   private fun measureAndCache(
@@ -134,12 +136,17 @@ object MeasurementStore {
   ): Long {
     val markdown = props?.getString("markdown") ?: ""
     val styleMap = props?.getMap("markdownStyle")
+    val md4cFlagsMap = props?.getMap("md4cFlags")
+    val md4cFlags =
+      Md4cFlags(
+        underline = md4cFlagsMap?.getBoolean("underline") ?: false,
+      )
     val fontSize = getInitialFontSize(styleMap)
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
     val propsHash = computePropsHash(props)
 
     // Parse and render markdown for accurate measurement
-    val spannable = tryRenderMarkdown(markdown, styleMap, context)
+    val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags)
     val textToMeasure = spannable ?: markdown
     val size = measure(width, textToMeasure, paintParams)
 
@@ -154,11 +161,12 @@ object MeasurementStore {
     markdown: String,
     styleMap: ReadableMap?,
     context: Context,
+    md4cFlags: Md4cFlags = Md4cFlags.DEFAULT,
   ): CharSequence? {
     if (styleMap == null) return null
 
     return try {
-      val ast = Parser.shared.parseMarkdown(markdown) ?: return null
+      val ast = Parser.shared.parseMarkdown(markdown, md4cFlags) ?: return null
       val style = StyleConfig(styleMap, context)
       measureRenderer.configure(style, context)
       measureRenderer.renderDocument(ast, null)

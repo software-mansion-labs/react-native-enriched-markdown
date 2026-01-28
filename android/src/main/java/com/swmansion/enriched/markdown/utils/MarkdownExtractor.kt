@@ -1,6 +1,7 @@
 package com.swmansion.enriched.markdown.utils
 
 import android.text.Spannable
+import android.text.style.UnderlineSpan
 import android.widget.TextView
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
@@ -285,6 +286,7 @@ object MarkdownExtractor {
     val hasEmphasis = spannable.getSpans(start, end, EmphasisSpan::class.java).isNotEmpty()
     val hasCode = spannable.getSpans(start, end, CodeSpan::class.java).isNotEmpty()
     val hasStrikethrough = spannable.getSpans(start, end, StrikethroughSpan::class.java).isNotEmpty()
+    val hasUnderline = spannable.getSpans(start, end, UnderlineSpan::class.java).isNotEmpty()
     val linkSpans = spannable.getSpans(start, end, LinkSpan::class.java)
 
     var result = text
@@ -295,6 +297,9 @@ object MarkdownExtractor {
     }
     if (hasStrikethrough) {
       result = "~~$result~~"
+    }
+    if (hasUnderline && linkSpans.isEmpty()) {
+      result = "<u>$result</u>"
     }
     if (hasEmphasis) {
       result = "*$result*"

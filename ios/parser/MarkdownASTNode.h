@@ -10,6 +10,7 @@ typedef NS_ENUM(NSInteger, MarkdownNodeType) {
   MarkdownNodeTypeStrong,
   MarkdownNodeTypeEmphasis,
   MarkdownNodeTypeStrikethrough,
+  MarkdownNodeTypeUnderline,
   MarkdownNodeTypeCode,
   MarkdownNodeTypeImage,
   MarkdownNodeTypeBlockquote,

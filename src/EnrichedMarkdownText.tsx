@@ -71,6 +71,14 @@ interface StrikethroughStyle {
   color?: string;
 }
 
+interface UnderlineStyle {
+  /**
+   * Color of the underline.
+   * @platform iOS
+   */
+  color?: string;
+}
+
 interface CodeStyle {
   color?: string;
   backgroundColor?: string;
@@ -110,14 +118,32 @@ export interface MarkdownStyle {
   strong?: StrongStyle;
   em?: EmphasisStyle;
   strikethrough?: StrikethroughStyle;
+  underline?: UnderlineStyle;
   code?: CodeStyle;
   image?: ImageStyle;
   inlineImage?: InlineImageStyle;
   thematicBreak?: ThematicBreakStyle;
 }
 
+/**
+ * MD4C parser flags configuration.
+ * Controls how the markdown parser interprets certain syntax.
+ */
+export interface Md4cFlags {
+  /**
+   * Enable underline syntax support (__text__).
+   * When enabled, underscores are treated as underline markers.
+   * When disabled, underscores are treated as emphasis markers (same as asterisks).
+   * @default false
+   */
+  underline?: boolean;
+}
+
 export interface EnrichedMarkdownTextProps
-  extends Omit<NativeProps, 'markdownStyle' | 'style' | 'onLinkPress'> {
+  extends Omit<
+    NativeProps,
+    'markdownStyle' | 'style' | 'onLinkPress' | 'md4cFlags'
+  > {
   /**
    * Style configuration for markdown elements
    */
@@ -131,7 +157,16 @@ export interface EnrichedMarkdownTextProps
    * Receives the link URL directly.
    */
   onLinkPress?: (event: LinkPressEvent) => void;
+  /**
+   * MD4C parser flags configuration.
+   * Controls how the markdown parser interprets certain syntax.
+   */
+  md4cFlags?: Md4cFlags;
 }
+
+const defaultMd4cFlags: Md4cFlags = {
+  underline: false,
+};
 
 export const EnrichedMarkdownText = ({
   markdown,
@@ -139,11 +174,19 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   onLinkPress,
   isSelectable = true,
+  md4cFlags = defaultMd4cFlags,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
     () => normalizeMarkdownStyle(markdownStyle),
     [markdownStyle]
+  );
+
+  const normalizedMd4cFlags = useMemo(
+    () => ({
+      underline: md4cFlags.underline ?? false,
+    }),
+    [md4cFlags]
   );
 
   const handleLinkPress = useCallback(
@@ -160,6 +203,7 @@ export const EnrichedMarkdownText = ({
       markdownStyle={normalizedStyle}
       onLinkPress={handleLinkPress}
       isSelectable={isSelectable}
+      md4cFlags={normalizedMd4cFlags}
       style={containerStyle}
       {...rest}
     />

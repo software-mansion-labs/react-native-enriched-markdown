@@ -65,6 +65,10 @@ interface StrikethroughStyleInternal {
   color: ColorValue;
 }
 
+interface UnderlineStyleInternal {
+  color: ColorValue;
+}
+
 interface CodeStyleInternal {
   color: ColorValue;
   backgroundColor: ColorValue;
@@ -104,6 +108,7 @@ export interface MarkdownStyleInternal {
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;
   strikethrough: StrikethroughStyleInternal;
+  underline: UnderlineStyleInternal;
   code: CodeStyleInternal;
   image: ImageStyleInternal;
   inlineImage: InlineImageStyleInternal;
@@ -112,6 +117,20 @@ export interface MarkdownStyleInternal {
 
 export interface LinkPressEvent {
   url: string;
+}
+
+/**
+ * MD4C parser flags configuration.
+ * Controls how the markdown parser interprets certain syntax.
+ */
+export interface Md4cFlagsInternal {
+  /**
+   * Enable underline syntax support (__text__).
+   * When enabled, underscores are treated as underline markers.
+   * When disabled, underscores are treated as emphasis markers (same as asterisks).
+   * @default false
+   */
+  underline: boolean;
 }
 
 export interface NativeProps extends ViewProps {
@@ -136,6 +155,11 @@ export interface NativeProps extends ViewProps {
    * @default true
    */
   isSelectable?: boolean;
+  /**
+   * MD4C parser flags configuration.
+   * Controls how the markdown parser interprets certain syntax.
+   */
+  md4cFlags: Md4cFlagsInternal;
 }
 
 export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText');

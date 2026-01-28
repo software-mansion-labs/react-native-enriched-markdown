@@ -12,6 +12,8 @@ inline folly::dynamic toDynamic(const EnrichedMarkdownTextProps &props) {
   folly::dynamic serializedProps = folly::dynamic::object();
   serializedProps["markdown"] = props.markdown;
   serializedProps["markdownStyle"] = toDynamic(props.markdownStyle);
+  serializedProps["md4cFlags"] = toDynamic(props.md4cFlags);
+
   return serializedProps;
 }
 #endif

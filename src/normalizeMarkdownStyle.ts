@@ -197,6 +197,7 @@ const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
 };
 
 const defaultStrikethroughColor = processColor('#9CA3AF') as ColorValue;
+const defaultUnderlineColor = defaultTextColor;
 
 const defaultThematicBreakColor = processColor('#E5E7EB') as ColorValue;
 
@@ -383,6 +384,9 @@ export const normalizeMarkdownStyle = (
     strikethrough: {
       color:
         normalizeColor(style.strikethrough?.color) ?? defaultStrikethroughColor,
+    },
+    underline: {
+      color: normalizeColor(style.underline?.color) ?? defaultUnderlineColor,
     },
     code: {
       ...defaultCodeStyle,

@@ -68,7 +68,7 @@ static void extractFontTraits(NSDictionary *attrs, BOOL *isBold, BOOL *isItalic,
 }
 
 static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItalic, BOOL isMonospace,
-                                       BOOL isStrikethrough, NSString *linkURL)
+                                       BOOL isStrikethrough, BOOL isUnderline, NSString *linkURL)
 {
   NSMutableString *result = [NSMutableString stringWithString:text];
 
@@ -78,6 +78,9 @@ static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItali
   }
   if (isStrikethrough) {
     result = [NSMutableString stringWithFormat:@"~~%@~~", result];
+  }
+  if (isUnderline && !linkURL) {
+    result = [NSMutableString stringWithFormat:@"<u>%@</u>", result];
   }
   if (isItalic) {
     result = [NSMutableString stringWithFormat:@"*%@*", result];
@@ -261,10 +264,12 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
 
                         NSNumber *strikethroughStyle = attrs[NSStrikethroughStyleAttributeName];
                         BOOL isStrikethrough = (strikethroughStyle != nil && [strikethroughStyle integerValue] != 0);
+                        NSNumber *underlineStyle = attrs[NSUnderlineStyleAttributeName];
+                        BOOL isUnderline = (underlineStyle != nil && [underlineStyle integerValue] != 0);
 
                         NSString *linkURL = attrs[NSLinkAttributeName];
-                        NSString *segment =
-                            applyInlineFormatting(text, isBold, isItalic, isMonospace, isStrikethrough, linkURL);
+                        NSString *segment = applyInlineFormatting(text, isBold, isItalic, isMonospace, isStrikethrough,
+                                                                  isUnderline, linkURL);
 
                         // Add block prefixes at line start
                         if (isAtLineStart(result)) {

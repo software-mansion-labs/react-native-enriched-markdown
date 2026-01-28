@@ -16,6 +16,7 @@ data class MarkdownASTNode(
     Strong,
     Emphasis,
     Strikethrough,
+    Underline,
     Code,
     Image,
     Blockquote,

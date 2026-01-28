@@ -15,6 +15,7 @@
 #import "StyleConfig.h"
 #import "TextRenderer.h"
 #import "ThematicBreakRenderer.h"
+#import "UnderlineRenderer.h"
 
 @implementation RendererFactory {
   StyleConfig *_config;
@@ -67,6 +68,8 @@
       return [[EmphasisRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeStrikethrough:
       return [[StrikethroughRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeUnderline:
+      return [[UnderlineRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeParagraph:
       return [[ParagraphRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeLink:

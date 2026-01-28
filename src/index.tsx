@@ -3,5 +3,6 @@ export { default as EnrichedMarkdownTextNativeComponent } from './EnrichedMarkdo
 export type {
   EnrichedMarkdownTextProps,
   MarkdownStyle,
+  Md4cFlags,
 } from './EnrichedMarkdownText';
 export type { LinkPressEvent } from './EnrichedMarkdownTextNativeComponent';

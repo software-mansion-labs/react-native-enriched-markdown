@@ -68,10 +68,11 @@ object HTMLGenerator {
     val linkColor: String
     val linkUnderline: Boolean
 
-    // Strong/Emphasis/Strikethrough
+    // Strong/Emphasis/Strikethrough/Underline
     val strongColor: String?
     val emphasisColor: String?
     val strikethroughColor: String?
+    val underlineColor: String?
 
     // Image
     val imageMarginBottom: Int
@@ -136,13 +137,15 @@ object HTMLGenerator {
       linkColor = colorToCSS(style.linkStyle.color)
       linkUnderline = style.linkStyle.underline
 
-      // Strong/Emphasis/Strikethrough (nullable for inherit)
+      // Strong/Emphasis/Strikethrough/Underline (nullable for inherit)
       val sc = style.strongStyle.color
       strongColor = if (sc != null && sc != 0) colorToCSS(sc) else null
       val ec = style.emphasisStyle.color
       emphasisColor = if (ec != null && ec != 0) colorToCSS(ec) else null
       val strikeColor = style.strikethroughStyle.color
       strikethroughColor = if (strikeColor != 0) colorToCSS(strikeColor) else null
+      val underline = style.underlineStyle.color
+      underlineColor = if (underline != 0) colorToCSS(underline) else null
 
       // Image
       val imgStyle = style.imageStyle
@@ -720,7 +723,13 @@ object HTMLGenerator {
         html.append("<s>")
       }
     }
-    if (isUnderline && link == null) html.append("<u>")
+    if (isUnderline && link == null) {
+      if (styles.underlineColor != null) {
+        html.append("<u style=\"text-decoration-color: ").append(styles.underlineColor).append(";\">")
+      } else {
+        html.append("<u>")
+      }
+    }
 
     escapeHTMLTo(html, content.trimEnd('\n'))
 

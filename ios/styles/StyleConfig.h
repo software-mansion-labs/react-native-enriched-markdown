@@ -139,6 +139,9 @@
 // Strikethrough properties
 - (UIColor *)strikethroughColor;
 - (void)setStrikethroughColor:(UIColor *)newValue;
+// Underline properties
+- (UIColor *)underlineColor;
+- (void)setUnderlineColor:(UIColor *)newValue;
 // Code properties
 - (UIColor *)codeColor;
 - (void)setCodeColor:(UIColor *)newValue;

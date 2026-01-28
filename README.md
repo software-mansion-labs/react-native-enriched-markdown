@@ -144,11 +144,14 @@ export default function App() {
 |---------|--------|-------------|
 | Bold | `**text**` or `__text__` | Strong emphasis |
 | Italic | `*text*` or `_text_` | Emphasis |
+| Underline | `_text_` | Underlined text (requires `md4cFlags`) |
 | Strikethrough | `~~text~~` | Strikethrough text |
-| Bold + Italic | `***text***`, `___text___`, `**_text_**`, `__*text*__`, `_**text**_`, `*__text__*` | Combined emphasis |
+| Bold + Italic | `***text***`, `___text___`, etc. | Combined emphasis |
 | Links | `[text](url)` | Clickable links |
 | Inline Code | `` `code` `` | Inline code snippets |
 | Inline Images | `![alt](url)` | Images within text flow |
+
+> **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
 
 ### Nested Lists Example
 
@@ -249,6 +252,7 @@ Inline elements modify text within blocks. They inherit the parent block's base 
 | `strong` | Parent block | Bold weight, optional color |
 | `em` | Parent block | Italic style, optional color |
 | `strikethrough` | Parent block | Strike line with custom color (iOS only) |
+| `underline` | Parent block | Underline with custom color (iOS only) |
 | `code` | Parent block | Monospace font, background |
 | `link` | Parent block | Color, underline |
 
@@ -324,6 +328,9 @@ The library provides sensible default styles for all Markdown elements out of th
     },
     strikethrough: {
       color: '#999',
+    },
+    underline: {
+      color: '#333',
     },
     link: {
       color: '#007AFF',
@@ -449,6 +456,12 @@ The library provides sensible default styles for all Markdown elements out of th
 |----------|------|-------------|
 | `color` | `string` | Strikethrough line color (iOS only) |
 
+#### Underline-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `color` | `string` | Underline color (iOS only) |
+
 #### Image-specific
 
 | Property | Type | Description |
@@ -483,6 +496,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
 | `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
 | `isSelectable` | `boolean` | `true` | Whether text can be selected |
+| `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |
 
 ## Contributing
 

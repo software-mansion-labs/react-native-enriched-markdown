@@ -75,7 +75,7 @@ class EnrichedMarkdownText
 
     fun setMarkdownStyle(style: ReadableMap?) {
       markdownStyleMap = style
-      val newStyle = style?.let { StyleConfig(it, context, maxFontSizeMultiplier) }
+      val newStyle = style?.let { StyleConfig(it, context, allowFontScaling, maxFontSizeMultiplier) }
       if (markdownStyle == newStyle) return
       markdownStyle = newStyle
       updateJustificationMode(newStyle)
@@ -125,7 +125,7 @@ class EnrichedMarkdownText
 
     private fun recreateStyleConfig() {
       markdownStyleMap?.let { styleMap ->
-        markdownStyle = StyleConfig(styleMap, context, maxFontSizeMultiplier)
+        markdownStyle = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
         updateJustificationMode(markdownStyle)
       }
     }

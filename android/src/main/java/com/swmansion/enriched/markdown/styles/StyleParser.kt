@@ -7,6 +7,7 @@ import com.facebook.react.uimanager.PixelUtil
 
 class StyleParser(
   private val context: Context,
+  private val allowFontScaling: Boolean,
   private val maxFontSizeMultiplier: Float,
 ) {
   fun parseOptionalColor(
@@ -69,8 +70,12 @@ class StyleParser(
   fun toPixelFromSP(value: Float): Float {
     val metrics = context.resources.displayMetrics
     val baseDensity = metrics.density
-    var fontScale = metrics.scaledDensity / baseDensity
 
+    if (!allowFontScaling) {
+      return value * baseDensity
+    }
+
+    var fontScale = metrics.scaledDensity / baseDensity
     if (maxFontSizeMultiplier >= 1.0f && fontScale > maxFontSizeMultiplier) {
       fontScale = maxFontSizeMultiplier
     }

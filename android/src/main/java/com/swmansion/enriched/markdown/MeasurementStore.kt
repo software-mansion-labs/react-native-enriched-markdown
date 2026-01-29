@@ -113,13 +113,13 @@ object MeasurementStore {
 
     val fontScale = checkAndUpdateFontScale(context, allowFontScaling, maxFontSizeMultiplier)
 
-    val safeId = id ?: return measureAndCache(context, null, width, props, fontScale, maxFontSizeMultiplier)
-    val cached = data[safeId] ?: return measureAndCache(context, safeId, width, props, fontScale, maxFontSizeMultiplier)
+    val safeId = id ?: return measureAndCache(context, null, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    val cached = data[safeId] ?: return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
     val currentHash = computePropsHash(props, fontScale, maxFontSizeMultiplier)
 
     if (cached.markdownHash != currentHash) {
-      return measureAndCache(context, safeId, width, props, fontScale, maxFontSizeMultiplier)
+      return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
     }
 
     // Width changed - re-measure with cached spannable
@@ -176,6 +176,7 @@ object MeasurementStore {
     id: Int?,
     width: Float,
     props: ReadableMap?,
+    allowFontScaling: Boolean,
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Long {
@@ -191,7 +192,7 @@ object MeasurementStore {
     val propsHash = computePropsHash(props, fontScale, maxFontSizeMultiplier)
 
     // Parse and render markdown for accurate measurement
-    val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, maxFontSizeMultiplier)
+    val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)
     val textToMeasure = spannable ?: markdown
     val size = measure(width, textToMeasure, paintParams)
 
@@ -207,13 +208,14 @@ object MeasurementStore {
     styleMap: ReadableMap?,
     context: Context,
     md4cFlags: Md4cFlags,
+    allowFontScaling: Boolean,
     maxFontSizeMultiplier: Float,
   ): CharSequence? {
     if (styleMap == null) return null
 
     return try {
       val ast = Parser.shared.parseMarkdown(markdown, md4cFlags) ?: return null
-      val style = StyleConfig(styleMap, context, maxFontSizeMultiplier)
+      val style = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
       measureRenderer.configure(style, context)
       measureRenderer.renderDocument(ast, null)
     } catch (e: Exception) {

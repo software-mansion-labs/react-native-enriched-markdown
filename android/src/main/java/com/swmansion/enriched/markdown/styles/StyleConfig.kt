@@ -16,7 +16,7 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 class StyleConfig(
   private val style: ReadableMap,
   context: Context,
-  maxFontSizeMultiplier: Float = 0f,
+  maxFontSizeMultiplier: Float,
 ) {
   private val styleParser = StyleParser(context, maxFontSizeMultiplier)
   private val assets: AssetManager = context.assets

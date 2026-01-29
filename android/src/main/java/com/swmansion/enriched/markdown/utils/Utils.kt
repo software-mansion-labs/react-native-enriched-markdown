@@ -112,11 +112,6 @@ fun SpannableStringBuilder.isInlineImage(): Boolean {
 // Span Creation Utilities
 // ============================================================================
 
-/**
- * Creates a LineHeightSpan matching React Native's CustomLineHeightSpan behavior.
- *
- * @param lineHeight The desired line height in pixels
- */
 fun createLineHeightSpan(lineHeight: Float): AndroidLineHeightSpan = LineHeightSpan(lineHeight)
 
 /**
@@ -195,3 +190,10 @@ fun ReadableMap?.getFloatOrDefault(
   key: String,
   default: Float,
 ): Float = if (this?.hasKey(key) == true) getDouble(key).toFloat() else default
+
+fun ReadableMap?.getStringOrDefault(
+  key: String,
+  default: String,
+): String = if (this?.hasKey(key) == true) getString(key) ?: default else default
+
+fun ReadableMap?.getMapOrNull(key: String): ReadableMap? = if (this?.hasKey(key) == true) getMap(key) else null

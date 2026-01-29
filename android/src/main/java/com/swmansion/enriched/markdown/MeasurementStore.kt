@@ -18,6 +18,8 @@ import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.getFloatOrDefault
+import com.swmansion.enriched.markdown.utils.getMapOrNull
+import com.swmansion.enriched.markdown.utils.getStringOrDefault
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
@@ -38,7 +40,7 @@ object MeasurementStore {
     val cachedSize: Long,
     val spannable: CharSequence?,
     val paintParams: PaintParams,
-    val markdownHash: Int, // Hash of markdown + style + fontScale to detect content changes
+    val markdownHash: Int,
   )
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
@@ -80,8 +82,8 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Long {
     // Early exit for empty markdown
-    val markdown = props?.getString("markdown")
-    if (markdown.isNullOrEmpty()) {
+    val markdown = props.getStringOrDefault("markdown", "")
+    if (markdown.isEmpty()) {
       return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
     }
 
@@ -135,9 +137,9 @@ object MeasurementStore {
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Int {
-    val markdown = props?.getString("markdown") ?: ""
-    val styleMap = props?.getMap("markdownStyle")
-    val md4cFlagsMap = props?.getMap("md4cFlags")
+    val markdown = props.getStringOrDefault("markdown", "")
+    val styleMap = props.getMapOrNull("markdownStyle")
+    val md4cFlagsMap = props.getMapOrNull("md4cFlags")
     val allowFontScaling = props.getBooleanOrDefault("allowFontScaling", true)
     var result = markdown.hashCode()
     result = 31 * result + (styleMap?.hashCode() ?: 0)
@@ -177,12 +179,12 @@ object MeasurementStore {
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Long {
-    val markdown = props?.getString("markdown") ?: ""
-    val styleMap = props?.getMap("markdownStyle")
-    val md4cFlagsMap = props?.getMap("md4cFlags")
+    val markdown = props.getStringOrDefault("markdown", "")
+    val styleMap = props.getMapOrNull("markdownStyle")
+    val md4cFlagsMap = props.getMapOrNull("md4cFlags")
     val md4cFlags =
       Md4cFlags(
-        underline = md4cFlagsMap?.getBoolean("underline") ?: false,
+        underline = md4cFlagsMap.getBooleanOrDefault("underline", false),
       )
     val fontSize = getInitialFontSize(styleMap, context, fontScale, maxFontSizeMultiplier)
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)

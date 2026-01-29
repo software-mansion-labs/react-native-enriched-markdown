@@ -7,7 +7,7 @@ import com.facebook.react.uimanager.PixelUtil
 
 class StyleParser(
   private val context: Context,
-  private val maxFontSizeMultiplier: Float = 0f,
+  private val maxFontSizeMultiplier: Float,
 ) {
   fun parseOptionalColor(
     map: ReadableMap,

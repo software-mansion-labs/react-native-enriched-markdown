@@ -146,18 +146,6 @@ class EnrichedMarkdownText
       val markdown = currentMarkdown
       if (markdown.isEmpty()) return
 
-      // Check if font scale changed since last render (backup for when onConfigurationChanged isn't called)
-      if (allowFontScaling) {
-        val currentFontScale = context.resources.configuration.fontScale
-        if (currentFontScale != lastKnownFontScale) {
-          lastKnownFontScale = currentFontScale
-          recreateStyleConfig()
-        }
-      }
-
-      // Use the potentially updated style
-      val effectiveStyle = markdownStyle ?: return
-
       val renderId = ++currentRenderId
 
       executor.execute {
@@ -173,7 +161,7 @@ class EnrichedMarkdownText
 
           // 2. Render AST → Spannable
           val renderStart = System.currentTimeMillis()
-          renderer.configure(effectiveStyle, context)
+          renderer.configure(style, context)
           val styledText = renderer.renderDocument(ast, onLinkPressCallback)
           val renderTime = System.currentTimeMillis() - renderStart
 

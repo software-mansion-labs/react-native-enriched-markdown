@@ -160,6 +160,21 @@ export interface NativeProps extends ViewProps {
    * Controls how the markdown parser interprets certain syntax.
    */
   md4cFlags: Md4cFlagsInternal;
+  /**
+   * Specifies whether fonts should scale to respect Text Size accessibility settings.
+   * When false, text will not scale with the user's accessibility settings.
+   * @default true
+   */
+  allowFontScaling?: CodegenTypes.WithDefault<boolean, true>;
+  /**
+   * Specifies the largest possible scale a font can reach when allowFontScaling is enabled.
+   * Possible values:
+   * - undefined/null (default): inherit from parent or global default (no limit)
+   * - 0: no limit, ignore parent/global default
+   * - >= 1: sets the maxFontSizeMultiplier of this node to this value
+   * @default undefined
+   */
+  maxFontSizeMultiplier?: CodegenTypes.Float;
 }
 
 export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText');

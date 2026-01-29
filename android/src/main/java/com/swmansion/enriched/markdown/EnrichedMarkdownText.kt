@@ -1,6 +1,7 @@
 package com.swmansion.enriched.markdown
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Handler
@@ -50,6 +51,12 @@ class EnrichedMarkdownText
     var md4cFlags: Md4cFlags = Md4cFlags.DEFAULT
       private set
 
+    private var lastKnownFontScale: Float = context.resources.configuration.fontScale
+    private var markdownStyleMap: ReadableMap? = null
+
+    private var allowFontScaling: Boolean = true
+    private var maxFontSizeMultiplier: Float = 0f
+
     init {
       setBackgroundColor(Color.TRANSPARENT)
       includeFontPadding = false // Must match setIncludePad(false) in MeasurementStore
@@ -67,17 +74,60 @@ class EnrichedMarkdownText
     }
 
     fun setMarkdownStyle(style: ReadableMap?) {
-      val newStyle = style?.let { StyleConfig(it, context) }
+      markdownStyleMap = style
+      val newStyle = style?.let { StyleConfig(it, context, maxFontSizeMultiplier) }
       if (markdownStyle == newStyle) return
       markdownStyle = newStyle
       updateJustificationMode(newStyle)
       scheduleRender()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+      super.onConfigurationChanged(newConfig)
+
+      if (!allowFontScaling) {
+        return
+      }
+
+      val newFontScale = newConfig.fontScale
+      if (newFontScale != lastKnownFontScale) {
+        lastKnownFontScale = newFontScale
+        recreateStyleConfig()
+        scheduleRenderIfNeeded()
+      }
+    }
+
     fun setMd4cFlags(flags: Md4cFlags) {
       if (md4cFlags == flags) return
       md4cFlags = flags
-      scheduleRender()
+      scheduleRenderIfNeeded()
+    }
+
+    fun setAllowFontScaling(allow: Boolean) {
+      if (allowFontScaling == allow) return
+      allowFontScaling = allow
+      recreateStyleConfig()
+      scheduleRenderIfNeeded()
+    }
+
+    fun setMaxFontSizeMultiplier(multiplier: Float) {
+      if (maxFontSizeMultiplier == multiplier) return
+      maxFontSizeMultiplier = multiplier
+      recreateStyleConfig()
+      scheduleRenderIfNeeded()
+    }
+
+    private fun scheduleRenderIfNeeded() {
+      if (currentMarkdown.isNotEmpty()) {
+        scheduleRender()
+      }
+    }
+
+    private fun recreateStyleConfig() {
+      markdownStyleMap?.let { styleMap ->
+        markdownStyle = StyleConfig(styleMap, context, maxFontSizeMultiplier)
+        updateJustificationMode(markdownStyle)
+      }
     }
 
     private fun updateJustificationMode(style: StyleConfig?) {
@@ -96,6 +146,18 @@ class EnrichedMarkdownText
       val markdown = currentMarkdown
       if (markdown.isEmpty()) return
 
+      // Check if font scale changed since last render (backup for when onConfigurationChanged isn't called)
+      if (allowFontScaling) {
+        val currentFontScale = context.resources.configuration.fontScale
+        if (currentFontScale != lastKnownFontScale) {
+          lastKnownFontScale = currentFontScale
+          recreateStyleConfig()
+        }
+      }
+
+      // Use the potentially updated style
+      val effectiveStyle = markdownStyle ?: return
+
       val renderId = ++currentRenderId
 
       executor.execute {
@@ -111,7 +173,7 @@ class EnrichedMarkdownText
 
           // 2. Render AST → Spannable
           val renderStart = System.currentTimeMillis()
-          renderer.configure(style, context)
+          renderer.configure(effectiveStyle, context)
           val styledText = renderer.renderDocument(ast, onLinkPressCallback)
           val renderTime = System.currentTimeMillis() - renderStart
 

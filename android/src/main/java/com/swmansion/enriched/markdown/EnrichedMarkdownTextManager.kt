@@ -77,6 +77,22 @@ class EnrichedMarkdownTextManager :
     view?.setMd4cFlags(md4cFlags)
   }
 
+  @ReactProp(name = "allowFontScaling", defaultBoolean = true)
+  override fun setAllowFontScaling(
+    view: EnrichedMarkdownText?,
+    allowFontScaling: Boolean,
+  ) {
+    view?.setAllowFontScaling(allowFontScaling)
+  }
+
+  @ReactProp(name = "maxFontSizeMultiplier", defaultFloat = 0f)
+  override fun setMaxFontSizeMultiplier(
+    view: EnrichedMarkdownText?,
+    maxFontSizeMultiplier: Float,
+  ) {
+    view?.setMaxFontSizeMultiplier(maxFontSizeMultiplier)
+  }
+
   override fun setPadding(
     view: EnrichedMarkdownText,
     left: Int,

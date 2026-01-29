@@ -1,5 +1,6 @@
 #import "RenderContext.h"
 #import "CodeBackground.h"
+#import "FontUtils.h"
 #import <React/RCTFont.h>
 
 @implementation BlockStyle
@@ -18,6 +19,8 @@
     _linkURLs = [NSMutableArray array];
     _fontCache = [NSMutableDictionary dictionary];
     _currentBlockStyle = [[BlockStyle alloc] init];
+    _allowFontScaling = YES;    // Default to YES like React Native
+    _maxFontSizeMultiplier = 0; // 0 means no cap (default)
 
     NSMutableParagraphStyle *spacerTemplate = [[NSMutableParagraphStyle alloc] init];
     _baseSpacerTemplate = [spacerTemplate copy];
@@ -36,8 +39,11 @@
 
 - (UIFont *)cachedFontForSize:(CGFloat)fontSize family:(NSString *)fontFamily weight:(NSString *)fontWeight
 {
+  CGFloat effectiveMultiplier = _allowFontScaling ? RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier) : 1.0;
+
   NSString *weightKey = (fontWeight.length > 0) ? fontWeight : @"";
-  NSString *key = [NSString stringWithFormat:@"%.1f|%@|%@", fontSize, fontFamily ?: @"", weightKey];
+  NSString *key =
+      [NSString stringWithFormat:@"%.1f|%@|%@|%.2f", fontSize, fontFamily ?: @"", weightKey, effectiveMultiplier];
 
   UIFont *cached = _fontCache[key];
   if (cached) {
@@ -52,7 +58,7 @@
                               weight:effectiveWeight
                                style:nil
                              variant:nil
-                     scaleMultiplier:1];
+                     scaleMultiplier:effectiveMultiplier];
 
   if (font) {
     _fontCache[key] = font;

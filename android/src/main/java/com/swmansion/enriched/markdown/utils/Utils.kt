@@ -2,10 +2,10 @@ package com.swmansion.enriched.markdown.utils
 
 import android.content.Context
 import android.graphics.Typeface
-import android.os.Build
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.TextPaint
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.ReactConstants
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
@@ -113,16 +113,11 @@ fun SpannableStringBuilder.isInlineImage(): Boolean {
 // ============================================================================
 
 /**
- * Creates a LineHeightSpan appropriate for the current API level.
+ * Creates a LineHeightSpan matching React Native's CustomLineHeightSpan behavior.
  *
  * @param lineHeight The desired line height in pixels
  */
-fun createLineHeightSpan(lineHeight: Float): AndroidLineHeightSpan =
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-    AndroidLineHeightSpan.Standard(lineHeight.toInt())
-  } else {
-    LineHeightSpan(lineHeight)
-  }
+fun createLineHeightSpan(lineHeight: Float): AndroidLineHeightSpan = LineHeightSpan(lineHeight)
 
 /**
  * Applies marginTop spacing to a block element using MarginTopSpan.
@@ -186,3 +181,17 @@ fun applyMarginBottom(
     )
   }
 }
+
+// ============================================================================
+// ReadableMap Extensions
+// ============================================================================
+
+fun ReadableMap?.getBooleanOrDefault(
+  key: String,
+  default: Boolean,
+): Boolean = if (this?.hasKey(key) == true) getBoolean(key) else default
+
+fun ReadableMap?.getFloatOrDefault(
+  key: String,
+  default: Float,
+): Float = if (this?.hasKey(key) == true) getDouble(key).toFloat() else default

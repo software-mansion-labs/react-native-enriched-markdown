@@ -162,6 +162,21 @@ export interface EnrichedMarkdownTextProps
    * Controls how the markdown parser interprets certain syntax.
    */
   md4cFlags?: Md4cFlags;
+  /**
+   * Specifies whether fonts should scale to respect Text Size accessibility settings.
+   * When false, text will not scale with the user's accessibility settings.
+   * @default true
+   */
+  allowFontScaling?: boolean;
+  /**
+   * Specifies the largest possible scale a font can reach when allowFontScaling is enabled.
+   * Possible values:
+   * - undefined/null (default): no limit
+   * - 0: no limit
+   * - >= 1: sets the maxFontSizeMultiplier of this node to this value
+   * @default undefined
+   */
+  maxFontSizeMultiplier?: number;
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -175,6 +190,8 @@ export const EnrichedMarkdownText = ({
   onLinkPress,
   isSelectable = true,
   md4cFlags = defaultMd4cFlags,
+  allowFontScaling = true,
+  maxFontSizeMultiplier,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
@@ -204,6 +221,8 @@ export const EnrichedMarkdownText = ({
       onLinkPress={handleLinkPress}
       isSelectable={isSelectable}
       md4cFlags={normalizedMd4cFlags}
+      allowFontScaling={allowFontScaling}
+      maxFontSizeMultiplier={maxFontSizeMultiplier}
       style={containerStyle}
       {...rest}
     />

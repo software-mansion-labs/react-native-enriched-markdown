@@ -3,6 +3,10 @@
 
 @interface StyleConfig : NSObject <NSCopying>
 - (instancetype)init;
+- (CGFloat)fontScaleMultiplier;
+- (void)setFontScaleMultiplier:(CGFloat)newValue;
+- (CGFloat)maxFontSizeMultiplier;
+- (void)setMaxFontSizeMultiplier:(CGFloat)newValue;
 // Primary font properties
 - (UIColor *)primaryColor;
 - (void)setPrimaryColor:(UIColor *)newValue;

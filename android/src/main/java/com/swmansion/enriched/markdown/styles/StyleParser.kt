@@ -5,12 +5,9 @@ import com.facebook.react.bridge.ColorPropConverter
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 
-/**
- * Helper class for parsing style values from ReadableMap.
- * Provides common parsing utilities used by all style factory functions.
- */
 class StyleParser(
   private val context: Context,
+  private val maxFontSizeMultiplier: Float = 0f,
 ) {
   fun parseOptionalColor(
     map: ReadableMap,
@@ -69,7 +66,17 @@ class StyleParser(
       default
     }
 
-  fun toPixelFromSP(value: Float): Float = PixelUtil.toPixelFromSP(value)
+  fun toPixelFromSP(value: Float): Float {
+    val metrics = context.resources.displayMetrics
+    val baseDensity = metrics.density
+    var fontScale = metrics.scaledDensity / baseDensity
+
+    if (maxFontSizeMultiplier >= 1.0f && fontScale > maxFontSizeMultiplier) {
+      fontScale = maxFontSizeMultiplier
+    }
+
+    return value * baseDensity * fontScale
+  }
 
   fun toPixelFromDIP(value: Float): Float = PixelUtil.toPixelFromDIP(value)
 

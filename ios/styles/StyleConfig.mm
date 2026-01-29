@@ -1,5 +1,7 @@
 #import "StyleConfig.h"
+#import "FontUtils.h"
 #import <React/RCTFont.h>
+#import <React/RCTUtils.h>
 
 static inline NSString *normalizedFontWeight(NSString *fontWeight)
 {
@@ -12,6 +14,8 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 }
 
 @implementation StyleConfig {
+  BOOL _allowFontScaling;
+  CGFloat _maxFontSizeMultiplier;
   // Primary font properties
   UIColor *_primaryColor;
   NSNumber *_primaryFontSize;
@@ -175,6 +179,8 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (instancetype)init
 {
   self = [super init];
+  _allowFontScaling = YES;    // Default to YES like React Native
+  _maxFontSizeMultiplier = 0; // 0 means no cap (matches React Native default)
   _primaryFontNeedsRecreation = YES;
   _paragraphFontNeedsRecreation = YES;
   _h1FontNeedsRecreation = YES;
@@ -191,9 +197,73 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   return self;
 }
 
+- (CGFloat)fontScaleMultiplier
+{
+  // For backward compatibility, return 1.0 if scaling disabled
+  return _allowFontScaling ? RCTFontSizeMultiplier() : 1.0;
+}
+
+- (void)setFontScaleMultiplier:(CGFloat)newValue
+{
+  // Interpret as: 1.0 = disabled, anything else = enabled
+  BOOL newAllowFontScaling = (newValue != 1.0);
+  if (_allowFontScaling != newAllowFontScaling) {
+    _allowFontScaling = newAllowFontScaling;
+    // Invalidate all cached fonts when scale changes
+    _primaryFontNeedsRecreation = YES;
+    _paragraphFontNeedsRecreation = YES;
+    _h1FontNeedsRecreation = YES;
+    _h2FontNeedsRecreation = YES;
+    _h3FontNeedsRecreation = YES;
+    _h4FontNeedsRecreation = YES;
+    _h5FontNeedsRecreation = YES;
+    _h6FontNeedsRecreation = YES;
+    _listMarkerFontNeedsRecreation = YES;
+    _listStyleFontNeedsRecreation = YES;
+    _codeBlockFontNeedsRecreation = YES;
+    _blockquoteFontNeedsRecreation = YES;
+  }
+}
+
+// Helper to get the effective scale multiplier for a specific font size using UIFontMetrics
+- (CGFloat)effectiveScaleMultiplierForFontSize:(CGFloat)fontSize
+{
+  if (!_allowFontScaling) {
+    return 1.0;
+  }
+  return RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+}
+
+- (CGFloat)maxFontSizeMultiplier
+{
+  return _maxFontSizeMultiplier;
+}
+
+- (void)setMaxFontSizeMultiplier:(CGFloat)newValue
+{
+  if (_maxFontSizeMultiplier != newValue) {
+    _maxFontSizeMultiplier = newValue;
+    // Invalidate all cached fonts when max multiplier changes
+    _primaryFontNeedsRecreation = YES;
+    _paragraphFontNeedsRecreation = YES;
+    _h1FontNeedsRecreation = YES;
+    _h2FontNeedsRecreation = YES;
+    _h3FontNeedsRecreation = YES;
+    _h4FontNeedsRecreation = YES;
+    _h5FontNeedsRecreation = YES;
+    _h6FontNeedsRecreation = YES;
+    _listMarkerFontNeedsRecreation = YES;
+    _listStyleFontNeedsRecreation = YES;
+    _codeBlockFontNeedsRecreation = YES;
+    _blockquoteFontNeedsRecreation = YES;
+  }
+}
+
 - (id)copyWithZone:(NSZone *)zone
 {
   StyleConfig *copy = [[[self class] allocWithZone:zone] init];
+  copy->_allowFontScaling = _allowFontScaling;
+  copy->_maxFontSizeMultiplier = _maxFontSizeMultiplier;
   copy->_primaryColor = [_primaryColor copy];
   copy->_primaryFontSize = [_primaryFontSize copy];
   copy->_primaryFontWeight = [_primaryFontWeight copy];
@@ -376,7 +446,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                                 weight:normalizedFontWeight(_primaryFontWeight)
                                  style:nil
                                variant:nil
-                       scaleMultiplier:1];
+                       scaleMultiplier:[self effectiveScaleMultiplierForFontSize:[_primaryFontSize floatValue]]];
     _primaryFontNeedsRecreation = NO;
   }
   return _primaryFont;
@@ -448,6 +518,10 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)paragraphLineHeight
 {
+  if (_allowFontScaling && _paragraphLineHeight > 0) {
+    // Scale line height using the same multiplier as the font (matches React Native Text behavior)
+    return _paragraphLineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _paragraphLineHeight;
 }
 
@@ -475,7 +549,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                                   weight:normalizedFontWeight(_paragraphFontWeight)
                                    style:nil
                                  variant:nil
-                         scaleMultiplier:1];
+                         scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_paragraphFontSize]];
     _paragraphFontNeedsRecreation = NO;
   }
   return _paragraphFont;
@@ -546,6 +620,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)h1LineHeight
 {
+  if (_allowFontScaling && _h1LineHeight > 0) {
+    return _h1LineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _h1LineHeight;
 }
 
@@ -573,7 +650,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                            weight:normalizedFontWeight(_h1FontWeight)
                             style:nil
                           variant:nil
-                  scaleMultiplier:1];
+                  scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_h1FontSize]];
     _h1FontNeedsRecreation = NO;
   }
   return _h1Font;
@@ -644,6 +721,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)h2LineHeight
 {
+  if (_allowFontScaling && _h2LineHeight > 0) {
+    return _h2LineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _h2LineHeight;
 }
 
@@ -671,7 +751,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                            weight:normalizedFontWeight(_h2FontWeight)
                             style:nil
                           variant:nil
-                  scaleMultiplier:1];
+                  scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_h2FontSize]];
     _h2FontNeedsRecreation = NO;
   }
   return _h2Font;
@@ -742,6 +822,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)h3LineHeight
 {
+  if (_allowFontScaling && _h3LineHeight > 0) {
+    return _h3LineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _h3LineHeight;
 }
 
@@ -769,7 +852,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                            weight:normalizedFontWeight(_h3FontWeight)
                             style:nil
                           variant:nil
-                  scaleMultiplier:1];
+                  scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_h3FontSize]];
     _h3FontNeedsRecreation = NO;
   }
   return _h3Font;
@@ -840,6 +923,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)h4LineHeight
 {
+  if (_allowFontScaling && _h4LineHeight > 0) {
+    return _h4LineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _h4LineHeight;
 }
 
@@ -867,7 +953,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                            weight:normalizedFontWeight(_h4FontWeight)
                             style:nil
                           variant:nil
-                  scaleMultiplier:1];
+                  scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_h4FontSize]];
     _h4FontNeedsRecreation = NO;
   }
   return _h4Font;
@@ -938,6 +1024,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)h5LineHeight
 {
+  if (_allowFontScaling && _h5LineHeight > 0) {
+    return _h5LineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _h5LineHeight;
 }
 
@@ -965,7 +1054,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                            weight:normalizedFontWeight(_h5FontWeight)
                             style:nil
                           variant:nil
-                  scaleMultiplier:1];
+                  scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_h5FontSize]];
     _h5FontNeedsRecreation = NO;
   }
   return _h5Font;
@@ -1036,6 +1125,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)h6LineHeight
 {
+  if (_allowFontScaling && _h6LineHeight > 0) {
+    return _h6LineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _h6LineHeight;
 }
 
@@ -1063,7 +1155,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                            weight:normalizedFontWeight(_h6FontWeight)
                             style:nil
                           variant:nil
-                  scaleMultiplier:1];
+                  scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_h6FontSize]];
     _h6FontNeedsRecreation = NO;
   }
   return _h6Font;
@@ -1275,6 +1367,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)blockquoteLineHeight
 {
+  if (_allowFontScaling && _blockquoteLineHeight > 0) {
+    return _blockquoteLineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _blockquoteLineHeight;
 }
 
@@ -1292,7 +1387,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                                    weight:normalizedFontWeight(_blockquoteFontWeight)
                                     style:nil
                                   variant:nil
-                          scaleMultiplier:1];
+                          scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_blockquoteFontSize]];
     _blockquoteFontNeedsRecreation = NO;
   }
   return _blockquoteFont;
@@ -1406,6 +1501,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)listStyleLineHeight
 {
+  if (_allowFontScaling && _listStyleLineHeight > 0) {
+    return _listStyleLineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _listStyleLineHeight;
 }
 
@@ -1484,7 +1582,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                                    weight:normalizedFontWeight(_listStyleMarkerFontWeight)
                                     style:nil
                                   variant:nil
-                          scaleMultiplier:1];
+                          scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_listStyleFontSize]];
     _listMarkerFontNeedsRecreation = NO;
   }
   return _listMarkerFont;
@@ -1499,7 +1597,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
                                   weight:normalizedFontWeight(_listStyleFontWeight)
                                    style:nil
                                  variant:nil
-                         scaleMultiplier:1];
+                         scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_listStyleFontSize]];
     _listStyleFontNeedsRecreation = NO;
   }
   return _listStyleFont;
@@ -1592,6 +1690,9 @@ static const CGFloat kDefaultMinGap = 4.0;
 
 - (CGFloat)codeBlockLineHeight
 {
+  if (_allowFontScaling && _codeBlockLineHeight > 0) {
+    return _codeBlockLineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
   return _codeBlockLineHeight;
 }
 
@@ -1659,7 +1760,7 @@ static const CGFloat kDefaultMinGap = 4.0;
                                   weight:normalizedFontWeight(_codeBlockFontWeight)
                                    style:nil
                                  variant:nil
-                         scaleMultiplier:1];
+                         scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_codeBlockFontSize]];
     _codeBlockFontNeedsRecreation = NO;
   }
   return _codeBlockFont;

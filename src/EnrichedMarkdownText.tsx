@@ -13,6 +13,7 @@ interface BaseBlockStyle {
   fontFamily?: string;
   fontWeight?: string;
   color?: string;
+  marginTop?: number;
   marginBottom?: number;
   lineHeight?: number;
 }
@@ -87,6 +88,7 @@ interface CodeStyle {
 interface ImageStyle {
   height?: number;
   borderRadius?: number;
+  marginTop?: number;
   marginBottom?: number;
 }
 

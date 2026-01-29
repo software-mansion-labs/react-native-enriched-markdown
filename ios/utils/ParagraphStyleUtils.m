@@ -19,7 +19,7 @@ NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *ou
   return existing ? [existing mutableCopy] : [[NSMutableParagraphStyle alloc] init];
 }
 
-void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom)
+void applyParagraphSpacingAfter(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom)
 {
   [output appendAttributedString:kNewlineAttributedString];
 
@@ -30,8 +30,41 @@ void applyParagraphSpacing(NSMutableAttributedString *output, NSUInteger start, 
   [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
 }
 
-void applyBlockSpacing(NSMutableAttributedString *output, CGFloat marginBottom)
+void applyParagraphSpacingBefore(NSMutableAttributedString *output, NSRange range, CGFloat marginTop)
 {
+  if (marginTop <= 0) {
+    return;
+  }
+
+  // Note: paragraphSpacingBefore does not work at index 0 in TextKit.
+  // Leading spacing for the first element is handled by renderers via applyBlockSpacingBefore.
+  NSMutableParagraphStyle *style = getOrCreateParagraphStyle(output, range.location);
+  style.paragraphSpacingBefore = marginTop;
+  [output addAttribute:NSParagraphStyleAttributeName value:style range:range];
+}
+
+NSUInteger applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger insertionPoint, CGFloat marginTop)
+{
+  if (marginTop <= 0) {
+    return 0;
+  }
+
+  NSMutableParagraphStyle *spacerStyle = [kBlockSpacerTemplate mutableCopy];
+  spacerStyle.paragraphSpacing = marginTop;
+
+  NSAttributedString *spacer =
+      [[NSAttributedString alloc] initWithString:@"\n" attributes:@{NSParagraphStyleAttributeName : spacerStyle}];
+
+  [output insertAttributedString:spacer atIndex:insertionPoint];
+  return 1;
+}
+
+void applyBlockSpacingAfter(NSMutableAttributedString *output, CGFloat marginBottom)
+{
+  if (marginBottom <= 0) {
+    return;
+  }
+
   NSUInteger spacerLocation = output.length;
   [output appendAttributedString:kNewlineAttributedString];
 

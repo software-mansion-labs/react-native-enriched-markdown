@@ -7,6 +7,7 @@ data class CodeBlockStyle(
   override val fontFamily: String,
   override val fontWeight: String,
   override val color: Int,
+  override val marginTop: Float,
   override val marginBottom: Float,
   override val lineHeight: Float,
   val backgroundColor: Int,
@@ -24,6 +25,7 @@ data class CodeBlockStyle(
       val fontFamily = parser.parseString(map, "fontFamily")
       val fontWeight = parser.parseString(map, "fontWeight", "normal")
       val color = parser.parseColor(map, "color")
+      val marginTop = parser.toPixelFromDIP(map.getDouble("marginTop").toFloat())
       val marginBottom = parser.toPixelFromDIP(map.getDouble("marginBottom").toFloat())
       val lineHeightRaw = map.getDouble("lineHeight").toFloat()
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
@@ -38,6 +40,7 @@ data class CodeBlockStyle(
         fontFamily,
         fontWeight,
         color,
+        marginTop,
         marginBottom,
         lineHeight,
         backgroundColor,

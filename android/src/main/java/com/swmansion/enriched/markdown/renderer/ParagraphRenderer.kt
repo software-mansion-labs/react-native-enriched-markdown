@@ -5,10 +5,11 @@ import android.text.style.AlignmentSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.styles.ParagraphStyle
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 import com.swmansion.enriched.markdown.utils.applyMarginBottom
+import com.swmansion.enriched.markdown.utils.applyMarginTop
 import com.swmansion.enriched.markdown.utils.containsBlockImage
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
-import com.swmansion.enriched.markdown.utils.getMarginBottomForParagraph
 
 class ParagraphRenderer(
   private val config: RendererConfig,
@@ -21,14 +22,13 @@ class ParagraphRenderer(
   ) {
     val context = factory.blockStyleContext
 
-    // If nested, just render content and a newline
+    // If nested (e.g., inside a list or blockquote), render content simply with a newline
     if (context.isInsideBlockElement()) {
       factory.renderChildren(node, builder, onLinkPress)
       builder.append("\n")
       return
     }
 
-    // Top-level paragraph rendering
     val start = builder.length
     val style = config.style.paragraphStyle
 
@@ -39,7 +39,6 @@ class ParagraphRenderer(
       context.clearBlockStyle()
     }
 
-    // Apply spans only if content was actually added
     if (builder.length > start) {
       builder.applySpans(node, style, start)
     }
@@ -50,8 +49,9 @@ class ParagraphRenderer(
     style: ParagraphStyle,
     start: Int,
   ) {
-    val end = length // Current length is the end point
+    val end = length
 
+    // LineHeightSpan is avoided for block images to prevent clipping/overlapping
     if (!node.containsBlockImage()) {
       setSpan(
         createLineHeightSpan(style.lineHeight),
@@ -61,9 +61,7 @@ class ParagraphRenderer(
       )
     }
 
-    // Only apply AlignmentSpan for center/right.
-    // For left/auto: default alignment, no span needed.
-    // For justify: handled at TextView level via setJustificationMode() (API 26+).
+    // Only apply AlignmentSpan for non-default alignments (Center/Right)
     if (style.textAlign.needsAlignmentSpan) {
       setSpan(
         AlignmentSpan.Standard(style.textAlign.layoutAlignment),
@@ -73,7 +71,14 @@ class ParagraphRenderer(
       )
     }
 
-    val margin = getMarginBottomForParagraph(node, style, config.style)
-    applyMarginBottom(this, start, margin)
+    // Block images use a spacer-based margin because MarginTopSpan conflicts with ReplacementSpans
+    if (node.containsBlockImage()) {
+      applyBlockMarginTop(this, start, config.style.imageStyle.marginTop)
+    } else {
+      applyMarginTop(this, start, end, style.marginTop)
+    }
+
+    val marginBottom = if (node.containsBlockImage()) config.style.imageStyle.marginBottom else style.marginBottom
+    applyMarginBottom(this, start, marginBottom)
   }
 }

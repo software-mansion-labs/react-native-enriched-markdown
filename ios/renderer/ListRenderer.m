@@ -27,17 +27,24 @@
   if (!context)
     return;
 
-  // Snapshot parent state
+  // Snapshot parent state to handle restoration after rendering nested children
   NSInteger prevDepth = context.listDepth;
   ListType prevType = context.listType;
   NSInteger prevNum = context.listItemNumber;
 
-  // Configure depth and type
+  NSUInteger start = output.length;
+  NSUInteger contentStart = start;
+
+  // Apply top margin only for the root-level list container
+  if (prevDepth == 0) {
+    contentStart += applyBlockSpacingBefore(output, start, [_config listStyleMarginTop]);
+  }
+
   context.listDepth = prevDepth + 1;
   context.listType = _isOrdered ? ListTypeOrdered : ListTypeUnordered;
   context.listItemNumber = 0;
 
-  // Ensure isolation for nested lists
+  // Ensure nested lists start on a new line if the previous content didn't end with one
   if (prevDepth > 0 && output.length > 0 && ![output.string hasSuffix:@"\n"]) {
     [output appendAttributedString:kNewlineAttributedString];
   }
@@ -50,7 +57,7 @@
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];
   } @finally {
-    // Restore parent state
+    // Restore original context state to prevent settings leaking to siblings
     context.listDepth = prevDepth;
     context.listType = prevType;
     context.listItemNumber = prevNum;
@@ -58,9 +65,8 @@
       [context clearBlockStyle];
   }
 
-  // Final spacing for root container
-  if (prevDepth == 0 && [_config listStyleMarginBottom] > 0) {
-    applyBlockSpacing(output, [_config listStyleMarginBottom]);
+  if (prevDepth == 0) {
+    applyBlockSpacingAfter(output, [_config listStyleMarginBottom]);
   }
 }
 

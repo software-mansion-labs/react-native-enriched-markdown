@@ -3,8 +3,9 @@ package com.swmansion.enriched.markdown.renderer
 import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
-import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
+import com.swmansion.enriched.markdown.utils.applyMarginBottom
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
 
 class BlockquoteRenderer(
@@ -21,7 +22,7 @@ class BlockquoteRenderer(
     val context = factory.blockStyleContext
     val depth = context.blockquoteDepth
 
-    // 1. Context management
+    // Track depth to handle nested indentation levels
     context.blockquoteDepth = depth + 1
     context.setBlockquoteStyle(style)
 
@@ -35,7 +36,7 @@ class BlockquoteRenderer(
     if (builder.length == start) return
     val end = builder.length
 
-    // 2. Identify Nested Ranges (Essential for excluding them from parent-level styles)
+    // Find immediately nested quotes to exclude them from this level's line-height/margins
     val nestedRanges =
       builder
         .getSpans(start, end, BlockquoteSpan::class.java)
@@ -43,7 +44,7 @@ class BlockquoteRenderer(
         .map { builder.getSpanStart(it) to builder.getSpanEnd(it) }
         .sortedBy { it.first }
 
-    // 3. Apply the Accent Bar Span (Must cover the full range for continuity)
+    // The Accent Bar Span covers the full range for visual continuity
     builder.setSpan(
       BlockquoteSpan(style, depth, factory.context, factory.styleCache),
       start,
@@ -51,20 +52,15 @@ class BlockquoteRenderer(
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // 4. Fragmented Styling Logic
-    // We apply line height and margin specifically to the segments that are NOT nested quotes.
+    // Apply styling only to segments that are NOT nested quotes
     applySpansExcludingNested(builder, nestedRanges, start, end, createLineHeightSpan(style.lineHeight))
 
-    // 5. Root-level Spacing
-    if (depth == 0 && style.marginBottom > 0) {
-      val spacerLocation = builder.length
-      builder.append("\n") // Physical break
-      builder.setSpan(
-        MarginBottomSpan(style.marginBottom),
-        spacerLocation,
-        builder.length,
-        SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-      )
+    // Margins are only applied by the outermost (root) quote
+    if (depth == 0) {
+      applyBlockMarginTop(builder, start, style.marginTop)
+      if (style.marginBottom > 0) {
+        applyMarginBottom(builder, builder.length, style.marginBottom)
+      }
     }
   }
 
@@ -73,7 +69,7 @@ class BlockquoteRenderer(
     nestedRanges: List<Pair<Int, Int>>,
     start: Int,
     end: Int,
-    span: Any, // Changed to Any to handle both LineHeight and MarginBottom spans
+    span: Any,
   ) {
     var currentPos = start
     for ((nestedStart, nestedEnd) in nestedRanges) {

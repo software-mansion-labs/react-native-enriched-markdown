@@ -24,6 +24,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_paragraphFontFamily;
   NSString *_paragraphFontWeight;
   UIColor *_paragraphColor;
+  CGFloat _paragraphMarginTop;
   CGFloat _paragraphMarginBottom;
   CGFloat _paragraphLineHeight;
   NSTextAlignment _paragraphTextAlign;
@@ -34,6 +35,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_h1FontFamily;
   NSString *_h1FontWeight;
   UIColor *_h1Color;
+  CGFloat _h1MarginTop;
   CGFloat _h1MarginBottom;
   CGFloat _h1LineHeight;
   NSTextAlignment _h1TextAlign;
@@ -44,6 +46,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_h2FontFamily;
   NSString *_h2FontWeight;
   UIColor *_h2Color;
+  CGFloat _h2MarginTop;
   CGFloat _h2MarginBottom;
   CGFloat _h2LineHeight;
   NSTextAlignment _h2TextAlign;
@@ -54,6 +57,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_h3FontFamily;
   NSString *_h3FontWeight;
   UIColor *_h3Color;
+  CGFloat _h3MarginTop;
   CGFloat _h3MarginBottom;
   CGFloat _h3LineHeight;
   NSTextAlignment _h3TextAlign;
@@ -64,6 +68,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_h4FontFamily;
   NSString *_h4FontWeight;
   UIColor *_h4Color;
+  CGFloat _h4MarginTop;
   CGFloat _h4MarginBottom;
   CGFloat _h4LineHeight;
   NSTextAlignment _h4TextAlign;
@@ -74,6 +79,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_h5FontFamily;
   NSString *_h5FontWeight;
   UIColor *_h5Color;
+  CGFloat _h5MarginTop;
   CGFloat _h5MarginBottom;
   CGFloat _h5LineHeight;
   NSTextAlignment _h5TextAlign;
@@ -84,6 +90,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_h6FontFamily;
   NSString *_h6FontWeight;
   UIColor *_h6Color;
+  CGFloat _h6MarginTop;
   CGFloat _h6MarginBottom;
   CGFloat _h6LineHeight;
   NSTextAlignment _h6TextAlign;
@@ -107,6 +114,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   // Image properties
   CGFloat _imageHeight;
   CGFloat _imageBorderRadius;
+  CGFloat _imageMarginTop;
   CGFloat _imageMarginBottom;
   // Inline image properties
   CGFloat _inlineImageSize;
@@ -115,6 +123,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_blockquoteFontFamily;
   NSString *_blockquoteFontWeight;
   UIColor *_blockquoteColor;
+  CGFloat _blockquoteMarginTop;
   CGFloat _blockquoteMarginBottom;
   CGFloat _blockquoteLineHeight;
   UIColor *_blockquoteBorderColor;
@@ -126,6 +135,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_listStyleFontFamily;
   NSString *_listStyleFontWeight;
   UIColor *_listStyleColor;
+  CGFloat _listStyleMarginTop;
   CGFloat _listStyleMarginBottom;
   CGFloat _listStyleLineHeight;
   UIColor *_listStyleBulletColor;
@@ -143,6 +153,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_codeBlockFontFamily;
   NSString *_codeBlockFontWeight;
   UIColor *_codeBlockColor;
+  CGFloat _codeBlockMarginTop;
   CGFloat _codeBlockMarginBottom;
   CGFloat _codeBlockLineHeight;
   UIColor *_codeBlockBackgroundColor;
@@ -193,6 +204,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_paragraphFontFamily = [_paragraphFontFamily copy];
   copy->_paragraphFontWeight = [_paragraphFontWeight copy];
   copy->_paragraphColor = [_paragraphColor copy];
+  copy->_paragraphMarginTop = _paragraphMarginTop;
   copy->_paragraphMarginBottom = _paragraphMarginBottom;
   copy->_paragraphLineHeight = _paragraphLineHeight;
   copy->_paragraphTextAlign = _paragraphTextAlign;
@@ -201,6 +213,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h1FontFamily = [_h1FontFamily copy];
   copy->_h1FontWeight = [_h1FontWeight copy];
   copy->_h1Color = [_h1Color copy];
+  copy->_h1MarginTop = _h1MarginTop;
   copy->_h1MarginBottom = _h1MarginBottom;
   copy->_h1LineHeight = _h1LineHeight;
   copy->_h1TextAlign = _h1TextAlign;
@@ -209,6 +222,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h2FontFamily = [_h2FontFamily copy];
   copy->_h2FontWeight = [_h2FontWeight copy];
   copy->_h2Color = [_h2Color copy];
+  copy->_h2MarginTop = _h2MarginTop;
   copy->_h2MarginBottom = _h2MarginBottom;
   copy->_h2LineHeight = _h2LineHeight;
   copy->_h2TextAlign = _h2TextAlign;
@@ -217,6 +231,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h3FontFamily = [_h3FontFamily copy];
   copy->_h3FontWeight = [_h3FontWeight copy];
   copy->_h3Color = [_h3Color copy];
+  copy->_h3MarginTop = _h3MarginTop;
   copy->_h3MarginBottom = _h3MarginBottom;
   copy->_h3LineHeight = _h3LineHeight;
   copy->_h3TextAlign = _h3TextAlign;
@@ -225,6 +240,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h4FontFamily = [_h4FontFamily copy];
   copy->_h4FontWeight = [_h4FontWeight copy];
   copy->_h4Color = [_h4Color copy];
+  copy->_h4MarginTop = _h4MarginTop;
   copy->_h4MarginBottom = _h4MarginBottom;
   copy->_h4LineHeight = _h4LineHeight;
   copy->_h4TextAlign = _h4TextAlign;
@@ -233,6 +249,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h5FontFamily = [_h5FontFamily copy];
   copy->_h5FontWeight = [_h5FontWeight copy];
   copy->_h5Color = [_h5Color copy];
+  copy->_h5MarginTop = _h5MarginTop;
   copy->_h5MarginBottom = _h5MarginBottom;
   copy->_h5LineHeight = _h5LineHeight;
   copy->_h5TextAlign = _h5TextAlign;
@@ -241,6 +258,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h6FontFamily = [_h6FontFamily copy];
   copy->_h6FontWeight = [_h6FontWeight copy];
   copy->_h6Color = [_h6Color copy];
+  copy->_h6MarginTop = _h6MarginTop;
   copy->_h6MarginBottom = _h6MarginBottom;
   copy->_h6LineHeight = _h6LineHeight;
   copy->_h6TextAlign = _h6TextAlign;
@@ -256,12 +274,14 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_codeBorderColor = [_codeBorderColor copy];
   copy->_imageHeight = _imageHeight;
   copy->_imageBorderRadius = _imageBorderRadius;
+  copy->_imageMarginTop = _imageMarginTop;
   copy->_imageMarginBottom = _imageMarginBottom;
   copy->_inlineImageSize = _inlineImageSize;
   copy->_blockquoteFontSize = _blockquoteFontSize;
   copy->_blockquoteFontFamily = [_blockquoteFontFamily copy];
   copy->_blockquoteFontWeight = [_blockquoteFontWeight copy];
   copy->_blockquoteColor = [_blockquoteColor copy];
+  copy->_blockquoteMarginTop = _blockquoteMarginTop;
   copy->_blockquoteMarginBottom = _blockquoteMarginBottom;
   copy->_blockquoteLineHeight = _blockquoteLineHeight;
   copy->_blockquoteBorderColor = [_blockquoteBorderColor copy];
@@ -272,6 +292,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_listStyleFontFamily = [_listStyleFontFamily copy];
   copy->_listStyleFontWeight = [_listStyleFontWeight copy];
   copy->_listStyleColor = [_listStyleColor copy];
+  copy->_listStyleMarginTop = _listStyleMarginTop;
   copy->_listStyleMarginBottom = _listStyleMarginBottom;
   copy->_listStyleLineHeight = _listStyleLineHeight;
   copy->_listStyleBulletColor = [_listStyleBulletColor copy];
@@ -285,6 +306,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_codeBlockFontFamily = [_codeBlockFontFamily copy];
   copy->_codeBlockFontWeight = [_codeBlockFontWeight copy];
   copy->_codeBlockColor = [_codeBlockColor copy];
+  copy->_codeBlockMarginTop = _codeBlockMarginTop;
   copy->_codeBlockMarginBottom = _codeBlockMarginBottom;
   copy->_codeBlockLineHeight = _codeBlockLineHeight;
   copy->_codeBlockBackgroundColor = [_codeBlockBackgroundColor copy];
@@ -404,6 +426,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _paragraphColor = newValue;
 }
 
+- (CGFloat)paragraphMarginTop
+{
+  return _paragraphMarginTop;
+}
+
+- (void)setParagraphMarginTop:(CGFloat)newValue
+{
+  _paragraphMarginTop = newValue;
+}
+
 - (CGFloat)paragraphMarginBottom
 {
   return _paragraphMarginBottom;
@@ -490,6 +522,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setH1Color:(UIColor *)newValue
 {
   _h1Color = newValue;
+}
+
+- (CGFloat)h1MarginTop
+{
+  return _h1MarginTop;
+}
+
+- (void)setH1MarginTop:(CGFloat)newValue
+{
+  _h1MarginTop = newValue;
 }
 
 - (CGFloat)h1MarginBottom
@@ -580,6 +622,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h2Color = newValue;
 }
 
+- (CGFloat)h2MarginTop
+{
+  return _h2MarginTop;
+}
+
+- (void)setH2MarginTop:(CGFloat)newValue
+{
+  _h2MarginTop = newValue;
+}
+
 - (CGFloat)h2MarginBottom
 {
   return _h2MarginBottom;
@@ -666,6 +718,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setH3Color:(UIColor *)newValue
 {
   _h3Color = newValue;
+}
+
+- (CGFloat)h3MarginTop
+{
+  return _h3MarginTop;
+}
+
+- (void)setH3MarginTop:(CGFloat)newValue
+{
+  _h3MarginTop = newValue;
 }
 
 - (CGFloat)h3MarginBottom
@@ -756,6 +818,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h4Color = newValue;
 }
 
+- (CGFloat)h4MarginTop
+{
+  return _h4MarginTop;
+}
+
+- (void)setH4MarginTop:(CGFloat)newValue
+{
+  _h4MarginTop = newValue;
+}
+
 - (CGFloat)h4MarginBottom
 {
   return _h4MarginBottom;
@@ -844,6 +916,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h5Color = newValue;
 }
 
+- (CGFloat)h5MarginTop
+{
+  return _h5MarginTop;
+}
+
+- (void)setH5MarginTop:(CGFloat)newValue
+{
+  _h5MarginTop = newValue;
+}
+
 - (CGFloat)h5MarginBottom
 {
   return _h5MarginBottom;
@@ -930,6 +1012,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setH6Color:(UIColor *)newValue
 {
   _h6Color = newValue;
+}
+
+- (CGFloat)h6MarginTop
+{
+  return _h6MarginTop;
+}
+
+- (void)setH6MarginTop:(CGFloat)newValue
+{
+  _h6MarginTop = newValue;
 }
 
 - (CGFloat)h6MarginBottom
@@ -1087,6 +1179,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _imageBorderRadius = newValue;
 }
 
+- (CGFloat)imageMarginTop
+{
+  return _imageMarginTop;
+}
+
+- (void)setImageMarginTop:(CGFloat)newValue
+{
+  _imageMarginTop = newValue;
+}
+
 - (CGFloat)imageMarginBottom
 {
   return _imageMarginBottom;
@@ -1149,6 +1251,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setBlockquoteColor:(UIColor *)newValue
 {
   _blockquoteColor = newValue;
+}
+
+- (CGFloat)blockquoteMarginTop
+{
+  return _blockquoteMarginTop;
+}
+
+- (void)setBlockquoteMarginTop:(CGFloat)newValue
+{
+  _blockquoteMarginTop = newValue;
 }
 
 - (CGFloat)blockquoteMarginBottom
@@ -1270,6 +1382,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setListStyleColor:(UIColor *)newValue
 {
   _listStyleColor = newValue;
+}
+
+- (CGFloat)listStyleMarginTop
+{
+  return _listStyleMarginTop;
+}
+
+- (void)setListStyleMarginTop:(CGFloat)newValue
+{
+  _listStyleMarginTop = newValue;
 }
 
 - (CGFloat)listStyleMarginBottom
@@ -1446,6 +1568,16 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setCodeBlockColor:(UIColor *)newValue
 {
   _codeBlockColor = newValue;
+}
+
+- (CGFloat)codeBlockMarginTop
+{
+  return _codeBlockMarginTop;
+}
+
+- (void)setCodeBlockMarginTop:(CGFloat)newValue
+{
+  _codeBlockMarginTop = newValue;
 }
 
 - (CGFloat)codeBlockMarginBottom

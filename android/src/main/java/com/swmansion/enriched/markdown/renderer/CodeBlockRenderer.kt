@@ -8,6 +8,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.CodeBlockSpan
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 
 class CodeBlockRenderer(
   private val config: RendererConfig,
@@ -22,40 +23,40 @@ class CodeBlockRenderer(
     val style = config.style.codeBlockStyle
     val context = factory.blockStyleContext
 
-    // Set code block style in context for children to inherit
+    applyBlockMarginTop(builder, start, style.marginTop)
+
+    // Content starts after the potential 1-character marginTop spacer
+    val contentStart = start + (if (style.marginTop > 0) 1 else 0)
+
     context.setCodeBlockStyle(style)
 
     try {
-      // Render children (code content)
       factory.renderChildren(node, builder, onLinkPress)
     } finally {
       context.clearBlockStyle()
     }
 
-    // Safety check for empty code blocks
-    if (builder.length == start) return
+    if (builder.length == contentStart) return
 
     val end = builder.length
     val padding = style.padding.toInt()
 
-    // 1. Apply CodeBlockSpan (Handles Background, Borders, and Horizontal Padding)
-    // Matches the logic in the updated CodeBlockSpan for full-width support
+    // Apply background, borders, and horizontal padding to content only
     builder.setSpan(
       CodeBlockSpan(style, factory.context, factory.styleCache),
-      start,
+      contentStart,
       end,
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // 2. Apply Boundary Vertical Padding
+    // Apply vertical padding via line height manipulation
     builder.setSpan(
       CodeBlockBoundaryPaddingSpan(padding),
-      start,
+      contentStart,
       end,
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // 3. Apply External Margin Bottom
     if (style.marginBottom > 0) {
       val marginStart = builder.length
       builder.append("\n")
@@ -87,14 +88,13 @@ class CodeBlockRenderer(
       val spanStart = text.getSpanStart(this)
       val spanEnd = text.getSpanEnd(this)
 
-      // Apply top vertical padding to the first line fragment
+      // Adjust ascent/top for the first line to create internal top padding
       if (startLine == spanStart) {
         fm.ascent -= padding
         fm.top -= padding
       }
 
-      // Apply bottom vertical padding to the last line fragment
-      // Checks for both character index and trailing newlines to ensure a tight fit
+      // Adjust descent/bottom for the last line (handling trailing newlines)
       val isLastLine = endLine == spanEnd || (spanEnd <= endLine && text[spanEnd - 1] == '\n')
       if (isLastLine) {
         fm.descent += padding

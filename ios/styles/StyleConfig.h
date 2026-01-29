@@ -22,6 +22,8 @@
 - (void)setParagraphFontWeight:(NSString *)newValue;
 - (UIColor *)paragraphColor;
 - (void)setParagraphColor:(UIColor *)newValue;
+- (CGFloat)paragraphMarginTop;
+- (void)setParagraphMarginTop:(CGFloat)newValue;
 - (CGFloat)paragraphMarginBottom;
 - (void)setParagraphMarginBottom:(CGFloat)newValue;
 - (CGFloat)paragraphLineHeight;
@@ -38,6 +40,8 @@
 - (void)setH1FontWeight:(NSString *)newValue;
 - (UIColor *)h1Color;
 - (void)setH1Color:(UIColor *)newValue;
+- (CGFloat)h1MarginTop;
+- (void)setH1MarginTop:(CGFloat)newValue;
 - (CGFloat)h1MarginBottom;
 - (void)setH1MarginBottom:(CGFloat)newValue;
 - (CGFloat)h1LineHeight;
@@ -54,6 +58,8 @@
 - (void)setH2FontWeight:(NSString *)newValue;
 - (UIColor *)h2Color;
 - (void)setH2Color:(UIColor *)newValue;
+- (CGFloat)h2MarginTop;
+- (void)setH2MarginTop:(CGFloat)newValue;
 - (CGFloat)h2MarginBottom;
 - (void)setH2MarginBottom:(CGFloat)newValue;
 - (CGFloat)h2LineHeight;
@@ -70,6 +76,8 @@
 - (void)setH3FontWeight:(NSString *)newValue;
 - (UIColor *)h3Color;
 - (void)setH3Color:(UIColor *)newValue;
+- (CGFloat)h3MarginTop;
+- (void)setH3MarginTop:(CGFloat)newValue;
 - (CGFloat)h3MarginBottom;
 - (void)setH3MarginBottom:(CGFloat)newValue;
 - (CGFloat)h3LineHeight;
@@ -86,6 +94,8 @@
 - (void)setH4FontWeight:(NSString *)newValue;
 - (UIColor *)h4Color;
 - (void)setH4Color:(UIColor *)newValue;
+- (CGFloat)h4MarginTop;
+- (void)setH4MarginTop:(CGFloat)newValue;
 - (CGFloat)h4MarginBottom;
 - (void)setH4MarginBottom:(CGFloat)newValue;
 - (CGFloat)h4LineHeight;
@@ -102,6 +112,8 @@
 - (void)setH5FontWeight:(NSString *)newValue;
 - (UIColor *)h5Color;
 - (void)setH5Color:(UIColor *)newValue;
+- (CGFloat)h5MarginTop;
+- (void)setH5MarginTop:(CGFloat)newValue;
 - (CGFloat)h5MarginBottom;
 - (void)setH5MarginBottom:(CGFloat)newValue;
 - (CGFloat)h5LineHeight;
@@ -118,6 +130,8 @@
 - (void)setH6FontWeight:(NSString *)newValue;
 - (UIColor *)h6Color;
 - (void)setH6Color:(UIColor *)newValue;
+- (CGFloat)h6MarginTop;
+- (void)setH6MarginTop:(CGFloat)newValue;
 - (CGFloat)h6MarginBottom;
 - (void)setH6MarginBottom:(CGFloat)newValue;
 - (CGFloat)h6LineHeight;
@@ -154,6 +168,8 @@
 - (void)setImageHeight:(CGFloat)newValue;
 - (CGFloat)imageBorderRadius;
 - (void)setImageBorderRadius:(CGFloat)newValue;
+- (CGFloat)imageMarginTop;
+- (void)setImageMarginTop:(CGFloat)newValue;
 - (CGFloat)imageMarginBottom;
 - (void)setImageMarginBottom:(CGFloat)newValue;
 // Inline image properties
@@ -168,6 +184,8 @@
 - (void)setBlockquoteFontWeight:(NSString *)newValue;
 - (UIColor *)blockquoteColor;
 - (void)setBlockquoteColor:(UIColor *)newValue;
+- (CGFloat)blockquoteMarginTop;
+- (void)setBlockquoteMarginTop:(CGFloat)newValue;
 - (CGFloat)blockquoteMarginBottom;
 - (void)setBlockquoteMarginBottom:(CGFloat)newValue;
 - (CGFloat)blockquoteLineHeight;
@@ -190,6 +208,8 @@
 - (void)setListStyleFontWeight:(NSString *)newValue;
 - (UIColor *)listStyleColor;
 - (void)setListStyleColor:(UIColor *)newValue;
+- (CGFloat)listStyleMarginTop;
+- (void)setListStyleMarginTop:(CGFloat)newValue;
 - (CGFloat)listStyleMarginBottom;
 - (void)setListStyleMarginBottom:(CGFloat)newValue;
 - (CGFloat)listStyleLineHeight;
@@ -220,6 +240,8 @@
 - (void)setCodeBlockFontWeight:(NSString *)newValue;
 - (UIColor *)codeBlockColor;
 - (void)setCodeBlockColor:(UIColor *)newValue;
+- (CGFloat)codeBlockMarginTop;
+- (void)setCodeBlockMarginTop:(CGFloat)newValue;
 - (CGFloat)codeBlockMarginBottom;
 - (void)setCodeBlockMarginBottom:(CGFloat)newValue;
 - (CGFloat)codeBlockLineHeight;

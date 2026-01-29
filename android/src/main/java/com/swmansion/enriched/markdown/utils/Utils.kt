@@ -13,8 +13,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.spans.LineHeightSpan
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
-import com.swmansion.enriched.markdown.styles.ParagraphStyle
-import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.spans.MarginTopSpan
 import android.text.style.LineHeightSpan as AndroidLineHeightSpan
 
 // ============================================================================
@@ -95,37 +94,6 @@ fun MarkdownASTNode.containsBlockImage(): Boolean {
   return firstChild != null && children.size == 1 && firstChild.type == MarkdownASTNode.NodeType.Image
 }
 
-/**
- * Determines the appropriate marginBottom for a paragraph.
- * If paragraph contains only a single block-level element (e.g., image), uses that element's marginBottom.
- * Otherwise, uses paragraph's marginBottom.
- */
-fun getMarginBottomForParagraph(
-  paragraph: MarkdownASTNode,
-  paragraphStyle: ParagraphStyle,
-  style: StyleConfig,
-): Float {
-  // If paragraph contains only a single block-level element, use that element's marginBottom
-  // Otherwise, use paragraph's marginBottom
-  if (paragraph.children.size == 1) {
-    // Paragraph has exactly one child
-    when (paragraph.children.first().type) {
-      MarkdownASTNode.NodeType.Image -> {
-        // Image: use image's marginBottom
-        return style.imageStyle.marginBottom
-      }
-
-      // Future: Add other block elements here as they're implemented
-      else -> {
-        // Not a block element we handle specially
-      }
-    }
-  }
-
-  // Default: use paragraph's marginBottom
-  return paragraphStyle.marginBottom
-}
-
 // ============================================================================
 // SpannableStringBuilder Extensions
 // ============================================================================
@@ -155,6 +123,45 @@ fun createLineHeightSpan(lineHeight: Float): AndroidLineHeightSpan =
   } else {
     LineHeightSpan(lineHeight)
   }
+
+/**
+ * Applies marginTop spacing to a block element using MarginTopSpan.
+ * Works well for paragraphs and headings.
+ */
+fun applyMarginTop(
+  builder: SpannableStringBuilder,
+  start: Int,
+  end: Int,
+  marginTop: Float,
+) {
+  if (marginTop > 0) {
+    builder.setSpan(
+      MarginTopSpan(marginTop, start),
+      start,
+      end,
+      SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+    )
+  }
+}
+
+fun applyBlockMarginTop(
+  builder: SpannableStringBuilder,
+  insertionPoint: Int,
+  marginTop: Float,
+) {
+  if (marginTop <= 0) return
+
+  // Insert a newline character to act as a vertical spacer
+  builder.insert(insertionPoint, "\n")
+
+  // Apply MarginBottomSpan to the spacer character to create the gap before the content
+  builder.setSpan(
+    MarginBottomSpan(marginTop),
+    insertionPoint,
+    insertionPoint + 1,
+    SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+  )
+}
 
 /**
  * Applies marginBottom spacing to a block element.

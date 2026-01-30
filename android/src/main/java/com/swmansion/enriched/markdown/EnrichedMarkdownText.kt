@@ -75,6 +75,8 @@ class EnrichedMarkdownText
 
     fun setMarkdownStyle(style: ReadableMap?) {
       markdownStyleMap = style
+      // Register font scaling settings when style is set (view should have ID by now)
+      updateMeasurementStoreFontScaling()
       val newStyle = style?.let { StyleConfig(it, context, allowFontScaling, maxFontSizeMultiplier) }
       if (markdownStyle == newStyle) return
       markdownStyle = newStyle
@@ -106,6 +108,7 @@ class EnrichedMarkdownText
     fun setAllowFontScaling(allow: Boolean) {
       if (allowFontScaling == allow) return
       allowFontScaling = allow
+      updateMeasurementStoreFontScaling()
       recreateStyleConfig()
       scheduleRenderIfNeeded()
     }
@@ -113,8 +116,13 @@ class EnrichedMarkdownText
     fun setMaxFontSizeMultiplier(multiplier: Float) {
       if (maxFontSizeMultiplier == multiplier) return
       maxFontSizeMultiplier = multiplier
+      updateMeasurementStoreFontScaling()
       recreateStyleConfig()
       scheduleRenderIfNeeded()
+    }
+
+    private fun updateMeasurementStoreFontScaling() {
+      MeasurementStore.updateFontScalingSettings(id, allowFontScaling, maxFontSizeMultiplier)
     }
 
     private fun scheduleRenderIfNeeded() {

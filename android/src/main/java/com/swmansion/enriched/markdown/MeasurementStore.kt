@@ -45,6 +45,14 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
+  // Store font scaling settings per view ID (workaround for Fabric not passing these in measure props)
+  private data class FontScalingSettings(
+    val allowFontScaling: Boolean = true,
+    val maxFontSizeMultiplier: Float = 0f,
+  )
+
+  private val fontScalingSettings = ConcurrentHashMap<Int, FontScalingSettings>()
+
   private val measurePaint = TextPaint()
   private val measureRenderer = Renderer()
 
@@ -102,14 +110,38 @@ object MeasurementStore {
     return size
   }
 
+  fun updateFontScalingSettings(
+    viewId: Int,
+    allowFontScaling: Boolean,
+    maxFontSizeMultiplier: Float,
+  ) {
+    fontScalingSettings[viewId] = FontScalingSettings(allowFontScaling, maxFontSizeMultiplier)
+  }
+
+  fun clearFontScalingSettings(viewId: Int) {
+    fontScalingSettings.remove(viewId)
+  }
+
   private fun getMeasureByIdInternal(
     context: Context,
     id: Int?,
     width: Float,
     props: ReadableMap?,
   ): Long {
-    val allowFontScaling = props.getBooleanOrDefault("allowFontScaling", true)
-    val maxFontSizeMultiplier = props.getFloatOrDefault("maxFontSizeMultiplier", 0f)
+    // First try to get from props, then fall back to stored settings
+    val storedSettings = id?.let { fontScalingSettings[it] }
+    val allowFontScaling =
+      if (props?.hasKey("allowFontScaling") == true) {
+        props.getBoolean("allowFontScaling")
+      } else {
+        storedSettings?.allowFontScaling ?: true
+      }
+    val maxFontSizeMultiplier =
+      if (props?.hasKey("maxFontSizeMultiplier") == true) {
+        props.getDouble("maxFontSizeMultiplier").toFloat()
+      } else {
+        storedSettings?.maxFontSizeMultiplier ?: 0f
+      }
 
     val fontScale = checkAndUpdateFontScale(context, allowFontScaling, maxFontSizeMultiplier)
 
@@ -156,6 +188,11 @@ object MeasurementStore {
     maxFontSizeMultiplier: Float,
   ): Float {
     if (!allowFontScaling) {
+      // Clear cache if we switched from scaling to non-scaling
+      if (lastKnownFontScale != 1.0f) {
+        lastKnownFontScale = 1.0f
+        data.clear()
+      }
       return 1.0f
     }
 
@@ -187,7 +224,7 @@ object MeasurementStore {
       Md4cFlags(
         underline = md4cFlagsMap.getBooleanOrDefault("underline", false),
       )
-    val fontSize = getInitialFontSize(styleMap, context, fontScale, maxFontSizeMultiplier)
+    val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
     val propsHash = computePropsHash(props, fontScale, maxFontSizeMultiplier)
 
@@ -227,11 +264,17 @@ object MeasurementStore {
   private fun getInitialFontSize(
     styleMap: ReadableMap?,
     context: Context,
+    allowFontScaling: Boolean,
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Float {
     val fontSizeSp = styleMap?.getMap("paragraph")?.getDouble("fontSize")?.toFloat() ?: 16f
     val density = context.resources.displayMetrics.density
+
+    if (!allowFontScaling) {
+      return ceil(fontSizeSp * density)
+    }
+
     val cappedFontScale =
       if (maxFontSizeMultiplier >= 1.0f && fontScale > maxFontSizeMultiplier) {
         maxFontSizeMultiplier

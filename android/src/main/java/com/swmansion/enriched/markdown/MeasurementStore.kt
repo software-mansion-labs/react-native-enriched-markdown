@@ -43,13 +43,30 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
-  // Store font scaling settings per view ID (workaround for Fabric not passing these in measure props)
+  // Store font scaling settings per view ID
   private data class FontScalingSettings(
     val allowFontScaling: Boolean = true,
     val maxFontSizeMultiplier: Float = 0f,
   )
 
   private val fontScalingSettings = ConcurrentHashMap<Int, FontScalingSettings>()
+
+  private fun resolveFontScalingSettings(
+    viewId: Int?,
+    props: ReadableMap?,
+  ): FontScalingSettings {
+    val stored = viewId?.let { fontScalingSettings[it] }
+    return FontScalingSettings(
+      allowFontScaling =
+        props?.takeIf { it.hasKey("allowFontScaling") }?.getBoolean("allowFontScaling")
+          ?: stored?.allowFontScaling
+          ?: true,
+      maxFontSizeMultiplier =
+        props?.takeIf { it.hasKey("maxFontSizeMultiplier") }?.getDouble("maxFontSizeMultiplier")?.toFloat()
+          ?: stored?.maxFontSizeMultiplier
+          ?: 0f,
+    )
+  }
 
   private val measurePaint = TextPaint()
   private val measureRenderer = Renderer()
@@ -126,20 +143,7 @@ object MeasurementStore {
     width: Float,
     props: ReadableMap?,
   ): Long {
-    // First try to get from props, then fall back to stored settings
-    val storedSettings = id?.let { fontScalingSettings[it] }
-    val allowFontScaling =
-      if (props?.hasKey("allowFontScaling") == true) {
-        props.getBoolean("allowFontScaling")
-      } else {
-        storedSettings?.allowFontScaling ?: true
-      }
-    val maxFontSizeMultiplier =
-      if (props?.hasKey("maxFontSizeMultiplier") == true) {
-        props.getDouble("maxFontSizeMultiplier").toFloat()
-      } else {
-        storedSettings?.maxFontSizeMultiplier ?: 0f
-      }
+    val (allowFontScaling, maxFontSizeMultiplier) = resolveFontScalingSettings(id, props)
 
     val fontScale = checkAndUpdateFontScale(context, allowFontScaling, maxFontSizeMultiplier)
 

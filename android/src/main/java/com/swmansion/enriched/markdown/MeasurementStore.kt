@@ -1,7 +1,6 @@
 package com.swmansion.enriched.markdown
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Typeface
 import android.graphics.text.LineBreaker
 import android.os.Build
@@ -17,7 +16,6 @@ import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.getBooleanOrDefault
-import com.swmansion.enriched.markdown.utils.getFloatOrDefault
 import com.swmansion.enriched.markdown.utils.getMapOrNull
 import com.swmansion.enriched.markdown.utils.getStringOrDefault
 import java.util.concurrent.ConcurrentHashMap
@@ -148,7 +146,7 @@ object MeasurementStore {
     val safeId = id ?: return measureAndCache(context, null, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val cached = data[safeId] ?: return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
-    val currentHash = computePropsHash(props, fontScale, maxFontSizeMultiplier)
+    val currentHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
     if (cached.markdownHash != currentHash) {
       return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
@@ -166,13 +164,13 @@ object MeasurementStore {
 
   private fun computePropsHash(
     props: ReadableMap?,
+    allowFontScaling: Boolean,
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Int {
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
     val md4cFlagsMap = props.getMapOrNull("md4cFlags")
-    val allowFontScaling = props.getBooleanOrDefault("allowFontScaling", true)
     var result = markdown.hashCode()
     result = 31 * result + (styleMap?.hashCode() ?: 0)
     result = 31 * result + (md4cFlagsMap?.hashCode() ?: 0)
@@ -226,7 +224,7 @@ object MeasurementStore {
       )
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
-    val propsHash = computePropsHash(props, fontScale, maxFontSizeMultiplier)
+    val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
     // Parse and render markdown for accurate measurement
     val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)

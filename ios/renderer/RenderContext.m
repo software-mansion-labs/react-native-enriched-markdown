@@ -19,8 +19,8 @@
     _linkURLs = [NSMutableArray array];
     _fontCache = [NSMutableDictionary dictionary];
     _currentBlockStyle = [[BlockStyle alloc] init];
-    _allowFontScaling = YES;    // Default to YES like React Native
-    _maxFontSizeMultiplier = 0; // 0 means no cap (default)
+    _allowFontScaling = YES;
+    _maxFontSizeMultiplier = 0;
 
     NSMutableParagraphStyle *spacerTemplate = [[NSMutableParagraphStyle alloc] init];
     _baseSpacerTemplate = [spacerTemplate copy];

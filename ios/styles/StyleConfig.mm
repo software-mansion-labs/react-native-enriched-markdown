@@ -179,8 +179,8 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (instancetype)init
 {
   self = [super init];
-  _allowFontScaling = YES;    // Default to YES like React Native
-  _maxFontSizeMultiplier = 0; // 0 means no cap (matches React Native default)
+  _allowFontScaling = YES;
+  _maxFontSizeMultiplier = 0;
   _primaryFontNeedsRecreation = YES;
   _paragraphFontNeedsRecreation = YES;
   _h1FontNeedsRecreation = YES;
@@ -199,13 +199,11 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 
 - (CGFloat)fontScaleMultiplier
 {
-  // For backward compatibility, return 1.0 if scaling disabled
   return _allowFontScaling ? RCTFontSizeMultiplier() : 1.0;
 }
 
 - (void)setFontScaleMultiplier:(CGFloat)newValue
 {
-  // Interpret as: 1.0 = disabled, anything else = enabled
   BOOL newAllowFontScaling = (newValue != 1.0);
   if (_allowFontScaling != newAllowFontScaling) {
     _allowFontScaling = newAllowFontScaling;
@@ -225,7 +223,6 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   }
 }
 
-// Helper to get the effective scale multiplier for a specific font size using UIFontMetrics
 - (CGFloat)effectiveScaleMultiplierForFontSize:(CGFloat)fontSize
 {
   if (!_allowFontScaling) {
@@ -519,7 +516,6 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (CGFloat)paragraphLineHeight
 {
   if (_allowFontScaling && _paragraphLineHeight > 0) {
-    // Scale line height using the same multiplier as the font (matches React Native Text behavior)
     return _paragraphLineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
   }
   return _paragraphLineHeight;

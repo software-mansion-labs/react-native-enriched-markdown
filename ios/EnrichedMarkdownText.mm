@@ -140,11 +140,10 @@ using namespace facebook::react;
     _currentRenderId = 0;
 
     // Initialize font scale from current content size category
-    _allowFontScaling = YES;    // Default to YES like React Native Text
-    _maxFontSizeMultiplier = 0; // 0 means no cap (default)
+    _allowFontScaling = YES;
+    _maxFontSizeMultiplier = 0;
     _currentFontScale = RCTFontSizeMultiplier();
 
-    // Listen for content size category changes (Dynamic Type)
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(contentSizeCategoryDidChange:)
                                                  name:UIContentSizeCategoryDidChangeNotification
@@ -169,7 +168,6 @@ using namespace facebook::react;
 
 - (void)contentSizeCategoryDidChange:(NSNotification *)notification
 {
-  // Only respond to changes if font scaling is enabled
   if (!_allowFontScaling) {
     return;
   }
@@ -178,12 +176,10 @@ using namespace facebook::react;
   if (_currentFontScale != newFontScale) {
     _currentFontScale = newFontScale;
 
-    // Update the font scale in config
     if (_config != nil) {
       [_config setFontScaleMultiplier:[self effectiveFontScale]];
     }
 
-    // Re-render with new font scale
     if (_cachedMarkdown != nil && _cachedMarkdown.length > 0) {
       [self renderMarkdownContent:_cachedMarkdown];
     }
@@ -279,7 +275,7 @@ using namespace facebook::react;
   NSUInteger inputLength = markdownString.length;
   NSDate *scheduleStart = [NSDate date];
 
-  // Capture font scaling settings for background thread
+  // Capture font scaling settings
   BOOL allowFontScaling = _allowFontScaling;
   CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;
 
@@ -1143,29 +1139,23 @@ using namespace facebook::react;
     _textView.selectable = newViewProps.isSelectable;
   }
 
-  // Handle allowFontScaling prop - controls whether text respects system font size settings
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
     _allowFontScaling = newViewProps.allowFontScaling;
 
-    // Update the font scale in config based on new allowFontScaling value
     if (_config != nil) {
       [_config setFontScaleMultiplier:[self effectiveFontScale]];
     }
 
-    // Mark that we need to re-render due to font scale change
     stylePropChanged = YES;
   }
 
-  // Handle maxFontSizeMultiplier prop - caps the maximum font scale
   if (newViewProps.maxFontSizeMultiplier != oldViewProps.maxFontSizeMultiplier) {
     _maxFontSizeMultiplier = newViewProps.maxFontSizeMultiplier;
 
-    // Update the max font size multiplier in config
     if (_config != nil) {
       [_config setMaxFontSizeMultiplier:_maxFontSizeMultiplier];
     }
 
-    // Mark that we need to re-render due to font scale change
     stylePropChanged = YES;
   }
 

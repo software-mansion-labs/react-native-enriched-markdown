@@ -17,7 +17,7 @@ CGFloat RCTFontSizeMultiplierWithMax(CGFloat maxFontSizeMultiplier)
 {
   CGFloat multiplier = RCTFontSizeMultiplier();
 
-  // Apply maxFontSizeMultiplier cap if >= 1.0 (matches React Native Text behavior)
+  // Apply maxFontSizeMultiplier cap if >= 1.0
   // Values < 1.0 (including 0 and NaN) mean no cap is applied
   if (!isnan(maxFontSizeMultiplier) && maxFontSizeMultiplier >= 1.0) {
     return fmin(maxFontSizeMultiplier, multiplier);

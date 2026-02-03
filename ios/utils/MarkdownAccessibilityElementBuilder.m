@@ -15,39 +15,38 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
   if (fullString.length == 0)
     return [NSMutableArray array];
 
-  // Force layout update for precise coordinate calculation
   [textView.layoutManager ensureLayoutForTextContainer:textView.textContainer];
 
   NSMutableArray<UIAccessibilityElement *> *elements = [NSMutableArray array];
-  NSCharacterSet *whitespaceSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   NSUInteger currentPos = 0;
 
   while (currentPos < fullString.length) {
     NSRange paragraphRange = [fullString paragraphRangeForRange:NSMakeRange(currentPos, 0)];
-    NSString *trimmed = [[fullString substringWithRange:paragraphRange] stringByTrimmingCharactersInSet:whitespaceSet];
+    NSString *trimmed = [[fullString substringWithRange:paragraphRange]
+        stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
     if (trimmed.length > 0) {
-      NSInteger level = [self headingLevelForRange:paragraphRange info:info];
       NSArray *links = [self linksInRange:paragraphRange info:info];
       NSArray *images = [self imagesInRange:paragraphRange info:info];
-      NSDictionary *listInfo = [self listItemInfoForRange:paragraphRange info:info];
+      NSArray *specials = [links arrayByAddingObjectsFromArray:images];
 
-      if (links.count == 0 && images.count == 0) {
-        // Simplified branch for plain paragraphs
+      NSInteger level = [self headingLevelForRange:paragraphRange info:info];
+      NSDictionary *list = [self listItemInfoForRange:paragraphRange info:info];
+
+      if (specials.count == 0) {
         [self addTextElementsPerLineTo:elements
                                  range:paragraphRange
                               fullText:fullString
                                heading:level
-                              listInfo:listInfo
+                              listInfo:list
                                   view:textView
                              container:container];
       } else {
         [elements addObjectsFromArray:[self segmentedElementsForParagraph:paragraphRange
                                                                  fullText:fullString
                                                              headingLevel:level
-                                                                 listInfo:listInfo
-                                                                    links:links
-                                                                   images:images
+                                                                 listInfo:list
+                                                                 specials:specials
                                                                inTextView:textView
                                                                 container:container]];
       }
@@ -63,22 +62,17 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                                                             fullText:(NSString *)fullText
                                                         headingLevel:(NSInteger)headingLevel
                                                             listInfo:(NSDictionary *)listInfo
-                                                               links:(NSArray *)links
-                                                              images:(NSArray *)images
+                                                            specials:(NSArray *)specials
                                                           inTextView:(UITextView *)textView
                                                            container:(id)container
 {
   NSMutableArray<UIAccessibilityElement *> *elements = [NSMutableArray array];
-  NSMutableArray *specials = [NSMutableArray arrayWithArray:links];
-  [specials addObjectsFromArray:images];
-
-  [specials sortUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
+  NSArray *sortedSpecials = [specials sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
     return [@([a[@"range"] rangeValue].location) compare:@([b[@"range"] rangeValue].location)];
   }];
 
   NSUInteger segmentStart = paragraphRange.location;
-
-  for (NSDictionary *item in specials) {
+  for (NSDictionary *item in sortedSpecials) {
     NSRange itemRange = [item[@"range"] rangeValue];
 
     if (itemRange.location > segmentStart) {
@@ -92,20 +86,16 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                            container:container];
     }
 
-    BOOL isImage = (item[@"altText"] != nil);
-    NSString *content = isImage ? item[@"altText"] : [fullText substringWithRange:itemRange];
-    BOOL isLinked = isImage ? [item[@"isLinked"] boolValue] : YES;
-    ElementType type = isImage ? ElementTypeImage : ElementTypeLink;
-
+    BOOL isImg = item[@"altText"] != nil;
+    NSString *label = isImg ? item[@"altText"] : [fullText substringWithRange:itemRange];
     [elements addObject:[self createElementForRange:itemRange
-                                               type:type
-                                               text:content
-                                           isLinked:isLinked
+                                               type:isImg ? ElementTypeImage : ElementTypeLink
+                                               text:label
+                                           isLinked:isImg ? [item[@"isLinked"] boolValue] : YES
                                             heading:0
-                                           listInfo:(type == ElementTypeLink ? listInfo : nil)
+                                           listInfo:listInfo
                                                view:textView
                                           container:container]];
-
     segmentStart = NSMaxRange(itemRange);
   }
 
@@ -119,56 +109,52 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                               view:textView
                          container:container];
   }
-
   return elements;
 }
 
-#pragma mark - Element Factory
+#pragma mark - Factory & Precise Splitting
 
 + (UIAccessibilityElement *)createElementForRange:(NSRange)range
                                              type:(ElementType)type
                                              text:(NSString *)text
-                                         isLinked:(BOOL)isLinked
+                                         isLinked:(BOOL)linked
                                           heading:(NSInteger)level
                                          listInfo:(NSDictionary *)listInfo
-                                             view:(UITextView *)textView
-                                        container:(id)container
+                                             view:(UITextView *)tv
+                                        container:(id)c
 {
-  UIAccessibilityElement *element = [[UIAccessibilityElement alloc] initWithAccessibilityContainer:container];
-  element.accessibilityLabel = text;
-  element.accessibilityFrameInContainerSpace = [self frameForRange:range inTextView:textView container:container];
-  element.accessibilityTraits = UIAccessibilityTraitNone;
+  UIAccessibilityElement *el = [[UIAccessibilityElement alloc] initWithAccessibilityContainer:c];
+  el.accessibilityLabel = (type == ElementTypeImage && text.length == 0) ? NSLocalizedString(@"Image", @"") : text;
+  el.accessibilityFrameInContainerSpace = [self frameForRange:range inTextView:tv container:c];
 
-  switch (type) {
-    case ElementTypeImage:
-      element.accessibilityLabel = text.length > 0 ? text : NSLocalizedString(@"Image", @"");
-      element.accessibilityTraits =
-          isLinked ? (UIAccessibilityTraitImage | UIAccessibilityTraitLink) : UIAccessibilityTraitImage;
-      if (isLinked)
-        element.accessibilityHint = NSLocalizedString(@"Tap to open link", @"");
-      break;
+  NSMutableArray *values = [NSMutableArray array];
 
-    case ElementTypeLink:
-      element.accessibilityTraits = UIAccessibilityTraitLink;
-      element.accessibilityHint = NSLocalizedString(@"Tap to open link", @"");
-      if (listInfo)
-        element.accessibilityValue = [self formatListAnnouncement:listInfo];
-      break;
-
-    case ElementTypeText:
-      if (level > 0) {
-        element.accessibilityTraits = UIAccessibilityTraitHeader;
-        element.accessibilityValue =
-            [NSString stringWithFormat:NSLocalizedString(@"heading level %ld", @""), (long)level];
-      } else if (listInfo) {
-        element.accessibilityValue = [self formatListAnnouncement:listInfo];
-      }
-      break;
+  if (type == ElementTypeImage) {
+    el.accessibilityTraits =
+        linked ? (UIAccessibilityTraitImage | UIAccessibilityTraitLink) : UIAccessibilityTraitImage;
+  } else if (type == ElementTypeLink) {
+    el.accessibilityTraits = UIAccessibilityTraitLink;
+  } else if (level > 0) {
+    el.accessibilityTraits = UIAccessibilityTraitHeader;
+    [values addObject:[NSString stringWithFormat:NSLocalizedString(@"heading level %ld", @""), (long)level]];
   }
-  return element;
-}
 
-#pragma mark - Precise Text Splitting
+  if (el.accessibilityTraits & UIAccessibilityTraitLink) {
+    el.accessibilityHint = NSLocalizedString(@"Tap to open link", @"");
+  }
+
+  // Append List Info to values if it exists
+  if (listInfo && type != ElementTypeImage) {
+    [values addObject:[self formatListAnnouncement:listInfo]];
+  }
+
+  // Combine all values (Heading Level + List Position) into one string
+  if (values.count > 0) {
+    el.accessibilityValue = [values componentsJoinedByString:@", "];
+  }
+
+  return el;
+}
 
 + (void)addTextElementsPerLineTo:(NSMutableArray *)elements
                            range:(NSRange)range
@@ -180,8 +166,6 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 {
   NSLayoutManager *lm = tv.layoutManager;
   NSRange glyphRange = [lm glyphRangeForCharacterRange:range actualCharacterRange:NULL];
-  if (glyphRange.length == 0)
-    return;
 
   [lm enumerateLineFragmentsForGlyphRange:glyphRange
                                usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *tc, NSRange lineGlyphRange,
@@ -190,13 +174,13 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                                  if (intersection.length > 0) {
                                    NSRange charRange = [lm characterRangeForGlyphRange:intersection
                                                                       actualGlyphRange:NULL];
-                                   NSString *lineText = [[fullText substringWithRange:charRange]
-                                       stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-
-                                   if (lineText.length > 0) {
+                                   NSString *trimmed = [[fullText substringWithRange:charRange]
+                                       stringByTrimmingCharactersInSet:[NSCharacterSet
+                                                                           whitespaceAndNewlineCharacterSet]];
+                                   if (trimmed.length > 0) {
                                      [elements addObject:[self createElementForRange:charRange
                                                                                 type:ElementTypeText
-                                                                                text:lineText
+                                                                                text:trimmed
                                                                             isLinked:NO
                                                                              heading:level
                                                                             listInfo:listInfo
@@ -207,15 +191,25 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                                }];
 }
 
-#pragma mark - Data Helpers
+#pragma mark - Helpers
 
 + (NSString *)formatListAnnouncement:(NSDictionary *)info
 {
-  NSInteger pos = [info[@"position"] integerValue];
-  NSString *prefix = ([info[@"depth"] integerValue] > 1) ? @"nested " : @"";
-  return [info[@"isOrdered"] boolValue] ? [NSString stringWithFormat:@"%@list item %ld", prefix, (long)pos]
-                                        : [NSString stringWithFormat:@"%@bullet point", prefix];
+  NSString *prefix = [info[@"depth"] integerValue] > 1 ? @"nested " : @"";
+  return [info[@"isOrdered"] boolValue]
+             ? [NSString stringWithFormat:@"%@list item %ld", prefix, (long)[info[@"position"] integerValue]]
+             : [NSString stringWithFormat:@"%@bullet point", prefix];
 }
+
++ (CGRect)frameForRange:(NSRange)range inTextView:(UITextView *)textView container:(id)container
+{
+  NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
+  CGRect rect = [textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textView.textContainer];
+  rect = CGRectOffset(CGRectInset(rect, -2, -2), textView.textContainerInset.left, textView.textContainerInset.top);
+  return [(UIView *)container convertRect:CGRectIntegral(rect) fromView:textView];
+}
+
+#pragma mark - Data Helpers
 
 + (NSInteger)headingLevelForRange:(NSRange)range info:(AccessibilityInfo *)info
 {
@@ -226,31 +220,29 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
   return 0;
 }
 
-+ (NSArray *)linksInRange:(NSRange)paragraphRange info:(AccessibilityInfo *)info
++ (NSArray *)linksInRange:(NSRange)range info:(AccessibilityInfo *)info
 {
   NSMutableArray *links = [NSMutableArray array];
   for (NSUInteger i = 0; i < info.linkRanges.count; i++) {
-    NSRange range = [info.linkRanges[i] rangeValue];
-    if (NSIntersectionRange(paragraphRange, range).length > 0) {
+    if (NSIntersectionRange(range, [info.linkRanges[i] rangeValue]).length > 0) {
       [links addObject:@{@"range" : info.linkRanges[i], @"url" : info.linkURLs[i] ?: @""}];
     }
   }
   return links;
 }
 
-+ (NSArray *)imagesInRange:(NSRange)paragraphRange info:(AccessibilityInfo *)info
++ (NSArray *)imagesInRange:(NSRange)range info:(AccessibilityInfo *)info
 {
   NSMutableArray *images = [NSMutableArray array];
   for (NSUInteger i = 0; i < info.imageRanges.count; i++) {
     NSRange imgRange = [info.imageRanges[i] rangeValue];
-    if (NSIntersectionRange(paragraphRange, imgRange).length > 0) {
+    if (NSIntersectionRange(range, imgRange).length > 0) {
       BOOL linked = NO;
-      for (NSValue *val in info.linkRanges) {
-        if (NSIntersectionRange(imgRange, [val rangeValue]).length > 0) {
+      for (NSValue *val in info.linkRanges)
+        if (NSIntersectionRange(imgRange, val.rangeValue).length > 0) {
           linked = YES;
           break;
         }
-      }
       [images addObject:@{
         @"range" : info.imageRanges[i],
         @"altText" : info.imageAltTexts[i] ?: @"",
@@ -263,32 +255,45 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 
 + (NSDictionary *)listItemInfoForRange:(NSRange)range info:(AccessibilityInfo *)info
 {
-  NSDictionary *bestMatch = nil;
-  NSUInteger minLength = NSUIntegerMax;
+  if (!info)
+    return nil;
   for (NSUInteger i = 0; i < info.listItemRanges.count; i++) {
-    NSRange itemRange = [info.listItemRanges[i] rangeValue];
-    if (NSIntersectionRange(range, itemRange).length > 0 && itemRange.length < minLength) {
-      minLength = itemRange.length;
-      bestMatch = @{
+    if (NSIntersectionRange(range, [info.listItemRanges[i] rangeValue]).length > 0) {
+      return @{
         @"position" : info.listItemPositions[i],
-        @"depth" : (i < info.listItemDepths.count) ? info.listItemDepths[i] : @1,
-        @"isOrdered" : (i < info.listItemOrdered.count) ? info.listItemOrdered[i] : @NO
+        @"depth" : info.listItemDepths[i],
+        @"isOrdered" : info.listItemOrdered[i]
       };
     }
   }
-  return bestMatch;
+  return nil;
 }
 
-+ (CGRect)frameForRange:(NSRange)range inTextView:(UITextView *)textView container:(id)container
+#pragma mark - Rotors
+
++ (NSArray *)filterElements:(NSArray *)els withTrait:(UIAccessibilityTraits)trait
 {
-  NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
-  CGRect rect = [textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textView.textContainer];
-  rect = CGRectInset(rect, -2, -2);
-  rect = CGRectOffset(rect, textView.textContainerInset.left, textView.textContainerInset.top);
-  return [(UIView *)container convertRect:CGRectIntegral(rect) fromView:textView];
+  return [els filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(UIAccessibilityElement *el, id b) {
+                return (el.accessibilityTraits & trait) != 0;
+              }]];
 }
 
-#pragma mark - Filtering & Rotors
++ (UIAccessibilityCustomRotor *)createRotorWithName:(NSString *)name elements:(NSArray *)els
+{
+  return [[UIAccessibilityCustomRotor alloc]
+         initWithName:name
+      itemSearchBlock:^UIAccessibilityCustomRotorItemResult *(UIAccessibilityCustomRotorSearchPredicate *p) {
+        if (els.count == 0)
+          return nil;
+        NSInteger idx = p.currentItem.targetElement ? [els indexOfObject:p.currentItem.targetElement] : NSNotFound;
+        NSInteger next = (p.searchDirection == UIAccessibilityCustomRotorDirectionNext)
+                             ? (idx == NSNotFound ? 0 : idx + 1)
+                             : (idx == NSNotFound ? els.count - 1 : idx - 1);
+        return (next >= 0 && next < els.count)
+                   ? [[UIAccessibilityCustomRotorItemResult alloc] initWithTargetElement:els[next] targetRange:nil]
+                   : nil;
+      }];
+}
 
 + (NSArray<UIAccessibilityElement *> *)filterHeadingElements:(NSArray *)els
 {
@@ -302,7 +307,6 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 {
   return [self filterElements:els withTrait:UIAccessibilityTraitImage];
 }
-
 + (UIAccessibilityCustomRotor *)createHeadingRotorWithElements:(NSArray *)els
 {
   return [self createRotorWithName:NSLocalizedString(@"Headings", @"") elements:els];
@@ -314,35 +318,6 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 + (UIAccessibilityCustomRotor *)createImageRotorWithElements:(NSArray *)els
 {
   return [self createRotorWithName:NSLocalizedString(@"Images", @"") elements:els];
-}
-
-+ (NSArray<UIAccessibilityElement *> *)filterElements:(NSArray<UIAccessibilityElement *> *)elements
-                                            withTrait:(UIAccessibilityTraits)trait
-{
-  return [elements
-      filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(UIAccessibilityElement *el, NSDictionary *s) {
-        return (el.accessibilityTraits & trait) != 0;
-      }]];
-}
-
-+ (UIAccessibilityCustomRotor *)createRotorWithName:(NSString *)name
-                                           elements:(NSArray<UIAccessibilityElement *> *)elements
-{
-  return [[UIAccessibilityCustomRotor alloc]
-         initWithName:name
-      itemSearchBlock:^UIAccessibilityCustomRotorItemResult *(UIAccessibilityCustomRotorSearchPredicate *pred) {
-        if (elements.count == 0)
-          return nil;
-        NSInteger idx =
-            pred.currentItem.targetElement ? [elements indexOfObject:pred.currentItem.targetElement] : NSNotFound;
-        NSInteger next = (pred.searchDirection == UIAccessibilityCustomRotorDirectionNext)
-                             ? (idx == NSNotFound ? 0 : idx + 1)
-                             : (idx == NSNotFound ? (NSInteger)elements.count - 1 : idx - 1);
-        if (next >= 0 && next < (NSInteger)elements.count) {
-          return [[UIAccessibilityCustomRotorItemResult alloc] initWithTargetElement:elements[next] targetRange:nil];
-        }
-        return nil;
-      }];
 }
 
 @end

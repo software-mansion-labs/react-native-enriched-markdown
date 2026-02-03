@@ -72,7 +72,7 @@ class MarkdownAccessibilityHelper(
     val items = mutableListOf<AccessibilityItem>()
     var nextId = 0
 
-    // Collect all semantic spans and sort them to process text in logical order
+    // Consolidated span collection using functional mapping
     val semanticSpans =
       (
         spanned.getSpans(0, spanned.length, HeadingSpan::class.java).map {
@@ -90,23 +90,19 @@ class MarkdownAccessibilityHelper(
     for (span in semanticSpans) {
       if (span.start < currentPos) continue
 
-      // Fill gaps between semantic spans with plain text segments
       if (currentPos < span.start) {
         nextId = addTextSegments(items, spanned, currentPos, span.start, nextId)
       }
 
-      val content =
-        span.imageAltText?.ifEmpty { "Image" }
-          ?: spanned.substring(span.start, span.end).trim()
+      val content = span.imageAltText?.ifEmpty { "Image" } ?: spanned.substring(span.start, span.end).trim()
 
       if (content.isNotEmpty()) {
         val listContext =
-          if (span.isHeadingOrImage()) {
+          if (span.headingLevel > 0 || span.imageAltText != null) {
             null
           } else {
-            getListInfoAt(spanned, span.start, requireStart = span.linkUrl == null)
+            getListInfoAt(spanned, span.start, span.linkUrl == null)
           }
-
         items.add(
           AccessibilityItem(
             nextId++,
@@ -123,40 +119,22 @@ class MarkdownAccessibilityHelper(
       currentPos = span.end
     }
 
-    if (currentPos < spanned.length) {
-      addTextSegments(items, spanned, currentPos, spanned.length, nextId)
-    }
-
-    return items.ifEmpty {
-      listOf(AccessibilityItem(0, spanned.toString().trim(), 0, spanned.length))
-    }
+    if (currentPos < spanned.length) addTextSegments(items, spanned, currentPos, spanned.length, nextId)
+    return items.ifEmpty { listOf(AccessibilityItem(0, spanned.toString().trim(), 0, spanned.length)) }
   }
-
-  private fun SpanRange.isHeadingOrImage() = headingLevel > 0 || imageAltText != null
 
   private fun getListInfoAt(
     spanned: Spanned,
     position: Int,
     requireStart: Boolean,
   ): ListItemInfo? {
-    val deepestSpan =
-      spanned
-        .getSpans(position, position + 1, BaseListSpan::class.java)
-        .maxByOrNull { it.depth } ?: return null
-
+    val deepest = spanned.getSpans(position, position + 1, BaseListSpan::class.java).maxByOrNull { it.depth } ?: return null
     if (requireStart) {
-      val spanStart = spanned.getSpanStart(deepestSpan)
-      val firstContent =
-        (spanStart until minOf(spanStart + 10, spanned.length))
-          .firstOrNull { !spanned[it].isWhitespace() } ?: spanStart
-      if (position > firstContent + 1) return null
+      val start = spanned.getSpanStart(deepest)
+      val firstChar = (start until minOf(start + 10, spanned.length)).firstOrNull { !spanned[it].isWhitespace() } ?: start
+      if (position > firstChar + 1) return null
     }
-
-    return ListItemInfo(
-      isOrdered = deepestSpan is OrderedListSpan,
-      itemNumber = (deepestSpan as? OrderedListSpan)?.itemNumber ?: 0,
-      depth = deepestSpan.depth,
-    )
+    return ListItemInfo(deepest is OrderedListSpan, (deepest as? OrderedListSpan)?.itemNumber ?: 0, deepest.depth)
   }
 
   private fun addTextSegments(
@@ -166,33 +144,24 @@ class MarkdownAccessibilityHelper(
     end: Int,
     startId: Int,
   ): Int {
-    var currentId = startId
-    val layout = textView.layout ?: return currentId
-
-    // Split text by lines to ensure each list item or paragraph has its own focusable node
+    var cid = startId
+    val layout = textView.layout ?: return cid
     for (line in layout.getLineForOffset(start)..layout.getLineForOffset(end)) {
-      val segStart = maxOf(start, layout.getLineStart(line))
-      val segEnd = minOf(end, layout.getLineEnd(line))
+      val s = maxOf(start, layout.getLineStart(line))
+      val e = minOf(end, layout.getLineEnd(line))
+      if (s >= e) continue
 
-      if (segStart < segEnd) {
-        val rawText = spanned.substring(segStart, segEnd)
-        val firstChar = rawText.indexOfFirst { !it.isWhitespace() }
-        if (firstChar != -1) {
-          val lastChar = rawText.indexOfLast { !it.isWhitespace() }
-          val contentStart = segStart + firstChar
-          items.add(
-            AccessibilityItem(
-              currentId++,
-              rawText.trim(),
-              contentStart,
-              segStart + lastChar + 1,
-              listInfo = getListInfoAt(spanned, contentStart, true),
-            ),
-          )
-        }
+      val raw = spanned.substring(s, e)
+      val first = raw.indexOfFirst { !it.isWhitespace() }
+      if (first != -1) {
+        val last = raw.indexOfLast { !it.isWhitespace() }
+        val absoluteStart = s + first
+        items.add(
+          AccessibilityItem(cid++, raw.trim(), absoluteStart, s + last + 1, listInfo = getListInfoAt(spanned, absoluteStart, true)),
+        )
       }
     }
-    return currentId
+    return cid
   }
 
   override fun getVirtualViewAt(
@@ -201,15 +170,14 @@ class MarkdownAccessibilityHelper(
   ): Int {
     rebuildIfNeeded()
     val offset = getOffsetForPosition(x, y)
-    // Prioritize interactive elements (links/images) over background text
     return accessibilityItems
       .filter { offset in it.start until it.end }
-      .minByOrNull { item ->
+      .minByOrNull {
         when {
-          item.isLink -> 0
-          item.isImage -> 1
-          item.isHeading -> 2
-          item.isListItem -> 3
+          it.isLink -> 0
+          it.isImage -> 1
+          it.isHeading -> 2
+          it.isListItem -> 3
           else -> 4
         }
       }?.id ?: HOST_ID
@@ -227,45 +195,38 @@ class MarkdownAccessibilityHelper(
     val item = accessibilityItems.find { it.id == id } ?: return
     node.apply {
       text = item.text
+      contentDescription = item.text
       isFocusable = true
       isScreenReaderFocusable = true
       setBoundsInParent(getBoundsForRange(item.start, item.end))
 
-      item.listInfo?.let {
-        setCollectionItemInfo(AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(it.itemNumber - 1, 1, 0, 1, false, false))
+      item.listInfo?.let { info ->
+        setCollectionItemInfo(
+          AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(info.itemNumber - 1, 1, 0, 1, false, false),
+        )
       }
+
+      val prefix = if (item.listInfo?.depth ?: 0 > 0) "nested " else ""
+      val listText = if (item.listInfo?.isOrdered == true) "list item ${item.listInfo.itemNumber}" else "bullet point"
 
       when {
         item.isHeading -> {
           isHeading = true
-          // contentDescription is set to "Content, heading level X" for clarity
           contentDescription = "${item.text}, heading level ${item.headingLevel}"
         }
 
         item.isImage -> {
           roleDescription = "image"
-          contentDescription = item.text
         }
 
         item.isLink -> {
           isClickable = true
           addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK)
-          contentDescription = item.text
-          roleDescription = item.listInfo?.let {
-            val prefix = if (it.depth > 0) "nested " else ""
-            "link, ${prefix}${if (it.isOrdered) "list item ${it.itemNumber}" else "bullet point"}"
-          } ?: "link"
+          roleDescription = item.listInfo?.let { "link, $prefix$listText" } ?: "link"
         }
 
         item.isListItem -> {
-          contentDescription = item.text
-          val prefix = if (item.listInfo!!.depth > 0) "nested " else ""
-          roleDescription =
-            if (item.listInfo!!.isOrdered) "${prefix}list item ${item.listInfo!!.itemNumber}" else "${prefix}bullet point"
-        }
-
-        else -> {
-          contentDescription = item.text
+          roleDescription = "$prefix$listText"
         }
       }
     }
@@ -278,10 +239,9 @@ class MarkdownAccessibilityHelper(
   ): Boolean {
     val item = accessibilityItems.find { it.id == id } ?: return false
     if (action == AccessibilityNodeInfoCompat.ACTION_CLICK && item.isLink) {
-      (textView.text as? Spanned)?.getSpans(item.start, item.end, LinkSpan::class.java)?.firstOrNull()?.let {
-        it.onClick(textView)
-        return true
-      }
+      (textView.text as? Spanned)?.getSpans(item.start, item.end, LinkSpan::class.java)?.firstOrNull()?.onClick(textView)
+        ?: return false
+      return true
     }
     return false
   }
@@ -291,8 +251,7 @@ class MarkdownAccessibilityHelper(
     y: Float,
   ): Int {
     val layout = textView.layout ?: return 0
-    val line = layout.getLineForVertical(y.toInt()).coerceIn(0, layout.lineCount - 1)
-    return layout.getOffsetForHorizontal(line, x)
+    return layout.getOffsetForHorizontal(layout.getLineForVertical(y.toInt()).coerceIn(0, layout.lineCount - 1), x)
   }
 
   private fun getBoundsForRange(
@@ -302,11 +261,14 @@ class MarkdownAccessibilityHelper(
     val layout = textView.layout ?: return Rect()
     val line = layout.getLineForOffset(start)
     val left = layout.getPrimaryHorizontal(start).toInt() + textView.paddingLeft
-    var right = layout.getPrimaryHorizontal(end).toInt() + textView.paddingLeft
-
-    // Correct for line wrapping boundaries
-    if (right <= left) right = layout.getLineRight(line).toInt() + textView.paddingLeft
-
+    val right =
+      if (layout.getPrimaryHorizontal(end) <=
+        layout.getPrimaryHorizontal(start)
+      ) {
+        layout.getLineRight(line).toInt() + textView.paddingLeft
+      } else {
+        layout.getPrimaryHorizontal(end).toInt() + textView.paddingLeft
+      }
     return Rect(
       left,
       layout.getLineTop(line) + textView.paddingTop,

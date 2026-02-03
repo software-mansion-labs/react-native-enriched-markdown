@@ -62,6 +62,10 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   if (range.length == 0)
     return;
 
+  // Register heading for accessibility
+  NSString *headingText = [[output attributedSubstringFromRange:range] string];
+  [context registerHeadingRange:range level:level text:headingText];
+
   // Metadata attribute used for post-processing (e.g., Export to Markdown/HTML)
   [output addAttribute:MarkdownTypeAttributeName value:kHeadingTypes[level] range:range];
 

@@ -28,63 +28,75 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
   if (!context)
     return;
 
-  // 1. Maintain the ordered list counter
-  if (context.listType == ListTypeOrdered) {
-    context.listItemNumber++;
-  }
+  context.listItemNumber++;
+  const NSInteger currentPosition = context.listItemNumber;
+  const NSInteger currentDepth = context.listDepth; // 1-based (1 = top level)
 
-  NSUInteger start = output.length;
+  const NSUInteger startLocation = output.length;
+
+  // Render the actual content of the list item (text, bolding, etc.)
   [_rendererFactory renderChildrenOfNode:node into:output context:context];
 
-  // 2. Structural Fix: Ensure paragraph isolation to prevent merged lines
-  if (output.length > start && ![output.string hasSuffix:@"\n"]) {
+  // Ensure every list item ends with a newline to prevent paragraph merging
+  if (output.length > startLocation && ![output.string hasSuffix:@"\n"]) {
     [output appendAttributedString:kNewlineAttributedString];
   }
 
-  NSRange itemRange = NSMakeRange(start, output.length - start);
+  const NSRange itemRange = NSMakeRange(startLocation, output.length - startLocation);
   if (itemRange.length == 0)
     return;
 
-  // 3. Pre-calculate invariant metadata for this item
-  NSInteger currentDepth = context.listDepth - 1;
-  // Root items: just marker width + gap (flush to left edge)
-  // Nested items: add marginLeft for each nesting level
-  CGFloat minMarkerWidth = (context.listType == ListTypeOrdered) ? [_config effectiveListMarginLeftForNumber]
-                                                                 : [_config effectiveListMarginLeftForBullet];
-  CGFloat indent = minMarkerWidth + [_config effectiveListGapWidth] + (currentDepth * [_config listStyleMarginLeft]);
-  CGFloat configLineHeight = [_config listStyleLineHeight];
+  // Informs MarkdownAccessibilityElementBuilder about the specific boundaries of this list item
+  [context registerListItemRange:itemRange
+                        position:currentPosition
+                           depth:currentDepth
+                       isOrdered:(context.listType == ListTypeOrdered)];
 
-  // Pre-wrap numbers to avoid repeated allocations in the block
-  NSNumber *depthVal = @(currentDepth);
-  NSNumber *typeVal = @(context.listType);
-  NSNumber *numVal = @(context.listItemNumber);
+  // currentDepth - 1 handles the horizontal offset for nested lists
+  const NSInteger nestingLevel = currentDepth - 1;
+  const CGFloat baseMarkerWidth = (context.listType == ListTypeOrdered) ? [_config effectiveListMarginLeftForNumber]
+                                                                        : [_config effectiveListMarginLeftForBullet];
 
-  // 4. Protected Styling: Use enumerateAttribute to avoid flattening children
+  const CGFloat totalIndent =
+      baseMarkerWidth + [_config effectiveListGapWidth] + (nestingLevel * [_config listStyleMarginLeft]);
+
+  const CGFloat lineHeightConfig = [_config listStyleLineHeight];
+
+  // Boxing metadata for attributed string storage
+  NSDictionary *metadata = @{
+    ListDepthAttribute : @(nestingLevel),
+    ListTypeAttribute : @(context.listType),
+    ListItemNumberAttribute : @(currentPosition)
+  };
+
+  // We enumerate to ensure we don't overwrite styles of nested sub-lists
+  // that may have already been rendered inside this item.
   [output enumerateAttribute:ListDepthAttribute
                      inRange:itemRange
                      options:0
-                  usingBlock:^(id depth, NSRange range, BOOL *stop) {
-                    // Skip if this segment belongs to a deeper nested list
-                    if (depth && [depth integerValue] > currentDepth)
+                  usingBlock:^(id depthAttr, NSRange range, BOOL *stop) {
+                    // If a segment already has a Depth attribute higher than our current level,
+                    // it belongs to a nested list and we should skip it to preserve its styling.
+                    if (depthAttr && [depthAttr integerValue] > nestingLevel) {
                       return;
+                    }
 
                     NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
-                    style.firstLineHeadIndent = indent;
-                    style.headIndent = indent;
+                    style.firstLineHeadIndent = totalIndent;
+                    style.headIndent = totalIndent;
 
-                    UIFont *font = [output attribute:NSFontAttributeName atIndex:range.location effectiveRange:NULL];
-                    if (configLineHeight > 0 && font) {
-                      style.lineHeightMultiple = configLineHeight / font.pointSize;
+                    // Apply line height if configured
+                    UIFont *currentFont = [output attribute:NSFontAttributeName
+                                                    atIndex:range.location
+                                             effectiveRange:NULL];
+                    if (lineHeightConfig > 0 && currentFont) {
+                      style.lineHeightMultiple = lineHeightConfig / currentFont.pointSize;
                     }
 
-                    // Final attribute application
-                    [output addAttributes:@{
-                      NSParagraphStyleAttributeName : style,
-                      ListDepthAttribute : depthVal,
-                      ListTypeAttribute : typeVal,
-                      ListItemNumberAttribute : numVal
-                    }
-                                    range:range];
+                    NSMutableDictionary *attributesToApply = [metadata mutableCopy];
+                    attributesToApply[NSParagraphStyleAttributeName] = style;
+
+                    [output addAttributes:attributesToApply range:range];
                   }];
 }
 

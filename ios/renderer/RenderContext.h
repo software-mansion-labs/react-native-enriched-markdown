@@ -25,6 +25,17 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 @interface RenderContext : NSObject
 @property (nonatomic, strong) NSMutableArray<NSValue *> *linkRanges;
 @property (nonatomic, strong) NSMutableArray<NSString *> *linkURLs;
+@property (nonatomic, strong) NSMutableArray<NSValue *> *headingRanges;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *headingLevels;
+@property (nonatomic, strong) NSMutableArray<NSValue *> *imageRanges;
+@property (nonatomic, strong) NSMutableArray<NSString *> *imageAltTexts;
+@property (nonatomic, strong) NSMutableArray<NSString *> *imageURLs;
+
+// List item accessibility tracking
+@property (nonatomic, strong) NSMutableArray<NSValue *> *listItemRanges;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemPositions; // Position in parent list (1, 2, 3...)
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemDepths;  // Nesting depth (1 = top level, 2+ = nested)
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemOrdered; // YES = ordered, NO = unordered (bullet)
 @property (nonatomic, assign) BlockType currentBlockType;
 @property (nonatomic, strong) BlockStyle *currentBlockStyle;
 @property (nonatomic, assign) NSInteger currentHeadingLevel;
@@ -42,6 +53,12 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 - (NSMutableParagraphStyle *)spacerStyleWithHeight:(CGFloat)height spacing:(CGFloat)spacing;
 - (NSMutableParagraphStyle *)blockSpacerStyleWithMargin:(CGFloat)margin;
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url;
+- (void)registerHeadingRange:(NSRange)range level:(NSInteger)level text:(NSString *)text;
+- (void)registerImageRange:(NSRange)range altText:(NSString *)altText url:(NSString *)url;
+- (void)registerListItemRange:(NSRange)range
+                     position:(NSInteger)position
+                        depth:(NSInteger)depth
+                    isOrdered:(BOOL)isOrdered;
 - (void)setBlockStyle:(BlockType)type
              fontSize:(CGFloat)fontSize
            fontFamily:(NSString *)fontFamily

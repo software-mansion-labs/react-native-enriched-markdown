@@ -11,8 +11,10 @@ import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.util.Log
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.view.ViewCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.UIManagerHelper
+import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
@@ -42,6 +44,9 @@ class EnrichedMarkdownText
 
     val layoutManager = EnrichedMarkdownTextLayoutManager(this)
 
+    // Accessibility helper for TalkBack support
+    private val accessibilityHelper = MarkdownAccessibilityHelper(this)
+
     var markdownStyle: StyleConfig? = null
       private set
 
@@ -65,6 +70,10 @@ class EnrichedMarkdownText
       customSelectionActionModeCallback = createSelectionActionModeCallback(this)
       isVerticalScrollBarEnabled = false
       isHorizontalScrollBarEnabled = false
+
+      // Set up accessibility for TalkBack
+      // This enables virtual view hierarchy for semantic navigation (headings, links, etc.)
+      ViewCompat.setAccessibilityDelegate(this, accessibilityHelper)
     }
 
     fun setMarkdownContent(markdown: String) {
@@ -206,6 +215,9 @@ class EnrichedMarkdownText
       }
 
       layoutManager.invalidateLayout()
+
+      // Update accessibility items for TalkBack navigation
+      accessibilityHelper.invalidateAccessibilityItems()
     }
 
     fun setIsSelectable(selectable: Boolean) {

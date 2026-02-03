@@ -27,46 +27,43 @@
   if (!context)
     return;
 
-  // Snapshot parent state to handle restoration after rendering nested children
-  NSInteger prevDepth = context.listDepth;
-  ListType prevType = context.listType;
-  NSInteger prevNum = context.listItemNumber;
+  const NSInteger prevDepth = context.listDepth;
+  const ListType prevType = context.listType;
+  const NSInteger prevNum = context.listItemNumber;
 
-  NSUInteger start = output.length;
-  NSUInteger contentStart = start;
+  const NSUInteger startLocation = output.length;
+  NSUInteger contentStart = startLocation;
 
-  // Apply top margin only for the root-level list container
   if (prevDepth == 0) {
-    contentStart += applyBlockSpacingBefore(output, start, [_config listStyleMarginTop]);
+    // Apply top margin for root-level list
+    contentStart += applyBlockSpacingBefore(output, startLocation, _config.listStyleMarginTop);
+  } else if (output.length > 0 && ![output.string hasSuffix:@"\n"]) {
+    // Ensure nested lists start on a new line
+    [output appendAttributedString:kNewlineAttributedString];
   }
 
   context.listDepth = prevDepth + 1;
   context.listType = _isOrdered ? ListTypeOrdered : ListTypeUnordered;
-  context.listItemNumber = 0;
-
-  // Ensure nested lists start on a new line if the previous content didn't end with one
-  if (prevDepth > 0 && output.length > 0 && ![output.string hasSuffix:@"\n"]) {
-    [output appendAttributedString:kNewlineAttributedString];
-  }
+  context.listItemNumber = 0; // Reset counter for this specific list level
 
   [context setBlockStyle:_isOrdered ? BlockTypeOrderedList : BlockTypeUnorderedList
-                    font:[_config listStyleFont]
-                   color:[_config listStyleColor]
+                    font:_config.listStyleFont
+                   color:_config.listStyleColor
             headingLevel:0];
 
   @try {
     [_rendererFactory renderChildrenOfNode:node into:output context:context];
   } @finally {
-    // Restore original context state to prevent settings leaking to siblings
     context.listDepth = prevDepth;
     context.listType = prevType;
     context.listItemNumber = prevNum;
-    if (prevDepth == 0)
-      [context clearBlockStyle];
-  }
 
-  if (prevDepth == 0) {
-    applyBlockSpacingAfter(output, [_config listStyleMarginBottom]);
+    if (prevDepth == 0) {
+      [context clearBlockStyle];
+
+      // Apply bottom margin for root-level list
+      applyBlockSpacingAfter(output, _config.listStyleMarginBottom);
+    }
   }
 }
 

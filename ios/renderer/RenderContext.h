@@ -30,8 +30,6 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 @property (nonatomic, strong) NSMutableArray<NSValue *> *imageRanges;
 @property (nonatomic, strong) NSMutableArray<NSString *> *imageAltTexts;
 @property (nonatomic, strong) NSMutableArray<NSString *> *imageURLs;
-
-// List item accessibility tracking
 @property (nonatomic, strong) NSMutableArray<NSValue *> *listItemRanges;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemPositions; // Position in parent list (1, 2, 3...)
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemDepths;  // Nesting depth (1 = top level, 2+ = nested)

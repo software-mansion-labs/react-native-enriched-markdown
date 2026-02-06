@@ -188,7 +188,7 @@ export const EnrichedMarkdownText = ({
   markdownStyle = {},
   containerStyle,
   onLinkPress,
-  isSelectable = true,
+  selectable = true,
   md4cFlags = defaultMd4cFlags,
   allowFontScaling = true,
   maxFontSizeMultiplier,
@@ -219,7 +219,7 @@ export const EnrichedMarkdownText = ({
       markdown={markdown}
       markdownStyle={normalizedStyle}
       onLinkPress={handleLinkPress}
-      isSelectable={isSelectable}
+      selectable={selectable}
       md4cFlags={normalizedMd4cFlags}
       allowFontScaling={allowFontScaling}
       maxFontSizeMultiplier={maxFontSizeMultiplier}

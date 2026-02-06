@@ -1,10 +1,10 @@
-#import "ImageAttachment.h"
+#import "EnrichedMarkdownImageAttachment.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import <React/RCTLog.h>
 #import <objc/runtime.h>
 
-@interface ImageAttachment ()
+@interface EnrichedMarkdownImageAttachment ()
 @property (nonatomic, readwrite) NSString *imageURL;
 @property (nonatomic, weak) StyleConfig *config;
 @property (nonatomic, assign) BOOL isInline;
@@ -17,7 +17,7 @@
 @property (nonatomic, strong) NSURLSessionDataTask *loadingTask;
 @end
 
-@implementation ImageAttachment
+@implementation EnrichedMarkdownImageAttachment
 
 - (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline
 {

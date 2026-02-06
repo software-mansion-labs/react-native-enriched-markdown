@@ -1,7 +1,7 @@
 #import "HTMLGenerator.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
-#import "ImageAttachment.h"
+#import "EnrichedMarkdownImageAttachment.h"
 #import "LastElementUtils.h"
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
@@ -434,8 +434,8 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
 
                         if ([text containsString:kObjectReplacementChar]) {
                           id attachment = attrs[NSAttachmentAttributeName];
-                          if ([attachment isKindOfClass:[ImageAttachment class]]) {
-                            ImageAttachment *img = (ImageAttachment *)attachment;
+                          if ([attachment isKindOfClass:[EnrichedMarkdownImageAttachment class]]) {
+                            EnrichedMarkdownImageAttachment *img = (EnrichedMarkdownImageAttachment *)attachment;
                             if (img.imageURL) {
                               if (img.isInline) {
                                 [html appendFormat:

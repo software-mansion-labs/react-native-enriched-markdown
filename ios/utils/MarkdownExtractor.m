@@ -1,6 +1,6 @@
 #import "MarkdownExtractor.h"
 #import "BlockquoteBorder.h"
-#import "ImageAttachment.h"
+#import "EnrichedMarkdownImageAttachment.h"
 #import "LastElementUtils.h"
 #import "RuntimeKeys.h"
 #import "ThematicBreakAttachment.h"
@@ -135,8 +135,8 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
 
                         // Images and Thematic Breaks
                         NSTextAttachment *attachment = attrs[NSAttachmentAttributeName];
-                        if ([attachment isKindOfClass:[ImageAttachment class]]) {
-                          ImageAttachment *img = (ImageAttachment *)attachment;
+                        if ([attachment isKindOfClass:[EnrichedMarkdownImageAttachment class]]) {
+                          EnrichedMarkdownImageAttachment *img = (EnrichedMarkdownImageAttachment *)attachment;
                           if (!img.imageURL)
                             return;
 

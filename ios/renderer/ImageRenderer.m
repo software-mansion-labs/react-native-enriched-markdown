@@ -1,5 +1,5 @@
 #import "ImageRenderer.h"
-#import "ImageAttachment.h"
+#import "EnrichedMarkdownImageAttachment.h"
 #import "MarkdownASTNode.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
@@ -32,7 +32,9 @@ static const unichar kZeroWidthSpace = 0x200B;
   }
 
   BOOL isInline = [self isInlineImageInOutput:output];
-  ImageAttachment *attachment = [[ImageAttachment alloc] initWithImageURL:imageURL config:_config isInline:isInline];
+  EnrichedMarkdownImageAttachment *attachment = [[EnrichedMarkdownImageAttachment alloc] initWithImageURL:imageURL
+                                                                                                   config:_config
+                                                                                                 isInline:isInline];
 
   NSUInteger startIndex = output.length;
 

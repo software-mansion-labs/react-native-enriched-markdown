@@ -25,7 +25,7 @@ NSString *_Nullable markdownForRange(NSAttributedString *attributedText, NSRange
                                      NSString *_Nullable cachedMarkdown);
 
 /**
- * Returns remote image URLs (http/https only) from ImageAttachments in the given range.
+ * Returns remote image URLs (http/https only) from EnrichedMarkdownImageAttachments in the given range.
  */
 NSArray<NSString *> *imageURLsInRange(NSAttributedString *attributedText, NSRange range);
 

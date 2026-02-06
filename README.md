@@ -14,6 +14,7 @@
 - 🔗 Interactive link handling
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
+- 🗣️ Accessibility support (VoiceOver & TalkBack)
 
 Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
 We can help you build your next dream product –
@@ -27,6 +28,7 @@ We can help you build your next dream product –
 - [Supported Markdown Elements](#supported-markdown-elements)
 - [Link Handling](#link-handling)
 - [Copy Options](#copy-options)
+- [Accessibility](#accessibility)
 - [Styling Architecture](#styling-architecture)
 - [Customizing Styles](#customizing-styles)
 - [API Reference](#api-reference)
@@ -222,6 +224,20 @@ A dedicated **Copy as Markdown** option is available in the context menu on both
 ### Copy Image URL
 
 When selecting text that contains images, a **Copy Image URL** option appears to copy the image's source URL. On Android, if multiple images are selected, all URLs are copied (one per line).
+
+## Accessibility
+
+`react-native-enriched-markdown` provides accessibility support for screen readers on both platforms — VoiceOver on iOS and TalkBack on Android.
+
+### Supported Elements
+
+| Element | VoiceOver (iOS) | TalkBack (Android) |
+|---------|-----------------|---------------------|
+| **Headings (h1-h6)** | Rotor navigation | Reading controls navigation |
+| **Links** | Rotor navigation, activatable | Reading controls navigation, activatable |
+| **Images** | Alt text announced, rotor navigation | Alt text announced |
+| **List items** | Position announced (e.g., "bullet point", "list item 1") | Position announced |
+| **Nested lists** | Proper depth handling | "Nested" prefix for deeper items |
 
 ## Styling Architecture
 

@@ -1,4 +1,5 @@
 #import "EnrichedMarkdownText.h"
+#import "AccessibilityInfo.h"
 #import "AttributedRenderer.h"
 #import "CodeBlockBackground.h"
 #import "EditMenuUtils.h"
@@ -6,6 +7,7 @@
 #import "ImageAttachment.h"
 #import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
+#import "MarkdownAccessibilityElementBuilder.h"
 #import "MarkdownExtractor.h"
 #import "MarkdownParser.h"
 #import "ParagraphStyleUtils.h"
@@ -55,6 +57,10 @@ using namespace facebook::react;
   CGFloat _currentFontScale;
   BOOL _allowFontScaling;
   CGFloat _maxFontSizeMultiplier;
+
+  // Accessibility data for VoiceOver
+  AccessibilityInfo *_accessibilityInfo;
+  NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -207,6 +213,8 @@ using namespace facebook::react;
   _textView.selectable = YES;
   // Hide initially to prevent flash before content is rendered
   _textView.hidden = YES;
+  // Disable textView's built-in accessibility - we provide custom elements with proper traits
+  _textView.accessibilityElementsHidden = YES;
 
   // Add tap gesture recognizer
   UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self
@@ -305,6 +313,10 @@ using namespace facebook::react;
       NSString *url = context.linkURLs[i];
       [attributedText addAttribute:@"linkURL" value:url range:range];
     }
+
+    // Capture accessibility info
+    AccessibilityInfo *accessibilityInfo = [AccessibilityInfo infoFromContext:context];
+
     NSTimeInterval renderTime = [[NSDate date] timeIntervalSinceDate:renderStart] * 1000;
     NSUInteger styledLength = attributedText.length;
 
@@ -314,6 +326,9 @@ using namespace facebook::react;
       if (renderId != self->_currentRenderId) {
         return;
       }
+
+      // Store accessibility info
+      self->_accessibilityInfo = accessibilityInfo;
 
       [self applyRenderedText:attributedText];
 
@@ -357,6 +372,9 @@ using namespace facebook::react;
     [attributedText addAttribute:@"linkURL" value:url range:range];
   }
 
+  // Store accessibility info
+  _accessibilityInfo = [AccessibilityInfo infoFromContext:context];
+
   _textView.attributedText = attributedText;
 }
 
@@ -384,6 +402,9 @@ using namespace facebook::react;
 
   // Request height recalculation from shadow node FIRST
   [self requestHeightUpdate];
+
+  // Build accessibility elements after layout is complete
+  [self buildAccessibilityElements];
 
   // Show text view on next run loop, after layout has settled
   if (_textView.hidden) {
@@ -1261,6 +1282,68 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
           suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
 {
   return buildEditMenuForSelection(_textView.attributedText, range, _cachedMarkdown, _config, suggestedActions);
+}
+
+#pragma mark - Accessibility (VoiceOver Navigation)
+
+- (void)buildAccessibilityElements
+{
+  _accessibilityElements = [MarkdownAccessibilityElementBuilder buildElementsForTextView:_textView
+                                                                                    info:_accessibilityInfo
+                                                                               container:self];
+}
+
+- (BOOL)isAccessibilityElement
+{
+  return NO; // This is a container, not a single element
+}
+
+- (NSInteger)accessibilityElementCount
+{
+  return _accessibilityElements.count;
+}
+
+- (id)accessibilityElementAtIndex:(NSInteger)index
+{
+  if (index < 0 || index >= (NSInteger)_accessibilityElements.count) {
+    return nil;
+  }
+  return _accessibilityElements[index];
+}
+
+- (NSInteger)indexOfAccessibilityElement:(id)element
+{
+  return [_accessibilityElements indexOfObject:element];
+}
+
+- (NSArray *)accessibilityElements
+{
+  return _accessibilityElements;
+}
+
+- (NSArray<UIAccessibilityCustomRotor *> *)accessibilityCustomRotors
+{
+  NSMutableArray<UIAccessibilityCustomRotor *> *rotors = [NSMutableArray array];
+
+  NSArray<UIAccessibilityElement *> *headingElements =
+      [MarkdownAccessibilityElementBuilder filterHeadingElements:_accessibilityElements];
+  if (headingElements.count > 0) {
+    [rotors addObject:[MarkdownAccessibilityElementBuilder createHeadingRotorWithElements:headingElements]];
+  }
+
+  NSArray<UIAccessibilityElement *> *linkElements =
+      [MarkdownAccessibilityElementBuilder filterLinkElements:_accessibilityElements];
+  if (linkElements.count > 0) {
+    [rotors addObject:[MarkdownAccessibilityElementBuilder createLinkRotorWithElements:linkElements]];
+  }
+
+  NSArray<UIAccessibilityElement *> *imageElements =
+      [MarkdownAccessibilityElementBuilder filterImageElements:_accessibilityElements];
+  if (imageElements.count > 0) {
+    [rotors addObject:[MarkdownAccessibilityElementBuilder createImageRotorWithElements:imageElements]];
+  }
+
+  return rotors;
 }
 
 @end

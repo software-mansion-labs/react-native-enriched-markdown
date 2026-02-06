@@ -17,6 +17,15 @@
   if (self = [super init]) {
     _linkRanges = [NSMutableArray array];
     _linkURLs = [NSMutableArray array];
+    _headingRanges = [NSMutableArray array];
+    _headingLevels = [NSMutableArray array];
+    _imageRanges = [NSMutableArray array];
+    _imageAltTexts = [NSMutableArray array];
+    _imageURLs = [NSMutableArray array];
+    _listItemRanges = [NSMutableArray array];
+    _listItemPositions = [NSMutableArray array];
+    _listItemDepths = [NSMutableArray array];
+    _listItemOrdered = [NSMutableArray array];
     _fontCache = [NSMutableDictionary dictionary];
     _currentBlockStyle = [[BlockStyle alloc] init];
     _allowFontScaling = YES;
@@ -92,6 +101,46 @@
     return;
   [self.linkRanges addObject:[NSValue valueWithRange:range]];
   [self.linkURLs addObject:url ?: @""];
+}
+
+- (void)registerHeadingRange:(NSRange)range level:(NSInteger)level text:(NSString *)text
+{
+  if (range.length == 0)
+    return;
+  [self.headingRanges addObject:[NSValue valueWithRange:range]];
+  [self.headingLevels addObject:@(level)];
+}
+
+- (void)registerImageRange:(NSRange)range altText:(NSString *)altText url:(NSString *)url
+{
+  if (range.length == 0)
+    return;
+  [self.imageRanges addObject:[NSValue valueWithRange:range]];
+  [self.imageAltTexts addObject:altText ?: @""];
+  [self.imageURLs addObject:url ?: @""];
+}
+
+#pragma mark - Registration Helpers
+
+- (void)registerListItemRange:(NSRange)range
+                     position:(NSInteger)position
+                        depth:(NSInteger)depth
+                    isOrdered:(BOOL)isOrdered
+{
+  if (![self isValidRange:range])
+    return;
+
+  [self.listItemRanges addObject:[NSValue valueWithRange:range]];
+  [self.listItemPositions addObject:@(position)];
+  [self.listItemDepths addObject:@(depth)];
+  [self.listItemOrdered addObject:@(isOrdered)];
+}
+
+#pragma mark - Private
+
+- (BOOL)isValidRange:(NSRange)range
+{
+  return range.length > 0 && range.location != NSNotFound;
 }
 
 #pragma mark - Block Style Management
@@ -181,6 +230,15 @@
 {
   [_linkRanges removeAllObjects];
   [_linkURLs removeAllObjects];
+  [_headingRanges removeAllObjects];
+  [_headingLevels removeAllObjects];
+  [_imageRanges removeAllObjects];
+  [_imageAltTexts removeAllObjects];
+  [_imageURLs removeAllObjects];
+  [_listItemRanges removeAllObjects];
+  [_listItemPositions removeAllObjects];
+  [_listItemDepths removeAllObjects];
+  [_listItemOrdered removeAllObjects];
   [self clearBlockStyle];
 
   _blockquoteDepth = 0;

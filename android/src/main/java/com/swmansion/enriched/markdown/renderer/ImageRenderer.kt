@@ -22,20 +22,21 @@ class ImageRenderer(
     val isInline = builder.isInlineImage()
     val start = builder.length
 
-    // 1. Append the placeholder character
+    // Append Object Replacement Character as the span anchor
     builder.append("\uFFFC")
     val end = builder.length
 
-    // 2. Create the Span
+    val altText = extractTextFromNode(node)
+
     val span =
       ImageSpan(
         context = context,
         imageUrl = imageUrl,
         styleConfig = config.style,
         isInline = isInline,
+        altText = altText,
       )
 
-    // 3. Attach it to the builder
     builder.setSpan(
       span,
       start,
@@ -43,10 +44,24 @@ class ImageRenderer(
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    // 4. REPORT the span to the collector via the factory
+    // Notify factory for external span tracking/collection
     factory.registerImageSpan(span)
+  }
 
-    // Note: marginBottom for images is handled by ParagraphRenderer when the paragraph contains only an image
-    // This ensures consistent spacing behavior and prevents paragraph's marginBottom from affecting images
+  /**
+   * Recursively extracts text content from children to use as alt text.
+   */
+  private fun extractTextFromNode(node: MarkdownASTNode): String {
+    val buffer = StringBuilder()
+    appendChildText(node, buffer)
+    return buffer.toString().trim()
+  }
+
+  private fun appendChildText(
+    node: MarkdownASTNode,
+    buffer: StringBuilder,
+  ) {
+    node.content?.let { buffer.append(it) }
+    node.children.forEach { child -> appendChildText(child, buffer) }
   }
 }

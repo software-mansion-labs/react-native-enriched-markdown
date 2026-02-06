@@ -28,6 +28,7 @@ class ImageSpan(
   val imageUrl: String,
   styleConfig: StyleConfig,
   val isInline: Boolean = false,
+  val altText: String = "",
 ) : AndroidImageSpan(
     createInitialDrawable(styleConfig, imageUrl, isInline),
     imageUrl,

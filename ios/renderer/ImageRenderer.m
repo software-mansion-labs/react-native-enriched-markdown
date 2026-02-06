@@ -27,23 +27,46 @@ static const unichar kZeroWidthSpace = 0x200B;
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   NSString *imageURL = node.attributes[@"url"];
-  // Safety check for URL presence and length
   if (!imageURL || imageURL.length == 0) {
     return;
   }
 
-  // Determine if this image is being placed inside an existing line of text
   BOOL isInline = [self isInlineImageInOutput:output];
-
-  // Create the attachment using the shared config
   ImageAttachment *attachment = [[ImageAttachment alloc] initWithImageURL:imageURL config:_config isInline:isInline];
 
-  // Append the attachment character to the output
+  NSUInteger startIndex = output.length;
+
   NSAttributedString *imageString = [NSAttributedString attributedStringWithAttachment:attachment];
   [output appendAttributedString:imageString];
+
+  // Extract alt text from children (![alt text](url) - "alt text" is in children)
+  NSString *altText = [self extractTextFromNode:node];
+  NSRange imageRange = NSMakeRange(startIndex, output.length - startIndex);
+  [context registerImageRange:imageRange altText:altText url:imageURL];
 }
 
 #pragma mark - Private Helpers
+
+- (NSString *)extractTextFromNode:(MarkdownASTNode *)node
+{
+  if (!node)
+    return @"";
+
+  NSMutableString *buffer = [NSMutableString string];
+  [self _appendChildTextFromNode:node toBuffer:buffer];
+  return [buffer copy];
+}
+
+- (void)_appendChildTextFromNode:(MarkdownASTNode *)node toBuffer:(NSMutableString *)buffer
+{
+  if (node.content.length > 0) {
+    [buffer appendString:node.content];
+  }
+
+  for (MarkdownASTNode *child in node.children) {
+    [self _appendChildTextFromNode:child toBuffer:buffer];
+  }
+}
 
 - (BOOL)isInlineImageInOutput:(NSAttributedString *)output
 {
@@ -51,11 +74,7 @@ static const unichar kZeroWidthSpace = 0x200B;
     return NO;
   }
 
-  // Check the last character to see if we are currently mid-paragraph
   unichar lastChar = [output.string characterAtIndex:output.length - 1];
-
-  // If the last character is a newline or a zero-width space (often used as block separators),
-  // we consider the next image to be a "block" image.
   return (lastChar != kLineBreak && lastChar != kZeroWidthSpace);
 }
 

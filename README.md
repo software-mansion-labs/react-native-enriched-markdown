@@ -513,7 +513,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `markdownStyle` | `MarkdownStyle` | `{}` | Style configuration for Markdown elements |
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
 | `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
-| `isSelectable` | `boolean` | `true` | Whether text can be selected |
+| `selectable` | `boolean` | `true` | Whether text can be selected |
 | `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |
 | `allowFontScaling` | `boolean` | `true` | Whether fonts should scale to respect Text Size accessibility settings |
 | `maxFontSizeMultiplier` | `number` | `undefined` | Maximum font scale multiplier when `allowFontScaling` is enabled |

@@ -154,7 +154,7 @@ export interface NativeProps extends ViewProps {
    * - Android: Controls text selection.
    * @default true
    */
-  isSelectable?: boolean;
+  selectable?: boolean;
   /**
    * MD4C parser flags configuration.
    * Controls how the markdown parser interprets certain syntax.

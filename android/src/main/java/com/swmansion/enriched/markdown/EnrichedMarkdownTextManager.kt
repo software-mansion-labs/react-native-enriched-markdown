@@ -58,8 +58,8 @@ class EnrichedMarkdownTextManager :
     view?.setMarkdownStyle(style)
   }
 
-  @ReactProp(name = "isSelectable", defaultBoolean = true)
-  override fun setIsSelectable(
+  @ReactProp(name = "selectable", defaultBoolean = true)
+  override fun setSelectable(
     view: EnrichedMarkdownText?,
     selectable: Boolean,
   ) {

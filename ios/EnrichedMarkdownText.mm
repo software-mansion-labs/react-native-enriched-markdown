@@ -208,7 +208,7 @@ using namespace facebook::react;
   _textView.textContainer.lineFragmentPadding = 0;
   // Disable UITextView's default link styling - we handle it directly in attributed strings
   _textView.linkTextAttributes = @{};
-  // isSelectable controls text selection and link previews
+  // selectable controls text selection and link previews
   // Default to YES to match the prop default
   _textView.selectable = YES;
   // Hide initially to prevent flash before content is rendered
@@ -1153,11 +1153,11 @@ using namespace facebook::react;
     }
   }
 
-  // Control text selection and link previews via isSelectable property
-  // According to Apple docs, isSelectable controls whether text selection and link previews work
+  // Control text selection and link previews via selectable property
+  // According to Apple docs, selectable controls whether text selection and link previews work
   // https://developer.apple.com/documentation/uikit/uitextview/isselectable
-  if (_textView.selectable != newViewProps.isSelectable) {
-    _textView.selectable = newViewProps.isSelectable;
+  if (_textView.selectable != newViewProps.selectable) {
+    _textView.selectable = newViewProps.selectable;
   }
 
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {

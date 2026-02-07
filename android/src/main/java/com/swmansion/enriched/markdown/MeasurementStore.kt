@@ -144,16 +144,20 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Long {
     val (allowFontScaling, maxFontSizeMultiplier) = resolveFontScalingSettings(id, props)
+    val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
 
     val fontScale = checkAndUpdateFontScale(context, allowFontScaling, maxFontSizeMultiplier)
 
-    val safeId = id ?: return measureAndCache(context, null, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
-    val cached = data[safeId] ?: return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    val safeId =
+      id ?: return measureAndCache(context, null, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier, allowTrailingMargin)
+    val cached =
+      data[safeId]
+        ?: return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier, allowTrailingMargin)
 
-    val currentHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    val currentHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier, allowTrailingMargin)
 
     if (cached.markdownHash != currentHash) {
-      return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+      return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier, allowTrailingMargin)
     }
 
     // Width changed - re-measure with cached spannable
@@ -171,6 +175,7 @@ object MeasurementStore {
     allowFontScaling: Boolean,
     fontScale: Float,
     maxFontSizeMultiplier: Float,
+    allowTrailingMargin: Boolean,
   ): Int {
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
@@ -181,6 +186,7 @@ object MeasurementStore {
     result = 31 * result + fontScale.toBits()
     result = 31 * result + allowFontScaling.hashCode()
     result = 31 * result + maxFontSizeMultiplier.toBits()
+    result = 31 * result + allowTrailingMargin.hashCode()
     return result
   }
 
@@ -218,6 +224,7 @@ object MeasurementStore {
     allowFontScaling: Boolean,
     fontScale: Float,
     maxFontSizeMultiplier: Float,
+    allowTrailingMargin: Boolean,
   ): Long {
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
@@ -228,10 +235,10 @@ object MeasurementStore {
       )
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
-    val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier, allowTrailingMargin)
 
     // Parse and render markdown for accurate measurement
-    val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)
+    val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier, allowTrailingMargin)
     val textToMeasure = spannable ?: markdown
     val size = measure(width, textToMeasure, paintParams)
 
@@ -249,6 +256,7 @@ object MeasurementStore {
     md4cFlags: Md4cFlags,
     allowFontScaling: Boolean,
     maxFontSizeMultiplier: Float,
+    allowTrailingMargin: Boolean,
   ): CharSequence? {
     if (styleMap == null) return null
 
@@ -256,6 +264,7 @@ object MeasurementStore {
       val ast = Parser.shared.parseMarkdown(markdown, md4cFlags) ?: return null
       val style = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
       measureRenderer.configure(style, context)
+      measureRenderer.setAllowTrailingMargin(allowTrailingMargin)
       measureRenderer.renderDocument(ast, null)
     } catch (e: Exception) {
       Log.w(TAG, "Failed to render markdown for measurement, falling back to raw text", e)

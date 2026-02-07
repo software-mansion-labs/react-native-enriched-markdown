@@ -517,6 +517,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |
 | `allowFontScaling` | `boolean` | `true` | Whether fonts should scale to respect Text Size accessibility settings |
 | `maxFontSizeMultiplier` | `number` | `undefined` | Maximum font scale multiplier when `allowFontScaling` is enabled |
+| `allowTrailingMargin` | `boolean` | `false` | When true, preserves the bottom margin of the last block element. When false, trailing margin is removed for tighter layout |
 
 ## Contributing
 

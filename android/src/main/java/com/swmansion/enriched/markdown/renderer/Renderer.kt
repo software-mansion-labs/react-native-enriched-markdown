@@ -12,8 +12,13 @@ class Renderer {
   private var cachedFactory: RendererFactory? = null
   private var cachedStyle: StyleConfig? = null
   private var cachedContext: Context? = null
+  private var allowTrailingMargin: Boolean = false
 
   private val collectedImageSpans = mutableListOf<ImageSpan>()
+
+  fun setAllowTrailingMargin(allow: Boolean) {
+    allowTrailingMargin = allow
+  }
 
   fun configure(
     style: StyleConfig,
@@ -46,28 +51,32 @@ class Renderer {
 
     renderNode(document, builder, onLinkPress, factory)
 
-    // Remove trailing margin from last block element
-    removeTrailingMargin(builder)
+    // Clean up trailing newline if last block has marginBottom=0
+    cleanupTrailingMargin(builder)
 
     return SpannableString(builder)
   }
 
-  /** Removes trailing margin to eliminate bottom spacing */
-  private fun removeTrailingMargin(builder: SpannableStringBuilder) {
+  /**
+   * Always removes trailing newline to prevent extra empty line.
+   * Controls whether the last element's margin is preserved based on allowTrailingMargin.
+   */
+  private fun cleanupTrailingMargin(builder: SpannableStringBuilder) {
     if (builder.isEmpty()) return
 
-    val spans = builder.getSpans(0, builder.length, MarginBottomSpan::class.java)
-    if (spans.isEmpty()) return
-
-    val lastSpan = spans.maxByOrNull { builder.getSpanEnd(it) } ?: return
-    val spanEnd = builder.getSpanEnd(lastSpan)
-
-    // Remove trailing newlines (added for block spacing)
-    while (builder.isNotEmpty() && builder.last() == '\n') {
+    // Always remove trailing newline - it creates an extra empty line
+    if (builder.last() == '\n') {
       builder.delete(builder.length - 1, builder.length)
     }
 
-    if (spanEnd >= builder.length) {
+    // Find the last MarginBottomSpan
+    val spans = builder.getSpans(0, builder.length, MarginBottomSpan::class.java)
+    val lastSpan = spans.maxByOrNull { builder.getSpanEnd(it) } ?: return
+
+    // Remove span if:
+    // - allowTrailingMargin is false (no trailing margin wanted), OR
+    // - marginBottom is 0 (no margin to add anyway)
+    if (!allowTrailingMargin || lastSpan.marginBottom == 0f) {
       builder.removeSpan(lastSpan)
     }
   }

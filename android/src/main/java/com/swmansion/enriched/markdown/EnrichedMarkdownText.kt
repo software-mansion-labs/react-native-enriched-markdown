@@ -61,6 +61,7 @@ class EnrichedMarkdownText
 
     private var allowFontScaling: Boolean = true
     private var maxFontSizeMultiplier: Float = 0f
+    private var allowTrailingMargin: Boolean = false
 
     init {
       setBackgroundColor(Color.TRANSPARENT)
@@ -130,6 +131,12 @@ class EnrichedMarkdownText
       scheduleRenderIfNeeded()
     }
 
+    fun setAllowTrailingMargin(allow: Boolean) {
+      if (allowTrailingMargin == allow) return
+      allowTrailingMargin = allow
+      scheduleRenderIfNeeded()
+    }
+
     private fun updateMeasurementStoreFontScaling() {
       MeasurementStore.updateFontScalingSettings(id, allowFontScaling, maxFontSizeMultiplier)
     }
@@ -179,6 +186,7 @@ class EnrichedMarkdownText
           // 2. Render AST → Spannable
           val renderStart = System.currentTimeMillis()
           renderer.configure(style, context)
+          renderer.setAllowTrailingMargin(allowTrailingMargin)
           val styledText = renderer.renderDocument(ast, onLinkPressCallback)
           val renderTime = System.currentTimeMillis() - renderStart
 

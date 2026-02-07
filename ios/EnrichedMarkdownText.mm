@@ -57,6 +57,7 @@ using namespace facebook::react;
   CGFloat _currentFontScale;
   BOOL _allowFontScaling;
   CGFloat _maxFontSizeMultiplier;
+  BOOL _allowTrailingMargin;
 
   // Accessibility data for VoiceOver
   AccessibilityInfo *_accessibilityInfo;
@@ -106,6 +107,21 @@ using namespace facebook::react;
     measuredHeight += [_config codeBlockPadding];
   }
 
+  // When allowTrailingMargin is true, add the last paragraph's paragraphSpacing (marginBottom)
+  // to the measured height. The measurement strips trailing \n, so paragraphSpacing is not included.
+  if (_allowTrailingMargin && text.length > 0) {
+    // Find the last character with a paragraph style
+    NSUInteger lastCharIndex = NSMaxRange(lastContent);
+    if (lastCharIndex > 0) {
+      NSParagraphStyle *lastStyle = [text attribute:NSParagraphStyleAttributeName
+                                            atIndex:lastCharIndex - 1
+                                     effectiveRange:NULL];
+      if (lastStyle && lastStyle.paragraphSpacing > 0) {
+        measuredHeight += lastStyle.paragraphSpacing;
+      }
+    }
+  }
+
   return CGSizeMake(ceil(measuredWidth), ceil(measuredHeight));
 }
 
@@ -149,6 +165,7 @@ using namespace facebook::react;
     _allowFontScaling = YES;
     _maxFontSizeMultiplier = 0;
     _currentFontScale = RCTFontSizeMultiplier();
+    _allowTrailingMargin = NO;
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(contentSizeCategoryDidChange:)
@@ -286,6 +303,7 @@ using namespace facebook::react;
   // Capture font scaling settings
   BOOL allowFontScaling = _allowFontScaling;
   CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;
+  BOOL allowTrailingMargin = _allowTrailingMargin;
 
   // Dispatch heavy work to background queue
   dispatch_async(_renderQueue, ^{
@@ -304,6 +322,7 @@ using namespace facebook::react;
     RenderContext *context = [RenderContext new];
     context.allowFontScaling = allowFontScaling;
     context.maxFontSizeMultiplier = maxFontSizeMultiplier;
+    context.allowTrailingMargin = allowTrailingMargin;
     NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
     // Add link attributes
@@ -363,6 +382,7 @@ using namespace facebook::react;
   RenderContext *context = [RenderContext new];
   context.allowFontScaling = _allowFontScaling;
   context.maxFontSizeMultiplier = _maxFontSizeMultiplier;
+  context.allowTrailingMargin = _allowTrailingMargin;
   NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
   for (NSUInteger i = 0; i < context.linkRanges.count; i++) {
@@ -1177,6 +1197,11 @@ using namespace facebook::react;
       [_config setMaxFontSizeMultiplier:_maxFontSizeMultiplier];
     }
 
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
+    _allowTrailingMargin = newViewProps.allowTrailingMargin;
     stylePropChanged = YES;
   }
 

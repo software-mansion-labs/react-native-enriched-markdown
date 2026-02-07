@@ -175,6 +175,13 @@ export interface NativeProps extends ViewProps {
    * @default undefined
    */
   maxFontSizeMultiplier?: CodegenTypes.Float;
+  /**
+   * Controls whether the last element's margin is preserved.
+   * When false (default), trailing margin is removed for the last element.
+   * When true, the last element's marginBottom is applied.
+   * @default false
+   */
+  allowTrailingMargin?: CodegenTypes.WithDefault<boolean, false>;
 }
 
 export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText');

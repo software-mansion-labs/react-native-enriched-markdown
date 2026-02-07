@@ -13,6 +13,7 @@ inline folly::dynamic toDynamic(const EnrichedMarkdownTextProps &props) {
   serializedProps["markdown"] = props.markdown;
   serializedProps["markdownStyle"] = toDynamic(props.markdownStyle);
   serializedProps["md4cFlags"] = toDynamic(props.md4cFlags);
+  serializedProps["allowTrailingMargin"] = props.allowTrailingMargin;
 
   return serializedProps;
 }

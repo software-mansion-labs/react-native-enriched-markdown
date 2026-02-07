@@ -94,6 +94,14 @@ class EnrichedMarkdownTextManager :
     view?.setMaxFontSizeMultiplier(maxFontSizeMultiplier)
   }
 
+  @ReactProp(name = "allowTrailingMargin", defaultBoolean = false)
+  override fun setAllowTrailingMargin(
+    view: EnrichedMarkdownText?,
+    allowTrailingMargin: Boolean,
+  ) {
+    view?.setAllowTrailingMargin(allowTrailingMargin)
+  }
+
   override fun setPadding(
     view: EnrichedMarkdownText,
     left: Int,

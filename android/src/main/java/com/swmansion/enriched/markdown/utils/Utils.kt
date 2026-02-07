@@ -155,7 +155,7 @@ fun applyBlockMarginTop(
 
 /**
  * Applies marginBottom spacing to a block element.
- * Appends a newline and applies MarginBottomSpan if marginBottom > 0.
+ * Appends a newline and applies MarginBottomSpan to add margin to the last line.
  *
  * @param builder The SpannableStringBuilder to modify
  * @param start The start position of the block content (before appending newline)
@@ -167,14 +167,12 @@ fun applyMarginBottom(
   marginBottom: Float,
 ) {
   builder.append("\n")
-  if (marginBottom > 0) {
-    builder.setSpan(
-      MarginBottomSpan(marginBottom),
-      start,
-      builder.length, // Includes the newline we just appended
-      SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-    )
-  }
+  builder.setSpan(
+    MarginBottomSpan(marginBottom),
+    start,
+    builder.length,
+    SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+  )
 }
 
 // ============================================================================

@@ -30,6 +30,7 @@
     _currentBlockStyle = [[BlockStyle alloc] init];
     _allowFontScaling = YES;
     _maxFontSizeMultiplier = 0;
+    _allowTrailingMargin = NO;
 
     NSMutableParagraphStyle *spacerTemplate = [[NSMutableParagraphStyle alloc] init];
     _baseSpacerTemplate = [spacerTemplate copy];

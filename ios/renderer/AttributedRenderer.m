@@ -1,6 +1,4 @@
 #import "AttributedRenderer.h"
-#import "CodeBlockBackground.h"
-#import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
 #import "NodeRenderer.h"
 #import "RenderContext.h"
@@ -43,51 +41,53 @@
     [self renderNodeRecursive:node into:output context:context];
   }
 
-  // 3. Remove trailing paragraph spacing from last block element
-  [self removeTrailingSpacing:output];
-
-  // 4. Cleanup global state to prevent side effects in subsequent renders.
+  // 3. Cleanup global state to prevent side effects in subsequent renders.
   [context clearBlockStyle];
+
+  // 4. Handle trailing margin based on allowTrailingMargin prop.
+  // When false (default), remove the trailing margin by setting paragraphSpacing to 0.
+  [self cleanupTrailingMargin:output context:context];
 
   return output;
 }
 
-/// Removes trailing margin spacing while preserving code block padding
-- (void)removeTrailingSpacing:(NSMutableAttributedString *)output
+/**
+ * Handles trailing margin cleanup.
+ * When allowTrailingMargin is true: keeps everything as-is (the measurement will account for the margin).
+ * When allowTrailingMargin is false: removes trailing \n and sets paragraphSpacing to 0.
+ */
+- (void)cleanupTrailingMargin:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   if (output.length == 0)
     return;
 
-  NSRange lastContent = [output.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
-                                                       options:NSBackwardsSearch];
-  if (lastContent.location == NSNotFound)
+  // Check if ends with newline
+  unichar lastChar = [[output string] characterAtIndex:output.length - 1];
+  if (lastChar != '\n')
     return;
 
-  if (isLastElementCodeBlock(output)) {
-    // Code block: preserve bottom padding, only trim external margin
-    NSRange codeBlockRange;
-    [output attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeBlockRange];
-    NSUInteger codeBlockEnd = NSMaxRange(codeBlockRange);
-    if (codeBlockEnd < output.length) {
-      [output deleteCharactersInRange:NSMakeRange(codeBlockEnd, output.length - codeBlockEnd)];
-    }
-  } else {
-    // Other elements: trim trailing newlines and zero all spacing
-    [output deleteCharactersInRange:NSMakeRange(NSMaxRange(lastContent), output.length - NSMaxRange(lastContent))];
+  // When allowTrailingMargin is true, keep the trailing \n and paragraphSpacing as-is.
+  // The measureSize method will add paragraphSpacing to the measured height.
+  if (context.allowTrailingMargin) {
+    return;
+  }
 
-    NSRange range;
-    NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName
-                                        atIndex:lastContent.location
-                                 effectiveRange:&range];
-    if (style) {
-      NSMutableParagraphStyle *fixed = [style mutableCopy];
-      fixed.paragraphSpacing = 0;
-      fixed.paragraphSpacingBefore = 0;
-      // For images: zero line spacing to eliminate baseline gaps
-      if (isLastElementImage(output)) {
-        fixed.lineSpacing = 0;
-      }
-      [output addAttribute:NSParagraphStyleAttributeName value:fixed range:range];
+  // allowTrailingMargin is false: remove trailing \n and zero out paragraphSpacing
+  NSRange lastParagraphRange;
+  NSParagraphStyle *existingStyle = [output attribute:NSParagraphStyleAttributeName
+                                              atIndex:output.length - 1
+                                       effectiveRange:&lastParagraphRange];
+
+  [output deleteCharactersInRange:NSMakeRange(output.length - 1, 1)];
+
+  if (output.length > 0 && existingStyle) {
+    NSMutableParagraphStyle *mutableStyle = [existingStyle mutableCopy];
+    mutableStyle.paragraphSpacing = 0;
+
+    NSUInteger newEnd = MIN(lastParagraphRange.location + lastParagraphRange.length - 1, output.length);
+    if (newEnd > lastParagraphRange.location) {
+      NSRange newRange = NSMakeRange(lastParagraphRange.location, newEnd - lastParagraphRange.location);
+      [output addAttribute:NSParagraphStyleAttributeName value:mutableStyle range:newRange];
     }
   }
 }

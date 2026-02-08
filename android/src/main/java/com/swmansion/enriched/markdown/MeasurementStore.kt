@@ -353,34 +353,33 @@ object MeasurementStore {
     paint: TextPaint,
   ): Pair<Long, StaticLayout> {
     val content = text ?: ""
-    val safeWidth = ceil(maxWidth).toInt().coerceAtLeast(1)
+    val widthPx = ceil(maxWidth).toInt().coerceAtLeast(1)
 
-    val builder =
+    val layout =
       StaticLayout.Builder
-        .obtain(content, 0, content.length, paint, safeWidth)
+        .obtain(content, 0, content.length, paint, widthPx)
         .setIncludePad(false)
         .setLineSpacing(0f, 1f)
+        .apply {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
+          }
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            setUseLineSpacingFromFallbacks(true)
+          }
+        }.build()
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      builder.setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-      builder.setUseLineSpacingFromFallbacks(true)
-    }
-
-    val layout = builder.build()
-    val measuredHeight = layout.height.toFloat()
-
-    // Calculate actual content width (widest line)
-    val measuredWidth = (0 until layout.lineCount).maxOfOrNull { layout.getLineWidth(it) } ?: 0f
+    // Find the widest line to get the actual content width
+    val maxLineWidth =
+      (0 until layout.lineCount)
+        .maxOfOrNull { layout.getLineWidth(it) } ?: 0f
 
     val size =
       YogaMeasureOutput.make(
-        PixelUtil.toDIPFromPixel(ceil(measuredWidth)),
-        PixelUtil.toDIPFromPixel(measuredHeight),
+        PixelUtil.toDIPFromPixel(ceil(maxLineWidth)),
+        PixelUtil.toDIPFromPixel(layout.height.toFloat()),
       )
 
-    return Pair(size, layout)
+    return size to layout
   }
 }

@@ -64,41 +64,36 @@
   if (output.length == 0)
     return;
 
-  // Find the last character that isn't a newline
-  NSRange lastContent = [output.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
+  // Find the last non-newline character
+  NSRange lastContent = [output.string rangeOfCharacterFromSet:[NSCharacterSet.newlineCharacterSet invertedSet]
                                                        options:NSBackwardsSearch];
   if (lastContent.location == NSNotFound)
     return;
 
-  NSUInteger trailingStart = NSMaxRange(lastContent);
+  // 1. Capture the Margin Bottom (Scanning from last content to end)
   _lastElementMarginBottom = 0.0;
-
-  // 1. Determine where the "logical" end of the element is (Code blocks vs others)
-  NSUInteger logicalEnd = trailingStart;
-  if (isLastElementCodeBlock(output)) {
-    NSRange codeBlockRange;
-    [output attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeBlockRange];
-    logicalEnd = NSMaxRange(codeBlockRange);
-  }
-
-  // 2. Capture Margin Bottom from the trailing range or the last content character
-  for (NSUInteger i = lastContent.location; i < output.length; i++) {
+  for (NSUInteger i = lastContent.location; i < output.length;) {
     NSRange attrRange;
     NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName atIndex:i effectiveRange:&attrRange];
     if (style) {
       _lastElementMarginBottom = MAX(_lastElementMarginBottom, style.paragraphSpacing);
     }
-    // Jump to the end of this attribute range to keep the loop efficient
-    i = NSMaxRange(attrRange) - 1;
+    i = NSMaxRange(attrRange);
   }
 
-  // 3. Always remove trailing characters (external spacers/newlines) - like Android
-  // The allowTrailingMargin flag only affects measurement, not text content
+  // 2. Trim trailing characters
+  NSUInteger logicalEnd = NSMaxRange(lastContent);
+  if (isLastElementCodeBlock(output)) {
+    NSRange codeRange;
+    [output attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeRange];
+    logicalEnd = NSMaxRange(codeRange);
+  }
+
   if (logicalEnd < output.length) {
     [output deleteCharactersInRange:NSMakeRange(logicalEnd, output.length - logicalEnd)];
   }
 
-  // 4. Always zero out internal spacing for the last element (non-code blocks) - like Android
+  // 3. Zero out internal spacing for the last element (if not a code block)
   if (!isLastElementCodeBlock(output)) {
     NSRange styleRange;
     NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName
@@ -106,17 +101,16 @@
                                  effectiveRange:&styleRange];
 
     if (style) {
-      NSMutableParagraphStyle *fixed = [style mutableCopy];
-      fixed.paragraphSpacing = 0;
-      fixed.paragraphSpacingBefore = 0;
+      NSMutableParagraphStyle *mutableStyle = [style mutableCopy];
+      mutableStyle.paragraphSpacing = 0;
+      mutableStyle.paragraphSpacingBefore = 0;
 
       if (isLastElementImage(output)) {
-        fixed.lineSpacing = 0;
+        mutableStyle.lineSpacing = 0;
       }
 
-      // Ensure we don't apply attributes beyond the current string length
       NSRange safeRange = NSIntersectionRange(styleRange, NSMakeRange(0, output.length));
-      [output addAttribute:NSParagraphStyleAttributeName value:fixed range:safeRange];
+      [output addAttribute:NSParagraphStyleAttributeName value:mutableStyle range:safeRange];
     }
   }
 }

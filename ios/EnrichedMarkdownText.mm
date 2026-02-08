@@ -58,6 +58,10 @@ using namespace facebook::react;
   BOOL _allowFontScaling;
   CGFloat _maxFontSizeMultiplier;
 
+  // Last element marginBottom tracking
+  CGFloat _lastElementMarginBottom;
+  BOOL _allowTrailingMargin;
+
   // Accessibility data for VoiceOver
   AccessibilityInfo *_accessibilityInfo;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
@@ -88,9 +92,13 @@ using namespace facebook::react;
 
   NSAttributedString *contentToMeasure = [text attributedSubstringFromRange:NSMakeRange(0, NSMaxRange(lastContent))];
 
-  // Use NSStringDrawingUsesDeviceMetrics for tighter bounds (especially for images)
+  // Use NSStringDrawingUsesDeviceMetrics for tighter bounds
+  // - Always use for images
+  // - Also use when marginBottom is 0 to eliminate static spacing (excludes font descent)
+  //   This applies to all elements including code blocks
+  // - Also use when allowTrailingMargin is false to eliminate static spacing when margin is removed
   NSStringDrawingOptions options = NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading;
-  if (isLastElementImage(text)) {
+  if (isLastElementImage(text) || _lastElementMarginBottom == 0 || !_allowTrailingMargin) {
     options |= NSStringDrawingUsesDeviceMetrics;
   }
 
@@ -105,6 +113,16 @@ using namespace facebook::react;
   if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }
+
+  // Add the last element's marginBottom to the measured height
+  // When allowTrailingMargin is false (default), the last element's marginBottom is NOT applied
+  // When allowTrailingMargin is true, the last element's marginBottom IS applied
+  // This applies to all elements including code blocks
+  if (_allowTrailingMargin && _lastElementMarginBottom > 0) {
+    measuredHeight += _lastElementMarginBottom;
+  }
+  // When marginBottom is 0 or allowTrailingMargin is false, we rely on NSStringDrawingUsesDeviceMetrics
+  // to eliminate static spacing - no additional hacks needed
 
   return CGSizeMake(ceil(measuredWidth), ceil(measuredHeight));
 }
@@ -148,6 +166,7 @@ using namespace facebook::react;
     // Initialize font scale from current content size category
     _allowFontScaling = YES;
     _maxFontSizeMultiplier = 0;
+    _allowTrailingMargin = NO;
     _currentFontScale = RCTFontSizeMultiplier();
 
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -301,10 +320,14 @@ using namespace facebook::react;
     // 2. Render AST → NSAttributedString
     NSDate *renderStart = [NSDate date];
     AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:config];
+    [renderer setAllowTrailingMargin:self->_allowTrailingMargin];
     RenderContext *context = [RenderContext new];
     context.allowFontScaling = allowFontScaling;
     context.maxFontSizeMultiplier = maxFontSizeMultiplier;
     NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
+
+    // Capture the last element's marginBottom for measurement
+    self->_lastElementMarginBottom = [renderer getLastElementMarginBottom];
 
     // Add link attributes
     for (NSUInteger i = 0; i < context.linkRanges.count; i++) {
@@ -360,10 +383,14 @@ using namespace facebook::react;
   }
 
   AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:_config];
+  [renderer setAllowTrailingMargin:_allowTrailingMargin];
   RenderContext *context = [RenderContext new];
   context.allowFontScaling = _allowFontScaling;
   context.maxFontSizeMultiplier = _maxFontSizeMultiplier;
   NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
+
+  // Capture the last element's marginBottom for measurement
+  _lastElementMarginBottom = [renderer getLastElementMarginBottom];
 
   for (NSUInteger i = 0; i < context.linkRanges.count; i++) {
     NSValue *rangeValue = context.linkRanges[i];
@@ -1180,6 +1207,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  // Update allowTrailingMargin
+  if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
+    _allowTrailingMargin = newViewProps.allowTrailingMargin;
+  }
+
   // Update md4cFlags
   BOOL md4cFlagsChanged = NO;
   if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
@@ -1188,8 +1220,9 @@ using namespace facebook::react;
   }
 
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
+  BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
-  if (markdownChanged || stylePropChanged || md4cFlagsChanged) {
+  if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
   }

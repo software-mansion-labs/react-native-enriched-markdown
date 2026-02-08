@@ -175,12 +175,14 @@ object MeasurementStore {
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
     val md4cFlagsMap = props.getMapOrNull("md4cFlags")
+    val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
     var result = markdown.hashCode()
     result = 31 * result + (styleMap?.hashCode() ?: 0)
     result = 31 * result + (md4cFlagsMap?.hashCode() ?: 0)
     result = 31 * result + fontScale.toBits()
     result = 31 * result + allowFontScaling.hashCode()
     result = 31 * result + maxFontSizeMultiplier.toBits()
+    result = 31 * result + allowTrailingMargin.hashCode()
     return result
   }
 
@@ -233,13 +235,58 @@ object MeasurementStore {
     // Parse and render markdown for accurate measurement
     val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)
     val textToMeasure = spannable ?: markdown
-    val size = measure(width, textToMeasure, paintParams)
+
+    // Measure with layout so we can get the last line's metrics
+    val (size, layout) = measureWithLayout(width, textToMeasure, measurePaint)
+
+    // Get the last element's marginBottom dynamically from the renderer
+    val lastElementMarginBottom =
+      if (spannable != null) {
+        // Convert from pixels to DIP (React Native uses DIP)
+        val marginBottomPixels = measureRenderer.getLastElementMarginBottom()
+        PixelUtil.toDIPFromPixel(marginBottomPixels)
+      } else {
+        0f
+      }
+
+    // Get allowTrailingMargin prop to control whether last element's marginBottom is applied
+    val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
+
+    // Determine marginBottom based on allowTrailingMargin flag
+    // When false: don't add lastElementMarginBottom, but use 0.1 to mask static spacing if marginBottom was > 0
+    // When true: add lastElementMarginBottom to measured height
+    val marginBottom =
+      if (allowTrailingMargin) {
+        lastElementMarginBottom
+      } else {
+        // When allowTrailingMargin is false, use 0.1 to mask static spacing if there was a marginBottom
+        // This prevents the static spacing that appears when marginBottom is removed
+        0f
+      }
+
+    val adjustedSize =
+      if (marginBottom > 0) {
+        // Add marginBottom to measured height to create spacing
+        val currentHeight = YogaMeasureOutput.getHeight(size)
+        val adjustedHeight = currentHeight + marginBottom
+        YogaMeasureOutput.make(
+          YogaMeasureOutput.getWidth(size),
+          adjustedHeight,
+        )
+      } else {
+        // When marginBottom is 0, use the full layout height (not baseline) to avoid cutting off text
+        // The full height includes descent for descenders, ensuring text is fully visible
+        YogaMeasureOutput.make(
+          YogaMeasureOutput.getWidth(size),
+          YogaMeasureOutput.getHeight(size),
+        )
+      }
 
     if (id != null) {
-      data[id] = MeasurementParams(width, size, textToMeasure, paintParams, propsHash)
+      data[id] = MeasurementParams(width, adjustedSize, textToMeasure, paintParams, propsHash)
     }
 
-    return size
+    return adjustedSize
   }
 
   private fun tryRenderMarkdown(
@@ -329,5 +376,45 @@ object MeasurementStore {
       PixelUtil.toDIPFromPixel(ceil(measuredWidth)),
       PixelUtil.toDIPFromPixel(measuredHeight),
     )
+  }
+
+  /**
+   * Measures text and returns both the size and the layout for calculating last line descent.
+   */
+  private fun measureWithLayout(
+    maxWidth: Float,
+    text: CharSequence?,
+    paint: TextPaint,
+  ): Pair<Long, StaticLayout> {
+    val content = text ?: ""
+    val safeWidth = ceil(maxWidth).toInt().coerceAtLeast(1)
+
+    val builder =
+      StaticLayout.Builder
+        .obtain(content, 0, content.length, paint, safeWidth)
+        .setIncludePad(false)
+        .setLineSpacing(0f, 1f)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      builder.setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      builder.setUseLineSpacingFromFallbacks(true)
+    }
+
+    val layout = builder.build()
+    val measuredHeight = layout.height.toFloat()
+
+    // Calculate actual content width (widest line)
+    val measuredWidth = (0 until layout.lineCount).maxOfOrNull { layout.getLineWidth(it) } ?: 0f
+
+    val size =
+      YogaMeasureOutput.make(
+        PixelUtil.toDIPFromPixel(ceil(measuredWidth)),
+        PixelUtil.toDIPFromPixel(measuredHeight),
+      )
+
+    return Pair(size, layout)
   }
 }

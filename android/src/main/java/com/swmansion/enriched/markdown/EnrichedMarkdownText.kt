@@ -61,6 +61,7 @@ class EnrichedMarkdownText
 
     private var allowFontScaling: Boolean = true
     private var maxFontSizeMultiplier: Float = 0f
+    private var allowTrailingMargin: Boolean = false
 
     init {
       setBackgroundColor(Color.TRANSPARENT)
@@ -127,6 +128,12 @@ class EnrichedMarkdownText
       maxFontSizeMultiplier = multiplier
       updateMeasurementStoreFontScaling()
       recreateStyleConfig()
+      scheduleRenderIfNeeded()
+    }
+
+    fun setAllowTrailingMargin(allow: Boolean) {
+      if (allowTrailingMargin == allow) return
+      allowTrailingMargin = allow
       scheduleRenderIfNeeded()
     }
 

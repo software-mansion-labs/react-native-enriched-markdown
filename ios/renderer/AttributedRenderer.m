@@ -10,6 +10,8 @@
 @implementation AttributedRenderer {
   StyleConfig *_config;
   RendererFactory *_rendererFactory;
+  CGFloat _lastElementMarginBottom;
+  BOOL _allowTrailingMargin;
 }
 
 - (instancetype)initWithConfig:(StyleConfig *)config
@@ -18,6 +20,8 @@
   if (self) {
     _config = config;
     _rendererFactory = [[RendererFactory alloc] initWithConfig:config];
+    _lastElementMarginBottom = 0.0;
+    _allowTrailingMargin = NO;
   }
   return self;
 }
@@ -44,6 +48,8 @@
   }
 
   // 3. Remove trailing paragraph spacing from last block element
+  // Reset lastElementMarginBottom before processing
+  _lastElementMarginBottom = 0.0;
   [self removeTrailingSpacing:output];
 
   // 4. Cleanup global state to prevent side effects in subsequent renders.
@@ -58,38 +64,71 @@
   if (output.length == 0)
     return;
 
+  // Find the last character that isn't a newline
   NSRange lastContent = [output.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
                                                        options:NSBackwardsSearch];
   if (lastContent.location == NSNotFound)
     return;
 
+  NSUInteger trailingStart = NSMaxRange(lastContent);
+  _lastElementMarginBottom = 0.0;
+
+  // 1. Determine where the "logical" end of the element is (Code blocks vs others)
+  NSUInteger logicalEnd = trailingStart;
   if (isLastElementCodeBlock(output)) {
-    // Code block: preserve bottom padding, only trim external margin
     NSRange codeBlockRange;
     [output attribute:CodeBlockAttributeName atIndex:lastContent.location effectiveRange:&codeBlockRange];
-    NSUInteger codeBlockEnd = NSMaxRange(codeBlockRange);
-    if (codeBlockEnd < output.length) {
-      [output deleteCharactersInRange:NSMakeRange(codeBlockEnd, output.length - codeBlockEnd)];
-    }
-  } else {
-    // Other elements: trim trailing newlines and zero all spacing
-    [output deleteCharactersInRange:NSMakeRange(NSMaxRange(lastContent), output.length - NSMaxRange(lastContent))];
+    logicalEnd = NSMaxRange(codeBlockRange);
+  }
 
-    NSRange range;
+  // 2. Capture Margin Bottom from the trailing range or the last content character
+  for (NSUInteger i = lastContent.location; i < output.length; i++) {
+    NSRange attrRange;
+    NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName atIndex:i effectiveRange:&attrRange];
+    if (style) {
+      _lastElementMarginBottom = MAX(_lastElementMarginBottom, style.paragraphSpacing);
+    }
+    // Jump to the end of this attribute range to keep the loop efficient
+    i = NSMaxRange(attrRange) - 1;
+  }
+
+  // 3. Always remove trailing characters (external spacers/newlines) - like Android
+  // The allowTrailingMargin flag only affects measurement, not text content
+  if (logicalEnd < output.length) {
+    [output deleteCharactersInRange:NSMakeRange(logicalEnd, output.length - logicalEnd)];
+  }
+
+  // 4. Always zero out internal spacing for the last element (non-code blocks) - like Android
+  if (!isLastElementCodeBlock(output)) {
+    NSRange styleRange;
     NSParagraphStyle *style = [output attribute:NSParagraphStyleAttributeName
                                         atIndex:lastContent.location
-                                 effectiveRange:&range];
+                                 effectiveRange:&styleRange];
+
     if (style) {
       NSMutableParagraphStyle *fixed = [style mutableCopy];
       fixed.paragraphSpacing = 0;
       fixed.paragraphSpacingBefore = 0;
-      // For images: zero line spacing to eliminate baseline gaps
+
       if (isLastElementImage(output)) {
         fixed.lineSpacing = 0;
       }
-      [output addAttribute:NSParagraphStyleAttributeName value:fixed range:range];
+
+      // Ensure we don't apply attributes beyond the current string length
+      NSRange safeRange = NSIntersectionRange(styleRange, NSMakeRange(0, output.length));
+      [output addAttribute:NSParagraphStyleAttributeName value:fixed range:safeRange];
     }
   }
+}
+
+- (void)setAllowTrailingMargin:(BOOL)allow
+{
+  _allowTrailingMargin = allow;
+}
+
+- (CGFloat)getLastElementMarginBottom
+{
+  return _lastElementMarginBottom;
 }
 
 /**

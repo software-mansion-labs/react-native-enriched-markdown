@@ -14,6 +14,7 @@ class Renderer {
   private var cachedContext: Context? = null
 
   private val collectedImageSpans = mutableListOf<ImageSpan>()
+  private var lastElementMarginBottom: Float = 0f
 
   fun configure(
     style: StyleConfig,
@@ -41,6 +42,7 @@ class Renderer {
 
     factory.resetForNewRender()
     collectedImageSpans.clear()
+    lastElementMarginBottom = 0f
 
     val builder = SpannableStringBuilder()
 
@@ -56,21 +58,35 @@ class Renderer {
   private fun removeTrailingMargin(builder: SpannableStringBuilder) {
     if (builder.isEmpty()) return
 
+    // Find the last MarginBottomSpan to capture its marginBottom value
     val spans = builder.getSpans(0, builder.length, MarginBottomSpan::class.java)
-    if (spans.isEmpty()) return
+    val lastSpan = spans.maxByOrNull { builder.getSpanEnd(it) }
 
-    val lastSpan = spans.maxByOrNull { builder.getSpanEnd(it) } ?: return
-    val spanEnd = builder.getSpanEnd(lastSpan)
+    // Capture the marginBottom value (0 if no span exists)
+    // This represents the last element's marginBottom (paragraph, image, heading, etc.)
+    lastElementMarginBottom = lastSpan?.marginBottom ?: 0f
 
-    // Remove trailing newlines (added for block spacing)
+    // Always remove all trailing newlines to prevent static spacing
+    // This handles both cases: when marginBottom > 0 (span exists) and when marginBottom == 0 (no span)
     while (builder.isNotEmpty() && builder.last() == '\n') {
       builder.delete(builder.length - 1, builder.length)
     }
 
-    if (spanEnd >= builder.length) {
-      builder.removeSpan(lastSpan)
+    // Remove the span if it was on the removed newlines
+    if (lastSpan != null) {
+      val spanEnd = builder.getSpanEnd(lastSpan)
+      if (spanEnd >= builder.length) {
+        builder.removeSpan(lastSpan)
+      }
     }
   }
+
+  /**
+   * Returns the marginBottom value of the last element in the document.
+   * This is dynamically determined from the actual last element (paragraph, image, heading, etc.)
+   * and can be used in MeasurementStore to adjust the measured height.
+   */
+  fun getLastElementMarginBottom(): Float = lastElementMarginBottom
 
   private fun renderNode(
     node: MarkdownASTNode,

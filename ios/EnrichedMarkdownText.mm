@@ -79,12 +79,12 @@ using namespace facebook::react;
   NSAttributedString *text = _textView.attributedText;
   CGFloat defaultHeight = [UIFont systemFontOfSize:16.0].lineHeight;
 
-  if (!text || text.length == 0) {
+  if (text.length == 0) {
     return CGSizeMake(maxWidth, defaultHeight);
   }
 
-  // Find last content character (exclude trailing newlines from measurement)
-  NSRange lastContent = [text.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
+  // Identify actual content range (trimming trailing newlines for measurement)
+  NSRange lastContent = [text.string rangeOfCharacterFromSet:NSCharacterSet.newlineCharacterSet.invertedSet
                                                      options:NSBackwardsSearch];
   if (lastContent.location == NSNotFound) {
     return CGSizeMake(maxWidth, defaultHeight);
@@ -92,39 +92,31 @@ using namespace facebook::react;
 
   NSAttributedString *contentToMeasure = [text attributedSubstringFromRange:NSMakeRange(0, NSMaxRange(lastContent))];
 
-  // Use NSStringDrawingUsesDeviceMetrics for tighter bounds
-  // - Always use for images
-  // - Also use when marginBottom is 0 to eliminate static spacing (excludes font descent)
-  //   This applies to all elements including code blocks
-  // - Also use when allowTrailingMargin is false to eliminate static spacing when margin is removed
+  // 1. Determine Drawing Strategy
+  // Use DeviceMetrics for images or when we need to eliminate "static" font spacing (descent/leading)
   NSStringDrawingOptions options = NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading;
-  if (isLastElementImage(text) || _lastElementMarginBottom == 0 || !_allowTrailingMargin) {
+  BOOL shouldTightenBounds = isLastElementImage(text) || _lastElementMarginBottom == 0 || !_allowTrailingMargin;
+
+  if (shouldTightenBounds) {
     options |= NSStringDrawingUsesDeviceMetrics;
   }
 
-  CGRect boundingRect = [contentToMeasure boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)
-                                                       options:options
-                                                       context:nil];
+  // 2. Initial Measurement
+  CGRect rect = [contentToMeasure boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:options context:nil];
 
-  CGFloat measuredHeight = boundingRect.size.height;
-  CGFloat measuredWidth = boundingRect.size.width;
+  CGFloat measuredWidth = ceil(rect.size.width);
+  CGFloat measuredHeight = rect.size.height;
 
-  // Compensate for iOS not measuring trailing newlines (code block bottom padding)
+  // 3. Apply Adjustments
   if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }
 
-  // Add the last element's marginBottom to the measured height
-  // When allowTrailingMargin is false (default), the last element's marginBottom is NOT applied
-  // When allowTrailingMargin is true, the last element's marginBottom IS applied
-  // This applies to all elements including code blocks
   if (_allowTrailingMargin && _lastElementMarginBottom > 0) {
     measuredHeight += _lastElementMarginBottom;
   }
-  // When marginBottom is 0 or allowTrailingMargin is false, we rely on NSStringDrawingUsesDeviceMetrics
-  // to eliminate static spacing - no additional hacks needed
 
-  return CGSizeMake(ceil(measuredWidth), ceil(measuredHeight));
+  return CGSizeMake(measuredWidth, ceil(measuredHeight));
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state

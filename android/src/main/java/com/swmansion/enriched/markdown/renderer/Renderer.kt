@@ -54,30 +54,26 @@ class Renderer {
     return SpannableString(builder)
   }
 
-  /** Removes trailing margin to eliminate bottom spacing */
+  /** Removes trailing newlines and captures the margin of the final element. */
   private fun removeTrailingMargin(builder: SpannableStringBuilder) {
     if (builder.isEmpty()) return
 
-    // Find the last MarginBottomSpan to capture its marginBottom value
-    val spans = builder.getSpans(0, builder.length, MarginBottomSpan::class.java)
-    val lastSpan = spans.maxByOrNull { builder.getSpanEnd(it) }
+    // Identify the last margin span and store its value
+    val lastSpan =
+      builder
+        .getSpans(0, builder.length, MarginBottomSpan::class.java)
+        .maxByOrNull { builder.getSpanEnd(it) }
 
-    // Capture the marginBottom value (0 if no span exists)
-    // This represents the last element's marginBottom (paragraph, image, heading, etc.)
     lastElementMarginBottom = lastSpan?.marginBottom ?: 0f
 
-    // Always remove all trailing newlines to prevent static spacing
-    // This handles both cases: when marginBottom > 0 (span exists) and when marginBottom == 0 (no span)
-    while (builder.isNotEmpty() && builder.last() == '\n') {
+    // Trim trailing newlines
+    while (builder.endsWith('\n')) {
       builder.delete(builder.length - 1, builder.length)
     }
 
-    // Remove the span if it was on the removed newlines
-    if (lastSpan != null) {
-      val spanEnd = builder.getSpanEnd(lastSpan)
-      if (spanEnd >= builder.length) {
-        builder.removeSpan(lastSpan)
-      }
+    // Clean up the span if it no longer covers any text
+    if (lastSpan != null && builder.getSpanEnd(lastSpan) >= builder.length) {
+      builder.removeSpan(lastSpan)
     }
   }
 

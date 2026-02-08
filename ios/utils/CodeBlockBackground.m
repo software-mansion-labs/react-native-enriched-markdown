@@ -61,7 +61,6 @@
   CGFloat borderRadius = [_config codeBlockBorderRadius];
   CGFloat inset = borderWidth / 2.0;
 
-  // Inset the rect by half the border width to ensure the stroke stays within bounds.
   CGRect insetRect = CGRectInset(blockRect, inset, inset);
   UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:insetRect cornerRadius:MAX(0, borderRadius - inset)];
 

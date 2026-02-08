@@ -221,69 +221,35 @@ object MeasurementStore {
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Long {
+    // 1. Extract Props & Setup
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
-    val md4cFlagsMap = props.getMapOrNull("md4cFlags")
-    val md4cFlags =
-      Md4cFlags(
-        underline = md4cFlagsMap.getBooleanOrDefault("underline", false),
-      )
+    val md4cFlags = Md4cFlags(underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false))
+
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
-    val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
     val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
-    // Parse and render markdown for accurate measurement
+    // 2. Render & Measure
     val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)
     val textToMeasure = spannable ?: markdown
+    val (size, _) = measureWithLayout(width, textToMeasure, measurePaint)
 
-    // Measure with layout so we can get the last line's metrics
-    val (size, layout) = measureWithLayout(width, textToMeasure, measurePaint)
-
-    // Get the last element's marginBottom dynamically from the renderer
-    val lastElementMarginBottom =
-      if (spannable != null) {
-        // Convert from pixels to DIP (React Native uses DIP)
-        val marginBottomPixels = measureRenderer.getLastElementMarginBottom()
-        PixelUtil.toDIPFromPixel(marginBottomPixels)
-      } else {
-        0f
-      }
-
-    // Get allowTrailingMargin prop to control whether last element's marginBottom is applied
+    // 3. Calculate Margin
     val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
-
-    // Determine marginBottom based on allowTrailingMargin flag
-    // When false: don't add lastElementMarginBottom, but use 0.1 to mask static spacing if marginBottom was > 0
-    // When true: add lastElementMarginBottom to measured height
     val marginBottom =
-      if (allowTrailingMargin) {
-        lastElementMarginBottom
+      if (allowTrailingMargin && spannable != null) {
+        PixelUtil.toDIPFromPixel(measureRenderer.getLastElementMarginBottom())
       } else {
-        // When allowTrailingMargin is false, use 0.1 to mask static spacing if there was a marginBottom
-        // This prevents the static spacing that appears when marginBottom is removed
         0f
       }
 
-    val adjustedSize =
-      if (marginBottom > 0) {
-        // Add marginBottom to measured height to create spacing
-        val currentHeight = YogaMeasureOutput.getHeight(size)
-        val adjustedHeight = currentHeight + marginBottom
-        YogaMeasureOutput.make(
-          YogaMeasureOutput.getWidth(size),
-          adjustedHeight,
-        )
-      } else {
-        // When marginBottom is 0, use the full layout height (not baseline) to avoid cutting off text
-        // The full height includes descent for descenders, ensuring text is fully visible
-        YogaMeasureOutput.make(
-          YogaMeasureOutput.getWidth(size),
-          YogaMeasureOutput.getHeight(size),
-        )
-      }
+    // 4. Finalize Height
+    val currentWidth = YogaMeasureOutput.getWidth(size)
+    val currentHeight = YogaMeasureOutput.getHeight(size)
+    val adjustedSize = YogaMeasureOutput.make(currentWidth, currentHeight + marginBottom)
 
     if (id != null) {
-      data[id] = MeasurementParams(width, adjustedSize, textToMeasure, paintParams, propsHash)
+      data[id] = MeasurementParams(width, adjustedSize, textToMeasure, PaintParams(Typeface.DEFAULT, fontSize), propsHash)
     }
 
     return adjustedSize

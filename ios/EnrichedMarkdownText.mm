@@ -318,7 +318,6 @@ using namespace facebook::react;
     context.maxFontSizeMultiplier = maxFontSizeMultiplier;
     NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
-    // Capture the last element's marginBottom for measurement
     self->_lastElementMarginBottom = [renderer getLastElementMarginBottom];
 
     // Add link attributes
@@ -381,7 +380,6 @@ using namespace facebook::react;
   context.maxFontSizeMultiplier = _maxFontSizeMultiplier;
   NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
-  // Capture the last element's marginBottom for measurement
   _lastElementMarginBottom = [renderer getLastElementMarginBottom];
 
   for (NSUInteger i = 0; i < context.linkRanges.count; i++) {

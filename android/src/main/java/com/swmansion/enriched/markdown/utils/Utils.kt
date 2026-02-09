@@ -13,7 +13,6 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.spans.LineHeightSpan
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
-import com.swmansion.enriched.markdown.spans.MarginTopSpan
 import android.text.style.LineHeightSpan as AndroidLineHeightSpan
 
 // ============================================================================
@@ -114,27 +113,7 @@ fun SpannableStringBuilder.isInlineImage(): Boolean {
 
 fun createLineHeightSpan(lineHeight: Float): AndroidLineHeightSpan = LineHeightSpan(lineHeight)
 
-/**
- * Applies marginTop spacing to a block element using MarginTopSpan.
- * Works well for paragraphs and headings.
- */
 fun applyMarginTop(
-  builder: SpannableStringBuilder,
-  start: Int,
-  end: Int,
-  marginTop: Float,
-) {
-  if (marginTop > 0) {
-    builder.setSpan(
-      MarginTopSpan(marginTop, start),
-      start,
-      end,
-      SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-    )
-  }
-}
-
-fun applyBlockMarginTop(
   builder: SpannableStringBuilder,
   insertionPoint: Int,
   marginTop: Float,
@@ -155,17 +134,20 @@ fun applyBlockMarginTop(
 
 /**
  * Applies marginBottom spacing to a block element.
- * Appends a newline and applies MarginBottomSpan if marginBottom > 0.
+ * Appends a newline spacer and applies MarginBottomSpan to ONLY the spacer character.
+ *
+ * The span covers only the trailing newline to avoid overlapping with LineHeightSpan
+ * on content lines, which would cause incorrect spacing due to conflicting font metric
+ * modifications in chooseHeight().
  *
  * @param builder The SpannableStringBuilder to modify
- * @param start The start position of the block content (before appending newline)
  * @param marginBottom The spacing value to apply after the block
  */
 fun applyMarginBottom(
   builder: SpannableStringBuilder,
-  start: Int,
   marginBottom: Float,
 ) {
+  val spacerStart = builder.length
   builder.append("\n")
   // Always create a MarginBottomSpan, even when marginBottom = 0.
   // This ensures removeTrailingMargin can correctly identify the LAST element's
@@ -173,8 +155,8 @@ fun applyMarginBottom(
   // element's span (e.g. blockquote with marginBottom: 16) and use that wrong value.
   builder.setSpan(
     MarginBottomSpan(marginBottom),
-    start,
-    builder.length, // Includes the newline we just appended
+    spacerStart,
+    builder.length,
     SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
   )
 }

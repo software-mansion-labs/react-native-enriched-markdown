@@ -4,8 +4,8 @@ import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
-import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 import com.swmansion.enriched.markdown.utils.applyMarginBottom
+import com.swmansion.enriched.markdown.utils.applyMarginTop
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
 
 class BlockquoteRenderer(
@@ -57,8 +57,8 @@ class BlockquoteRenderer(
 
     // Margins are only applied by the outermost (root) quote
     if (depth == 0) {
-      applyBlockMarginTop(builder, start, style.marginTop)
-      applyMarginBottom(builder, builder.length, style.marginBottom)
+      applyMarginTop(builder, start, style.marginTop)
+      applyMarginBottom(builder, style.marginBottom)
     }
   }
 

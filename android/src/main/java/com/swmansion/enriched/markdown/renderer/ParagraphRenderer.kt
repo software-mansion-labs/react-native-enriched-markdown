@@ -5,7 +5,6 @@ import android.text.style.AlignmentSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.styles.ParagraphStyle
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
-import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
 import com.swmansion.enriched.markdown.utils.applyMarginBottom
 import com.swmansion.enriched.markdown.utils.applyMarginTop
 import com.swmansion.enriched.markdown.utils.containsBlockImage
@@ -71,14 +70,10 @@ class ParagraphRenderer(
       )
     }
 
-    // Block images use a spacer-based margin because MarginTopSpan conflicts with ReplacementSpans
-    if (node.containsBlockImage()) {
-      applyBlockMarginTop(this, start, config.style.imageStyle.marginTop)
-    } else {
-      applyMarginTop(this, start, end, style.marginTop)
-    }
+    val marginTop = if (node.containsBlockImage()) config.style.imageStyle.marginTop else style.marginTop
+    applyMarginTop(this, start, marginTop)
 
     val marginBottom = if (node.containsBlockImage()) config.style.imageStyle.marginBottom else style.marginBottom
-    applyMarginBottom(this, start, marginBottom)
+    applyMarginBottom(this, marginBottom)
   }
 }

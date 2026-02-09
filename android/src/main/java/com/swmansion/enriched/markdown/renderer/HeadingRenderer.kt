@@ -62,8 +62,8 @@ class HeadingRenderer(
         )
       }
 
-      applyMarginTop(builder, start, end, headingStyle.marginTop)
-      applyMarginBottom(builder, start, headingStyle.marginBottom)
+      applyMarginTop(builder, start, headingStyle.marginTop)
+      applyMarginBottom(builder, headingStyle.marginBottom)
     }
   }
 }

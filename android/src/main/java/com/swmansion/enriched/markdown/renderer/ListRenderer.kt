@@ -4,7 +4,7 @@ import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
-import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
+import com.swmansion.enriched.markdown.utils.applyMarginTop
 import com.swmansion.enriched.markdown.utils.createLineHeightSpan
 
 class ListRenderer(
@@ -26,7 +26,7 @@ class ListRenderer(
 
     // For top-level lists, insert marginTop spacer before rendering content
     if (entryState.previousDepth == 0) {
-      applyBlockMarginTop(builder, start, listStyle.marginTop)
+      applyMarginTop(builder, start, listStyle.marginTop)
     }
 
     // Track start index after the potential 1-character marginTop spacer

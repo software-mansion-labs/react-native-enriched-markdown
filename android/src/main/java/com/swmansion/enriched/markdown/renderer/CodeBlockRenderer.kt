@@ -8,7 +8,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.CodeBlockSpan
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
-import com.swmansion.enriched.markdown.utils.applyBlockMarginTop
+import com.swmansion.enriched.markdown.utils.applyMarginTop
 
 class CodeBlockRenderer(
   private val config: RendererConfig,
@@ -23,7 +23,7 @@ class CodeBlockRenderer(
     val style = config.style.codeBlockStyle
     val context = factory.blockStyleContext
 
-    applyBlockMarginTop(builder, start, style.marginTop)
+    applyMarginTop(builder, start, style.marginTop)
 
     // Content starts after the potential 1-character marginTop spacer
     val contentStart = start + (if (style.marginTop > 0) 1 else 0)

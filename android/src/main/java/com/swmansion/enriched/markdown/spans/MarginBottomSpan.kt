@@ -9,7 +9,7 @@ import android.text.style.LineHeightSpan
  * For spacer lines (single newline), sets the line height to exactly marginBottom.
  * For regular lines, adds marginBottom only at paragraph boundaries to preserve lineHeight.
  *
- * @param marginBottom The margin in pixels to add below the block (must be > 0)
+ * @param marginBottom The margin in pixels to add below the block (0 = no margin)
  */
 class MarginBottomSpan(
   val marginBottom: Float,

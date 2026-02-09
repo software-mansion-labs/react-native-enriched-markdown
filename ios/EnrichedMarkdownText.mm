@@ -58,6 +58,10 @@ using namespace facebook::react;
   BOOL _allowFontScaling;
   CGFloat _maxFontSizeMultiplier;
 
+  // Last element marginBottom tracking
+  CGFloat _lastElementMarginBottom;
+  BOOL _allowTrailingMargin;
+
   // Accessibility data for VoiceOver
   AccessibilityInfo *_accessibilityInfo;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
@@ -75,38 +79,37 @@ using namespace facebook::react;
   NSAttributedString *text = _textView.attributedText;
   CGFloat defaultHeight = [UIFont systemFontOfSize:16.0].lineHeight;
 
-  if (!text || text.length == 0) {
+  if (text.length == 0) {
     return CGSizeMake(maxWidth, defaultHeight);
   }
 
-  // Find last content character (exclude trailing newlines from measurement)
-  NSRange lastContent = [text.string rangeOfCharacterFromSet:[[NSCharacterSet newlineCharacterSet] invertedSet]
-                                                     options:NSBackwardsSearch];
-  if (lastContent.location == NSNotFound) {
-    return CGSizeMake(maxWidth, defaultHeight);
+  // Use UITextView's layout manager for measurement to avoid
+  // boundingRectWithSize: height discrepancies with NSTextAttachment objects.
+  _textView.textContainer.size = CGSizeMake(maxWidth, CGFLOAT_MAX);
+  [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
+  CGRect usedRect = [_textView.layoutManager usedRectForTextContainer:_textView.textContainer];
+
+  CGFloat measuredWidth = ceil(usedRect.size.width);
+  CGFloat measuredHeight = usedRect.size.height;
+
+  // When text ends with \n (e.g. code block's bottom padding spacer),
+  // TextKit creates an "extra line fragment" after it that adds unwanted height.
+  CGRect extraFragment = _textView.layoutManager.extraLineFragmentRect;
+  if (!CGRectIsEmpty(extraFragment)) {
+    measuredHeight -= extraFragment.size.height;
   }
 
-  NSAttributedString *contentToMeasure = [text attributedSubstringFromRange:NSMakeRange(0, NSMaxRange(lastContent))];
-
-  // Use NSStringDrawingUsesDeviceMetrics for tighter bounds (especially for images)
-  NSStringDrawingOptions options = NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading;
-  if (isLastElementImage(text)) {
-    options |= NSStringDrawingUsesDeviceMetrics;
-  }
-
-  CGRect boundingRect = [contentToMeasure boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)
-                                                       options:options
-                                                       context:nil];
-
-  CGFloat measuredHeight = boundingRect.size.height;
-  CGFloat measuredWidth = boundingRect.size.width;
-
-  // Compensate for iOS not measuring trailing newlines (code block bottom padding)
+  // Code block's bottom padding is a spacer \n with minimumLineHeight = codeBlockPadding.
+  // The layout manager may not size it accurately, so add the padding explicitly.
   if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }
 
-  return CGSizeMake(ceil(measuredWidth), ceil(measuredHeight));
+  if (_allowTrailingMargin && _lastElementMarginBottom > 0) {
+    measuredHeight += _lastElementMarginBottom;
+  }
+
+  return CGSizeMake(measuredWidth, ceil(measuredHeight));
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state
@@ -148,6 +151,7 @@ using namespace facebook::react;
     // Initialize font scale from current content size category
     _allowFontScaling = YES;
     _maxFontSizeMultiplier = 0;
+    _allowTrailingMargin = NO;
     _currentFontScale = RCTFontSizeMultiplier();
 
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -301,10 +305,13 @@ using namespace facebook::react;
     // 2. Render AST → NSAttributedString
     NSDate *renderStart = [NSDate date];
     AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:config];
+    [renderer setAllowTrailingMargin:self->_allowTrailingMargin];
     RenderContext *context = [RenderContext new];
     context.allowFontScaling = allowFontScaling;
     context.maxFontSizeMultiplier = maxFontSizeMultiplier;
     NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
+
+    self->_lastElementMarginBottom = [renderer getLastElementMarginBottom];
 
     // Add link attributes
     for (NSUInteger i = 0; i < context.linkRanges.count; i++) {
@@ -360,10 +367,13 @@ using namespace facebook::react;
   }
 
   AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:_config];
+  [renderer setAllowTrailingMargin:_allowTrailingMargin];
   RenderContext *context = [RenderContext new];
   context.allowFontScaling = _allowFontScaling;
   context.maxFontSizeMultiplier = _maxFontSizeMultiplier;
   NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
+
+  _lastElementMarginBottom = [renderer getLastElementMarginBottom];
 
   for (NSUInteger i = 0; i < context.linkRanges.count; i++) {
     NSValue *rangeValue = context.linkRanges[i];
@@ -1180,6 +1190,11 @@ using namespace facebook::react;
     stylePropChanged = YES;
   }
 
+  // Update allowTrailingMargin
+  if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
+    _allowTrailingMargin = newViewProps.allowTrailingMargin;
+  }
+
   // Update md4cFlags
   BOOL md4cFlagsChanged = NO;
   if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
@@ -1188,8 +1203,9 @@ using namespace facebook::react;
   }
 
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
+  BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
-  if (markdownChanged || stylePropChanged || md4cFlagsChanged) {
+  if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
   }

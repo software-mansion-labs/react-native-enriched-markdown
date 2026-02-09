@@ -50,22 +50,17 @@
   blockRect.origin.y += origin.y;
   blockRect.size.width = textContainer.size.width;
 
-  // For the last code block, extend to the full view height
-  // (iOS doesn't properly measure trailing newlines with custom line heights)
+  // We extend the background specifically to cover the bottom padding spacer,
+  // excluding any additional marginBottom applied via measurement.
   BOOL isLastCodeBlock = (NSMaxRange(range) == layoutManager.textStorage.length);
   if (isLastCodeBlock) {
-    CGFloat viewHeight = textContainer.size.height;
-    if (viewHeight > 0 && viewHeight < CGFLOAT_MAX) {
-      blockRect.size.height = viewHeight - blockRect.origin.y + origin.y;
-    } else {
-      // Fallback: add padding if container height not set
-      blockRect.size.height += [_config codeBlockPadding];
-    }
+    blockRect.size.height += [_config codeBlockPadding];
   }
 
   CGFloat borderWidth = [_config codeBlockBorderWidth];
   CGFloat borderRadius = [_config codeBlockBorderRadius];
   CGFloat inset = borderWidth / 2.0;
+
   CGRect insetRect = CGRectInset(blockRect, inset, inset);
   UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:insetRect cornerRadius:MAX(0, borderRadius - inset)];
 

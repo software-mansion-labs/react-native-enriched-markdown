@@ -14,6 +14,7 @@ class Renderer {
   private var cachedContext: Context? = null
 
   private val collectedImageSpans = mutableListOf<ImageSpan>()
+  private var lastElementMarginBottom: Float = 0f
 
   fun configure(
     style: StyleConfig,
@@ -41,6 +42,7 @@ class Renderer {
 
     factory.resetForNewRender()
     collectedImageSpans.clear()
+    lastElementMarginBottom = 0f
 
     val builder = SpannableStringBuilder()
 
@@ -52,25 +54,35 @@ class Renderer {
     return SpannableString(builder)
   }
 
-  /** Removes trailing margin to eliminate bottom spacing */
+  /** Removes trailing newlines and captures the margin of the final element. */
   private fun removeTrailingMargin(builder: SpannableStringBuilder) {
     if (builder.isEmpty()) return
 
-    val spans = builder.getSpans(0, builder.length, MarginBottomSpan::class.java)
-    if (spans.isEmpty()) return
+    // Identify the last margin span and store its value
+    val lastSpan =
+      builder
+        .getSpans(0, builder.length, MarginBottomSpan::class.java)
+        .maxByOrNull { builder.getSpanEnd(it) }
 
-    val lastSpan = spans.maxByOrNull { builder.getSpanEnd(it) } ?: return
-    val spanEnd = builder.getSpanEnd(lastSpan)
+    lastElementMarginBottom = lastSpan?.marginBottom ?: 0f
 
-    // Remove trailing newlines (added for block spacing)
-    while (builder.isNotEmpty() && builder.last() == '\n') {
+    // Trim trailing newlines
+    while (builder.endsWith('\n')) {
       builder.delete(builder.length - 1, builder.length)
     }
 
-    if (spanEnd >= builder.length) {
+    // Clean up the span if it no longer covers any text
+    if (lastSpan != null && builder.getSpanEnd(lastSpan) >= builder.length) {
       builder.removeSpan(lastSpan)
     }
   }
+
+  /**
+   * Returns the marginBottom value of the last element in the document.
+   * This is dynamically determined from the actual last element (paragraph, image, heading, etc.)
+   * and can be used in MeasurementStore to adjust the measured height.
+   */
+  fun getLastElementMarginBottom(): Float = lastElementMarginBottom
 
   private fun renderNode(
     node: MarkdownASTNode,

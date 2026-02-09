@@ -167,14 +167,16 @@ fun applyMarginBottom(
   marginBottom: Float,
 ) {
   builder.append("\n")
-  if (marginBottom > 0) {
-    builder.setSpan(
-      MarginBottomSpan(marginBottom),
-      start,
-      builder.length, // Includes the newline we just appended
-      SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-    )
-  }
+  // Always create a MarginBottomSpan, even when marginBottom = 0.
+  // This ensures removeTrailingMargin can correctly identify the LAST element's
+  // margin value. Without a span on the last element, it would pick up a previous
+  // element's span (e.g. blockquote with marginBottom: 16) and use that wrong value.
+  builder.setSpan(
+    MarginBottomSpan(marginBottom),
+    start,
+    builder.length, // Includes the newline we just appended
+    SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+  )
 }
 
 // ============================================================================

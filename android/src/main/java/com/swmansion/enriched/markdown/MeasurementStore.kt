@@ -175,12 +175,14 @@ object MeasurementStore {
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
     val md4cFlagsMap = props.getMapOrNull("md4cFlags")
+    val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
     var result = markdown.hashCode()
     result = 31 * result + (styleMap?.hashCode() ?: 0)
     result = 31 * result + (md4cFlagsMap?.hashCode() ?: 0)
     result = 31 * result + fontScale.toBits()
     result = 31 * result + allowFontScaling.hashCode()
     result = 31 * result + maxFontSizeMultiplier.toBits()
+    result = 31 * result + allowTrailingMargin.hashCode()
     return result
   }
 
@@ -219,27 +221,38 @@ object MeasurementStore {
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Long {
+    // 1. Extract Props & Setup
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
-    val md4cFlagsMap = props.getMapOrNull("md4cFlags")
-    val md4cFlags =
-      Md4cFlags(
-        underline = md4cFlagsMap.getBooleanOrDefault("underline", false),
-      )
+    val md4cFlags = Md4cFlags(underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false))
+
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
-    val paintParams = PaintParams(Typeface.DEFAULT, fontSize)
     val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
-    // Parse and render markdown for accurate measurement
+    // 2. Render & Measure
     val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)
     val textToMeasure = spannable ?: markdown
-    val size = measure(width, textToMeasure, paintParams)
+    val (size, _) = measureWithLayout(width, textToMeasure, measurePaint)
+
+    // 3. Calculate Margin
+    val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
+    val marginBottom =
+      if (allowTrailingMargin && spannable != null) {
+        PixelUtil.toDIPFromPixel(measureRenderer.getLastElementMarginBottom())
+      } else {
+        0f
+      }
+
+    // 4. Finalize Height
+    val currentWidth = YogaMeasureOutput.getWidth(size)
+    val currentHeight = YogaMeasureOutput.getHeight(size)
+    val adjustedSize = YogaMeasureOutput.make(currentWidth, currentHeight + marginBottom)
 
     if (id != null) {
-      data[id] = MeasurementParams(width, size, textToMeasure, paintParams, propsHash)
+      data[id] = MeasurementParams(width, adjustedSize, textToMeasure, PaintParams(Typeface.DEFAULT, fontSize), propsHash)
     }
 
-    return size
+    return adjustedSize
   }
 
   private fun tryRenderMarkdown(
@@ -329,5 +342,44 @@ object MeasurementStore {
       PixelUtil.toDIPFromPixel(ceil(measuredWidth)),
       PixelUtil.toDIPFromPixel(measuredHeight),
     )
+  }
+
+  /**
+   * Measures text and returns both the size and the layout for calculating last line descent.
+   */
+  private fun measureWithLayout(
+    maxWidth: Float,
+    text: CharSequence?,
+    paint: TextPaint,
+  ): Pair<Long, StaticLayout> {
+    val content = text ?: ""
+    val widthPx = ceil(maxWidth).toInt().coerceAtLeast(1)
+
+    val layout =
+      StaticLayout.Builder
+        .obtain(content, 0, content.length, paint, widthPx)
+        .setIncludePad(false)
+        .setLineSpacing(0f, 1f)
+        .apply {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
+          }
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            setUseLineSpacingFromFallbacks(true)
+          }
+        }.build()
+
+    // Find the widest line to get the actual content width
+    val maxLineWidth =
+      (0 until layout.lineCount)
+        .maxOfOrNull { layout.getLineWidth(it) } ?: 0f
+
+    val size =
+      YogaMeasureOutput.make(
+        PixelUtil.toDIPFromPixel(ceil(maxLineWidth)),
+        PixelUtil.toDIPFromPixel(layout.height.toFloat()),
+      )
+
+    return size to layout
   }
 }

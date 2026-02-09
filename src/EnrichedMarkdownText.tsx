@@ -177,6 +177,12 @@ export interface EnrichedMarkdownTextProps
    * @default undefined
    */
   maxFontSizeMultiplier?: number;
+  /**
+   * When false (default), removes trailing margin from the last element to eliminate bottom spacing.
+   * When true, keeps the trailing margin from the last element's marginBottom style.
+   * @default false
+   */
+  allowTrailingMargin?: boolean;
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -192,6 +198,7 @@ export const EnrichedMarkdownText = ({
   md4cFlags = defaultMd4cFlags,
   allowFontScaling = true,
   maxFontSizeMultiplier,
+  allowTrailingMargin = false,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
@@ -223,6 +230,7 @@ export const EnrichedMarkdownText = ({
       md4cFlags={normalizedMd4cFlags}
       allowFontScaling={allowFontScaling}
       maxFontSizeMultiplier={maxFontSizeMultiplier}
+      allowTrailingMargin={allowTrailingMargin}
       style={containerStyle}
       {...rest}
     />

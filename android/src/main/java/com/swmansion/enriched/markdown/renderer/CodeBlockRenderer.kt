@@ -57,16 +57,14 @@ class CodeBlockRenderer(
       SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
     )
 
-    if (style.marginBottom > 0) {
-      val marginStart = builder.length
-      builder.append("\n")
-      builder.setSpan(
-        MarginBottomSpan(style.marginBottom),
-        marginStart,
-        builder.length,
-        SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-      )
-    }
+    val marginStart = builder.length
+    builder.append("\n")
+    builder.setSpan(
+      MarginBottomSpan(style.marginBottom),
+      marginStart,
+      builder.length,
+      SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+    )
   }
 
   /**

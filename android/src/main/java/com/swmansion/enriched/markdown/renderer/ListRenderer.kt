@@ -62,7 +62,7 @@ class ListRenderer(
     )
 
     // External bottom margin is only handled by the root-level list
-    if (depth == 0 && style.marginBottom > 0) {
+    if (depth == 0) {
       builder.append("\n")
       builder.setSpan(
         MarginBottomSpan(style.marginBottom),

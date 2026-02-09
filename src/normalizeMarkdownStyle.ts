@@ -29,30 +29,6 @@ const getSystemFont = () =>
     default: 'sans-serif',
   });
 
-/**
- * Normalizes marginBottom values to handle Android-specific rendering issues.
- *
- * On Android, when marginBottom is set to 0, a small static spacing still appears
- * below the last element. This is caused by how Android's StaticLayout measures
- * text height - it includes the font's descent (space below the baseline for
- * descenders like g, j, p, q, y) in the total height, even when there are no
- * actual descenders on the last line.
- *
- * This creates unwanted spacing that isn't controlled by the marginBottom value.
- * However, when marginBottom is set to a small positive value like 0.1, it masks
- * this static spacing by adding a minimal margin that visually eliminates the
- * unwanted gap.
- *
- * This is a workaround for Android's text measurement behavior. On iOS, marginBottom: 0
- * works correctly without any static spacing, so this normalization only applies to Android.
- */
-const normalizeMarginBottom = (marginBottom: number): number => {
-  if (Platform.OS === 'android' && marginBottom === 0) {
-    return 0.1;
-  }
-  return marginBottom;
-};
-
 // fontWeight: '' allows custom PostScript fonts (e.g., 'Montserrat-Bold') to work on Android
 // Setting a default weight like '700' would interfere with Android's font resolution
 const paragraphDefaultStyles: MarkdownStyleInternal['paragraph'] = {
@@ -244,9 +220,8 @@ export const normalizeMarkdownStyle = (
     color:
       normalizeColor(style.paragraph?.color) ?? paragraphDefaultStyles.color,
     marginTop: style.paragraph?.marginTop ?? paragraphDefaultStyles.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom
-    ),
+    marginBottom:
+      style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom,
     lineHeight:
       style.paragraph?.lineHeight ?? paragraphDefaultStyles.lineHeight,
     textAlign: style.paragraph?.textAlign ?? paragraphDefaultStyles.textAlign,
@@ -258,9 +233,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.h1?.fontWeight ?? defaultH1Style.fontWeight,
     color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
     marginTop: style.h1?.marginTop ?? defaultH1Style.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.h1?.marginBottom ?? defaultH1Style.marginBottom
-    ),
+    marginBottom: style.h1?.marginBottom ?? defaultH1Style.marginBottom,
     lineHeight: style.h1?.lineHeight ?? defaultH1Style.lineHeight,
     textAlign: style.h1?.textAlign ?? defaultH1Style.textAlign,
   };
@@ -271,9 +244,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.h2?.fontWeight ?? defaultH2Style.fontWeight,
     color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
     marginTop: style.h2?.marginTop ?? defaultH2Style.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.h2?.marginBottom ?? defaultH2Style.marginBottom
-    ),
+    marginBottom: style.h2?.marginBottom ?? defaultH2Style.marginBottom,
     lineHeight: style.h2?.lineHeight ?? defaultH2Style.lineHeight,
     textAlign: style.h2?.textAlign ?? defaultH2Style.textAlign,
   };
@@ -284,9 +255,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.h3?.fontWeight ?? defaultH3Style.fontWeight,
     color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
     marginTop: style.h3?.marginTop ?? defaultH3Style.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.h3?.marginBottom ?? defaultH3Style.marginBottom
-    ),
+    marginBottom: style.h3?.marginBottom ?? defaultH3Style.marginBottom,
     lineHeight: style.h3?.lineHeight ?? defaultH3Style.lineHeight,
     textAlign: style.h3?.textAlign ?? defaultH3Style.textAlign,
   };
@@ -297,9 +266,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.h4?.fontWeight ?? defaultH4Style.fontWeight,
     color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
     marginTop: style.h4?.marginTop ?? defaultH4Style.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.h4?.marginBottom ?? defaultH4Style.marginBottom
-    ),
+    marginBottom: style.h4?.marginBottom ?? defaultH4Style.marginBottom,
     lineHeight: style.h4?.lineHeight ?? defaultH4Style.lineHeight,
     textAlign: style.h4?.textAlign ?? defaultH4Style.textAlign,
   };
@@ -310,9 +277,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.h5?.fontWeight ?? defaultH5Style.fontWeight,
     color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
     marginTop: style.h5?.marginTop ?? defaultH5Style.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.h5?.marginBottom ?? defaultH5Style.marginBottom
-    ),
+    marginBottom: style.h5?.marginBottom ?? defaultH5Style.marginBottom,
     lineHeight: style.h5?.lineHeight ?? defaultH5Style.lineHeight,
     textAlign: style.h5?.textAlign ?? defaultH5Style.textAlign,
   };
@@ -323,9 +288,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.h6?.fontWeight ?? defaultH6Style.fontWeight,
     color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
     marginTop: style.h6?.marginTop ?? defaultH6Style.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.h6?.marginBottom ?? defaultH6Style.marginBottom
-    ),
+    marginBottom: style.h6?.marginBottom ?? defaultH6Style.marginBottom,
     lineHeight: style.h6?.lineHeight ?? defaultH6Style.lineHeight,
     textAlign: style.h6?.textAlign ?? defaultH6Style.textAlign,
   };
@@ -339,9 +302,8 @@ export const normalizeMarkdownStyle = (
     color:
       normalizeColor(style.blockquote?.color) ?? defaultBlockquoteStyle.color,
     marginTop: style.blockquote?.marginTop ?? defaultBlockquoteStyle.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.blockquote?.marginBottom ?? defaultBlockquoteStyle.marginBottom
-    ),
+    marginBottom:
+      style.blockquote?.marginBottom ?? defaultBlockquoteStyle.marginBottom,
     lineHeight:
       style.blockquote?.lineHeight ?? defaultBlockquoteStyle.lineHeight,
     borderColor:
@@ -361,9 +323,7 @@ export const normalizeMarkdownStyle = (
     fontWeight: style.list?.fontWeight ?? defaultListStyle.fontWeight,
     color: normalizeColor(style.list?.color) ?? defaultListStyle.color,
     marginTop: style.list?.marginTop ?? defaultListStyle.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.list?.marginBottom ?? defaultListStyle.marginBottom
-    ),
+    marginBottom: style.list?.marginBottom ?? defaultListStyle.marginBottom,
     lineHeight: style.list?.lineHeight ?? defaultListStyle.lineHeight,
     bulletColor:
       normalizeColor(style.list?.bulletColor) ?? defaultListStyle.bulletColor,
@@ -383,9 +343,8 @@ export const normalizeMarkdownStyle = (
     color:
       normalizeColor(style.codeBlock?.color) ?? defaultCodeBlockStyle.color,
     marginTop: style.codeBlock?.marginTop ?? defaultCodeBlockStyle.marginTop,
-    marginBottom: normalizeMarginBottom(
-      style.codeBlock?.marginBottom ?? defaultCodeBlockStyle.marginBottom
-    ),
+    marginBottom:
+      style.codeBlock?.marginBottom ?? defaultCodeBlockStyle.marginBottom,
     lineHeight: style.codeBlock?.lineHeight ?? defaultCodeBlockStyle.lineHeight,
     backgroundColor:
       normalizeColor(style.codeBlock?.backgroundColor) ??
@@ -443,9 +402,7 @@ export const normalizeMarkdownStyle = (
       height: style.image?.height ?? defaultImageStyle.height,
       borderRadius: style.image?.borderRadius ?? defaultImageStyle.borderRadius,
       marginTop: style.image?.marginTop ?? defaultImageStyle.marginTop,
-      marginBottom: normalizeMarginBottom(
-        style.image?.marginBottom ?? defaultImageStyle.marginBottom
-      ),
+      marginBottom: style.image?.marginBottom ?? defaultImageStyle.marginBottom,
     },
     inlineImage: {
       ...defaultInlineImageStyle,
@@ -458,10 +415,9 @@ export const normalizeMarkdownStyle = (
       height: style.thematicBreak?.height ?? defaultThematicBreakStyle.height,
       marginTop:
         style.thematicBreak?.marginTop ?? defaultThematicBreakStyle.marginTop,
-      marginBottom: normalizeMarginBottom(
+      marginBottom:
         style.thematicBreak?.marginBottom ??
-          defaultThematicBreakStyle.marginBottom
-      ),
+        defaultThematicBreakStyle.marginBottom,
     },
   };
 };

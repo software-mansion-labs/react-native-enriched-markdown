@@ -58,9 +58,7 @@ class BlockquoteRenderer(
     // Margins are only applied by the outermost (root) quote
     if (depth == 0) {
       applyBlockMarginTop(builder, start, style.marginTop)
-      if (style.marginBottom > 0) {
-        applyMarginBottom(builder, builder.length, style.marginBottom)
-      }
+      applyMarginBottom(builder, builder.length, style.marginBottom)
     }
   }
 

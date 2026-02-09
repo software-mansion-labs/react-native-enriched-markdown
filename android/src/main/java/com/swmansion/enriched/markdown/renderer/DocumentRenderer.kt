@@ -8,8 +8,9 @@ class DocumentRenderer : NodeRenderer {
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    factory.renderChildren(node, builder, onLinkPress)
+    factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
   }
 }

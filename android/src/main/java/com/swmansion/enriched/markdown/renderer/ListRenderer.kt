@@ -15,6 +15,7 @@ class ListRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val start = builder.length
@@ -38,7 +39,7 @@ class ListRenderer(
     }
 
     try {
-      factory.renderChildren(node, builder, onLinkPress)
+      factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
       contextManager.exitList(entryState)
     }

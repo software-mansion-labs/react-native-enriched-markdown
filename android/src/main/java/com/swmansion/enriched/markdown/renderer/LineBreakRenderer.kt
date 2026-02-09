@@ -8,6 +8,7 @@ class LineBreakRenderer : NodeRenderer {
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     builder.append("\n")

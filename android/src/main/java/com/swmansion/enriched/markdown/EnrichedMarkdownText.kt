@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Layout
-import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.util.Log
 import androidx.appcompat.widget.AppCompatTextView
@@ -15,11 +14,13 @@ import androidx.core.view.ViewCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.UIManagerHelper
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.createSelectionActionModeCallback
 import java.util.concurrent.Executors
 
@@ -37,6 +38,7 @@ class EnrichedMarkdownText
     private val parser = Parser.shared
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
+    private var onLinkLongPressCallback: ((String) -> Unit)? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val executor = Executors.newSingleThreadExecutor()
@@ -66,7 +68,7 @@ class EnrichedMarkdownText
     init {
       setBackgroundColor(Color.TRANSPARENT)
       includeFontPadding = false // Must match setIncludePad(false) in MeasurementStore
-      movementMethod = LinkMovementMethod.getInstance()
+      movementMethod = LinkLongPressMovementMethod.createInstance()
       setTextIsSelectable(true)
       customSelectionActionModeCallback = createSelectionActionModeCallback(this)
       isVerticalScrollBarEnabled = false
@@ -186,7 +188,7 @@ class EnrichedMarkdownText
           // 2. Render AST → Spannable
           val renderStart = System.currentTimeMillis()
           renderer.configure(style, context)
-          val styledText = renderer.renderDocument(ast, onLinkPressCallback)
+          val styledText = renderer.renderDocument(ast, onLinkPressCallback, onLinkLongPressCallback)
           val renderTime = System.currentTimeMillis() - renderStart
 
           Log.i(TAG, "┌──────────────────────────────────────────────")
@@ -211,9 +213,10 @@ class EnrichedMarkdownText
     private fun applyRenderedText(styledText: CharSequence) {
       text = styledText
 
-      // LinkMovementMethod check (setText can sometimes reset it)
-      if (movementMethod !is LinkMovementMethod) {
-        movementMethod = LinkMovementMethod.getInstance()
+      // LinkLongPressMovementMethod check (setText can sometimes reset it)
+      // This is needed because setting text on a selectable TextView can reset the movementMethod
+      if (movementMethod !is LinkLongPressMovementMethod) {
+        movementMethod = LinkLongPressMovementMethod.createInstance()
       }
 
       // Register ImageSpans from the collector
@@ -230,7 +233,7 @@ class EnrichedMarkdownText
     fun setIsSelectable(selectable: Boolean) {
       if (isTextSelectable == selectable) return
       setTextIsSelectable(selectable)
-      movementMethod = LinkMovementMethod.getInstance()
+      movementMethod = LinkLongPressMovementMethod.createInstance()
       if (!selectable && !isClickable) isClickable = true
     }
 
@@ -244,8 +247,22 @@ class EnrichedMarkdownText
       )
     }
 
+    fun emitOnLinkLongPress(url: String) {
+      val reactContext = context as? com.facebook.react.bridge.ReactContext ?: return
+      val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+      val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+
+      dispatcher?.dispatchEvent(
+        LinkLongPressEvent(surfaceId, id, url),
+      )
+    }
+
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
       onLinkPressCallback = callback
+    }
+
+    fun setOnLinkLongPressCallback(callback: (String) -> Unit) {
+      onLinkLongPressCallback = callback
     }
 
     companion object {

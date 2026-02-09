@@ -62,6 +62,9 @@ using namespace facebook::react;
   CGFloat _lastElementMarginBottom;
   BOOL _allowTrailingMargin;
 
+  // Link long press tracking
+  BOOL _hasOnLinkLongPress;
+
   // Accessibility data for VoiceOver
   AccessibilityInfo *_accessibilityInfo;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
@@ -153,6 +156,7 @@ using namespace facebook::react;
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
     _currentFontScale = RCTFontSizeMultiplier();
+    _hasOnLinkLongPress = NO;
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(contentSizeCategoryDidChange:)
@@ -1205,6 +1209,10 @@ using namespace facebook::react;
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
+  // Track if onLinkLongPress handler is provided via the hasOnLinkLongPress prop
+  // This prop is set automatically in the TypeScript layer when onLinkLongPress is provided
+  _hasOnLinkLongPress = newViewProps.hasOnLinkLongPress;
+
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
@@ -1288,6 +1296,40 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
       eventEmitter.onLinkPress({.url = std::string([url UTF8String])});
     }
   }
+}
+
+#pragma mark - UITextViewDelegate (Link Interaction)
+
+// Intercept long press on links to handle onLinkLongPress callback
+- (BOOL)textView:(UITextView *)textView
+    shouldInteractWithURL:(NSURL *)URL
+                  inRange:(NSRange)characterRange
+              interaction:(UITextItemInteraction)interaction
+{
+  // UITextItemInteractionPresentActions is triggered on long press (iOS 10+)
+  if (interaction == UITextItemInteractionPresentActions) {
+    // Get the URL from our custom attribute (more reliable than NSURL parameter)
+    NSString *urlString = [_textView.attributedText attribute:@"linkURL"
+                                                      atIndex:characterRange.location
+                                               effectiveRange:NULL];
+    if (urlString) {
+      // If we have a handler registered (indicated by _hasOnLinkLongPress),
+      // emit the event and prevent system preview.
+      // Otherwise, allow system preview to show (default iOS behavior).
+      if (_hasOnLinkLongPress) {
+        // Emit onLinkLongPress event to React Native
+        const auto &eventEmitter = *std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+        eventEmitter.onLinkLongPress({.url = std::string([urlString UTF8String])});
+        return NO; // Prevent system link preview when handler is registered
+      }
+      // If no handler registered, allow system preview (default behavior)
+      return YES;
+    }
+  }
+
+  // For regular taps (UITextItemInteractionInvokeDefaultAction), allow default behavior
+  // Our tap recognizer will handle it and emit onLinkPress
+  return YES;
 }
 
 #pragma mark - UITextViewDelegate (Edit Menu)

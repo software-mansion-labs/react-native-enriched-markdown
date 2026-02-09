@@ -10,6 +10,7 @@ class TextRenderer : NodeRenderer {
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val content = node.content

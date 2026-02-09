@@ -119,6 +119,10 @@ export interface LinkPressEvent {
   url: string;
 }
 
+export interface LinkLongPressEvent {
+  url: string;
+}
+
 /**
  * MD4C parser flags configuration.
  * Controls how the markdown parser interprets certain syntax.
@@ -149,6 +153,30 @@ export interface NativeProps extends ViewProps {
    * Receives the URL that was tapped.
    */
   onLinkPress?: CodegenTypes.BubblingEventHandler<LinkPressEvent>;
+  /**
+   * Callback fired when a link is long pressed.
+   * Receives the URL that was long pressed.
+   * - iOS: When provided, overrides the system link preview behavior.
+   * - Android: Handles long press gestures on links.
+   */
+  onLinkLongPress?: CodegenTypes.BubblingEventHandler<LinkLongPressEvent>;
+  /**
+   * Internal prop to indicate if onLinkLongPress handler is provided.
+   * iOS only: Used by native code to determine whether to prevent system link preview.
+   *
+   * Why this prop is needed:
+   * In React Native's new architecture (Fabric), event handler props (like `onLinkLongPress`)
+   * are not directly accessible in the generated C++ Props struct. Event handlers are managed
+   * by the event emitter system, but native code cannot check if a listener is registered by
+   * inspecting the prop directly. This boolean prop explicitly indicates whether a handler
+   * is provided, allowing iOS native code to conditionally prevent the system link preview
+   * when `UITextItemInteractionPresentActions` is triggered.
+   *
+   * Android: Not used (Android handles long press detection differently via MovementMethod).
+   *
+   * @internal
+   */
+  hasOnLinkLongPress?: CodegenTypes.WithDefault<boolean, false>;
   /**
    * - iOS: Controls text selection and link previews on long press.
    * - Android: Controls text selection.

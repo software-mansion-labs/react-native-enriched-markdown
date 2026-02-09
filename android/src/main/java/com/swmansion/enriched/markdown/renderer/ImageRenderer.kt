@@ -15,6 +15,7 @@ class ImageRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val imageUrl = node.getAttribute("url") ?: return

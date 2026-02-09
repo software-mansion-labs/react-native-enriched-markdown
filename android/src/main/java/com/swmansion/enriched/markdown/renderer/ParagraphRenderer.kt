@@ -17,13 +17,14 @@ class ParagraphRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val context = factory.blockStyleContext
 
     // If nested (e.g., inside a list or blockquote), render content simply with a newline
     if (context.isInsideBlockElement()) {
-      factory.renderChildren(node, builder, onLinkPress)
+      factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
       builder.append("\n")
       return
     }
@@ -33,7 +34,7 @@ class ParagraphRenderer(
 
     context.setParagraphStyle(style)
     try {
-      factory.renderChildren(node, builder, onLinkPress)
+      factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
       context.clearBlockStyle()
     }

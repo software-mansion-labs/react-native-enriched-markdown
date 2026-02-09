@@ -13,6 +13,7 @@ class CodeRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     if (node.children.isEmpty() || node.children.all { it.content.isEmpty() }) return

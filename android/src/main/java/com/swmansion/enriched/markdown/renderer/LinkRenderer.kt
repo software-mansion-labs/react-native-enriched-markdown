@@ -12,13 +12,14 @@ class LinkRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val url = node.getAttribute("url") ?: return
 
-    factory.renderWithSpan(builder, { factory.renderChildren(node, builder, onLinkPress) }) { start, end, blockStyle ->
+    factory.renderWithSpan(builder, { factory.renderChildren(node, builder, onLinkPress, onLinkLongPress) }) { start, end, blockStyle ->
       builder.setSpan(
-        LinkSpan(url, onLinkPress, factory.styleCache, blockStyle, factory.context),
+        LinkSpan(url, onLinkPress, onLinkLongPress, factory.styleCache, blockStyle, factory.context),
         start,
         end,
         SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,

@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import EnrichedMarkdownTextNativeComponent, {
   type NativeProps,
   type LinkPressEvent,
+  type LinkLongPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';
 import { normalizeMarkdownStyle } from './normalizeMarkdownStyle';
 import type { ViewStyle, TextStyle, NativeSyntheticEvent } from 'react-native';
@@ -142,7 +143,7 @@ export interface Md4cFlags {
 export interface EnrichedMarkdownTextProps
   extends Omit<
     NativeProps,
-    'markdownStyle' | 'style' | 'onLinkPress' | 'md4cFlags'
+    'markdownStyle' | 'style' | 'onLinkPress' | 'onLinkLongPress' | 'md4cFlags'
   > {
   /**
    * Style configuration for markdown elements
@@ -157,6 +158,13 @@ export interface EnrichedMarkdownTextProps
    * Receives the link URL directly.
    */
   onLinkPress?: (event: LinkPressEvent) => void;
+  /**
+   * Callback fired when a link is long pressed.
+   * Receives the link URL directly.
+   * - iOS: When provided, overrides the system link preview behavior.
+   * - Android: Handles long press gestures on links.
+   */
+  onLinkLongPress?: (event: LinkLongPressEvent) => void;
   /**
    * MD4C parser flags configuration.
    * Controls how the markdown parser interprets certain syntax.
@@ -194,6 +202,7 @@ export const EnrichedMarkdownText = ({
   markdownStyle = {},
   containerStyle,
   onLinkPress,
+  onLinkLongPress,
   selectable = true,
   md4cFlags = defaultMd4cFlags,
   allowFontScaling = true,
@@ -221,11 +230,21 @@ export const EnrichedMarkdownText = ({
     [onLinkPress]
   );
 
+  const handleLinkLongPress = useCallback(
+    (e: NativeSyntheticEvent<LinkLongPressEvent>) => {
+      const { url } = e.nativeEvent;
+      onLinkLongPress?.({ url });
+    },
+    [onLinkLongPress]
+  );
+
   return (
     <EnrichedMarkdownTextNativeComponent
       markdown={markdown}
       markdownStyle={normalizedStyle}
       onLinkPress={handleLinkPress}
+      onLinkLongPress={handleLinkLongPress}
+      hasOnLinkLongPress={onLinkLongPress != null}
       selectable={selectable}
       md4cFlags={normalizedMd4cFlags}
       allowFontScaling={allowFontScaling}

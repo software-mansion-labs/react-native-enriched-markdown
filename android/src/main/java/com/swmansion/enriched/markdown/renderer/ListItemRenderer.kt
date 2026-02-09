@@ -13,6 +13,7 @@ class ListItemRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val styleContext = factory.blockStyleContext
@@ -25,7 +26,7 @@ class ListItemRenderer(
     }
 
     // 2. Render Children
-    factory.renderChildren(node, builder, onLinkPress)
+    factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
 
     // 3. Normalize whitespace: Ensure the item ends with exactly one newline
     if (builder.length == start || builder.substring(start).isBlank()) return

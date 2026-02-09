@@ -16,6 +16,7 @@ class HeadingRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val level = node.getAttribute("level")?.toIntOrNull() ?: 1
@@ -25,7 +26,7 @@ class HeadingRenderer(
     factory.blockStyleContext.setHeadingStyle(headingStyle, level)
 
     try {
-      factory.renderChildren(node, builder, onLinkPress)
+      factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
       factory.blockStyleContext.clearBlockStyle()
     }

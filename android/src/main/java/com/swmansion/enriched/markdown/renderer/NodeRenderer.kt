@@ -11,6 +11,7 @@ interface NodeRenderer {
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   )
 }
@@ -75,9 +76,10 @@ class RendererFactory(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
   ) {
     node.children.forEach { child ->
-      getRenderer(child).render(child, builder, onLinkPress, this)
+      getRenderer(child).render(child, builder, onLinkPress, onLinkLongPress, this)
     }
   }
 

@@ -34,6 +34,7 @@ class Renderer {
   fun renderDocument(
     document: MarkdownASTNode,
     onLinkPress: ((String) -> Unit)? = null,
+    onLinkLongPress: ((String) -> Unit)? = null,
   ): SpannableString {
     val factory =
       requireNotNull(cachedFactory) {
@@ -46,7 +47,7 @@ class Renderer {
 
     val builder = SpannableStringBuilder()
 
-    renderNode(document, builder, onLinkPress, factory)
+    renderNode(document, builder, onLinkPress, onLinkLongPress, factory)
 
     // Remove trailing margin from last block element
     removeTrailingMargin(builder)
@@ -88,9 +89,10 @@ class Renderer {
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    factory.getRenderer(node).render(node, builder, onLinkPress, factory)
+    factory.getRenderer(node).render(node, builder, onLinkPress, onLinkLongPress, factory)
   }
 
   /**

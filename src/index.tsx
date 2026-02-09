@@ -4,4 +4,7 @@ export type {
   MarkdownStyle,
   Md4cFlags,
 } from './EnrichedMarkdownText';
-export type { LinkPressEvent } from './EnrichedMarkdownTextNativeComponent';
+export type {
+  LinkPressEvent,
+  LinkLongPressEvent,
+} from './EnrichedMarkdownTextNativeComponent';

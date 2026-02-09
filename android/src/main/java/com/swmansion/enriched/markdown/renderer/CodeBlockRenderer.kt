@@ -17,6 +17,7 @@ class CodeBlockRenderer(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
+    onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
     val start = builder.length
@@ -31,7 +32,7 @@ class CodeBlockRenderer(
     context.setCodeBlockStyle(style)
 
     try {
-      factory.renderChildren(node, builder, onLinkPress)
+      factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
       context.clearBlockStyle()
     }

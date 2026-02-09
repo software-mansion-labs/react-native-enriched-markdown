@@ -83,31 +83,24 @@ using namespace facebook::react;
     return CGSizeMake(maxWidth, defaultHeight);
   }
 
-  // Identify actual content range (trimming trailing newlines for measurement)
-  NSRange lastContent = [text.string rangeOfCharacterFromSet:NSCharacterSet.newlineCharacterSet.invertedSet
-                                                     options:NSBackwardsSearch];
-  if (lastContent.location == NSNotFound) {
-    return CGSizeMake(maxWidth, defaultHeight);
+  // Use UITextView's layout manager for measurement to avoid
+  // boundingRectWithSize: height discrepancies with NSTextAttachment objects.
+  _textView.textContainer.size = CGSizeMake(maxWidth, CGFLOAT_MAX);
+  [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
+  CGRect usedRect = [_textView.layoutManager usedRectForTextContainer:_textView.textContainer];
+
+  CGFloat measuredWidth = ceil(usedRect.size.width);
+  CGFloat measuredHeight = usedRect.size.height;
+
+  // When text ends with \n (e.g. code block's bottom padding spacer),
+  // TextKit creates an "extra line fragment" after it that adds unwanted height.
+  CGRect extraFragment = _textView.layoutManager.extraLineFragmentRect;
+  if (!CGRectIsEmpty(extraFragment)) {
+    measuredHeight -= extraFragment.size.height;
   }
 
-  NSAttributedString *contentToMeasure = [text attributedSubstringFromRange:NSMakeRange(0, NSMaxRange(lastContent))];
-
-  // 1. Determine Drawing Strategy
-  // Use DeviceMetrics for images or when we need to eliminate "static" font spacing (descent/leading)
-  NSStringDrawingOptions options = NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading;
-  BOOL shouldTightenBounds = isLastElementImage(text) || _lastElementMarginBottom == 0 || !_allowTrailingMargin;
-
-  if (shouldTightenBounds) {
-    options |= NSStringDrawingUsesDeviceMetrics;
-  }
-
-  // 2. Initial Measurement
-  CGRect rect = [contentToMeasure boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:options context:nil];
-
-  CGFloat measuredWidth = ceil(rect.size.width);
-  CGFloat measuredHeight = rect.size.height;
-
-  // 3. Apply Adjustments
+  // Code block's bottom padding is a spacer \n with minimumLineHeight = codeBlockPadding.
+  // The layout manager may not size it accurately, so add the padding explicitly.
   if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }

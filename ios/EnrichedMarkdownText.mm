@@ -1300,35 +1300,30 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 
 #pragma mark - UITextViewDelegate (Link Interaction)
 
-// Intercept long press on links to handle onLinkLongPress callback
 - (BOOL)textView:(UITextView *)textView
     shouldInteractWithURL:(NSURL *)URL
                   inRange:(NSRange)characterRange
               interaction:(UITextItemInteraction)interaction
 {
-  // UITextItemInteractionPresentActions is triggered on long press (iOS 10+)
-  if (interaction == UITextItemInteractionPresentActions) {
-    // Get the URL from our custom attribute (more reliable than NSURL parameter)
-    NSString *urlString = [_textView.attributedText attribute:@"linkURL"
-                                                      atIndex:characterRange.location
-                                               effectiveRange:NULL];
-    if (urlString) {
-      // If we have a handler registered (indicated by _hasOnLinkLongPress),
-      // emit the event and prevent system preview.
-      // Otherwise, allow system preview to show (default iOS behavior).
-      if (_hasOnLinkLongPress) {
-        // Emit onLinkLongPress event to React Native
-        const auto &eventEmitter = *std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
-        eventEmitter.onLinkLongPress({.url = std::string([urlString UTF8String])});
-        return NO; // Prevent system link preview when handler is registered
-      }
-      // If no handler registered, allow system preview (default behavior)
-      return YES;
-    }
+  // Only intercept long-press interactions
+  if (interaction != UITextItemInteractionPresentActions) {
+    return YES;
   }
 
-  // For regular taps (UITextItemInteractionInvokeDefaultAction), allow default behavior
-  // Our tap recognizer will handle it and emit onLinkPress
+  // Safely extract the custom URL attribute
+  NSString *urlString = [textView.attributedText attribute:@"linkURL"
+                                                   atIndex:characterRange.location
+                                            effectiveRange:NULL];
+
+  // If a long-press handler is registered, emit event and suppress system UI
+  if (urlString && _hasOnLinkLongPress) {
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onLinkLongPress({.url = std::string([urlString UTF8String])});
+    }
+    return NO;
+  }
+
   return YES;
 }
 

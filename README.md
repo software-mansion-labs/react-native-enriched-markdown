@@ -180,16 +180,32 @@ export default function App() {
 
 ## Link Handling
 
-Links in Markdown are interactive and can be handled with the `onLinkPress` callback:
+Links in Markdown are interactive and can be handled with the `onLinkPress` and `onLinkLongPress` callbacks:
 
 ```tsx
 <EnrichedMarkdownText
   markdown="Check out [React Native](https://reactnative.dev)!"
-  onLinkPress={(event) => {
-    const { url } = event.nativeEvent;
+  onLinkPress={({ url }) => {
     Alert.alert('Link pressed', url);
     Linking.openURL(url);
   }}
+  onLinkLongPress={({ url }) => {
+    Alert.alert('Link long pressed', url);
+  }}
+/>
+```
+
+### Link Preview (iOS)
+
+By default, long-pressing a link on iOS shows the native system link preview. When you provide `onLinkLongPress`, the system preview is automatically disabled so your handler can fire instead.
+
+You can also control this behavior explicitly with the `enableLinkPreview` prop:
+
+```tsx
+// Disable system link preview without providing a handler
+<EnrichedMarkdownText
+  markdown={content}
+  enableLinkPreview={false}
 />
 ```
 
@@ -513,6 +529,8 @@ The library provides sensible default styles for all Markdown elements out of th
 | `markdownStyle` | `MarkdownStyle` | `{}` | Style configuration for Markdown elements |
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
 | `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
+| `onLinkLongPress` | `(event: LinkLongPressEvent) => void` | - | Callback when a link is long pressed. Access URL via `event.url`. On iOS, automatically disables the system link preview |
+| `enableLinkPreview` | `boolean` | `true` | Controls the native link preview on long press (iOS only). Automatically set to `false` when `onLinkLongPress` is provided |
 | `selectable` | `boolean` | `true` | Whether text can be selected |
 | `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |
 | `allowFontScaling` | `boolean` | `true` | Whether fonts should scale to respect Text Size accessibility settings |

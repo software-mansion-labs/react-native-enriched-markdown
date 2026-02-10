@@ -108,13 +108,13 @@ class EnrichedMarkdownTextManager :
     view?.setAllowTrailingMargin(allowTrailingMargin)
   }
 
-  @ReactProp(name = "hasOnLinkLongPress", defaultBoolean = false)
-  override fun setHasOnLinkLongPress(
+  @ReactProp(name = "enableLinkPreview", defaultBoolean = true)
+  override fun setEnableLinkPreview(
     view: EnrichedMarkdownText?,
-    hasOnLinkLongPress: Boolean,
+    enableLinkPreview: Boolean,
   ) {
-    // This prop is only used on iOS (to decide between emitting onLinkLongPress or showing
-    // the system link preview). Required by the codegen interface but is a no-op on Android.
+    // This prop is only used on iOS (to control the system link preview on long press).
+    // Required by the codegen interface but is a no-op on Android.
   }
 
   override fun setPadding(

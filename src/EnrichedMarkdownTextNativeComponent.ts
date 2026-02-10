@@ -161,22 +161,18 @@ export interface NativeProps extends ViewProps {
    */
   onLinkLongPress?: CodegenTypes.BubblingEventHandler<LinkLongPressEvent>;
   /**
-   * Internal prop to indicate if onLinkLongPress handler is provided.
-   * iOS only: Used by native code to determine whether to prevent system link preview.
+   * Controls whether the system link preview is shown on long press (iOS only).
    *
-   * Why this prop is needed:
-   * In React Native's new architecture (Fabric), event handler props (like `onLinkLongPress`)
-   * are not directly accessible in the generated C++ Props struct. Event handlers are managed
-   * by the event emitter system, but native code cannot check if a listener is registered by
-   * inspecting the prop directly. This boolean prop explicitly indicates whether a handler
-   * is provided, allowing iOS native code to conditionally prevent the system link preview
-   * when `UITextItemInteractionPresentActions` is triggered.
+   * When `true` (default), long-pressing a link shows the native iOS link preview.
+   * When `false`, the system preview is suppressed.
    *
-   * Android: Not used (Android handles long press detection differently via MovementMethod).
+   * Automatically set to `false` when `onLinkLongPress` is provided (unless explicitly overridden).
    *
-   * @internal
+   * Android: No-op (Android doesn't have a system link preview).
+   *
+   * @default true
    */
-  hasOnLinkLongPress?: CodegenTypes.WithDefault<boolean, false>;
+  enableLinkPreview?: CodegenTypes.WithDefault<boolean, true>;
   /**
    * - iOS: Controls text selection and link previews on long press.
    * - Android: Controls text selection.

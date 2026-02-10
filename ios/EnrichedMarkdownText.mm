@@ -62,8 +62,8 @@ using namespace facebook::react;
   CGFloat _lastElementMarginBottom;
   BOOL _allowTrailingMargin;
 
-  // Link long press tracking
-  BOOL _hasOnLinkLongPress;
+  // iOS link preview control
+  BOOL _enableLinkPreview;
 
   // Accessibility data for VoiceOver
   AccessibilityInfo *_accessibilityInfo;
@@ -156,7 +156,7 @@ using namespace facebook::react;
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
     _currentFontScale = RCTFontSizeMultiplier();
-    _hasOnLinkLongPress = NO;
+    _enableLinkPreview = YES;
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(contentSizeCategoryDidChange:)
@@ -1209,9 +1209,7 @@ using namespace facebook::react;
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
-  // Track if onLinkLongPress handler is provided via the hasOnLinkLongPress prop
-  // This prop is set automatically in the TypeScript layer when onLinkLongPress is provided
-  _hasOnLinkLongPress = newViewProps.hasOnLinkLongPress;
+  _enableLinkPreview = newViewProps.enableLinkPreview;
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
@@ -1315,16 +1313,17 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
                                                    atIndex:characterRange.location
                                             effectiveRange:NULL];
 
-  // If a long-press handler is registered, emit event and suppress system UI
-  if (urlString && _hasOnLinkLongPress) {
-    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
-    if (eventEmitter) {
-      eventEmitter->onLinkLongPress({.url = std::string([urlString UTF8String])});
-    }
-    return NO;
+  // If link preview is enabled or no URL found, allow default system behavior
+  if (!urlString || _enableLinkPreview) {
+    return YES;
   }
 
-  return YES;
+  // System preview disabled — emit onLinkLongPress event to React Native
+  auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (eventEmitter) {
+    eventEmitter->onLinkLongPress({.url = std::string([urlString UTF8String])});
+  }
+  return NO;
 }
 
 #pragma mark - UITextViewDelegate (Edit Menu)

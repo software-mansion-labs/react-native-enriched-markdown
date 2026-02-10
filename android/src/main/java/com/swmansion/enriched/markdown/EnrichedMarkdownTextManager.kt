@@ -113,9 +113,8 @@ class EnrichedMarkdownTextManager :
     view: EnrichedMarkdownText?,
     hasOnLinkLongPress: Boolean,
   ) {
-    // On Android, we don't need to track this prop since we can check if the callback is set.
-    // This method is required by the codegen interface but is a no-op on Android.
-    // The callback is already set in setMarkdown().
+    // This prop is only used on iOS (to decide between emitting onLinkLongPress or showing
+    // the system link preview). Required by the codegen interface but is a no-op on Android.
   }
 
   override fun setPadding(

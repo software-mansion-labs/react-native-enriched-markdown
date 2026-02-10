@@ -213,8 +213,7 @@ class EnrichedMarkdownText
     private fun applyRenderedText(styledText: CharSequence) {
       text = styledText
 
-      // LinkLongPressMovementMethod check (setText can sometimes reset it)
-      // This is needed because setting text on a selectable TextView can reset the movementMethod
+      // setText on a selectable TextView can reset movementMethod, so re-apply if needed
       if (movementMethod !is LinkLongPressMovementMethod) {
         movementMethod = LinkLongPressMovementMethod.createInstance()
       }

@@ -58,7 +58,7 @@ class UnorderedListSpan(
 
     // Calculate bullet position based on depth
     // depth 0: radius, depth 1: marginLeft + radius, etc.
-    val bulletX = (depth * marginLeft + radius) * dir
+    val bulletX = x + (depth * marginLeft + radius) * dir
 
     // Vertical centering based on font metrics
     val fm = p.fontMetrics

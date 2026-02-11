@@ -55,7 +55,7 @@ class UnorderedListSpan(
     start: Int,
   ) {
     val bulletPaint = configureBulletPaint()
-    val bulletX = (depth * marginLeft + radius) * dir
+    val bulletX = x + (depth * marginLeft + radius) * dir
     val fontMetrics = paint.fontMetrics
     val bulletY = baseline + (fontMetrics.ascent + fontMetrics.descent) / 2f
 

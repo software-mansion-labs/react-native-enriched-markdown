@@ -90,7 +90,7 @@ object HTMLGenerator {
 
     // Fixed HTML values (not from StyleConfig)
     val blockquotePaddingVertical = "8px"
-    val blockquoteBorderRadiusCorners = "0 8px 8px 0"
+    val blockquoteBorderRadiusCorners = "border-start-end-radius: 8px; border-end-end-radius: 8px"
     val blockquoteNestedMargin = "8px 0 0 0"
     val blockquoteParagraphMargin = "0 0 4px 0"
     val inlineImageHeight = "1.2em"
@@ -377,7 +377,7 @@ object HTMLGenerator {
         html
           .append("<blockquote style=\"background-color: ")
           .append(styles.blockquoteBgColor)
-          .append("; border-left: ")
+          .append("; border-inline-start: ")
           .append(styles.blockquoteBorderWidth)
           .append("px solid ")
           .append(styles.blockquoteBorderColor)
@@ -387,16 +387,16 @@ object HTMLGenerator {
           .append(styles.blockquoteGapWidth)
           .append("px; margin: 0 0 ")
           .append(styles.blockquoteMarginBottom)
-          .append("px 0; border-radius: ")
+          .append("px 0; ")
           .append(styles.blockquoteBorderRadiusCorners)
           .append(";\">")
       } else {
         html
-          .append("<blockquote style=\"border-left: ")
+          .append("<blockquote style=\"border-inline-start: ")
           .append(styles.blockquoteBorderWidth)
           .append("px solid ")
           .append(styles.blockquoteBorderColor)
-          .append("; padding-left: ")
+          .append("; padding-inline-start: ")
           .append(styles.blockquoteGapWidth)
           .append("px; margin: ")
           .append(styles.blockquoteNestedMargin)
@@ -463,7 +463,7 @@ object HTMLGenerator {
         html
           .append("<ol style=\"")
           .append(marginStyle)
-          .append("padding-left: ")
+          .append("padding-inline-start: ")
           .append(styles.listMarginLeft)
           .append("px;\">")
         state.openListTypes.add(true)
@@ -471,7 +471,7 @@ object HTMLGenerator {
         html
           .append("<ul style=\"")
           .append(marginStyle)
-          .append("padding-left: ")
+          .append("padding-inline-start: ")
           .append(styles.listMarginLeft)
           .append("px; list-style-type: ")
           .append(if (isTask) "none" else "disc")

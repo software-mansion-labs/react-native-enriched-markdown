@@ -30,6 +30,7 @@ extern NSString *const ListItemNumberAttribute;
     return;
 
   // Cache gap and track paragraphs to prevent double-drawing on wrapped lines
+  BOOL isRTL = UIApplication.sharedApplication.userInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
   CGFloat gap = [_config effectiveListGapWidth];
   NSMutableSet *drawnParagraphs = [NSMutableSet set];
 
@@ -58,14 +59,19 @@ extern NSString *const ListItemNumberAttribute;
                                  // 3. Calculate Layout Coordinates
                                  CGPoint glyphLoc = [layoutManager locationForGlyphAtIndex:glyphRange.location];
                                  CGFloat baselineY = origin.y + rect.origin.y + glyphLoc.y;
-                                 CGFloat textStartX = origin.x + usedRect.origin.x;
+                                 CGFloat markerX;
+                                 if (isRTL) {
+                                   markerX = origin.x + usedRect.origin.x + usedRect.size.width + gap;
+                                 } else {
+                                   markerX = origin.x + usedRect.origin.x - gap;
+                                 }
 
                                  // 4. Draw marker based on type
                                  if ([attrs[ListTypeAttribute] integerValue] == ListTypeUnordered) {
                                    UIFont *font = attrs[NSFontAttributeName] ?: [self defaultFont];
-                                   [self drawBulletAtX:textStartX - gap centerY:baselineY - (font.xHeight / 2.0)];
+                                   [self drawBulletAtX:markerX centerY:baselineY - (font.xHeight / 2.0)];
                                  } else {
-                                   [self drawOrderedMarkerAtX:textStartX - gap attrs:attrs baselineY:baselineY];
+                                   [self drawOrderedMarkerAtX:markerX attrs:attrs baselineY:baselineY isRTL:isRTL];
                                  }
                                }];
 }
@@ -84,13 +90,15 @@ extern NSString *const ListItemNumberAttribute;
                    y:y];
 }
 
-- (void)drawOrderedMarkerAtX:(CGFloat)rightBoundaryX attrs:(NSDictionary *)attrs baselineY:(CGFloat)baselineY
+- (void)drawOrderedMarkerAtX:(CGFloat)boundaryX attrs:(NSDictionary *)attrs baselineY:(CGFloat)baselineY isRTL:(BOOL)isRTL
 {
   NSNumber *num = attrs[ListItemNumberAttribute];
   if (!num)
     return;
 
-  NSString *text = [NSString stringWithFormat:@"%ld.", (long)num.integerValue];
+  NSString *text = isRTL
+    ? [NSString stringWithFormat:@".%ld", (long)num.integerValue]
+    : [NSString stringWithFormat:@"%ld.", (long)num.integerValue];
   UIFont *font = [_config listMarkerFont] ?: [self defaultFont];
 
   NSDictionary *mAttrs = @{
@@ -98,9 +106,10 @@ extern NSString *const ListItemNumberAttribute;
     NSForegroundColorAttributeName : [_config listStyleMarkerColor] ?: [UIColor blackColor]
   };
   CGSize size = [text sizeWithAttributes:mAttrs];
+  CGFloat drawX = isRTL ? boundaryX : boundaryX - size.width;
 
-  if ([self isValidX:rightBoundaryX - size.width y:baselineY]) {
-    [text drawAtPoint:CGPointMake(rightBoundaryX - size.width, baselineY - font.ascender) withAttributes:mAttrs];
+  if ([self isValidX:drawX y:baselineY]) {
+    [text drawAtPoint:CGPointMake(drawX, baselineY - font.ascender) withAttributes:mAttrs];
   }
 }
 

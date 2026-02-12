@@ -70,13 +70,13 @@ class OrderedListSpan(
     start: Int,
   ) {
     val markerPaint = configureMarkerPaint()
-    val text = "$itemNumber."
+    val text = if (dir < 0) ".$itemNumber" else "$itemNumber."
     val textWidth = markerPaint.measureText(text)
 
     // Calculate marker position based on depth
     // depth 0: markerWidth, depth 1: marginLeft + markerWidth, etc.
-    val markerRightEdge = (depth * marginLeft + getMarkerWidth()) * dir
-    val markerX = markerRightEdge - textWidth * dir
+    val markerRightEdge = x + (depth * marginLeft + getMarkerWidth()) * dir
+    val markerX = if (dir > 0) markerRightEdge - textWidth else markerRightEdge
 
     c.drawText(text, markerX, baseline.toFloat(), markerPaint)
   }

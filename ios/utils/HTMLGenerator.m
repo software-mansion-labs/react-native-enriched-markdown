@@ -580,13 +580,13 @@ static void handleBlockquote(NSMutableString *html, ParagraphData *para, NSMutab
 
     if (state.currentBlockquoteDepth == 0) {
       [html appendFormat:
-                @"<blockquote style=\"background-color: %@; border-left: %.0fpx solid %@; "
-                @"padding: %.0fpx %.0fpx; margin: 0 0 %.0fpx 0; border-radius: 0 8px 8px 0;\">",
+                @"<blockquote style=\"background-color: %@; border-inline-start: %.0fpx solid %@; "
+                @"padding: %.0fpx %.0fpx; margin: 0 0 %.0fpx 0; border-start-end-radius: 8px; border-end-end-radius: 8px;\">",
                 styles.blockquoteBackgroundColor, styles.blockquoteBorderWidth, styles.blockquoteBorderColor,
                 kBlockquoteVerticalPadding, styles.blockquoteGapWidth, styles.blockquoteMarginBottom];
     } else {
       [html appendFormat:
-                @"<blockquote style=\"border-left: %.0fpx solid %@; padding-left: %.0fpx; "
+                @"<blockquote style=\"border-inline-start: %.0fpx solid %@; padding-inline-start: %.0fpx; "
                 @"margin: %.0fpx 0 0 0;\">",
                 styles.blockquoteBorderWidth, styles.blockquoteBorderColor, styles.blockquoteGapWidth,
                 kNestedBlockquoteTopMargin];
@@ -629,9 +629,9 @@ static void handleListItem(NSMutableString *html, ParagraphData *para, NSMutable
   while (state.currentListDepth < depth) {
     state.currentListDepth++;
     if (isOrdered) {
-      [html appendFormat:@"<ol style=\"margin: 0; padding-left: %.0fpx;\">", indent];
+      [html appendFormat:@"<ol style=\"margin: 0; padding-inline-start: %.0fpx;\">", indent];
     } else {
-      [html appendFormat:@"<ul style=\"margin: 0; padding-left: %.0fpx; list-style-type: disc;\">", indent];
+      [html appendFormat:@"<ul style=\"margin: 0; padding-inline-start: %.0fpx; list-style-type: disc;\">", indent];
     }
     [state.openListTypes addObject:@(listTypeValue)];
   }

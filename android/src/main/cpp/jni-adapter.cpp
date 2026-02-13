@@ -48,6 +48,18 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 16;
     case NodeType::ThematicBreak:
       return 17;
+    case NodeType::Table:
+      return 18;
+    case NodeType::TableHead:
+      return 19;
+    case NodeType::TableBody:
+      return 20;
+    case NodeType::TableRow:
+      return 21;
+    case NodeType::TableHeaderCell:
+      return 22;
+    case NodeType::TableCell:
+      return 23;
     default:
       return 0;
   }

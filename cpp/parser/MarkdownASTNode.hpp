@@ -25,7 +25,14 @@ enum class NodeType {
     OrderedList,
     ListItem,
     CodeBlock,
-    ThematicBreak
+    ThematicBreak,
+    // Table types (requires MD_FLAG_TABLES)
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableHeaderCell,
+    TableCell
 };
 
 struct MarkdownASTNode {

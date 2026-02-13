@@ -25,6 +25,14 @@ data class MarkdownASTNode(
     ListItem,
     CodeBlock,
     ThematicBreak,
+
+    // Table types (indices 18–23, must match JNI ordinal mapping)
+    Table, // 18
+    TableHead, // 19
+    TableBody, // 20
+    TableRow, // 21
+    TableHeaderCell, // 22
+    TableCell, // 23
   }
 
   fun getAttribute(key: String): String? = attributes[key]

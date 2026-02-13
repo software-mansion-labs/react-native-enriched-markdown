@@ -67,6 +67,24 @@ static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownAS
     case Markdown::NodeType::ThematicBreak:
       objcType = MarkdownNodeTypeThematicBreak;
       break;
+    case Markdown::NodeType::Table:
+      objcType = MarkdownNodeTypeTable;
+      break;
+    case Markdown::NodeType::TableHead:
+      objcType = MarkdownNodeTypeTableHead;
+      break;
+    case Markdown::NodeType::TableBody:
+      objcType = MarkdownNodeTypeTableBody;
+      break;
+    case Markdown::NodeType::TableRow:
+      objcType = MarkdownNodeTypeTableRow;
+      break;
+    case Markdown::NodeType::TableHeaderCell:
+      objcType = MarkdownNodeTypeTableHeaderCell;
+      break;
+    case Markdown::NodeType::TableCell:
+      objcType = MarkdownNodeTypeTableCell;
+      break;
   }
 
   MarkdownASTNode *objcNode = [[MarkdownASTNode alloc] initWithType:objcType];

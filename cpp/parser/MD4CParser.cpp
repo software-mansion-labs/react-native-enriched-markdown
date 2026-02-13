@@ -144,6 +144,60 @@ public:
         break;
       }
 
+      case MD_BLOCK_TABLE: {
+        auto node = std::make_shared<MarkdownASTNode>(NodeType::Table);
+        if (detail) {
+          auto *tableDetail = static_cast<MD_BLOCK_TABLE_DETAIL *>(detail);
+          node->setAttribute("colCount", std::to_string(tableDetail->col_count));
+          node->setAttribute("headRowCount", std::to_string(tableDetail->head_row_count));
+          node->setAttribute("bodyRowCount", std::to_string(tableDetail->body_row_count));
+        }
+        impl->pushNode(node);
+        break;
+      }
+
+      case MD_BLOCK_THEAD: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::TableHead));
+        break;
+      }
+
+      case MD_BLOCK_TBODY: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::TableBody));
+        break;
+      }
+
+      case MD_BLOCK_TR: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::TableRow));
+        break;
+      }
+
+      case MD_BLOCK_TH:
+      case MD_BLOCK_TD: {
+        auto node =
+            std::make_shared<MarkdownASTNode>(type == MD_BLOCK_TH ? NodeType::TableHeaderCell : NodeType::TableCell);
+        if (detail) {
+          auto *tdDetail = static_cast<MD_BLOCK_TD_DETAIL *>(detail);
+          const char *alignStr;
+          switch (tdDetail->align) {
+            case MD_ALIGN_LEFT:
+              alignStr = "left";
+              break;
+            case MD_ALIGN_CENTER:
+              alignStr = "center";
+              break;
+            case MD_ALIGN_RIGHT:
+              alignStr = "right";
+              break;
+            default:
+              alignStr = "default";
+              break;
+          }
+          node->setAttribute("align", alignStr);
+        }
+        impl->pushNode(node);
+        break;
+      }
+
       default:
         // Other block types not yet implemented
         break;
@@ -292,7 +346,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   // MD_FLAG_NOHTML: Disable HTML parsing
   // MD_FLAG_STRIKETHROUGH: Enable ~~strikethrough~~ syntax
   // MD_FLAG_UNDERLINE: When enabled, __ creates underline; when disabled, __ creates emphasis
-  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH;
+  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES;
   if (md4cFlags.underline) {
     flags |= MD_FLAG_UNDERLINE;
   }

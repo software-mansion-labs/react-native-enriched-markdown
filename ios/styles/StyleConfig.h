@@ -270,5 +270,39 @@
 - (void)setThematicBreakMarginTop:(CGFloat)newValue;
 - (CGFloat)thematicBreakMarginBottom;
 - (void)setThematicBreakMarginBottom:(CGFloat)newValue;
+// Table properties
+- (CGFloat)tableFontSize;
+- (void)setTableFontSize:(CGFloat)newValue;
+- (NSString *)tableFontFamily;
+- (void)setTableFontFamily:(NSString *)newValue;
+- (NSString *)tableFontWeight;
+- (void)setTableFontWeight:(NSString *)newValue;
+- (UIColor *)tableColor;
+- (void)setTableColor:(UIColor *)newValue;
+- (CGFloat)tableMarginTop;
+- (void)setTableMarginTop:(CGFloat)newValue;
+- (CGFloat)tableMarginBottom;
+- (void)setTableMarginBottom:(CGFloat)newValue;
+- (CGFloat)tableLineHeight;
+- (void)setTableLineHeight:(CGFloat)newValue;
+- (UIFont *)tableFont;
+- (UIColor *)tableHeaderBackgroundColor;
+- (void)setTableHeaderBackgroundColor:(UIColor *)newValue;
+- (UIColor *)tableHeaderTextColor;
+- (void)setTableHeaderTextColor:(UIColor *)newValue;
+- (UIColor *)tableRowEvenBackgroundColor;
+- (void)setTableRowEvenBackgroundColor:(UIColor *)newValue;
+- (UIColor *)tableRowOddBackgroundColor;
+- (void)setTableRowOddBackgroundColor:(UIColor *)newValue;
+- (UIColor *)tableBorderColor;
+- (void)setTableBorderColor:(UIColor *)newValue;
+- (CGFloat)tableBorderWidth;
+- (void)setTableBorderWidth:(CGFloat)newValue;
+- (CGFloat)tableBorderRadius;
+- (void)setTableBorderRadius:(CGFloat)newValue;
+- (CGFloat)tableCellPaddingHorizontal;
+- (void)setTableCellPaddingHorizontal:(CGFloat)newValue;
+- (CGFloat)tableCellPaddingVertical;
+- (void)setTableCellPaddingVertical:(CGFloat)newValue;
 
 @end

@@ -320,4 +320,26 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
   return [self createRotorWithName:NSLocalizedString(@"Images", @"") elements:els];
 }
 
++ (NSArray<UIAccessibilityCustomRotor *> *)buildRotorsFromElements:(NSArray<UIAccessibilityElement *> *)elements
+{
+  NSMutableArray<UIAccessibilityCustomRotor *> *rotors = [NSMutableArray array];
+
+  NSArray<UIAccessibilityElement *> *headingElements = [self filterHeadingElements:elements];
+  if (headingElements.count > 0) {
+    [rotors addObject:[self createHeadingRotorWithElements:headingElements]];
+  }
+
+  NSArray<UIAccessibilityElement *> *linkElements = [self filterLinkElements:elements];
+  if (linkElements.count > 0) {
+    [rotors addObject:[self createLinkRotorWithElements:linkElements]];
+  }
+
+  NSArray<UIAccessibilityElement *> *imageElements = [self filterImageElements:elements];
+  if (imageElements.count > 0) {
+    [rotors addObject:[self createImageRotorWithElements:imageElements]];
+  }
+
+  return rotors;
+}
+
 @end

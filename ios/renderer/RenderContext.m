@@ -103,6 +103,17 @@
   [self.linkURLs addObject:url ?: @""];
 }
 
+- (void)applyLinkAttributesToString:(NSMutableAttributedString *)attributedString
+{
+  NSUInteger length = attributedString.length;
+  for (NSUInteger i = 0; i < self.linkRanges.count; i++) {
+    NSRange range = [self.linkRanges[i] rangeValue];
+    if (NSMaxRange(range) > length)
+      continue;
+    [attributedString addAttribute:@"linkURL" value:self.linkURLs[i] range:range];
+  }
+}
+
 - (void)registerHeadingRange:(NSRange)range level:(NSInteger)level text:(NSString *)text
 {
   if (range.length == 0)

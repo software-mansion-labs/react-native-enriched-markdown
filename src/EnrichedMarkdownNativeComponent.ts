@@ -220,4 +220,4 @@ export interface NativeProps extends ViewProps {
   allowTrailingMargin?: CodegenTypes.WithDefault<boolean, false>;
 }
 
-export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText');
+export default codegenNativeComponent<NativeProps>('EnrichedMarkdown');

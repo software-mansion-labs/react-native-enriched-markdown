@@ -208,6 +208,25 @@ const defaultThematicBreakStyle: MarkdownStyleInternal['thematicBreak'] = {
   marginBottom: 24,
 };
 
+const defaultTableStyle: MarkdownStyleInternal['table'] = {
+  fontSize: 14,
+  fontFamily: getSystemFont(),
+  fontWeight: '',
+  color: defaultTextColor,
+  marginTop: 16,
+  marginBottom: 16,
+  lineHeight: 0,
+  headerBackgroundColor: processColor('#F3F4F6') as ColorValue,
+  headerTextColor: processColor('#111827') as ColorValue,
+  rowEvenBackgroundColor: processColor('#FFFFFF') as ColorValue,
+  rowOddBackgroundColor: processColor('#F9FAFB') as ColorValue,
+  borderColor: processColor('#E5E7EB') as ColorValue,
+  borderWidth: 1,
+  borderRadius: 6,
+  cellPaddingHorizontal: 12,
+  cellPaddingVertical: 8,
+};
+
 export const normalizeMarkdownStyle = (
   style: MarkdownStyle
 ): MarkdownStyleInternal => {
@@ -418,6 +437,38 @@ export const normalizeMarkdownStyle = (
       marginBottom:
         style.thematicBreak?.marginBottom ??
         defaultThematicBreakStyle.marginBottom,
+    },
+    table: {
+      fontSize: style.table?.fontSize ?? defaultTableStyle.fontSize,
+      fontFamily: style.table?.fontFamily ?? defaultTableStyle.fontFamily,
+      fontWeight: style.table?.fontWeight ?? defaultTableStyle.fontWeight,
+      color: normalizeColor(style.table?.color) ?? defaultTableStyle.color,
+      marginTop: style.table?.marginTop ?? defaultTableStyle.marginTop,
+      marginBottom: style.table?.marginBottom ?? defaultTableStyle.marginBottom,
+      lineHeight: style.table?.lineHeight ?? defaultTableStyle.lineHeight,
+      headerBackgroundColor:
+        normalizeColor(style.table?.headerBackgroundColor) ??
+        defaultTableStyle.headerBackgroundColor,
+      headerTextColor:
+        normalizeColor(style.table?.headerTextColor) ??
+        defaultTableStyle.headerTextColor,
+      rowEvenBackgroundColor:
+        normalizeColor(style.table?.rowEvenBackgroundColor) ??
+        defaultTableStyle.rowEvenBackgroundColor,
+      rowOddBackgroundColor:
+        normalizeColor(style.table?.rowOddBackgroundColor) ??
+        defaultTableStyle.rowOddBackgroundColor,
+      borderColor:
+        normalizeColor(style.table?.borderColor) ??
+        defaultTableStyle.borderColor,
+      borderWidth: style.table?.borderWidth ?? defaultTableStyle.borderWidth,
+      borderRadius: style.table?.borderRadius ?? defaultTableStyle.borderRadius,
+      cellPaddingHorizontal:
+        style.table?.cellPaddingHorizontal ??
+        defaultTableStyle.cellPaddingHorizontal,
+      cellPaddingVertical:
+        style.table?.cellPaddingVertical ??
+        defaultTableStyle.cellPaddingVertical,
     },
   };
 };

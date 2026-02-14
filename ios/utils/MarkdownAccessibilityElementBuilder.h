@@ -40,6 +40,13 @@ NS_ASSUME_NONNULL_BEGIN
 /** Creates a custom rotor for image navigation. */
 + (UIAccessibilityCustomRotor *)createImageRotorWithElements:(NSArray<UIAccessibilityElement *> *)elements;
 
+/**
+ * Builds the standard set of accessibility custom rotors (headings, links, images)
+ * from an array of accessibility elements.
+ * Only includes rotors for categories that have matching elements.
+ */
++ (NSArray<UIAccessibilityCustomRotor *> *)buildRotorsFromElements:(NSArray<UIAccessibilityElement *> *)elements;
+
 @end
 
 NS_ASSUME_NONNULL_END

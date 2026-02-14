@@ -1,0 +1,643 @@
+#import "EnrichedMarkdown.h"
+#import "AccessibilityInfo.h"
+#import "AttributedRenderer.h"
+#import "EditMenuUtils.h"
+#import "EnrichedMarkdownInternalText.h"
+#import "FontScaleObserver.h"
+#import "FontUtils.h"
+#import "LastElementUtils.h"
+#import "LinkTapUtils.h"
+#import "MarkdownASTNode.h"
+#import "MarkdownAccessibilityElementBuilder.h"
+#import "MarkdownExtractor.h"
+#import "MarkdownParser.h"
+#import "ParagraphStyleUtils.h"
+#import "RenderContext.h"
+#import "RuntimeKeys.h"
+#import "StyleConfig.h"
+#import "StylePropsUtils.h"
+#import "TableContainerView.h"
+#import "TextViewLayoutManager.h"
+#import <React/RCTUtils.h>
+#import <objc/runtime.h>
+
+#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownComponentDescriptor.h>
+#import <ReactNativeEnrichedMarkdown/EventEmitters.h>
+#import <ReactNativeEnrichedMarkdown/Props.h>
+#import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
+
+#import "RCTFabricComponentsPlugins.h"
+#import <React/RCTConversions.h>
+#import <React/RCTFont.h>
+#import <react/utils/ManagedObjectWrapper.h>
+
+using namespace facebook::react;
+
+#pragma mark - Internal Segment Model
+
+/// Represents a contiguous group of non-table AST nodes
+@interface EMTextSegment : NSObject
+@property (nonatomic, strong) NSArray<MarkdownASTNode *> *nodes;
++ (instancetype)segmentWithNodes:(NSArray<MarkdownASTNode *> *)nodes;
+@end
+
+@implementation EMTextSegment
++ (instancetype)segmentWithNodes:(NSArray<MarkdownASTNode *> *)nodes
+{
+  EMTextSegment *segment = [[EMTextSegment alloc] init];
+  segment.nodes = [nodes copy];
+  return segment;
+}
+@end
+
+/// Represents a table AST node (rendered as TableContainerView)
+@interface EMTableSegment : NSObject
+@property (nonatomic, strong) MarkdownASTNode *tableNode;
++ (instancetype)segmentWithTableNode:(MarkdownASTNode *)node;
+@end
+
+@implementation EMTableSegment
++ (instancetype)segmentWithTableNode:(MarkdownASTNode *)node
+{
+  EMTableSegment *segment = [[EMTableSegment alloc] init];
+  segment.tableNode = node;
+  return segment;
+}
+@end
+
+/// Pre-rendered text segment ready to be applied to a view
+@interface EMRenderedTextSegment : NSObject
+@property (nonatomic, strong) NSMutableAttributedString *attributedText;
+@property (nonatomic, strong) RenderContext *context;
+@property (nonatomic, strong) AccessibilityInfo *accessibilityInfo;
+@property (nonatomic, assign) CGFloat lastElementMarginBottom;
++ (instancetype)withAttributedText:(NSMutableAttributedString *)text
+                           context:(RenderContext *)context
+                 accessibilityInfo:(AccessibilityInfo *)info
+           lastElementMarginBottom:(CGFloat)marginBottom;
+@end
+
+@implementation EMRenderedTextSegment
++ (instancetype)withAttributedText:(NSMutableAttributedString *)text
+                           context:(RenderContext *)context
+                 accessibilityInfo:(AccessibilityInfo *)info
+           lastElementMarginBottom:(CGFloat)marginBottom
+{
+  EMRenderedTextSegment *segment = [[EMRenderedTextSegment alloc] init];
+  segment.attributedText = text;
+  segment.context = context;
+  segment.accessibilityInfo = info;
+  segment.lastElementMarginBottom = marginBottom;
+  return segment;
+}
+@end
+
+#pragma mark - EnrichedMarkdown
+
+@interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
+@end
+
+@implementation EnrichedMarkdown {
+  MarkdownParser *_parser;
+  StyleConfig *_config;
+  Md4cFlags *_md4cFlags;
+  NSString *_cachedMarkdown;
+  NSMutableArray<UIView *> *_segmentViews;
+
+  dispatch_queue_t _renderQueue;
+  NSUInteger _currentRenderId;
+  BOOL _blockAsyncRender;
+
+  EnrichedMarkdownShadowNode::ConcreteState::Shared _state;
+  int _heightUpdateCounter;
+
+  FontScaleObserver *_fontScaleObserver;
+  CGFloat _maxFontSizeMultiplier;
+
+  BOOL _allowTrailingMargin;
+  BOOL _selectable;
+  BOOL _enableLinkPreview;
+}
+
++ (ComponentDescriptorProvider)componentDescriptorProvider
+{
+  return concreteComponentDescriptorProvider<EnrichedMarkdownComponentDescriptor>();
+}
+
+#pragma mark - Initialization
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+  if (self = [super initWithFrame:frame]) {
+    static const auto defaultProps = std::make_shared<const EnrichedMarkdownProps>();
+    _props = defaultProps;
+
+    self.backgroundColor = [UIColor clearColor];
+    _parser = [[MarkdownParser alloc] init];
+    _md4cFlags = [Md4cFlags defaultFlags];
+    _segmentViews = [NSMutableArray array];
+
+    _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
+    _currentRenderId = 0;
+
+    _maxFontSizeMultiplier = 0;
+    _allowTrailingMargin = NO;
+    _selectable = YES;
+    _enableLinkPreview = YES;
+
+    _fontScaleObserver = [[FontScaleObserver alloc] init];
+    __weak EnrichedMarkdown *weakSelf = self;
+    _fontScaleObserver.onChange = ^{
+      EnrichedMarkdown *strongSelf = weakSelf;
+      if (!strongSelf)
+        return;
+      if (strongSelf->_config != nil) {
+        [strongSelf->_config setFontScaleMultiplier:strongSelf->_fontScaleObserver.effectiveFontScale];
+      }
+      if (strongSelf->_cachedMarkdown != nil && strongSelf->_cachedMarkdown.length > 0) {
+        [strongSelf renderMarkdownContent:strongSelf->_cachedMarkdown];
+      }
+    };
+  }
+  return self;
+}
+
+#pragma mark - Measuring and State
+
+- (CGSize)measureSize:(CGFloat)maxWidth
+{
+  CGFloat defaultHeight = [UIFont systemFontOfSize:16.0].lineHeight;
+
+  if (_segmentViews.count == 0) {
+    return CGSizeMake(maxWidth, defaultHeight);
+  }
+
+  CGFloat totalHeight = 0;
+  for (UIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      totalHeight += [(EnrichedMarkdownInternalText *)segment measureHeight:maxWidth];
+    } else if ([segment isKindOfClass:[TableContainerView class]]) {
+      totalHeight += _config.tableMarginTop;
+      totalHeight += [(TableContainerView *)segment measureHeight:maxWidth];
+      totalHeight += _config.tableMarginBottom;
+    }
+  }
+
+  if (totalHeight == 0) {
+    return CGSizeMake(maxWidth, defaultHeight);
+  }
+
+  return CGSizeMake(maxWidth, ceil(totalHeight));
+}
+
+- (void)updateState:(const facebook::react::State::Shared &)state
+           oldState:(const facebook::react::State::Shared &)oldState
+{
+  _state = std::static_pointer_cast<const EnrichedMarkdownShadowNode::ConcreteState>(state);
+
+  if (oldState == nullptr) {
+    [self requestHeightUpdate];
+  }
+}
+
+- (void)requestHeightUpdate
+{
+  if (_state == nullptr) {
+    return;
+  }
+
+  _heightUpdateCounter++;
+  auto selfRef = wrapManagedObjectWeakly(self);
+  _state->updateState(EnrichedMarkdownState(_heightUpdateCounter, selfRef));
+}
+
+#pragma mark - AST Splitting
+
+/**
+ * Walks the top-level AST children and groups them into segments.
+ * Each Table node becomes its own segment; consecutive non-table nodes are grouped into text segments.
+ * O(n) in the number of top-level blocks.
+ */
+- (NSArray *)splitASTIntoSegments:(MarkdownASTNode *)root
+{
+  NSMutableArray *segments = [NSMutableArray array];
+  NSMutableArray *currentTextNodes = [NSMutableArray array];
+
+  for (MarkdownASTNode *child in root.children) {
+    if (child.type == MarkdownNodeTypeTable) {
+      if (currentTextNodes.count > 0) {
+        [segments addObject:[EMTextSegment segmentWithNodes:[currentTextNodes copy]]];
+        [currentTextNodes removeAllObjects];
+      }
+      [segments addObject:[EMTableSegment segmentWithTableNode:child]];
+    } else {
+      [currentTextNodes addObject:child];
+    }
+  }
+
+  if (currentTextNodes.count > 0) {
+    [segments addObject:[EMTextSegment segmentWithNodes:currentTextNodes]];
+  }
+
+  return segments;
+}
+
+#pragma mark - Markdown Rendering
+
+- (void)renderMarkdownContent:(NSString *)markdownString
+{
+  if (_blockAsyncRender) {
+    return;
+  }
+
+  _cachedMarkdown = [markdownString copy];
+  NSUInteger renderId = ++_currentRenderId;
+
+  StyleConfig *config = [_config copy];
+  MarkdownParser *parser = _parser;
+  Md4cFlags *md4cFlags = [_md4cFlags copy];
+
+  BOOL allowFontScaling = _fontScaleObserver.allowFontScaling;
+  CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;
+  BOOL allowTrailingMargin = _allowTrailingMargin;
+
+  dispatch_async(_renderQueue, ^{
+    MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
+    if (!ast) {
+      return;
+    }
+
+    NSArray *segments = [self splitASTIntoSegments:ast];
+
+    // mixed: EMRenderedTextSegment or EMTableSegment
+    NSMutableArray *renderedSegments = [NSMutableArray array];
+
+    for (id segment in segments) {
+      if ([segment isKindOfClass:[EMTextSegment class]]) {
+        EMRenderedTextSegment *rendered = [self renderTextSegment:(EMTextSegment *)segment
+                                                           config:config
+                                              allowTrailingMargin:allowTrailingMargin
+                                                 allowFontScaling:allowFontScaling
+                                            maxFontSizeMultiplier:maxFontSizeMultiplier];
+        [renderedSegments addObject:rendered];
+      } else if ([segment isKindOfClass:[EMTableSegment class]]) {
+        // Table segments can't be rendered on background thread (require UIView creation)
+        [renderedSegments addObject:segment];
+      }
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (renderId != self->_currentRenderId) {
+        return;
+      }
+
+      [self applyRenderedSegments:renderedSegments];
+    });
+  });
+}
+
+/// Synchronous rendering for mock view measurement (no UI updates needed)
+- (void)renderMarkdownSynchronously:(NSString *)markdownString
+{
+  if (!markdownString || markdownString.length == 0) {
+    return;
+  }
+
+  _blockAsyncRender = YES;
+  _cachedMarkdown = [markdownString copy];
+
+  MarkdownASTNode *ast = [_parser parseMarkdown:markdownString flags:_md4cFlags];
+  if (!ast) {
+    return;
+  }
+
+  NSArray *segments = [self splitASTIntoSegments:ast];
+
+  for (id segment in segments) {
+    if ([segment isKindOfClass:[EMTextSegment class]]) {
+      EMRenderedTextSegment *rendered = [self renderTextSegment:(EMTextSegment *)segment
+                                                         config:_config
+                                            allowTrailingMargin:_allowTrailingMargin
+                                               allowFontScaling:_fontScaleObserver.allowFontScaling
+                                          maxFontSizeMultiplier:_maxFontSizeMultiplier];
+      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:rendered];
+      [_segmentViews addObject:view];
+      [self addSubview:view];
+    } else if ([segment isKindOfClass:[EMTableSegment class]]) {
+      EMTableSegment *tableSegment = (EMTableSegment *)segment;
+      TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
+      [_segmentViews addObject:tableView];
+      [self addSubview:tableView];
+    }
+  }
+}
+
+- (void)applyRenderedSegments:(NSArray *)renderedSegments
+{
+  for (UIView *view in _segmentViews) {
+    [view removeFromSuperview];
+  }
+  [_segmentViews removeAllObjects];
+
+  for (id segment in renderedSegments) {
+    if ([segment isKindOfClass:[EMRenderedTextSegment class]]) {
+      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment];
+      [_segmentViews addObject:view];
+      [self addSubview:view];
+    } else if ([segment isKindOfClass:[EMTableSegment class]]) {
+      EMTableSegment *tableSegment = (EMTableSegment *)segment;
+      TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
+      [_segmentViews addObject:tableView];
+      [self addSubview:tableView];
+    }
+  }
+
+  [self requestHeightUpdate];
+  [self setNeedsLayout];
+}
+
+#pragma mark - Text Segment Rendering
+
+- (EMRenderedTextSegment *)renderTextSegment:(EMTextSegment *)textSegment
+                                      config:(StyleConfig *)config
+                         allowTrailingMargin:(BOOL)allowTrailingMargin
+                            allowFontScaling:(BOOL)allowFontScaling
+                       maxFontSizeMultiplier:(CGFloat)maxFontSizeMultiplier
+{
+  MarkdownASTNode *temporaryRoot = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];
+  for (MarkdownASTNode *node in textSegment.nodes) {
+    [temporaryRoot addChild:node];
+  }
+
+  AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:config];
+  [renderer setAllowTrailingMargin:allowTrailingMargin];
+  RenderContext *context = [RenderContext new];
+  context.allowFontScaling = allowFontScaling;
+  context.maxFontSizeMultiplier = maxFontSizeMultiplier;
+  NSMutableAttributedString *attributedText = [renderer renderRoot:temporaryRoot context:context];
+
+  CGFloat lastMarginBottom = [renderer getLastElementMarginBottom];
+  AccessibilityInfo *accessibilityInfo = [AccessibilityInfo infoFromContext:context];
+
+  return [EMRenderedTextSegment withAttributedText:attributedText
+                                           context:context
+                                 accessibilityInfo:accessibilityInfo
+                           lastElementMarginBottom:lastMarginBottom];
+}
+
+#pragma mark - Text View Factory
+
+- (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment
+{
+  EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
+  view.allowTrailingMargin = _allowTrailingMargin;
+  view.lastElementMarginBottom = segment.lastElementMarginBottom;
+  view.accessibilityInfo = segment.accessibilityInfo;
+  view.textView.selectable = _selectable;
+  [view applyAttributedText:segment.attributedText context:segment.context];
+
+  UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                                  action:@selector(textTapped:)];
+  [view.textView addGestureRecognizer:tapRecognizer];
+  view.textView.delegate = self;
+
+  return view;
+}
+
+#pragma mark - Table View Factory
+
+- (TableContainerView *)createTableViewForSegment:(EMTableSegment *)tableSegment
+{
+  TableContainerView *tableView = [[TableContainerView alloc] initWithConfig:_config];
+
+  tableView.allowFontScaling = _fontScaleObserver.allowFontScaling;
+  tableView.maxFontSizeMultiplier = _maxFontSizeMultiplier;
+  tableView.enableLinkPreview = _enableLinkPreview;
+
+  __weak EnrichedMarkdown *weakSelf = self;
+
+  tableView.onLinkPress = ^(NSString *url) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf || !url)
+      return;
+
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
+    }
+  };
+
+  tableView.onLinkLongPress = ^(NSString *url) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf || !url)
+      return;
+
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onLinkLongPress({.url = std::string([url UTF8String])});
+    }
+  };
+
+  [tableView applyTableNode:tableSegment.tableNode];
+
+  return tableView;
+}
+
+#pragma mark - Layout
+
+- (void)layoutSubviews
+{
+  [super layoutSubviews];
+
+  CGFloat yOffset = 0;
+  CGFloat width = self.bounds.size.width;
+
+  for (UIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      CGFloat height = [(EnrichedMarkdownInternalText *)segment measureHeight:width];
+      segment.frame = CGRectMake(0, yOffset, width, height);
+      yOffset += height;
+    } else if ([segment isKindOfClass:[TableContainerView class]]) {
+      yOffset += _config.tableMarginTop;
+      CGFloat height = [(TableContainerView *)segment measureHeight:width];
+      segment.frame = CGRectMake(0, yOffset, width, height);
+      yOffset += height + _config.tableMarginBottom;
+    }
+  }
+}
+
+#pragma mark - updateProps
+
+- (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
+{
+  const auto &oldViewProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(_props);
+  const auto &newViewProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(props);
+
+  BOOL stylePropChanged = NO;
+
+  if (_config == nil) {
+    _config = [[StyleConfig alloc] init];
+    [_config setFontScaleMultiplier:_fontScaleObserver.effectiveFontScale];
+  }
+
+  stylePropChanged = applyMarkdownStyleToConfig(_config, newViewProps.markdownStyle, oldViewProps.markdownStyle);
+
+  // Stored as ivar so newly created segment views (after async re-render) inherit this
+  _selectable = newViewProps.selectable;
+
+  for (UIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
+      if (textSegment.textView.selectable != newViewProps.selectable) {
+        textSegment.textView.selectable = newViewProps.selectable;
+      }
+    }
+  }
+
+  if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
+    _fontScaleObserver.allowFontScaling = newViewProps.allowFontScaling;
+    if (_config != nil) {
+      [_config setFontScaleMultiplier:_fontScaleObserver.effectiveFontScale];
+    }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.maxFontSizeMultiplier != oldViewProps.maxFontSizeMultiplier) {
+    _maxFontSizeMultiplier = newViewProps.maxFontSizeMultiplier;
+    if (_config != nil) {
+      [_config setMaxFontSizeMultiplier:_maxFontSizeMultiplier];
+    }
+    stylePropChanged = YES;
+  }
+
+  if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
+    _allowTrailingMargin = newViewProps.allowTrailingMargin;
+  }
+
+  BOOL md4cFlagsChanged = NO;
+  if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
+    _md4cFlags.underline = newViewProps.md4cFlags.underline;
+    md4cFlagsChanged = YES;
+  }
+
+  BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
+  BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
+
+  _enableLinkPreview = newViewProps.enableLinkPreview;
+
+  if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
+    NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
+    [self renderMarkdownContent:markdownString];
+  }
+
+  [super updateProps:props oldProps:oldProps];
+}
+
+#pragma mark - Fabric Component Registration
+
+Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
+{
+  return EnrichedMarkdown.class;
+}
+
+#pragma mark - Link Tap Handling
+
+- (void)textTapped:(UITapGestureRecognizer *)recognizer
+{
+  UITextView *textView = (UITextView *)recognizer.view;
+  NSString *url = linkURLAtTapLocation(textView, recognizer);
+  if (url) {
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
+    }
+  }
+}
+
+#pragma mark - UITextViewDelegate (Edit Menu)
+
+- (UIMenu *)textView:(UITextView *)textView
+    editMenuForTextInRange:(NSRange)range
+          suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
+{
+  // Extract per-segment markdown from attributes instead of using _cachedMarkdown
+  // (which contains the full document including tables and other segments).
+  NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.attributedText, range);
+  return buildEditMenuForSelection(textView.attributedText, range, segmentMarkdown, _config, suggestedActions);
+}
+
+#pragma mark - UITextViewDelegate (Link Interaction)
+
+- (BOOL)textView:(UITextView *)textView
+    shouldInteractWithURL:(NSURL *)URL
+                  inRange:(NSRange)characterRange
+              interaction:(UITextItemInteraction)interaction
+{
+  if (interaction != UITextItemInteractionPresentActions) {
+    return YES;
+  }
+
+  NSString *urlString = linkURLAtRange(textView, characterRange);
+
+  if (!urlString || _enableLinkPreview) {
+    return YES;
+  }
+
+  auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+  if (eventEmitter) {
+    eventEmitter->onLinkLongPress({.url = std::string([urlString UTF8String])});
+  }
+  return NO;
+}
+
+#pragma mark - Accessibility
+
+- (BOOL)isAccessibilityElement
+{
+  return NO;
+}
+
+- (NSArray *)accessibilityElements
+{
+  NSMutableArray *allElements = [NSMutableArray array];
+  for (UIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      NSArray *elements = [(EnrichedMarkdownInternalText *)segment accessibilityElements];
+      if (elements) {
+        [allElements addObjectsFromArray:elements];
+      }
+    } else if ([segment isKindOfClass:[TableContainerView class]]) {
+      NSArray *elements = [(TableContainerView *)segment accessibilityElements];
+      if (elements) {
+        [allElements addObjectsFromArray:elements];
+      }
+    }
+  }
+  return allElements;
+}
+
+- (NSInteger)accessibilityElementCount
+{
+  return [self accessibilityElements].count;
+}
+
+- (id)accessibilityElementAtIndex:(NSInteger)index
+{
+  NSArray *elements = [self accessibilityElements];
+  if (index < 0 || index >= (NSInteger)elements.count) {
+    return nil;
+  }
+  return elements[index];
+}
+
+- (NSInteger)indexOfAccessibilityElement:(id)element
+{
+  return [[self accessibilityElements] indexOfObject:element];
+}
+
+- (NSArray<UIAccessibilityCustomRotor *> *)accessibilityCustomRotors
+{
+  return [MarkdownAccessibilityElementBuilder buildRotorsFromElements:[self accessibilityElements]];
+}
+
+@end

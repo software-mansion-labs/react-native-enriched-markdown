@@ -176,6 +176,9 @@
       "components": {
         "EnrichedMarkdownText": {
           "className": "EnrichedMarkdownText"
+        },
+        "EnrichedMarkdown": {
+          "className": "EnrichedMarkdown"
         }
       }
     },

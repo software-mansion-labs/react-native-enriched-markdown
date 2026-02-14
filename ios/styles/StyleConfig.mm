@@ -174,6 +174,25 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _thematicBreakHeight;
   CGFloat _thematicBreakMarginTop;
   CGFloat _thematicBreakMarginBottom;
+  // Table properties
+  CGFloat _tableFontSize;
+  NSString *_tableFontFamily;
+  NSString *_tableFontWeight;
+  UIColor *_tableColor;
+  CGFloat _tableMarginTop;
+  CGFloat _tableMarginBottom;
+  CGFloat _tableLineHeight;
+  UIFont *_tableFont;
+  BOOL _tableFontNeedsRecreation;
+  UIColor *_tableHeaderBackgroundColor;
+  UIColor *_tableHeaderTextColor;
+  UIColor *_tableRowEvenBackgroundColor;
+  UIColor *_tableRowOddBackgroundColor;
+  UIColor *_tableBorderColor;
+  CGFloat _tableBorderWidth;
+  CGFloat _tableBorderRadius;
+  CGFloat _tableCellPaddingHorizontal;
+  CGFloat _tableCellPaddingVertical;
 }
 
 - (instancetype)init
@@ -193,6 +212,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _listStyleFontNeedsRecreation = YES;
   _codeBlockFontNeedsRecreation = YES;
   _blockquoteFontNeedsRecreation = YES;
+  _tableFontNeedsRecreation = YES;
   _linkUnderline = YES;
   return self;
 }
@@ -220,6 +240,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
     _listStyleFontNeedsRecreation = YES;
     _codeBlockFontNeedsRecreation = YES;
     _blockquoteFontNeedsRecreation = YES;
+    _tableFontNeedsRecreation = YES;
   }
 }
 
@@ -253,6 +274,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
     _listStyleFontNeedsRecreation = YES;
     _codeBlockFontNeedsRecreation = YES;
     _blockquoteFontNeedsRecreation = YES;
+    _tableFontNeedsRecreation = YES;
   }
 }
 
@@ -387,6 +409,23 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_thematicBreakHeight = _thematicBreakHeight;
   copy->_thematicBreakMarginTop = _thematicBreakMarginTop;
   copy->_thematicBreakMarginBottom = _thematicBreakMarginBottom;
+  copy->_tableFontSize = _tableFontSize;
+  copy->_tableFontFamily = [_tableFontFamily copy];
+  copy->_tableFontWeight = [_tableFontWeight copy];
+  copy->_tableColor = [_tableColor copy];
+  copy->_tableMarginTop = _tableMarginTop;
+  copy->_tableMarginBottom = _tableMarginBottom;
+  copy->_tableLineHeight = _tableLineHeight;
+  copy->_tableFontNeedsRecreation = YES;
+  copy->_tableHeaderBackgroundColor = [_tableHeaderBackgroundColor copy];
+  copy->_tableHeaderTextColor = [_tableHeaderTextColor copy];
+  copy->_tableRowEvenBackgroundColor = [_tableRowEvenBackgroundColor copy];
+  copy->_tableRowOddBackgroundColor = [_tableRowOddBackgroundColor copy];
+  copy->_tableBorderColor = [_tableBorderColor copy];
+  copy->_tableBorderWidth = _tableBorderWidth;
+  copy->_tableBorderRadius = _tableBorderRadius;
+  copy->_tableCellPaddingHorizontal = _tableCellPaddingHorizontal;
+  copy->_tableCellPaddingVertical = _tableCellPaddingVertical;
 
   return copy;
 }
@@ -1801,6 +1840,188 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setThematicBreakMarginBottom:(CGFloat)newValue
 {
   _thematicBreakMarginBottom = newValue;
+}
+
+// Table properties
+- (CGFloat)tableFontSize
+{
+  return _tableFontSize;
+}
+
+- (void)setTableFontSize:(CGFloat)newValue
+{
+  _tableFontSize = newValue;
+  _tableFontNeedsRecreation = YES;
+}
+
+- (NSString *)tableFontFamily
+{
+  return _tableFontFamily;
+}
+
+- (void)setTableFontFamily:(NSString *)newValue
+{
+  _tableFontFamily = newValue;
+  _tableFontNeedsRecreation = YES;
+}
+
+- (NSString *)tableFontWeight
+{
+  return _tableFontWeight;
+}
+
+- (void)setTableFontWeight:(NSString *)newValue
+{
+  _tableFontWeight = newValue;
+  _tableFontNeedsRecreation = YES;
+}
+
+- (UIColor *)tableColor
+{
+  return _tableColor;
+}
+
+- (void)setTableColor:(UIColor *)newValue
+{
+  _tableColor = newValue;
+}
+
+- (CGFloat)tableMarginTop
+{
+  return _tableMarginTop;
+}
+
+- (void)setTableMarginTop:(CGFloat)newValue
+{
+  _tableMarginTop = newValue;
+}
+
+- (CGFloat)tableMarginBottom
+{
+  return _tableMarginBottom;
+}
+
+- (void)setTableMarginBottom:(CGFloat)newValue
+{
+  _tableMarginBottom = newValue;
+}
+
+- (CGFloat)tableLineHeight
+{
+  if (_allowFontScaling && _tableLineHeight > 0) {
+    return _tableLineHeight * RCTFontSizeMultiplierWithMax(_maxFontSizeMultiplier);
+  }
+  return _tableLineHeight;
+}
+
+- (void)setTableLineHeight:(CGFloat)newValue
+{
+  _tableLineHeight = newValue;
+}
+
+- (UIFont *)tableFont
+{
+  if (_tableFontNeedsRecreation || !_tableFont) {
+    _tableFont = [RCTFont updateFont:nil
+                          withFamily:_tableFontFamily
+                                size:@(_tableFontSize)
+                              weight:normalizedFontWeight(_tableFontWeight)
+                               style:nil
+                             variant:nil
+                     scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_tableFontSize]];
+    _tableFontNeedsRecreation = NO;
+  }
+  return _tableFont;
+}
+
+- (UIColor *)tableHeaderBackgroundColor
+{
+  return _tableHeaderBackgroundColor;
+}
+
+- (void)setTableHeaderBackgroundColor:(UIColor *)newValue
+{
+  _tableHeaderBackgroundColor = newValue;
+}
+
+- (UIColor *)tableHeaderTextColor
+{
+  return _tableHeaderTextColor;
+}
+
+- (void)setTableHeaderTextColor:(UIColor *)newValue
+{
+  _tableHeaderTextColor = newValue;
+}
+
+- (UIColor *)tableRowEvenBackgroundColor
+{
+  return _tableRowEvenBackgroundColor;
+}
+
+- (void)setTableRowEvenBackgroundColor:(UIColor *)newValue
+{
+  _tableRowEvenBackgroundColor = newValue;
+}
+
+- (UIColor *)tableRowOddBackgroundColor
+{
+  return _tableRowOddBackgroundColor;
+}
+
+- (void)setTableRowOddBackgroundColor:(UIColor *)newValue
+{
+  _tableRowOddBackgroundColor = newValue;
+}
+
+- (UIColor *)tableBorderColor
+{
+  return _tableBorderColor;
+}
+
+- (void)setTableBorderColor:(UIColor *)newValue
+{
+  _tableBorderColor = newValue;
+}
+
+- (CGFloat)tableBorderWidth
+{
+  return _tableBorderWidth;
+}
+
+- (void)setTableBorderWidth:(CGFloat)newValue
+{
+  _tableBorderWidth = newValue;
+}
+
+- (CGFloat)tableBorderRadius
+{
+  return _tableBorderRadius;
+}
+
+- (void)setTableBorderRadius:(CGFloat)newValue
+{
+  _tableBorderRadius = newValue;
+}
+
+- (CGFloat)tableCellPaddingHorizontal
+{
+  return _tableCellPaddingHorizontal;
+}
+
+- (void)setTableCellPaddingHorizontal:(CGFloat)newValue
+{
+  _tableCellPaddingHorizontal = newValue;
+}
+
+- (CGFloat)tableCellPaddingVertical
+{
+  return _tableCellPaddingVertical;
+}
+
+- (void)setTableCellPaddingVertical:(CGFloat)newValue
+{
+  _tableCellPaddingVertical = newValue;
 }
 
 @end

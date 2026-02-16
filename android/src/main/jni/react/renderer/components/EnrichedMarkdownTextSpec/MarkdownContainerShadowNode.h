@@ -10,10 +10,6 @@ namespace facebook::react {
 
 JSI_EXPORT extern const char MarkdownContainerComponentName[];
 
-/*
- * `ShadowNode` for <EnrichedMarkdown> component.
- * Uses custom measurement to sum segment heights (text + table).
- */
 class MarkdownContainerShadowNode final
     : public ConcreteViewShadowNode<MarkdownContainerComponentName, EnrichedMarkdownProps,
                                     EnrichedMarkdownEventEmitter> {

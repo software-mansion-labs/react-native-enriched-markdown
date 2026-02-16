@@ -227,12 +227,12 @@ export interface EnrichedMarkdownTextProps
    */
   allowTrailingMargin?: boolean;
   /**
-   * Enable experimental GitHub Flavored Markdown (GFM) support.
-   * When true, uses a container-based renderer that supports tables and other GFM extensions.
-   * When false (default), uses the standard single-TextView renderer.
-   * @default false
+   * Specifies which Markdown flavor to use for rendering.
+   * - `'commonmark'` (default): standard CommonMark renderer (single TextView).
+   * - `'gfm'`: GitHub Flavored Markdown — container-based renderer with support for tables and other GFM extensions.
+   * @default 'commonmark'
    */
-  experimentalGFMSupport?: boolean;
+  flavor?: 'commonmark' | 'gfm';
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -251,7 +251,7 @@ export const EnrichedMarkdownText = ({
   allowFontScaling = true,
   maxFontSizeMultiplier,
   allowTrailingMargin = false,
-  experimentalGFMSupport = false,
+  flavor = 'commonmark',
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
@@ -297,7 +297,7 @@ export const EnrichedMarkdownText = ({
     ...rest,
   };
 
-  if (experimentalGFMSupport) {
+  if (flavor === 'gfm') {
     return <EnrichedMarkdownNativeComponent {...sharedProps} />;
   }
 

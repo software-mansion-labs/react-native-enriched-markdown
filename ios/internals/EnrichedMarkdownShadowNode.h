@@ -9,8 +9,6 @@ namespace facebook::react {
 
 JSI_EXPORT extern const char EnrichedMarkdownComponentName[];
 
-/// ShadowNode implementing measureContent for automatic height calculation.
-/// Measures the total height of all text (and later table) segments.
 class EnrichedMarkdownShadowNode : public ConcreteViewShadowNode<EnrichedMarkdownComponentName, EnrichedMarkdownProps,
                                                                  EnrichedMarkdownEventEmitter, EnrichedMarkdownState> {
 public:

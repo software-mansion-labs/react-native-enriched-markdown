@@ -7,11 +7,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/**
- * Internal text segment view used by EnrichedMarkdown container.
- * Thin wrapper around UITextView that reuses the existing rendering pipeline.
- * Not a Fabric component — managed entirely by EnrichedMarkdown.
- */
 @interface EnrichedMarkdownInternalText : UIView
 
 - (instancetype)initWithConfig:(StyleConfig *)config;

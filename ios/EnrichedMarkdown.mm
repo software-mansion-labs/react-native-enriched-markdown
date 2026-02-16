@@ -33,9 +33,6 @@
 
 using namespace facebook::react;
 
-#pragma mark - Internal Segment Model
-
-/// Represents a contiguous group of non-table AST nodes
 @interface EMTextSegment : NSObject
 @property (nonatomic, strong) NSArray<MarkdownASTNode *> *nodes;
 + (instancetype)segmentWithNodes:(NSArray<MarkdownASTNode *> *)nodes;
@@ -50,7 +47,6 @@ using namespace facebook::react;
 }
 @end
 
-/// Represents a table AST node (rendered as TableContainerView)
 @interface EMTableSegment : NSObject
 @property (nonatomic, strong) MarkdownASTNode *tableNode;
 + (instancetype)segmentWithTableNode:(MarkdownASTNode *)node;
@@ -65,7 +61,6 @@ using namespace facebook::react;
 }
 @end
 
-/// Pre-rendered text segment ready to be applied to a view
 @interface EMRenderedTextSegment : NSObject
 @property (nonatomic, strong) NSMutableAttributedString *attributedText;
 @property (nonatomic, strong) RenderContext *context;
@@ -91,8 +86,6 @@ using namespace facebook::react;
   return segment;
 }
 @end
-
-#pragma mark - EnrichedMarkdown
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
 @end
@@ -123,8 +116,6 @@ using namespace facebook::react;
 {
   return concreteComponentDescriptorProvider<EnrichedMarkdownComponentDescriptor>();
 }
-
-#pragma mark - Initialization
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
@@ -161,8 +152,6 @@ using namespace facebook::react;
   }
   return self;
 }
-
-#pragma mark - Measuring and State
 
 - (CGSize)measureSize:(CGFloat)maxWidth
 {
@@ -211,13 +200,6 @@ using namespace facebook::react;
   _state->updateState(EnrichedMarkdownState(_heightUpdateCounter, selfRef));
 }
 
-#pragma mark - AST Splitting
-
-/**
- * Walks the top-level AST children and groups them into segments.
- * Each Table node becomes its own segment; consecutive non-table nodes are grouped into text segments.
- * O(n) in the number of top-level blocks.
- */
 - (NSArray *)splitASTIntoSegments:(MarkdownASTNode *)root
 {
   NSMutableArray *segments = [NSMutableArray array];
@@ -241,8 +223,6 @@ using namespace facebook::react;
 
   return segments;
 }
-
-#pragma mark - Markdown Rendering
 
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
@@ -269,7 +249,6 @@ using namespace facebook::react;
 
     NSArray *segments = [self splitASTIntoSegments:ast];
 
-    // mixed: EMRenderedTextSegment or EMTableSegment
     NSMutableArray *renderedSegments = [NSMutableArray array];
 
     for (id segment in segments) {
@@ -281,7 +260,6 @@ using namespace facebook::react;
                                             maxFontSizeMultiplier:maxFontSizeMultiplier];
         [renderedSegments addObject:rendered];
       } else if ([segment isKindOfClass:[EMTableSegment class]]) {
-        // Table segments can't be rendered on background thread (require UIView creation)
         [renderedSegments addObject:segment];
       }
     }
@@ -296,7 +274,6 @@ using namespace facebook::react;
   });
 }
 
-/// Synchronous rendering for mock view measurement (no UI updates needed)
 - (void)renderMarkdownSynchronously:(NSString *)markdownString
 {
   if (!markdownString || markdownString.length == 0) {
@@ -356,8 +333,6 @@ using namespace facebook::react;
   [self setNeedsLayout];
 }
 
-#pragma mark - Text Segment Rendering
-
 - (EMRenderedTextSegment *)renderTextSegment:(EMTextSegment *)textSegment
                                       config:(StyleConfig *)config
                          allowTrailingMargin:(BOOL)allowTrailingMargin
@@ -385,8 +360,6 @@ using namespace facebook::react;
                            lastElementMarginBottom:lastMarginBottom];
 }
 
-#pragma mark - Text View Factory
-
 - (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment
 {
   EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
@@ -403,8 +376,6 @@ using namespace facebook::react;
 
   return view;
 }
-
-#pragma mark - Table View Factory
 
 - (TableContainerView *)createTableViewForSegment:(EMTableSegment *)tableSegment
 {
@@ -443,8 +414,6 @@ using namespace facebook::react;
   return tableView;
 }
 
-#pragma mark - Layout
-
 - (void)layoutSubviews
 {
   [super layoutSubviews];
@@ -466,8 +435,6 @@ using namespace facebook::react;
   }
 }
 
-#pragma mark - updateProps
-
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
   const auto &oldViewProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(_props);
@@ -482,7 +449,6 @@ using namespace facebook::react;
 
   stylePropChanged = applyMarkdownStyleToConfig(_config, newViewProps.markdownStyle, oldViewProps.markdownStyle);
 
-  // Stored as ivar so newly created segment views (after async re-render) inherit this
   _selectable = newViewProps.selectable;
 
   for (UIView *segment in _segmentViews) {
@@ -533,14 +499,10 @@ using namespace facebook::react;
   [super updateProps:props oldProps:oldProps];
 }
 
-#pragma mark - Fabric Component Registration
-
 Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 {
   return EnrichedMarkdown.class;
 }
-
-#pragma mark - Link Tap Handling
 
 - (void)textTapped:(UITapGestureRecognizer *)recognizer
 {
@@ -554,19 +516,13 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   }
 }
 
-#pragma mark - UITextViewDelegate (Edit Menu)
-
 - (UIMenu *)textView:(UITextView *)textView
     editMenuForTextInRange:(NSRange)range
           suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
 {
-  // Extract per-segment markdown from attributes instead of using _cachedMarkdown
-  // (which contains the full document including tables and other segments).
   NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.attributedText, range);
   return buildEditMenuForSelection(textView.attributedText, range, segmentMarkdown, _config, suggestedActions);
 }
-
-#pragma mark - UITextViewDelegate (Link Interaction)
 
 - (BOOL)textView:(UITextView *)textView
     shouldInteractWithURL:(NSURL *)URL
@@ -589,8 +545,6 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   }
   return NO;
 }
-
-#pragma mark - Accessibility
 
 - (BOOL)isAccessibilityElement
 {

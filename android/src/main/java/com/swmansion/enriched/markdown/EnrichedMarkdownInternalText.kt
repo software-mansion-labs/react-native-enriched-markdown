@@ -9,11 +9,6 @@ import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.applySelectableState
 import com.swmansion.enriched.markdown.utils.setupAsMarkdownTextView
 
-/**
- * Internal text view used by [EnrichedMarkdown] to render individual text segments.
- * Thin wrapper around AppCompatTextView that reuses the existing rendering pipeline.
- * Not a Fabric component — managed directly by [EnrichedMarkdown].
- */
 class EnrichedMarkdownInternalText
   @JvmOverloads
   constructor(

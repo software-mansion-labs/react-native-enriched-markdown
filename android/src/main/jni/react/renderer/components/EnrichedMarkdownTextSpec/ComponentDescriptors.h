@@ -1,15 +1,3 @@
-/**
- * Custom ComponentDescriptors that shadows the codegen-generated version.
- *
- * Our custom JNI directory is listed before the generated directory in CMake's
- * include path, so this file takes precedence over the generated ComponentDescriptors.h.
- *
- * When componentDescriptors is absent from react-native.config.js, the autolinking calls
- * registerComponentDescriptorsFromCodegen (defined in generated ComponentDescriptors.cpp).
- * That .cpp includes "ComponentDescriptors.h" — which resolves to THIS file.
- * The result: our measurement-capable descriptors are registered instead of the generated ones.
- */
-
 #pragma once
 
 #include "MarkdownContainerMeasurementManager.h"

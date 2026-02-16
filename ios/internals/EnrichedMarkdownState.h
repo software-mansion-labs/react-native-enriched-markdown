@@ -3,7 +3,6 @@
 
 namespace facebook::react {
 
-/// Counter triggers layout recalculation, viewRef allows shadow node to access view for measurement.
 class EnrichedMarkdownState {
 public:
   EnrichedMarkdownState() = default;

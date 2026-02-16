@@ -1,12 +1,8 @@
 #import "MarkdownASTSerializer.h"
 #import "MarkdownASTNode.h"
 
-#pragma mark - Forward Declaration
-
 static void serializeNode(MarkdownASTNode *node, NSMutableString *buffer);
 static void serializeChildren(MarkdownASTNode *node, NSMutableString *buffer);
-
-#pragma mark - Internal
 
 static void serializeChildren(MarkdownASTNode *node, NSMutableString *buffer)
 {
@@ -80,8 +76,6 @@ static void serializeNode(MarkdownASTNode *node, NSMutableString *buffer)
       break;
   }
 }
-
-#pragma mark - Public API
 
 NSString *markdownFromASTNode(MarkdownASTNode *node)
 {

@@ -19,7 +19,6 @@ typedef NS_ENUM(NSInteger, MarkdownNodeType) {
   MarkdownNodeTypeListItem,
   MarkdownNodeTypeCodeBlock,
   MarkdownNodeTypeThematicBreak,
-  // Table types
   MarkdownNodeTypeTable,
   MarkdownNodeTypeTableHead,
   MarkdownNodeTypeTableBody,

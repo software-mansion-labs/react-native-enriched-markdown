@@ -7,8 +7,6 @@
 #import "StyleConfig.h"
 #import <UIKit/UIPasteboard.h>
 
-#pragma mark - TableCellData
-
 @interface TableCellData : NSObject
 @property (nonatomic, strong) NSMutableAttributedString *attributedText;
 @property (nonatomic, copy) NSString *plainText;
@@ -19,8 +17,6 @@
 
 @implementation TableCellData
 @end
-
-#pragma mark - TableContainerView
 
 @interface TableContainerView () <UITextViewDelegate, UIContextMenuInteractionDelegate>
 @end
@@ -66,12 +62,9 @@
   _gridContainer = [[UIView alloc] init];
   [_scrollView addSubview:_gridContainer];
 
-  // Context menu for "Copy as Markdown" on long-press
   UIContextMenuInteraction *contextMenu = [[UIContextMenuInteraction alloc] initWithDelegate:self];
   [_gridContainer addInteraction:contextMenu];
 }
-
-#pragma mark - Cell Config Creation
 
 - (StyleConfig *)cellConfigForHeader:(BOOL)isHeader
 {
@@ -85,14 +78,11 @@
   [cellConfig setParagraphColor:isHeader ? self.config.tableHeaderTextColor : self.config.tableColor];
   [cellConfig setParagraphLineHeight:self.config.tableLineHeight];
 
-  // Zero out margins — cells use internal padding
   [cellConfig setParagraphMarginTop:0];
   [cellConfig setParagraphMarginBottom:0];
 
   return cellConfig;
 }
-
-#pragma mark - Attributed String Rendering
 
 - (NSMutableAttributedString *)renderCellNode:(MarkdownASTNode *)cellNode
                                      isHeader:(BOOL)isHeader
@@ -114,7 +104,6 @@
 
   [context applyLinkAttributesToString:attributedText];
 
-  // Apply alignment if necessary
   if (alignment != NSTextAlignmentLeft && attributedText.length > 0) {
     NSRange fullRange = NSMakeRange(0, attributedText.length);
     [attributedText
@@ -142,8 +131,6 @@
   }
   return [buffer copy];
 }
-
-#pragma mark - AST Processing
 
 - (void)applyTableNode:(MarkdownASTNode *)tableNode
 {
@@ -197,8 +184,6 @@
   return NSTextAlignmentLeft;
 }
 
-#pragma mark - Layout Computation
-
 - (void)computeLayout
 {
   // TODO: Consider making minColumnWidth / maxColumnWidth configurable via style props
@@ -211,7 +196,6 @@
   for (NSUInteger i = 0; i < _colCount; i++)
     [_colWidths addObject:@0];
 
-  // Pass 1: Column Widths
   for (NSArray<TableCellData *> *row in _rows) {
     for (NSUInteger column = 0; column < row.count; column++) {
       CGRect boundingRect = [row[column].attributedText
@@ -225,7 +209,6 @@
     }
   }
 
-  // Pass 2: Row Heights
   _rowHeights = [NSMutableArray arrayWithCapacity:_rows.count];
   for (NSArray<TableCellData *> *row in _rows) {
     CGFloat maxHeight = 0;
@@ -243,8 +226,6 @@
   _totalTableWidth = [[_colWidths valueForKeyPath:@"@sum.self"] doubleValue] + _borderWidth;
   _totalTableHeight = [[_rowHeights valueForKeyPath:@"@sum.self"] doubleValue] + _borderWidth;
 }
-
-#pragma mark - Grid Rendering
 
 - (void)renderGrid
 {
@@ -318,7 +299,6 @@
   textView.backgroundColor = [UIColor clearColor];
   textView.textContainerInset = UIEdgeInsetsZero;
   textView.textContainer.lineFragmentPadding = 0;
-  // Disable UITextView's default link styling — we handle it in attributed strings
   textView.linkTextAttributes = @{};
   textView.accessibilityElementsHidden = YES;
   textView.delegate = self;
@@ -328,8 +308,6 @@
   [textView addGestureRecognizer:tapRecognizer];
   return textView;
 }
-
-#pragma mark - Link Handling & Delegate
 
 - (void)cellTextTapped:(UITapGestureRecognizer *)recognizer
 {
@@ -355,8 +333,6 @@
     self.onLinkLongPress(urlString);
   return NO;
 }
-
-#pragma mark - Context Menu (Copy as Markdown)
 
 - (UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
                         configurationForMenuAtLocation:(CGPoint)location
@@ -389,8 +365,6 @@
                      return [UIMenu menuWithTitle:@"" children:@[ copyPlainText, copyMarkdown ]];
                    }];
 }
-
-#pragma mark - Markdown / Plain Text Reconstruction
 
 - (NSString *)buildMarkdownFromRows
 {
@@ -457,8 +431,6 @@
   return [result copy];
 }
 
-#pragma mark - Measurement & Layout
-
 - (CGFloat)measureHeight:(CGFloat)maxWidth
 {
   if (_rows.count == 0)
@@ -476,8 +448,6 @@
   _scrollView.scrollEnabled = (_totalTableWidth > self.bounds.size.width);
   _gridContainer.frame = CGRectMake(0, 0, _totalTableWidth, _totalTableHeight);
 }
-
-#pragma mark - Accessibility
 
 - (BOOL)isAccessibilityElement
 {

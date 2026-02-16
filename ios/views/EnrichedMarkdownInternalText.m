@@ -39,15 +39,12 @@
   _textView.showsHorizontalScrollIndicator = NO;
   _textView.textContainerInset = UIEdgeInsetsZero;
   _textView.textContainer.lineFragmentPadding = 0;
-  // Disable UITextView's default link styling — we handle it in attributed strings
   _textView.linkTextAttributes = @{};
   _textView.selectable = YES;
-  // Disable textView's built-in accessibility — we provide custom elements
   _textView.accessibilityElementsHidden = YES;
 
   [self addSubview:_textView];
 
-  // Set up custom layout manager for rich text drawing (code, blockquotes, etc.)
   [self setupLayoutManager];
 }
 
@@ -67,25 +64,21 @@
 {
   [context applyLinkAttributesToString:text];
 
-  // Update config on layout manager
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {
     [layoutManager setValue:_config forKey:@"config"];
   }
 
-  // Store text view on text container so attachments can access it
   objc_setAssociatedObject(_textView.textContainer, kTextViewKey, _textView, OBJC_ASSOCIATION_ASSIGN);
 
   _textView.attributedText = text;
 
-  // Ensure layout is updated
   [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, text.length) actualCharacterRange:NULL];
 
   [_textView setNeedsLayout];
   [_textView setNeedsDisplay];
 
-  // Build accessibility elements
   if (_accessibilityInfo != nil) {
     _accessibilityElements = [MarkdownAccessibilityElementBuilder buildElementsForTextView:_textView
                                                                                       info:_accessibilityInfo

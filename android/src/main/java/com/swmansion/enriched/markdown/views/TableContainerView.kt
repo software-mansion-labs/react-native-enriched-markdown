@@ -33,8 +33,12 @@ import kotlin.math.min
 class TableContainerView(
   context: Context,
   private val styleConfig: StyleConfig,
-) : FrameLayout(context) {
+) : FrameLayout(context),
+  BlockSegmentView {
   private val tableStyle: TableStyle = styleConfig.tableStyle
+
+  override val segmentMarginTop: Int get() = tableStyle.marginTop.toInt()
+  override val segmentMarginBottom: Int get() = tableStyle.marginBottom.toInt()
   private val density = resources.displayMetrics.density
 
   var allowFontScaling = true
@@ -56,7 +60,7 @@ class TableContainerView(
   private var rowHeights = emptyList<Float>()
   private var totalTableWidth = 0f
   private var totalTableHeight = 0f
-  private var cachedMarkdown = ""
+  private var tableMarkdown = ""
 
   init {
     addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
@@ -82,7 +86,7 @@ class TableContainerView(
       }
 
     columnCount = rows.maxOfOrNull { it.size } ?: 0
-    cachedMarkdown = buildMarkdownFromRows()
+    tableMarkdown = buildMarkdownFromRows()
 
     val (widths, heights) = computeTableDimensions(rows.map { r -> r.map { it.attributedText } }, styleConfig, context)
     columnWidths = widths
@@ -135,26 +139,26 @@ class TableContainerView(
 
       var xOffset = 0f
       for (col in 0 until columnCount) {
-        val colW = columnWidths[col]
+        val columnWidth = columnWidths[col]
         val cellBg =
           CellBackgroundView(context).apply {
             configure(rowBg, tableStyle.borderColor, tableStyle.borderWidth)
-            setOnLongClickListener { v ->
-              showContextMenu(v)
+            setOnLongClickListener { view ->
+              showContextMenu(view)
               true
             }
           }
 
         gridContainer.addView(
           cellBg,
-          LayoutParams(ceil(colW + tableStyle.borderWidth).toInt(), ceil(rowHeight + tableStyle.borderWidth).toInt()).apply {
+          LayoutParams(ceil(columnWidth + tableStyle.borderWidth).toInt(), ceil(rowHeight + tableStyle.borderWidth).toInt()).apply {
             leftMargin = ceil(xOffset).toInt()
             topMargin = ceil(yOffset).toInt()
           },
         )
 
-        if (col < row.size) addTextToCell(cellBg, row[col], colW, rowHeight)
-        xOffset += colW
+        if (col < row.size) addTextToCell(cellBg, row[col], columnWidth, rowHeight)
+        xOffset += columnWidth
       }
       if (!isHeaderRow) bodyRowIndex++
       yOffset += rowHeight
@@ -168,7 +172,7 @@ class TableContainerView(
     width: Float,
     height: Float,
   ) {
-    val tv =
+    val cellTextView =
       CellTextView(context).apply {
         text = data.attributedText
         textSize = tableStyle.fontSize / resources.displayMetrics.scaledDensity
@@ -181,18 +185,21 @@ class TableContainerView(
             Layout.Alignment.ALIGN_OPPOSITE -> Gravity.END
             else -> Gravity.START
           }
-        setOnLongClickListener { v ->
-          showContextMenu(v)
+        setOnLongClickListener { view ->
+          showContextMenu(view)
           true
         }
       }
-    val hp = tableStyle.cellPaddingHorizontal
-    val vp = tableStyle.cellPaddingVertical
+    val horizontalPadding = tableStyle.cellPaddingHorizontal
+    val verticalPadding = tableStyle.cellPaddingVertical
     container.addView(
-      tv,
-      LayoutParams((width - hp * 2).toInt().coerceAtLeast(1), (height - vp * 2).toInt().coerceAtLeast(1)).apply {
-        leftMargin = ceil(hp).toInt()
-        topMargin = ceil(vp).toInt()
+      cellTextView,
+      LayoutParams(
+        (width - horizontalPadding * 2).toInt().coerceAtLeast(1),
+        (height - verticalPadding * 2).toInt().coerceAtLeast(1),
+      ).apply {
+        leftMargin = ceil(horizontalPadding).toInt()
+        topMargin = ceil(verticalPadding).toInt()
       },
     )
   }
@@ -226,7 +233,7 @@ class TableContainerView(
         if (text.isNotEmpty()) clipboard.setPrimaryClip(ClipData.newPlainText("Table", text))
       }
       item(ContextMenuPopup.Icon.DOCUMENT, "Copy as Markdown") {
-        if (cachedMarkdown.isNotEmpty()) clipboard.setPrimaryClip(ClipData.newPlainText("Table", cachedMarkdown))
+        if (tableMarkdown.isNotEmpty()) clipboard.setPrimaryClip(ClipData.newPlainText("Table", tableMarkdown))
       }
     }
   }
@@ -264,80 +271,77 @@ class TableContainerView(
     private fun computeTableDimensions(
       texts: List<List<CharSequence>>,
       config: StyleConfig,
-      ctx: Context,
+      context: Context,
     ): Pair<List<Float>, List<Float>> {
-      val ts = config.tableStyle
-      val den = ctx.resources.displayMetrics.density
-      val (minW, maxW) = 60f * den to 300f * den
-      val (hP, vP) = ts.cellPaddingHorizontal * 2 to ts.cellPaddingVertical * 2
+      val style = config.tableStyle
+      val density = context.resources.displayMetrics.density
+      val (minColumnWidth, maxColumnWidth) = 60f * density to 300f * density
+      val (horizontalPadding, verticalPadding) = style.cellPaddingHorizontal * 2 to style.cellPaddingVertical * 2
       val paint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-          textSize = ts.fontSize
+          textSize = style.fontSize
           typeface = config.tableTypeface
         }
 
-      val colWidths = FloatArray(texts.maxOfOrNull { it.size } ?: 0)
+      val columnWidths = FloatArray(texts.maxOfOrNull { it.size } ?: 0)
       texts.forEach { row ->
-        row.forEachIndexed { c, txt ->
+        row.forEachIndexed { colIndex, cellText ->
           val layout =
             StaticLayout.Builder
-              .obtain(txt, 0, txt.length, paint, maxW.toInt())
+              .obtain(cellText, 0, cellText.length, paint, maxColumnWidth.toInt())
               .setIncludePad(false)
               .build()
-          val txtW: Float = (0 until layout.lineCount).maxOfOrNull { line -> layout.getLineWidth(line) } ?: 0f
-          colWidths[c] = max(colWidths[c], min(max(ceil(txtW) + hP, minW), maxW + hP))
+          val textWidth: Float = (0 until layout.lineCount).maxOfOrNull { line -> layout.getLineWidth(line) } ?: 0f
+          columnWidths[colIndex] =
+            max(columnWidths[colIndex], min(max(ceil(textWidth) + horizontalPadding, minColumnWidth), maxColumnWidth + horizontalPadding))
         }
       }
 
       val rowHeights =
         texts.map { row ->
           row
-            .mapIndexed { c, txt ->
+            .mapIndexed { colIndex, cellText ->
               val layout =
                 StaticLayout.Builder
                   .obtain(
-                    txt,
+                    cellText,
                     0,
-                    txt.length,
+                    cellText.length,
                     paint,
-                    (colWidths[c] - hP).toInt().coerceAtLeast(1),
+                    (columnWidths[colIndex] - horizontalPadding).toInt().coerceAtLeast(1),
                   ).setIncludePad(false)
                   .build()
-              ceil(layout.height.toFloat()) + vP
+              ceil(layout.height.toFloat()) + verticalPadding
             }.maxOfOrNull { it } ?: 0f
         }
-      return colWidths.toList() to rowHeights
+      return columnWidths.toList() to rowHeights
     }
 
     fun measureTableNodeHeight(
       node: MarkdownASTNode,
       config: StyleConfig,
-      ctx: Context,
+      context: Context,
     ): Float {
-      val hTf = config.tableHeaderTypeface ?: Typeface.DEFAULT_BOLD
+      val headerTypeface = config.tableHeaderTypeface ?: Typeface.DEFAULT_BOLD
       val texts =
-        node.children.flatMap { s ->
-          s.children.filter { it.type == NodeType.TableRow }.map { r ->
-            r.children.map { c ->
-              val p = MarkdownASTNode(NodeType.Paragraph, children = c.children)
-              val res =
+        node.children.flatMap { section ->
+          section.children.filter { it.type == NodeType.TableRow }.map { row ->
+            row.children.map { cell ->
+              val paragraph = MarkdownASTNode(NodeType.Paragraph, children = cell.children)
+              val styledText =
                 Renderer()
-                  .apply {
-                    configure(
-                      config,
-                      ctx,
-                    )
-                  }.renderDocument(MarkdownASTNode(NodeType.Document, children = listOf(p)), null, null)
-              if ((s.type == NodeType.TableHead || c.type == NodeType.TableHeaderCell) && res.isNotEmpty()) {
-                res.setSpan(HeaderTypefaceSpan(hTf), 0, res.length, 33)
+                  .apply { configure(config, context) }
+                  .renderDocument(MarkdownASTNode(NodeType.Document, children = listOf(paragraph)), null, null)
+              if ((section.type == NodeType.TableHead || cell.type == NodeType.TableHeaderCell) && styledText.isNotEmpty()) {
+                styledText.setSpan(HeaderTypefaceSpan(headerTypeface), 0, styledText.length, 33)
               }
-              res
+              styledText
             }
           }
         }
       if (texts.isEmpty()) return 0f
-      val (_, hts) = computeTableDimensions(texts, config, ctx)
-      return hts.sum() + config.tableStyle.borderWidth + config.tableStyle.marginTop + config.tableStyle.marginBottom
+      val (_, heights) = computeTableDimensions(texts, config, context)
+      return heights.sum() + config.tableStyle.borderWidth + config.tableStyle.marginTop + config.tableStyle.marginBottom
     }
   }
 
@@ -370,8 +374,8 @@ class TableContainerView(
         canvas.clipPath(path)
         super.dispatchDraw(canvas)
         canvas.restore()
-        val h = paint.strokeWidth / 2
-        rect.inset(h, h)
+        val halfStroke = paint.strokeWidth / 2
+        rect.inset(halfStroke, halfStroke)
         canvas.drawRoundRect(rect, radius, radius, paint)
       } else {
         super.dispatchDraw(canvas)
@@ -383,24 +387,24 @@ class TableContainerView(
   private class CellBackgroundView(
     context: Context,
   ) : FrameLayout(context) {
-    private val bgP = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val bdP = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
 
     fun configure(
-      bg: Int,
-      bd: Int,
-      w: Float,
+      backgroundColor: Int,
+      borderColor: Int,
+      borderWidth: Float,
     ) {
-      bgP.color = bg
-      bdP.color = bd
-      bdP.strokeWidth = w
+      backgroundPaint.color = backgroundColor
+      borderPaint.color = borderColor
+      borderPaint.strokeWidth = borderWidth
     }
 
     override fun dispatchDraw(canvas: Canvas) {
-      canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgP)
-      if (bdP.strokeWidth > 0f) {
-        val h = bdP.strokeWidth / 2
-        canvas.drawRect(h, h, width.toFloat() - h, height.toFloat() - h, bdP)
+      canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
+      if (borderPaint.strokeWidth > 0f) {
+        val halfStroke = borderPaint.strokeWidth / 2
+        canvas.drawRect(halfStroke, halfStroke, width.toFloat() - halfStroke, height.toFloat() - halfStroke, borderPaint)
       }
       super.dispatchDraw(canvas)
     }

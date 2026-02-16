@@ -7,6 +7,7 @@
 - ⚡ Fully native text rendering (no WebView)
 - 🎯 High-performance Markdown parsing with [md4c](https://github.com/mity/md4c)
 - 📐 CommonMark standard compliant
+- 📊 GitHub Flavored Markdown (GFM)
 - 🎨 Fully customizable styles for all elements
 - 📱 iOS and Android support
 - 🏛 Supports only the New Architecture (Fabric)
@@ -88,7 +89,7 @@ npx expo prebuild
 
 ## Usage
 
-Here's a simple example of rendering Markdown content:
+### CommonMark (default)
 
 ```tsx
 import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
@@ -102,26 +103,42 @@ This is a paragraph with **bold**, *italic*, and [links](https://reactnative.dev
 - List item one
 - List item two
   - Nested item
-
-\`\`\`javascript
-const greeting = 'Hello, World!';
-console.log(greeting);
-\`\`\`
 `;
 
 export default function App() {
-  const handleLinkPress = (event: { nativeEvent: { url: string } }) => {
-    Linking.openURL(event.nativeEvent.url);
-  };
-
   return (
     <EnrichedMarkdownText
       markdown={markdown}
-      onLinkPress={handleLinkPress}
+      onLinkPress={({ url }) => Linking.openURL(url)}
     />
   );
 }
 ```
+
+### GFM (tables)
+
+Set `flavor="gfm"` to enable GitHub Flavored Markdown features like tables:
+
+```tsx
+<EnrichedMarkdownText
+  flavor="gfm"
+  markdown={markdown}
+  onLinkPress={({ url }) => Linking.openURL(url)}
+  markdownStyle={{
+    table: {
+      fontSize: 14,
+      borderColor: '#E5E7EB',
+      borderRadius: 8,
+      headerBackgroundColor: '#F3F4F6',
+      headerFontFamily: 'System-Bold',
+      cellPaddingHorizontal: 12,
+      cellPaddingVertical: 8,
+    },
+  }}
+/>
+```
+
+Tables support column alignment, rich text in cells (bold, italic, code, links), horizontal scrolling, header styling, alternating row colors, and a long-press context menu with "Copy" and "Copy as Markdown".
 
 ## Supported Markdown Elements
 
@@ -139,6 +156,7 @@ export default function App() {
 | Ordered Lists | `1. Item` | Numbered lists with unlimited nesting |
 | Thematic Break | `---`, `***`, or `___` | Visual separator line |
 | Images | `![alt](url)` | Block-level images |
+| Tables | `| col | col |` | GFM tables with alignment support (requires `flavor="gfm"`) |
 
 ### Inline Elements
 
@@ -274,6 +292,7 @@ Block elements are structural containers that define the layout. Each block has 
 | `blockquote` | Quoted content with accent bar |
 | `list` | Ordered and unordered lists |
 | `codeBlock` | Multi-line code containers |
+| `table` | GFM tables (requires `flavor="gfm"`) |
 
 #### Inline Elements
 
@@ -519,6 +538,23 @@ The library provides sensible default styles for all Markdown elements out of th
 | `marginTop` | `number` | Top margin |
 | `marginBottom` | `number` | Bottom margin |
 
+#### Table-specific
+
+Table styles only apply when `flavor="gfm"` is set. Tables inherit the base block styles (`fontSize`, `fontFamily`, `fontWeight`, `color`, `marginTop`, `marginBottom`, `lineHeight`) and add the following:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `headerFontFamily` | `string` | Font family for header cells (falls back to `fontFamily` if not set) |
+| `headerBackgroundColor` | `string` | Background color for the header row |
+| `headerTextColor` | `string` | Text color for the header row |
+| `rowEvenBackgroundColor` | `string` | Background color for even data rows |
+| `rowOddBackgroundColor` | `string` | Background color for odd data rows |
+| `borderColor` | `string` | Color of the table grid lines |
+| `borderWidth` | `number` | Width of the table grid lines |
+| `borderRadius` | `number` | Corner radius of the table container |
+| `cellPaddingHorizontal` | `number` | Horizontal padding inside cells |
+| `cellPaddingVertical` | `number` | Vertical padding inside cells |
+
 ## API Reference
 
 ### Props
@@ -536,6 +572,7 @@ The library provides sensible default styles for all Markdown elements out of th
 | `allowFontScaling` | `boolean` | `true` | Whether fonts should scale to respect Text Size accessibility settings |
 | `maxFontSizeMultiplier` | `number` | `undefined` | Maximum font scale multiplier when `allowFontScaling` is enabled |
 | `allowTrailingMargin` | `boolean` | `false` | Whether to preserve the bottom margin of the last block element |
+| `flavor` | `'commonmark' \| 'gfm'` | `'commonmark'` | Markdown flavor. Set to `'gfm'` to enable GFM table support |
 
 ## Contributing
 

@@ -19,6 +19,7 @@ import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.emitLinkPressEvent
+import com.swmansion.enriched.markdown.views.BlockSegmentView
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -172,9 +173,7 @@ class EnrichedMarkdown
 
                 is List<*> -> {
                   @Suppress("UNCHECKED_CAST")
-                  {
-                    renderTextSegment(segmentNode as List<MarkdownASTNode>, style)
-                  }
+                  renderTextSegment(segmentNode as List<MarkdownASTNode>, style)
                 }
 
                 else -> {
@@ -195,11 +194,11 @@ class EnrichedMarkdown
       nodes: List<MarkdownASTNode>,
       style: StyleConfig,
     ): RenderSegment.Text {
-      val tempDoc = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = nodes)
+      val documentWrapper = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = nodes)
       val renderer = Renderer().apply { configure(style, context) }
 
       return RenderSegment.Text(
-        styledText = renderer.renderDocument(tempDoc, onLinkPressCallback, onLinkLongPressCallback),
+        styledText = renderer.renderDocument(documentWrapper, onLinkPressCallback, onLinkLongPressCallback),
         imageSpans = renderer.getCollectedImageSpans().toList(),
         needsJustify = style.needsJustify,
       )
@@ -247,7 +246,7 @@ class EnrichedMarkdown
       val segments = mutableListOf<Any>()
       val currentTextBuffer = mutableListOf<MarkdownASTNode>()
 
-      fun flush() {
+      fun flushTextBuffer() {
         if (currentTextBuffer.isNotEmpty()) {
           segments.add(currentTextBuffer.toList())
           currentTextBuffer.clear()
@@ -256,13 +255,13 @@ class EnrichedMarkdown
 
       root.children.forEach { child ->
         if (child.type == MarkdownASTNode.NodeType.Table) {
-          flush()
+          flushTextBuffer()
           segments.add(child)
         } else {
           currentTextBuffer.add(child)
         }
       }
-      flush()
+      flushTextBuffer()
       return segments
     }
 
@@ -296,11 +295,9 @@ class EnrichedMarkdown
 
       var yOffset = 0
       segmentViews.forEach { view ->
-        val isTable = view is TableContainerView
-        val tableStyle = if (isTable) markdownStyle?.tableStyle else null
-
-        val marginTop = tableStyle?.marginTop?.toInt() ?: 0
-        val marginBottom = tableStyle?.marginBottom?.toInt() ?: 0
+        val blockSegment = view as? BlockSegmentView
+        val marginTop = blockSegment?.segmentMarginTop ?: 0
+        val marginBottom = blockSegment?.segmentMarginBottom ?: 0
 
         yOffset += marginTop
         view.measure(

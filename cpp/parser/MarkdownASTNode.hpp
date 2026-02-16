@@ -26,7 +26,6 @@ enum class NodeType {
     ListItem,
     CodeBlock,
     ThematicBreak,
-    // Table types (requires MD_FLAG_TABLES)
     Table,
     TableHead,
     TableBody,

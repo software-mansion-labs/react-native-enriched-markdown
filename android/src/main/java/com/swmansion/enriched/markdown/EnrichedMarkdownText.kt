@@ -2,7 +2,6 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Color
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -10,18 +9,17 @@ import android.text.Layout
 import android.util.AttributeSet
 import android.util.Log
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.view.ViewCompat
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.uimanager.UIManagerHelper
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
-import com.swmansion.enriched.markdown.events.LinkLongPressEvent
-import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
-import com.swmansion.enriched.markdown.utils.createSelectionActionModeCallback
+import com.swmansion.enriched.markdown.utils.applySelectableState
+import com.swmansion.enriched.markdown.utils.emitLinkLongPressEvent
+import com.swmansion.enriched.markdown.utils.emitLinkPressEvent
+import com.swmansion.enriched.markdown.utils.setupAsMarkdownTextView
 import java.util.concurrent.Executors
 
 /**
@@ -66,17 +64,7 @@ class EnrichedMarkdownText
     private var allowTrailingMargin: Boolean = false
 
     init {
-      setBackgroundColor(Color.TRANSPARENT)
-      includeFontPadding = false // Must match setIncludePad(false) in MeasurementStore
-      movementMethod = LinkLongPressMovementMethod.createInstance()
-      setTextIsSelectable(true)
-      customSelectionActionModeCallback = createSelectionActionModeCallback(this)
-      isVerticalScrollBarEnabled = false
-      isHorizontalScrollBarEnabled = false
-
-      // Set up accessibility for TalkBack
-      // This enables virtual view hierarchy for semantic navigation (headings, links, etc.)
-      ViewCompat.setAccessibilityDelegate(this, accessibilityHelper)
+      setupAsMarkdownTextView(accessibilityHelper)
     }
 
     fun setMarkdownContent(markdown: String) {
@@ -176,35 +164,22 @@ class EnrichedMarkdownText
 
       executor.execute {
         try {
-          // 1. Parse Markdown → AST (C++ md4c parser)
-          val parseStart = System.currentTimeMillis()
           val ast =
             parser.parseMarkdown(markdown, md4cFlags) ?: run {
               mainHandler.post { if (renderId == currentRenderId) text = "" }
               return@execute
             }
-          val parseTime = System.currentTimeMillis() - parseStart
 
-          // 2. Render AST → Spannable
-          val renderStart = System.currentTimeMillis()
           renderer.configure(style, context)
           val styledText = renderer.renderDocument(ast, onLinkPressCallback, onLinkLongPressCallback)
-          val renderTime = System.currentTimeMillis() - renderStart
 
-          Log.i(TAG, "┌──────────────────────────────────────────────")
-          Log.i(TAG, "│ 📝 Input: ${markdown.length} chars of Markdown")
-          Log.i(TAG, "│ ⚡ md4c (C++ native): ${parseTime}ms → ${ast.children.size} AST nodes")
-          Log.i(TAG, "│ 🎨 Spannable render: ${renderTime}ms → ${styledText.length} styled chars")
-          Log.i(TAG, "└──────────────────────────────────────────────")
-
-          // 3. Apply to view on main thread
           mainHandler.post {
             if (renderId == currentRenderId) {
               applyRenderedText(styledText)
             }
           }
         } catch (e: Exception) {
-          Log.e(TAG, "❌ Render failed: ${e.message}", e)
+          Log.e(TAG, "Render failed: ${e.message}", e)
           mainHandler.post { if (renderId == currentRenderId) text = "" }
         }
       }
@@ -230,30 +205,15 @@ class EnrichedMarkdownText
     }
 
     fun setIsSelectable(selectable: Boolean) {
-      if (isTextSelectable == selectable) return
-      setTextIsSelectable(selectable)
-      movementMethod = LinkLongPressMovementMethod.createInstance()
-      if (!selectable && !isClickable) isClickable = true
+      applySelectableState(selectable)
     }
 
     fun emitOnLinkPress(url: String) {
-      val reactContext = context as? com.facebook.react.bridge.ReactContext ?: return
-      val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
-      val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
-
-      dispatcher?.dispatchEvent(
-        LinkPressEvent(surfaceId, id, url),
-      )
+      emitLinkPressEvent(url)
     }
 
     fun emitOnLinkLongPress(url: String) {
-      val reactContext = context as? com.facebook.react.bridge.ReactContext ?: return
-      val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
-      val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
-
-      dispatcher?.dispatchEvent(
-        LinkLongPressEvent(surfaceId, id, url),
-      )
+      emitLinkLongPressEvent(url)
     }
 
     fun setOnLinkPressCallback(callback: (String) -> Unit) {

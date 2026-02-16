@@ -8,7 +8,16 @@ namespace facebook::react {
 
 #ifdef RN_SERIALIZABLE_STATE
 inline folly::dynamic toDynamic(const EnrichedMarkdownTextProps &props) {
-  // Serialize measurement-affecting props
+  folly::dynamic serializedProps = folly::dynamic::object();
+  serializedProps["markdown"] = props.markdown;
+  serializedProps["markdownStyle"] = toDynamic(props.markdownStyle);
+  serializedProps["md4cFlags"] = toDynamic(props.md4cFlags);
+  serializedProps["allowTrailingMargin"] = props.allowTrailingMargin;
+
+  return serializedProps;
+}
+
+inline folly::dynamic toDynamic(const EnrichedMarkdownProps &props) {
   folly::dynamic serializedProps = folly::dynamic::object();
   serializedProps["markdown"] = props.markdown;
   serializedProps["markdownStyle"] = toDynamic(props.markdownStyle);

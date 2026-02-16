@@ -286,6 +286,9 @@
 - (CGFloat)tableLineHeight;
 - (void)setTableLineHeight:(CGFloat)newValue;
 - (UIFont *)tableFont;
+- (NSString *)tableHeaderFontFamily;
+- (void)setTableHeaderFontFamily:(NSString *)newValue;
+- (UIFont *)tableHeaderFont;
 - (UIColor *)tableHeaderBackgroundColor;
 - (void)setTableHeaderBackgroundColor:(UIColor *)newValue;
 - (UIColor *)tableHeaderTextColor;

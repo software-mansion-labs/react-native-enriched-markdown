@@ -162,6 +162,46 @@ class StyleConfig(
     ThematicBreakStyle.fromReadableMap(map, styleParser)
   }
 
+  val tableStyle: TableStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("table")) {
+        "Table style not found. JS should always provide defaults."
+      }
+    TableStyle.fromReadableMap(map, styleParser)
+  }
+
+  val tableTypeface: Typeface? by lazy {
+    val fontFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
+    val fontWeight = parseFontWeight(tableStyle.fontWeight)
+    if (fontFamily != null) {
+      applyStyles(null, ReactConstants.UNSET, fontWeight, fontFamily, assets)
+    } else {
+      null
+    }
+  }
+
+  val tableHeaderTypeface: Typeface? by lazy {
+    val headerFamily = tableStyle.headerFontFamily.takeIf { it.isNotEmpty() }
+    val baseFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
+
+    when {
+      // 1. Try Header font (specific variant)
+      headerFamily != null -> {
+        applyStyles(null, ReactConstants.UNSET, parseFontWeight("normal"), headerFamily, assets)
+      }
+
+      // 2. Try Table font (forced to bold)
+      baseFamily != null -> {
+        applyStyles(null, ReactConstants.UNSET, parseFontWeight("bold"), baseFamily, assets)
+      }
+
+      // 3. System Fallback
+      else -> {
+        Typeface.DEFAULT_BOLD
+      }
+    }
+  }
+
   /**
    * Returns true if any paragraph or heading style uses justify alignment.
    * Used to enable justification mode on the TextView (API 26+).
@@ -188,7 +228,8 @@ class StyleConfig(
       blockquoteStyle == other.blockquoteStyle &&
       listStyle == other.listStyle &&
       codeBlockStyle == other.codeBlockStyle &&
-      thematicBreakStyle == other.thematicBreakStyle
+      thematicBreakStyle == other.thematicBreakStyle &&
+      tableStyle == other.tableStyle
   }
 
   override fun hashCode(): Int {
@@ -206,6 +247,7 @@ class StyleConfig(
     result = 31 * result + listStyle.hashCode()
     result = 31 * result + codeBlockStyle.hashCode()
     result = 31 * result + thematicBreakStyle.hashCode()
+    result = 31 * result + tableStyle.hashCode()
     return result
   }
 }

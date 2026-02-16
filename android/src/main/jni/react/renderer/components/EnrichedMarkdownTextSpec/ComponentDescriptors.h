@@ -1,0 +1,60 @@
+/**
+ * Custom ComponentDescriptors that shadows the codegen-generated version.
+ *
+ * Our custom JNI directory is listed before the generated directory in CMake's
+ * include path, so this file takes precedence over the generated ComponentDescriptors.h.
+ *
+ * When componentDescriptors is absent from react-native.config.js, the autolinking calls
+ * registerComponentDescriptorsFromCodegen (defined in generated ComponentDescriptors.cpp).
+ * That .cpp includes "ComponentDescriptors.h" — which resolves to THIS file.
+ * The result: our measurement-capable descriptors are registered instead of the generated ones.
+ */
+
+#pragma once
+
+#include "MarkdownContainerMeasurementManager.h"
+#include "MarkdownContainerShadowNode.h"
+#include "MarkdownTextMeasurementManager.h"
+#include "MarkdownTextShadowNode.h"
+
+#include <react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h>
+#include <react/renderer/core/ConcreteComponentDescriptor.h>
+
+namespace facebook::react {
+
+class EnrichedMarkdownComponentDescriptor final : public ConcreteComponentDescriptor<MarkdownContainerShadowNode> {
+public:
+  EnrichedMarkdownComponentDescriptor(const ComponentDescriptorParameters &parameters)
+      : ConcreteComponentDescriptor(parameters),
+        measurementsManager_(std::make_shared<MarkdownContainerMeasurementManager>(contextContainer_)) {}
+
+  void adopt(ShadowNode &shadowNode) const override {
+    ConcreteComponentDescriptor::adopt(shadowNode);
+    auto &containerShadowNode = static_cast<MarkdownContainerShadowNode &>(shadowNode);
+    containerShadowNode.setMeasurementsManager(measurementsManager_);
+  }
+
+private:
+  const std::shared_ptr<MarkdownContainerMeasurementManager> measurementsManager_;
+};
+
+class EnrichedMarkdownTextComponentDescriptor final : public ConcreteComponentDescriptor<MarkdownTextShadowNode> {
+public:
+  EnrichedMarkdownTextComponentDescriptor(const ComponentDescriptorParameters &parameters)
+      : ConcreteComponentDescriptor(parameters),
+        measurementsManager_(std::make_shared<MarkdownTextMeasurementManager>(contextContainer_)) {}
+
+  void adopt(ShadowNode &shadowNode) const override {
+    ConcreteComponentDescriptor::adopt(shadowNode);
+    auto &markdownTextShadowNode = static_cast<MarkdownTextShadowNode &>(shadowNode);
+    markdownTextShadowNode.setMeasurementsManager(measurementsManager_);
+  }
+
+private:
+  const std::shared_ptr<MarkdownTextMeasurementManager> measurementsManager_;
+};
+
+void EnrichedMarkdownTextSpec_registerComponentDescriptorsFromCodegen(
+    std::shared_ptr<const ComponentDescriptorProviderRegistry> registry);
+
+} // namespace facebook::react

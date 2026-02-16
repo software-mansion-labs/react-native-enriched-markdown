@@ -106,6 +106,7 @@ interface ThematicBreakStyle {
 }
 
 interface TableStyle extends BaseBlockStyle {
+  headerFontFamily?: string;
   headerBackgroundColor?: string;
   headerTextColor?: string;
   rowEvenBackgroundColor?: string;

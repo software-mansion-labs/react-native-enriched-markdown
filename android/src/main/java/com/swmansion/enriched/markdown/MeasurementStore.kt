@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
+import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
@@ -18,6 +19,7 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.getMapOrNull
 import com.swmansion.enriched.markdown.utils.getStringOrDefault
+import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
@@ -103,6 +105,7 @@ object MeasurementStore {
     height: Float,
     heightMode: YogaMeasureMode?,
     props: ReadableMap?,
+    splitTableSegments: Boolean = false,
   ): Long {
     // Early exit for empty markdown
     val markdown = props.getStringOrDefault("markdown", "")
@@ -110,7 +113,7 @@ object MeasurementStore {
       return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
     }
 
-    val size = getMeasureByIdInternal(context, id, width, props)
+    val size = getMeasureByIdInternal(context, id, width, props, splitTableSegments)
     val resultHeight = YogaMeasureOutput.getHeight(size)
 
     if (heightMode === YogaMeasureMode.AT_MOST) {
@@ -142,10 +145,16 @@ object MeasurementStore {
     id: Int?,
     width: Float,
     props: ReadableMap?,
+    splitTableSegments: Boolean,
   ): Long {
     val (allowFontScaling, maxFontSizeMultiplier) = resolveFontScalingSettings(id, props)
 
     val fontScale = checkAndUpdateFontScale(context, allowFontScaling, maxFontSizeMultiplier)
+
+    // Split measurement always goes through the full measure path (no spannable caching)
+    if (splitTableSegments) {
+      return measureAndCacheSplit(context, id, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    }
 
     val safeId = id ?: return measureAndCache(context, null, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val cached = data[safeId] ?: return measureAndCache(context, safeId, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
@@ -253,6 +262,128 @@ object MeasurementStore {
     }
 
     return adjustedSize
+  }
+
+/** Sealed interface for type-safe segment handling */
+  private sealed interface MarkdownSegment {
+    data class Text(
+      val nodes: List<MarkdownASTNode>,
+    ) : MarkdownSegment
+
+    data class Table(
+      val node: MarkdownASTNode,
+    ) : MarkdownSegment
+  }
+
+  private fun measureAndCacheSplit(
+    context: Context,
+    id: Int?,
+    width: Float,
+    props: ReadableMap?,
+    allowFontScaling: Boolean,
+    fontScale: Float,
+    maxFontSizeMultiplier: Float,
+  ): Long {
+    val markdown = props.getStringOrDefault("markdown", "")
+    val styleMap =
+      props.getMapOrNull("markdownStyle")
+        ?: return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
+
+    val md4cFlags = Md4cFlags(underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false))
+    val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
+    val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
+
+    return try {
+      val ast =
+        Parser.shared.parseMarkdown(markdown, md4cFlags)
+          ?: return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
+
+      val style = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
+      val segments = splitASTIntoSegments(ast)
+
+      val widthPx = width.toInt().coerceAtLeast(1)
+      val totalTextSegments = segments.count { it is MarkdownSegment.Text }
+      var textSegmentCount = 0
+      var totalHeightPx = 0f
+
+      for (segment in segments) {
+        when (segment) {
+          is MarkdownSegment.Text -> {
+            textSegmentCount++
+            val segmentRenderer = Renderer().apply { configure(style, context) }
+            val tempDoc = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = segment.nodes)
+            val styledText = segmentRenderer.renderDocument(tempDoc, null)
+
+            val layout = createStaticLayout(styledText, fontSize, widthPx)
+            totalHeightPx += layout.height
+
+            // Add trailing margin only for the final text segment if allowed
+            if (allowTrailingMargin && textSegmentCount == totalTextSegments) {
+              totalHeightPx += segmentRenderer.getLastElementMarginBottom()
+            }
+          }
+
+          is MarkdownSegment.Table -> {
+            totalHeightPx += TableContainerView.measureTableNodeHeight(segment.node, style, context)
+          }
+        }
+      }
+
+      val totalHeightDip = PixelUtil.toDIPFromPixel(totalHeightPx)
+      val result = YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), totalHeightDip)
+
+      if (id != null) {
+        data[id] = MeasurementParams(width, result, null, PaintParams(Typeface.DEFAULT, fontSize), propsHash)
+      }
+      result
+    } catch (e: Exception) {
+      Log.w(TAG, "Split measurement failed, falling back", e)
+      measureAndCache(context, id, width, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+    }
+  }
+
+  private fun createStaticLayout(
+    text: CharSequence,
+    fontSize: Float,
+    widthPx: Int,
+  ): StaticLayout {
+    measurePaint.textSize = fontSize
+    return StaticLayout.Builder
+      .obtain(text, 0, text.length, measurePaint, widthPx)
+      .setIncludePad(false)
+      .setLineSpacing(0f, 1f)
+      .apply {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+          setUseLineSpacingFromFallbacks(true)
+        }
+      }.build()
+  }
+
+  private fun splitASTIntoSegments(root: MarkdownASTNode): List<MarkdownSegment> {
+    val segments = mutableListOf<MarkdownSegment>()
+    val currentTextNodes = mutableListOf<MarkdownASTNode>()
+
+    fun flushTextNodes() {
+      if (currentTextNodes.isNotEmpty()) {
+        segments.add(MarkdownSegment.Text(currentTextNodes.toList()))
+        currentTextNodes.clear()
+      }
+    }
+
+    for (child in root.children) {
+      if (child.type == MarkdownASTNode.NodeType.Table) {
+        flushTextNodes()
+        segments.add(MarkdownSegment.Table(child))
+      } else {
+        currentTextNodes.add(child)
+      }
+    }
+    flushTextNodes()
+    return segments
   }
 
   private fun tryRenderMarkdown(

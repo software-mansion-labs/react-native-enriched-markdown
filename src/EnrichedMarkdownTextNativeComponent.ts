@@ -94,6 +94,7 @@ interface ThematicBreakStyleInternal {
 }
 
 interface TableStyleInternal extends BaseBlockStyleInternal {
+  headerFontFamily: string;
   headerBackgroundColor: ColorValue;
   headerTextColor: ColorValue;
   rowEvenBackgroundColor: ColorValue;
@@ -220,4 +221,6 @@ export interface NativeProps extends ViewProps {
   allowTrailingMargin?: CodegenTypes.WithDefault<boolean, false>;
 }
 
-export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText');
+export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText', {
+  interfaceOnly: true,
+});

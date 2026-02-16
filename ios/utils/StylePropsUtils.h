@@ -808,6 +808,16 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  if (newStyle.table.headerFontFamily != oldStyle.table.headerFontFamily) {
+    if (!newStyle.table.headerFontFamily.empty()) {
+      NSString *fontFamily = [[NSString alloc] initWithUTF8String:newStyle.table.headerFontFamily.c_str()];
+      [config setTableHeaderFontFamily:fontFamily];
+    } else {
+      [config setTableHeaderFontFamily:nullptr];
+    }
+    changed = YES;
+  }
+
   if (newStyle.table.headerBackgroundColor != oldStyle.table.headerBackgroundColor) {
     UIColor *color = RCTUIColorFromSharedColor(newStyle.table.headerBackgroundColor);
     [config setTableHeaderBackgroundColor:color];

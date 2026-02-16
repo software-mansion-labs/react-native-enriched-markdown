@@ -78,8 +78,9 @@
   StyleConfig *cellConfig = [self.config copy];
 
   [cellConfig setParagraphFontSize:self.config.tableFontSize];
-  [cellConfig setParagraphFontFamily:self.config.tableFontFamily];
-  // TODO: Consider adding headerFontWeight / headerFontSize style props instead of hardcoding "bold"
+  NSString *headerFamily =
+      self.config.tableHeaderFontFamily.length > 0 ? self.config.tableHeaderFontFamily : self.config.tableFontFamily;
+  [cellConfig setParagraphFontFamily:isHeader ? headerFamily : self.config.tableFontFamily];
   [cellConfig setParagraphFontWeight:isHeader ? @"bold" : self.config.tableFontWeight];
   [cellConfig setParagraphColor:isHeader ? self.config.tableHeaderTextColor : self.config.tableColor];
   [cellConfig setParagraphLineHeight:self.config.tableLineHeight];

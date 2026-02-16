@@ -216,6 +216,7 @@ const defaultTableStyle: MarkdownStyleInternal['table'] = {
   marginTop: 16,
   marginBottom: 16,
   lineHeight: 0,
+  headerFontFamily: '',
   headerBackgroundColor: processColor('#F3F4F6') as ColorValue,
   headerTextColor: processColor('#111827') as ColorValue,
   rowEvenBackgroundColor: processColor('#FFFFFF') as ColorValue,
@@ -446,6 +447,8 @@ export const normalizeMarkdownStyle = (
       marginTop: style.table?.marginTop ?? defaultTableStyle.marginTop,
       marginBottom: style.table?.marginBottom ?? defaultTableStyle.marginBottom,
       lineHeight: style.table?.lineHeight ?? defaultTableStyle.lineHeight,
+      headerFontFamily:
+        style.table?.headerFontFamily ?? defaultTableStyle.headerFontFamily,
       headerBackgroundColor:
         normalizeColor(style.table?.headerBackgroundColor) ??
         defaultTableStyle.headerBackgroundColor,

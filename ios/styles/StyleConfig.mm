@@ -184,6 +184,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _tableLineHeight;
   UIFont *_tableFont;
   BOOL _tableFontNeedsRecreation;
+  NSString *_tableHeaderFontFamily;
+  UIFont *_tableHeaderFont;
+  BOOL _tableHeaderFontNeedsRecreation;
   UIColor *_tableHeaderBackgroundColor;
   UIColor *_tableHeaderTextColor;
   UIColor *_tableRowEvenBackgroundColor;
@@ -213,6 +216,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _codeBlockFontNeedsRecreation = YES;
   _blockquoteFontNeedsRecreation = YES;
   _tableFontNeedsRecreation = YES;
+  _tableHeaderFontNeedsRecreation = YES;
   _linkUnderline = YES;
   return self;
 }
@@ -417,6 +421,8 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_tableMarginBottom = _tableMarginBottom;
   copy->_tableLineHeight = _tableLineHeight;
   copy->_tableFontNeedsRecreation = YES;
+  copy->_tableHeaderFontFamily = [_tableHeaderFontFamily copy];
+  copy->_tableHeaderFontNeedsRecreation = YES;
   copy->_tableHeaderBackgroundColor = [_tableHeaderBackgroundColor copy];
   copy->_tableHeaderTextColor = [_tableHeaderTextColor copy];
   copy->_tableRowEvenBackgroundColor = [_tableRowEvenBackgroundColor copy];
@@ -1852,6 +1858,7 @@ static const CGFloat kDefaultMinGap = 4.0;
 {
   _tableFontSize = newValue;
   _tableFontNeedsRecreation = YES;
+  _tableHeaderFontNeedsRecreation = YES;
 }
 
 - (NSString *)tableFontFamily
@@ -1863,6 +1870,7 @@ static const CGFloat kDefaultMinGap = 4.0;
 {
   _tableFontFamily = newValue;
   _tableFontNeedsRecreation = YES;
+  _tableHeaderFontNeedsRecreation = YES;
 }
 
 - (NSString *)tableFontWeight
@@ -1932,6 +1940,33 @@ static const CGFloat kDefaultMinGap = 4.0;
     _tableFontNeedsRecreation = NO;
   }
   return _tableFont;
+}
+
+- (NSString *)tableHeaderFontFamily
+{
+  return _tableHeaderFontFamily;
+}
+
+- (void)setTableHeaderFontFamily:(NSString *)newValue
+{
+  _tableHeaderFontFamily = newValue;
+  _tableHeaderFontNeedsRecreation = YES;
+}
+
+- (UIFont *)tableHeaderFont
+{
+  if (_tableHeaderFontNeedsRecreation || !_tableHeaderFont) {
+    NSString *family = (_tableHeaderFontFamily.length > 0) ? _tableHeaderFontFamily : _tableFontFamily;
+    _tableHeaderFont = [RCTFont updateFont:nil
+                                withFamily:family
+                                      size:@(_tableFontSize)
+                                    weight:normalizedFontWeight(@"bold")
+                                     style:nil
+                                   variant:nil
+                           scaleMultiplier:[self effectiveScaleMultiplierForFontSize:_tableFontSize]];
+    _tableHeaderFontNeedsRecreation = NO;
+  }
+  return _tableHeaderFont;
 }
 
 - (UIColor *)tableHeaderBackgroundColor

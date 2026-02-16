@@ -10,9 +10,9 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.Spannable
 import android.util.Log
+import android.widget.TextView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withSave
-import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.AsyncDrawable
 import java.lang.ref.WeakReference
@@ -42,7 +42,7 @@ class ImageSpan(
 
   private var cachedWidth: Int = MINIMUM_VALID_DIMENSION
   private val initialDrawable: Drawable = super.getDrawable()
-  private var viewRef: WeakReference<EnrichedMarkdownText>? = null
+  private var viewRef: WeakReference<TextView>? = null
 
   init {
     setupLoadingLogic()
@@ -102,14 +102,13 @@ class ImageSpan(
     }
   }
 
-  fun registerTextView(view: EnrichedMarkdownText) {
+  fun registerTextView(view: TextView) {
     viewRef = WeakReference(view)
     if (!isInline) {
       val availableWidth = getAvailableWidth(view)
       if (availableWidth > MINIMUM_VALID_DIMENSION) {
         updateWidthAndRecreate(availableWidth)
       }
-      // Ensure we catch the width after the first layout pass
       view.post {
         val postWidth = getAvailableWidth(view)
         if (postWidth != cachedWidth) updateWidthAndRecreate(postWidth)
@@ -128,7 +127,7 @@ class ImageSpan(
     }
   }
 
-  private fun getAvailableWidth(view: EnrichedMarkdownText): Int = view.layout?.width ?: view.width
+  private fun getAvailableWidth(view: TextView): Int = view.layout?.width ?: view.width
 
   override fun getDrawable(): Drawable {
     val drawable = loadedDrawable ?: initialDrawable

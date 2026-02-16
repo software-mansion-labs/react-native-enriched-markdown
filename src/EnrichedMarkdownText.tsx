@@ -229,10 +229,10 @@ export interface EnrichedMarkdownTextProps
   /**
    * Specifies which Markdown flavor to use for rendering.
    * - `'commonmark'` (default): standard CommonMark renderer (single TextView).
-   * - `'gfm'`: GitHub Flavored Markdown — container-based renderer with support for tables and other GFM extensions.
+   * - `'github'`: GitHub Flavored Markdown — container-based renderer with support for tables and other GFM extensions.
    * @default 'commonmark'
    */
-  flavor?: 'commonmark' | 'gfm';
+  flavor?: 'commonmark' | 'github';
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -297,7 +297,7 @@ export const EnrichedMarkdownText = ({
     ...rest,
   };
 
-  if (flavor === 'gfm') {
+  if (flavor === 'github') {
     return <EnrichedMarkdownNativeComponent {...sharedProps} />;
   }
 

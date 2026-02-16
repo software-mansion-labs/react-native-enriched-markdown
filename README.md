@@ -117,11 +117,11 @@ export default function App() {
 
 ### GFM (tables)
 
-Set `flavor="gfm"` to enable GitHub Flavored Markdown features like tables:
+Set `flavor="github"` to enable GitHub Flavored Markdown features like tables:
 
 ```tsx
 <EnrichedMarkdownText
-  flavor="gfm"
+  flavor="github"
   markdown={markdown}
   onLinkPress={({ url }) => Linking.openURL(url)}
   markdownStyle={{
@@ -156,7 +156,7 @@ Tables support column alignment, rich text in cells (bold, italic, code, links),
 | Ordered Lists | `1. Item` | Numbered lists with unlimited nesting |
 | Thematic Break | `---`, `***`, or `___` | Visual separator line |
 | Images | `![alt](url)` | Block-level images |
-| Tables | `| col | col |` | GFM tables with alignment support (requires `flavor="gfm"`) |
+| Tables | `| col | col |` | GFM tables with alignment support (requires `flavor="github"`) |
 
 ### Inline Elements
 
@@ -292,7 +292,7 @@ Block elements are structural containers that define the layout. Each block has 
 | `blockquote` | Quoted content with accent bar |
 | `list` | Ordered and unordered lists |
 | `codeBlock` | Multi-line code containers |
-| `table` | GFM tables (requires `flavor="gfm"`) |
+| `table` | GFM tables (requires `flavor="github"`) |
 
 #### Inline Elements
 
@@ -540,7 +540,7 @@ The library provides sensible default styles for all Markdown elements out of th
 
 #### Table-specific
 
-Table styles only apply when `flavor="gfm"` is set. Tables inherit the base block styles (`fontSize`, `fontFamily`, `fontWeight`, `color`, `marginTop`, `marginBottom`, `lineHeight`) and add the following:
+Table styles only apply when `flavor="github"` is set. Tables inherit the base block styles (`fontSize`, `fontFamily`, `fontWeight`, `color`, `marginTop`, `marginBottom`, `lineHeight`) and add the following:
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -572,7 +572,7 @@ Table styles only apply when `flavor="gfm"` is set. Tables inherit the base bloc
 | `allowFontScaling` | `boolean` | `true` | Whether fonts should scale to respect Text Size accessibility settings |
 | `maxFontSizeMultiplier` | `number` | `undefined` | Maximum font scale multiplier when `allowFontScaling` is enabled |
 | `allowTrailingMargin` | `boolean` | `false` | Whether to preserve the bottom margin of the last block element |
-| `flavor` | `'commonmark' \| 'gfm'` | `'commonmark'` | Markdown flavor. Set to `'gfm'` to enable GFM table support |
+| `flavor` | `'commonmark' \| 'github'` | `'commonmark'` | Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table support |
 
 ## Contributing
 

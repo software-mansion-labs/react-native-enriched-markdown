@@ -121,7 +121,6 @@ export const customMarkdownStyle: MarkdownStyle = {
     fontSize: 14,
     color: '#1f2937',
     lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
-    marginTop: 16,
     marginBottom: 16,
     headerFontFamily: 'Montserrat-Bold',
     headerBackgroundColor: '#f3f4f6',

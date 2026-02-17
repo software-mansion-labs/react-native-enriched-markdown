@@ -213,7 +213,7 @@ const defaultTableStyle: MarkdownStyleInternal['table'] = {
   fontFamily: getSystemFont(),
   fontWeight: '',
   color: defaultTextColor,
-  marginTop: 16,
+  marginTop: 0,
   marginBottom: 16,
   lineHeight: 0,
   headerFontFamily: '',

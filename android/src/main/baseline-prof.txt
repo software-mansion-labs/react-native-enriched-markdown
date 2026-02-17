@@ -6,13 +6,19 @@
 Lcom/swmansion/enriched/markdown/EnrichedMarkdownText;
 Lcom/swmansion/enriched/markdown/EnrichedMarkdownTextManager;
 Lcom/swmansion/enriched/markdown/EnrichedMarkdownTextLayoutManager;
+Lcom/swmansion/enriched/markdown/EnrichedMarkdownTextPackage;
+Lcom/swmansion/enriched/markdown/MeasurementStore;
+
+# Accessibility
+Lcom/swmansion/enriched/markdown/accessibility/MarkdownAccessibilityHelper;
+
+# Events
+Lcom/swmansion/enriched/markdown/events/LinkPressEvent;
+Lcom/swmansion/enriched/markdown/events/LinkLongPressEvent;
 
 # Renderer Classes
 Lcom/swmansion/enriched/markdown/renderer/Renderer;
-Lcom/swmansion/enriched/markdown/renderer/RendererFactory;
-Lcom/swmansion/enriched/markdown/renderer/RendererConfig;
 Lcom/swmansion/enriched/markdown/renderer/BlockStyleContext;
-Lcom/swmansion/enriched/markdown/renderer/BlockStyle;
 Lcom/swmansion/enriched/markdown/renderer/SpanStyleCache;
 Lcom/swmansion/enriched/markdown/renderer/NodeRenderer;
 Lcom/swmansion/enriched/markdown/renderer/TextRenderer;
@@ -23,12 +29,16 @@ Lcom/swmansion/enriched/markdown/renderer/EmphasisRenderer;
 Lcom/swmansion/enriched/markdown/renderer/LinkRenderer;
 Lcom/swmansion/enriched/markdown/renderer/ListRenderer;
 Lcom/swmansion/enriched/markdown/renderer/ListItemRenderer;
+Lcom/swmansion/enriched/markdown/renderer/ListContextManager;
 Lcom/swmansion/enriched/markdown/renderer/BlockquoteRenderer;
 Lcom/swmansion/enriched/markdown/renderer/CodeBlockRenderer;
 Lcom/swmansion/enriched/markdown/renderer/CodeRenderer;
 Lcom/swmansion/enriched/markdown/renderer/ImageRenderer;
 Lcom/swmansion/enriched/markdown/renderer/LineBreakRenderer;
 Lcom/swmansion/enriched/markdown/renderer/DocumentRenderer;
+Lcom/swmansion/enriched/markdown/renderer/StrikethroughRenderer;
+Lcom/swmansion/enriched/markdown/renderer/ThematicBreakRenderer;
+Lcom/swmansion/enriched/markdown/renderer/UnderlineRenderer;
 
 # Spans
 Lcom/swmansion/enriched/markdown/spans/StrongSpan;
@@ -46,20 +56,39 @@ Lcom/swmansion/enriched/markdown/spans/BlockquoteSpan;
 Lcom/swmansion/enriched/markdown/spans/CodeBlockSpan;
 Lcom/swmansion/enriched/markdown/spans/CodeBackgroundSpan;
 Lcom/swmansion/enriched/markdown/spans/ImageSpan;
+Lcom/swmansion/enriched/markdown/spans/StrikethroughSpan;
+Lcom/swmansion/enriched/markdown/spans/ThematicBreakSpan;
 
 # Style Configuration
 Lcom/swmansion/enriched/markdown/styles/StyleConfig;
+Lcom/swmansion/enriched/markdown/styles/StyleParser;
+Lcom/swmansion/enriched/markdown/styles/BaseBlockStyle;
 Lcom/swmansion/enriched/markdown/styles/ParagraphStyle;
 Lcom/swmansion/enriched/markdown/styles/HeadingStyle;
 Lcom/swmansion/enriched/markdown/styles/ListStyle;
 Lcom/swmansion/enriched/markdown/styles/BlockquoteStyle;
 Lcom/swmansion/enriched/markdown/styles/CodeBlockStyle;
 Lcom/swmansion/enriched/markdown/styles/CodeStyle;
+Lcom/swmansion/enriched/markdown/styles/EmphasisStyle;
+Lcom/swmansion/enriched/markdown/styles/StrongStyle;
+Lcom/swmansion/enriched/markdown/styles/LinkStyle;
+Lcom/swmansion/enriched/markdown/styles/ImageStyle;
+Lcom/swmansion/enriched/markdown/styles/InlineImageStyle;
+Lcom/swmansion/enriched/markdown/styles/StrikethroughStyle;
+Lcom/swmansion/enriched/markdown/styles/UnderlineStyle;
+Lcom/swmansion/enriched/markdown/styles/TextAlignment;
+Lcom/swmansion/enriched/markdown/styles/ThematicBreakStyle;
 
 # Parser
 Lcom/swmansion/enriched/markdown/parser/Parser;
 Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode;
 Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType;
+Lcom/swmansion/enriched/markdown/parser/Md4cFlags;
 
 # Utilities
 Lcom/swmansion/enriched/markdown/utils/UtilsKt;
+Lcom/swmansion/enriched/markdown/utils/AsyncDrawable;
+Lcom/swmansion/enriched/markdown/utils/HTMLGenerator;
+Lcom/swmansion/enriched/markdown/utils/LinkLongPressMovementMethod;
+Lcom/swmansion/enriched/markdown/utils/MarkdownExtractor;
+Lcom/swmansion/enriched/markdown/utils/SelectionActionMode;

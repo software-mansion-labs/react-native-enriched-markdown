@@ -34,6 +34,7 @@ We can help you build your next dream product –
 - [Customizing Styles](#customizing-styles)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
+- [Future Plans](#future-plans)
 - [License](#license)
 
 ## Prerequisites
@@ -573,6 +574,15 @@ Table styles only apply when `flavor="github"` is set. Tables inherit the base b
 | `maxFontSizeMultiplier` | `number` | `undefined` | Maximum font scale multiplier when `allowFontScaling` is enabled |
 | `allowTrailingMargin` | `boolean` | `false` | Whether to preserve the bottom margin of the last block element |
 | `flavor` | `'commonmark' \| 'github'` | `'commonmark'` | Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table support |
+
+## Future Plans
+
+We're actively working on expanding the capabilities of `react-native-enriched-markdown`. Here's what's on the roadmap:
+
+- GFM (GitHub Flavored Markdown) Support
+- LaTeX / Math Rendering
+- `EnrichedMarkdownInput`
+- Web Implementation via `react-native-web`
 
 ## Contributing
 

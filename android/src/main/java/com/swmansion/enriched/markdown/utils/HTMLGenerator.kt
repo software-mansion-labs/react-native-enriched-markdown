@@ -1,6 +1,7 @@
 package com.swmansion.enriched.markdown.utils
 
 import android.graphics.Typeface
+import android.text.Layout
 import android.text.Spannable
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
@@ -790,6 +791,112 @@ object HTMLGenerator {
       TYPE_UNORDERED_LIST -> text.getSpans(start, end, UnorderedListSpan::class.java).maxOfOrNull { it.depth } ?: 0
       else -> 0
     }
+  }
+
+  /**
+   * Generates an HTML `<table>` with inline styles from attributed cell content.
+   * Each cell is a Triple of (SpannableString, isHeader: Boolean, alignment: Layout.Alignment).
+   */
+  fun generateTableHTML(
+    rows: List<List<Triple<CharSequence, Boolean, Layout.Alignment>>>,
+    style: StyleConfig,
+    scaledDensity: Float = 1f,
+    density: Float = 1f,
+  ): String {
+    if (rows.isEmpty()) return ""
+
+    val tableStyle = style.tableStyle
+    val cachedStyles = CachedStyles(style, scaledDensity, density)
+
+    val borderColorCSS = colorToCSS(tableStyle.borderColor)
+    val borderWidthPx = tableStyle.borderWidth / density
+    val borderRadiusPx = tableStyle.borderRadius / density
+    val fontSizePx = tableStyle.fontSize / scaledDensity
+    val cellPaddingVerticalPx = tableStyle.cellPaddingVertical / density
+    val cellPaddingHorizontalPx = tableStyle.cellPaddingHorizontal / density
+
+    return buildString(rows.size * 250) {
+      append("<table style=\"border-collapse: separate; border-spacing: 0; ")
+      append("border: ${borderWidthPx.toInt()}px solid $borderColorCSS; ")
+      append("border-radius: ${borderRadiusPx.toInt()}px; ")
+      append("overflow: hidden; font-size: ${fontSizePx.toInt()}px;\">")
+
+      var hasOpenedBody = false
+      var bodyRowIndex = 0
+
+      for (row in rows) {
+        if (row.isEmpty()) continue
+
+        val isHeaderRow = row.first().second
+
+        if (isHeaderRow) {
+          append("<thead>")
+        } else if (!hasOpenedBody) {
+          append("<tbody>")
+          hasOpenedBody = true
+        }
+
+        append("<tr>")
+
+        for ((cellText, isHeader, alignment) in row) {
+          val backgroundColor =
+            when {
+              isHeader -> colorToCSS(tableStyle.headerBackgroundColor)
+              bodyRowIndex % 2 == 0 -> colorToCSS(tableStyle.rowEvenBackgroundColor)
+              else -> colorToCSS(tableStyle.rowOddBackgroundColor)
+            }
+          val textColor = if (isHeader) colorToCSS(tableStyle.headerTextColor) else colorToCSS(tableStyle.color)
+          val textAlignment = alignmentToCSS(alignment)
+          val fontWeight = if (isHeader) "bold" else "normal"
+
+          val htmlTag = if (isHeader) "th" else "td"
+          append("<$htmlTag style=\"")
+          append("padding: ${cellPaddingVerticalPx.toInt()}px ${cellPaddingHorizontalPx.toInt()}px; ")
+          append("text-align: $textAlignment; ")
+          append("background-color: $backgroundColor; ")
+          append("color: $textColor; ")
+          append("border: ${borderWidthPx.toInt()}px solid $borderColorCSS; ")
+          append("font-weight: $fontWeight;\">")
+
+          if (cellText.isNotEmpty()) {
+            if (cellText is Spannable) {
+              append(generateInlineHTML(cellText, 0, cellText.length, cachedStyles, false))
+            } else {
+              escapeHTMLTo(this, cellText.toString())
+            }
+          }
+
+          append("</$htmlTag>")
+        }
+
+        append("</tr>")
+
+        if (isHeaderRow) {
+          append("</thead>")
+        } else {
+          bodyRowIndex++
+        }
+      }
+
+      if (hasOpenedBody) append("</tbody>")
+      append("</table>")
+    }
+  }
+
+  private fun alignmentToCSS(alignment: Layout.Alignment): String =
+    when (alignment) {
+      Layout.Alignment.ALIGN_CENTER -> "center"
+      Layout.Alignment.ALIGN_OPPOSITE -> "right"
+      else -> "left"
+    }
+
+  private fun colorToCSS(color: Int): String {
+    if (color == 0) return "inherit"
+    val alpha = (color shr 24) and 0xFF
+    val red = (color shr 16) and 0xFF
+    val green = (color shr 8) and 0xFF
+    val blue = color and 0xFF
+    return if (alpha < 255) "rgba($red, $green, $blue, ${alpha / 255f})" else String.format("#%02X%02X%02X", red, green, blue)
   }
 
   /** Fast HTML escape using single-pass character scanning. */

@@ -1,5 +1,6 @@
 #import "TableContainerView.h"
 #import "AttributedRenderer.h"
+#import "HTMLGenerator.h"
 #import "LinkTapUtils.h"
 #import "MarkdownASTNode.h"
 #import "MarkdownASTSerializer.h"
@@ -345,25 +346,46 @@
                          [UIAction actionWithTitle:@"Copy as Markdown"
                                              image:[UIImage systemImageNamed:@"doc.text"]
                                         identifier:nil
-                                           handler:^(__kindof UIAction *action) {
-                                             if (self->_cachedMarkdown.length > 0) {
-                                               [[UIPasteboard generalPasteboard] setString:self->_cachedMarkdown];
-                                             }
-                                           }];
+                                           handler:^(__kindof UIAction *action) { [self copyMarkdownToPasteboard]; }];
 
                      UIAction *copyPlainText =
                          [UIAction actionWithTitle:@"Copy"
                                              image:[UIImage systemImageNamed:@"doc.on.doc"]
                                         identifier:nil
-                                           handler:^(__kindof UIAction *action) {
-                                             NSString *plainText = [self buildPlainTextFromRows];
-                                             if (plainText.length > 0) {
-                                               [[UIPasteboard generalPasteboard] setString:plainText];
-                                             }
-                                           }];
+                                           handler:^(__kindof UIAction *action) { [self copyTableToPasteboard]; }];
 
                      return [UIMenu menuWithTitle:@"" children:@[ copyPlainText, copyMarkdown ]];
                    }];
+}
+
+- (void)copyMarkdownToPasteboard
+{
+  if (_cachedMarkdown.length > 0) {
+    [[UIPasteboard generalPasteboard] setString:_cachedMarkdown];
+  }
+}
+
+- (void)copyTableToPasteboard
+{
+  NSString *plainText = [self buildPlainTextFromRows];
+  if (plainText.length == 0)
+    return;
+
+  NSMutableDictionary *items = [NSMutableDictionary dictionary];
+  items[@"public.utf8-plain-text"] = plainText;
+
+  if (_cachedMarkdown.length > 0) {
+    items[@"net.daringfireball.markdown"] = _cachedMarkdown;
+  }
+
+  NSString *html = generateTableHTML([self rowDictionariesForHTML], self.config);
+  if (html.length > 0) {
+    NSData *htmlData = [html dataUsingEncoding:NSUTF8StringEncoding];
+    if (htmlData)
+      items[@"public.html"] = htmlData;
+  }
+
+  [[UIPasteboard generalPasteboard] setItems:@[ items ]];
 }
 
 - (NSString *)buildMarkdownFromRows
@@ -429,6 +451,28 @@
   }
 
   return [result copy];
+}
+
+- (NSArray<NSArray<NSDictionary *> *> *)rowDictionariesForHTML
+{
+  NSMutableArray *rowsResult = [NSMutableArray arrayWithCapacity:_rows.count];
+
+  for (NSArray<TableCellData *> *cellDataRow in _rows) {
+    NSMutableArray *rowDictionaries = [NSMutableArray arrayWithCapacity:cellDataRow.count];
+
+    for (TableCellData *cell in cellDataRow) {
+      NSAttributedString *text = cell.attributedText ?: [[NSAttributedString alloc] init];
+
+      NSDictionary *cellDict =
+          @{@"attributedText" : text, @"isHeader" : @(cell.isHeader), @"alignment" : @(cell.alignment)};
+
+      [rowDictionaries addObject:cellDict];
+    }
+
+    [rowsResult addObject:[rowDictionaries copy]];
+  }
+
+  return [rowsResult copy];
 }
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth

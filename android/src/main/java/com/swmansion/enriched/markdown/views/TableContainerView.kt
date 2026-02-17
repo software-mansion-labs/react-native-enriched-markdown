@@ -24,6 +24,7 @@ import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.styles.TableStyle
 import com.swmansion.enriched.markdown.utils.ContextMenuPopup
+import com.swmansion.enriched.markdown.utils.HTMLGenerator
 import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.MarkdownASTSerializer
 import kotlin.math.ceil
@@ -229,8 +230,16 @@ class TableContainerView(
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     ContextMenuPopup.show(anchor, this) {
       item(ContextMenuPopup.Icon.COPY, "Copy") {
-        val text = rows.joinToString("\n") { r -> r.joinToString("\t") { it.plainText } }
-        if (text.isNotEmpty()) clipboard.setPrimaryClip(ClipData.newPlainText("Table", text))
+        val plainText = rows.joinToString("\n") { r -> r.joinToString("\t") { it.plainText } }
+        if (plainText.isNotEmpty()) {
+          val displayMetrics = context.resources.displayMetrics
+          val tableRows =
+            rows.map { row ->
+              row.map { cell -> Triple(cell.attributedText as CharSequence, cell.isHeader, cell.alignment) }
+            }
+          val html = HTMLGenerator.generateTableHTML(tableRows, styleConfig, displayMetrics.scaledDensity, displayMetrics.density)
+          clipboard.setPrimaryClip(ClipData.newHtmlText("Table", plainText, html))
+        }
       }
       item(ContextMenuPopup.Icon.DOCUMENT, "Copy as Markdown") {
         if (tableMarkdown.isNotEmpty()) clipboard.setPrimaryClip(ClipData.newPlainText("Table", tableMarkdown))

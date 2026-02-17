@@ -791,3 +791,107 @@ NSString *_Nullable generateHTML(NSAttributedString *attributedString, StyleConf
 
   return html;
 }
+
+#pragma mark - Table HTML Generator
+
+typedef NSString *HTMLString;
+
+static NSString *alignmentToCSS(NSTextAlignment alignment)
+{
+  switch (alignment) {
+    case NSTextAlignmentCenter:
+      return @"center";
+    case NSTextAlignmentRight:
+      return @"right";
+    case NSTextAlignmentJustified:
+      return @"justify";
+    default:
+      return @"left";
+  }
+}
+
+static NSString *styleForCell(BOOL isHeader, NSUInteger rowIndex, StyleConfig *styleConfig, NSTextAlignment alignment)
+{
+  NSString *backgroundColor = isHeader ? colorToCSS(styleConfig.tableHeaderBackgroundColor)
+                                       : (rowIndex % 2 == 0 ? colorToCSS(styleConfig.tableRowEvenBackgroundColor)
+                                                            : colorToCSS(styleConfig.tableRowOddBackgroundColor));
+
+  NSString *textColor = isHeader ? colorToCSS(styleConfig.tableHeaderTextColor) : colorToCSS(styleConfig.tableColor);
+
+  return [NSString stringWithFormat:
+                       @"padding: %.0fpx %.0fpx; "
+                        "text-align: %@; "
+                        "background-color: %@; "
+                        "color: %@; "
+                        "border: %.0fpx solid %@; "
+                        "font-weight: %@;",
+                       styleConfig.tableCellPaddingVertical, styleConfig.tableCellPaddingHorizontal,
+                       alignmentToCSS(alignment), backgroundColor, textColor, styleConfig.tableBorderWidth,
+                       colorToCSS(styleConfig.tableBorderColor), isHeader ? @"bold" : @"normal"];
+}
+
+HTMLString _Nullable generateTableHTML(NSArray<NSArray<NSDictionary *> *> *rows, StyleConfig *styleConfig)
+{
+  if (rows.count == 0)
+    return nil;
+
+  CachedStyles *cachedStyles = cacheStyles(styleConfig);
+  NSMutableString *htmlOutput = [NSMutableString stringWithCapacity:rows.count * 250];
+
+  [htmlOutput appendFormat:
+                  @"<table style=\"border-collapse: separate; border-spacing: 0; "
+                   "border: %.0fpx solid %@; border-radius: %.0fpx; overflow: hidden; font-size: %.0fpx;\">",
+                  styleConfig.tableBorderWidth, colorToCSS(styleConfig.tableBorderColor), styleConfig.tableBorderRadius,
+                  styleConfig.tableFontSize];
+
+  BOOL hasOpenedBody = NO;
+  NSUInteger bodyRowIndex = 0;
+
+  for (NSArray<NSDictionary *> *row in rows) {
+    if (row.count == 0)
+      continue;
+
+    BOOL isHeaderRow = [row.firstObject[@"isHeader"] boolValue];
+
+    if (isHeaderRow) {
+      [htmlOutput appendString:@"<thead>"];
+    } else if (!hasOpenedBody) {
+      [htmlOutput appendString:@"<tbody>"];
+      hasOpenedBody = YES;
+    }
+
+    [htmlOutput appendString:@"<tr>"];
+
+    for (NSDictionary *cellInfo in row) {
+      BOOL isHeaderCell = [cellInfo[@"isHeader"] boolValue];
+      NSTextAlignment alignment = (NSTextAlignment)[cellInfo[@"alignment"] integerValue];
+      NSAttributedString *attributedText = cellInfo[@"attributedText"];
+
+      NSString *htmlTag = isHeaderCell ? @"th" : @"td";
+      NSString *cellStyle = styleForCell(isHeaderCell, bodyRowIndex, styleConfig, alignment);
+
+      [htmlOutput appendFormat:@"<%@ style=\"%@\">", htmlTag, cellStyle];
+
+      if (attributedText.length > 0) {
+        generateInlineHTML(htmlOutput, attributedText, NSMakeRange(0, attributedText.length), cachedStyles, NO);
+      }
+
+      [htmlOutput appendFormat:@"</%@>", htmlTag];
+    }
+
+    [htmlOutput appendString:@"</tr>"];
+
+    if (isHeaderRow) {
+      [htmlOutput appendString:@"</thead>"];
+    } else {
+      bodyRowIndex++;
+    }
+  }
+
+  if (hasOpenedBody) {
+    [htmlOutput appendString:@"</tbody>"];
+  }
+
+  [htmlOutput appendString:@"</table>"];
+  return [htmlOutput copy];
+}

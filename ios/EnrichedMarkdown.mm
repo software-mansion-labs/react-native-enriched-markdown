@@ -153,29 +153,50 @@ using namespace facebook::react;
   return self;
 }
 
+- (CGFloat)computeSegmentLayoutForWidth:(CGFloat)width applyFrames:(BOOL)applyFrames
+{
+  if (_segmentViews.count == 0)
+    return 0.0;
+
+  __block CGFloat yOffset = 0.0;
+  const NSUInteger lastIndex = _segmentViews.count - 1;
+
+  [_segmentViews enumerateObjectsUsingBlock:^(UIView *segment, NSUInteger i, BOOL *stop) {
+    const BOOL isLast = (i == lastIndex);
+    const BOOL shouldAddBottomMargin = (!isLast || _allowTrailingMargin);
+
+    CGFloat segmentHeight = 0;
+
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      EnrichedMarkdownInternalText *textView = (EnrichedMarkdownInternalText *)segment;
+      textView.allowTrailingMargin = shouldAddBottomMargin;
+      segmentHeight = [textView measureHeight:width];
+
+    } else if ([segment isKindOfClass:[TableContainerView class]]) {
+      yOffset += _config.tableMarginTop;
+      segmentHeight = [(TableContainerView *)segment measureHeight:width];
+    }
+
+    if (applyFrames) {
+      segment.frame = CGRectMake(0, yOffset, width, segmentHeight);
+    }
+
+    yOffset += segmentHeight;
+
+    if ([segment isKindOfClass:[TableContainerView class]] && shouldAddBottomMargin) {
+      yOffset += _config.tableMarginBottom;
+    }
+  }];
+
+  return yOffset;
+}
+
 - (CGSize)measureSize:(CGFloat)maxWidth
 {
   CGFloat defaultHeight = [UIFont systemFontOfSize:16.0].lineHeight;
-
-  if (_segmentViews.count == 0) {
+  CGFloat totalHeight = [self computeSegmentLayoutForWidth:maxWidth applyFrames:NO];
+  if (totalHeight == 0)
     return CGSizeMake(maxWidth, defaultHeight);
-  }
-
-  CGFloat totalHeight = 0;
-  for (UIView *segment in _segmentViews) {
-    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
-      totalHeight += [(EnrichedMarkdownInternalText *)segment measureHeight:maxWidth];
-    } else if ([segment isKindOfClass:[TableContainerView class]]) {
-      totalHeight += _config.tableMarginTop;
-      totalHeight += [(TableContainerView *)segment measureHeight:maxWidth];
-      totalHeight += _config.tableMarginBottom;
-    }
-  }
-
-  if (totalHeight == 0) {
-    return CGSizeMake(maxWidth, defaultHeight);
-  }
-
   return CGSizeMake(maxWidth, ceil(totalHeight));
 }
 
@@ -417,22 +438,7 @@ using namespace facebook::react;
 - (void)layoutSubviews
 {
   [super layoutSubviews];
-
-  CGFloat yOffset = 0;
-  CGFloat width = self.bounds.size.width;
-
-  for (UIView *segment in _segmentViews) {
-    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
-      CGFloat height = [(EnrichedMarkdownInternalText *)segment measureHeight:width];
-      segment.frame = CGRectMake(0, yOffset, width, height);
-      yOffset += height;
-    } else if ([segment isKindOfClass:[TableContainerView class]]) {
-      yOffset += _config.tableMarginTop;
-      CGFloat height = [(TableContainerView *)segment measureHeight:width];
-      segment.frame = CGRectMake(0, yOffset, width, height);
-      yOffset += height + _config.tableMarginBottom;
-    }
-  }
+  [self computeSegmentLayoutForWidth:self.bounds.size.width applyFrames:YES];
 }
 
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps

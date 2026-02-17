@@ -29,6 +29,7 @@ private sealed interface RenderSegment {
     val styledText: SpannableString,
     val imageSpans: List<ImageSpan>,
     val needsJustify: Boolean,
+    val lastElementMarginBottom: Float,
   ) : RenderSegment
 
   data class Table(
@@ -201,6 +202,7 @@ class EnrichedMarkdown
         styledText = renderer.renderDocument(documentWrapper, onLinkPressCallback, onLinkLongPressCallback),
         imageSpans = renderer.getCollectedImageSpans().toList(),
         needsJustify = style.needsJustify,
+        lastElementMarginBottom = renderer.getLastElementMarginBottom(),
       )
     }
 
@@ -227,6 +229,7 @@ class EnrichedMarkdown
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && segment.needsJustify) {
           justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
         }
+        lastElementMarginBottom = segment.lastElementMarginBottom
         applyStyledText(segment.styledText)
         segment.imageSpans.forEach { it.registerTextView(this) }
       }
@@ -293,19 +296,24 @@ class EnrichedMarkdown
       val containerWidth = width
       if (containerWidth <= 0) return
 
-      var yOffset = 0
-      segmentViews.forEach { view ->
-        val blockSegment = view as? BlockSegmentView
-        val marginTop = blockSegment?.segmentMarginTop ?: 0
-        val marginBottom = blockSegment?.segmentMarginBottom ?: 0
+      var currentY = 0
+      val lastIndex = segmentViews.lastIndex
+      val widthSpec = MeasureSpec.makeMeasureSpec(containerWidth, MeasureSpec.EXACTLY)
+      val heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
 
-        yOffset += marginTop
-        view.measure(
-          MeasureSpec.makeMeasureSpec(containerWidth, MeasureSpec.EXACTLY),
-          MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
-        )
-        view.layout(0, yOffset, containerWidth, yOffset + view.measuredHeight)
-        yOffset += view.measuredHeight + marginBottom
+      segmentViews.forEachIndexed { index, view ->
+        val segment = view as? BlockSegmentView
+        val shouldAddBottomMargin = index != lastIndex || allowTrailingMargin
+
+        currentY += segment?.segmentMarginTop ?: 0
+        view.measure(widthSpec, heightSpec)
+
+        view.layout(0, currentY, containerWidth, currentY + view.measuredHeight)
+        currentY += view.measuredHeight
+
+        if (shouldAddBottomMargin) {
+          currentY += segment?.segmentMarginBottom ?: 0
+        }
       }
     }
 

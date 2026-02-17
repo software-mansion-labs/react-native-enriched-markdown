@@ -303,14 +303,15 @@ object MeasurementStore {
       val segments = splitASTIntoSegments(ast)
 
       val widthPx = width.toInt().coerceAtLeast(1)
-      val totalTextSegments = segments.count { it is MarkdownSegment.Text }
-      var textSegmentCount = 0
+      val lastIndex = segments.lastIndex
       var totalHeightPx = 0f
 
-      for (segment in segments) {
+      for ((index, segment) in segments.withIndex()) {
+        val isLastSegment = index == lastIndex
+        val includeBottomMargin = if (isLastSegment) allowTrailingMargin else true
+
         when (segment) {
           is MarkdownSegment.Text -> {
-            textSegmentCount++
             val segmentRenderer = Renderer().apply { configure(style, context) }
             val tempDoc = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = segment.nodes)
             val styledText = segmentRenderer.renderDocument(tempDoc, null)
@@ -318,14 +319,17 @@ object MeasurementStore {
             val layout = createStaticLayout(styledText, fontSize, widthPx)
             totalHeightPx += layout.height
 
-            // Add trailing margin only for the final text segment if allowed
-            if (allowTrailingMargin && textSegmentCount == totalTextSegments) {
+            if (includeBottomMargin) {
               totalHeightPx += segmentRenderer.getLastElementMarginBottom()
             }
           }
 
           is MarkdownSegment.Table -> {
+            totalHeightPx += style.tableStyle.marginTop
             totalHeightPx += TableContainerView.measureTableNodeHeight(segment.node, style, context)
+            if (includeBottomMargin) {
+              totalHeightPx += style.tableStyle.marginBottom
+            }
           }
         }
       }

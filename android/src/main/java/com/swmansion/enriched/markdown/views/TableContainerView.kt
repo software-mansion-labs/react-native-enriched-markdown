@@ -350,7 +350,7 @@ class TableContainerView(
         }
       if (texts.isEmpty()) return 0f
       val (_, heights) = computeTableDimensions(texts, config, context)
-      return heights.sum() + config.tableStyle.borderWidth + config.tableStyle.marginTop + config.tableStyle.marginBottom
+      return heights.sum() + config.tableStyle.borderWidth
     }
   }
 

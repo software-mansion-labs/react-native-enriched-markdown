@@ -8,6 +8,7 @@ import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.applySelectableState
 import com.swmansion.enriched.markdown.utils.setupAsMarkdownTextView
+import com.swmansion.enriched.markdown.views.BlockSegmentView
 
 class EnrichedMarkdownInternalText
   @JvmOverloads
@@ -15,8 +16,13 @@ class EnrichedMarkdownInternalText
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-  ) : AppCompatTextView(context, attrs, defStyleAttr) {
+  ) : AppCompatTextView(context, attrs, defStyleAttr),
+    BlockSegmentView {
     private val accessibilityHelper = MarkdownAccessibilityHelper(this)
+
+    var lastElementMarginBottom: Float = 0f
+
+    override val segmentMarginBottom: Int get() = lastElementMarginBottom.toInt()
 
     init {
       setupAsMarkdownTextView(accessibilityHelper)

@@ -793,10 +793,6 @@ object HTMLGenerator {
     }
   }
 
-  /**
-   * Generates an HTML `<table>` with inline styles from attributed cell content.
-   * Each cell is a Triple of (SpannableString, isHeader: Boolean, alignment: Layout.Alignment).
-   */
   fun generateTableHTML(
     rows: List<List<Triple<CharSequence, Boolean, Layout.Alignment>>>,
     style: StyleConfig,

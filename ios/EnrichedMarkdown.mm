@@ -1,7 +1,7 @@
 #import "EnrichedMarkdown.h"
 #import "AccessibilityInfo.h"
 #import "AttributedRenderer.h"
-#import "EMMarkdownParser.h"
+#import "ENRMMarkdownParser.h"
 #import "EditMenuUtils.h"
 #import "EnrichedMarkdownInternalText.h"
 #import "FontScaleObserver.h"
@@ -91,9 +91,9 @@ using namespace facebook::react;
 @end
 
 @implementation EnrichedMarkdown {
-  EMMarkdownParser *_parser;
+  ENRMMarkdownParser *_parser;
   StyleConfig *_config;
-  EMMd4cFlags *_md4cFlags;
+  ENRMMd4cFlags *_md4cFlags;
   NSString *_cachedMarkdown;
   NSMutableArray<UIView *> *_segmentViews;
 
@@ -124,8 +124,8 @@ using namespace facebook::react;
     _props = defaultProps;
 
     self.backgroundColor = [UIColor clearColor];
-    _parser = [[EMMarkdownParser alloc] init];
-    _md4cFlags = [EMMd4cFlags defaultFlags];
+    _parser = [[ENRMMarkdownParser alloc] init];
+    _md4cFlags = [ENRMMd4cFlags defaultFlags];
     _segmentViews = [NSMutableArray array];
 
     _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
@@ -255,8 +255,8 @@ using namespace facebook::react;
   NSUInteger renderId = ++_currentRenderId;
 
   StyleConfig *config = [_config copy];
-  EMMarkdownParser *parser = _parser;
-  EMMd4cFlags *md4cFlags = [_md4cFlags copy];
+  ENRMMarkdownParser *parser = _parser;
+  ENRMMd4cFlags *md4cFlags = [_md4cFlags copy];
 
   BOOL allowFontScaling = _fontScaleObserver.allowFontScaling;
   CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;

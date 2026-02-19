@@ -1,4 +1,4 @@
-#import "EMMarkdownParser.h"
+#import "ENRMMarkdownParser.h"
 #include "MD4CParser.hpp"
 #import "MarkdownASTNode.h"
 #include "MarkdownASTNode.hpp"
@@ -111,7 +111,7 @@ static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownAS
 }
 
 // Public function to parse markdown using C++ parser and convert to Objective-C AST
-MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, EMMd4cFlags *flags)
+MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, ENRMMd4cFlags *flags)
 {
   if (markdown.length == 0) {
     return [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];

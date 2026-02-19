@@ -1,7 +1,7 @@
 #import "MarkdownASTNode.h"
 #import <Foundation/Foundation.h>
 
-@interface EMMd4cFlags : NSObject <NSCopying>
+@interface ENRMMd4cFlags : NSObject <NSCopying>
 
 @property (nonatomic, assign) BOOL underline;
 
@@ -9,9 +9,9 @@
 
 @end
 
-@interface EMMarkdownParser : NSObject
+@interface ENRMMarkdownParser : NSObject
 
 - (MarkdownASTNode *)parseMarkdown:(NSString *)markdown;
-- (MarkdownASTNode *)parseMarkdown:(NSString *)markdown flags:(EMMd4cFlags *)flags;
+- (MarkdownASTNode *)parseMarkdown:(NSString *)markdown flags:(ENRMMd4cFlags *)flags;
 
 @end

@@ -49,8 +49,6 @@ abstract class BaseListSpan(
     }
   }
 
-  protected fun getEffectiveGapWidth(): Float = gapWidth.coerceAtLeast(DEFAULT_MIN_GAP)
-
   override fun drawLeadingMargin(
     c: Canvas,
     p: Paint,

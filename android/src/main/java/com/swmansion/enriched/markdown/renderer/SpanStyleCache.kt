@@ -33,6 +33,9 @@ class SpanStyleCache(
         .color
         .takeIf { it != 0 }
         ?.let { add(it) }
+      style.taskListStyle.checkedTextColor
+        .takeIf { it != 0 }
+        ?.let { add(it) }
     }.toIntArray()
 
   fun getStrongColorFor(blockColor: Int): Int = strongColor ?: blockColor

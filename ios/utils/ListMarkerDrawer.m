@@ -3,10 +3,11 @@
 #import "RenderContext.h"
 #import "StyleConfig.h"
 
-// Reference external symbols defined in ListItemRenderer.m
 extern NSString *const ListDepthAttribute;
 extern NSString *const ListTypeAttribute;
 extern NSString *const ListItemNumberAttribute;
+extern NSString *const TaskItemAttribute;
+extern NSString *const TaskCheckedAttribute;
 
 @implementation ListMarkerDrawer {
   StyleConfig *_config;
@@ -61,9 +62,17 @@ extern NSString *const ListItemNumberAttribute;
                                  CGFloat textStartX = origin.x + usedRect.origin.x;
 
                                  // 4. Draw marker based on type
-                                 if ([attrs[ListTypeAttribute] integerValue] == ListTypeUnordered) {
+                                 if ([attrs[TaskItemAttribute] boolValue]) {
                                    UIFont *font = attrs[NSFontAttributeName] ?: [self defaultFont];
-                                   [self drawBulletAtX:textStartX - gap centerY:baselineY - (font.xHeight / 2.0)];
+                                   BOOL checked = [attrs[TaskCheckedAttribute] boolValue];
+                                   const CGFloat size = [_config taskListCheckboxSize];
+                                   [self drawCheckboxAtX:textStartX - gap - size / 2.0
+                                                 centerY:baselineY - (font.capHeight / 2.0)
+                                                 checked:checked];
+                                 } else if ([attrs[ListTypeAttribute] integerValue] == ListTypeUnordered) {
+                                   UIFont *font = attrs[NSFontAttributeName] ?: [self defaultFont];
+                                   [self drawBulletAtX:textStartX - gap
+                                               centerY:baselineY - (font.xHeight + font.capHeight) / 4.0];
                                  } else {
                                    [self drawOrderedMarkerAtX:textStartX - gap attrs:attrs baselineY:baselineY];
                                  }
@@ -71,6 +80,56 @@ extern NSString *const ListItemNumberAttribute;
 }
 
 #pragma mark - Drawing Helpers
+
+- (void)drawCheckboxAtX:(CGFloat)x centerY:(CGFloat)y checked:(BOOL)checked
+{
+  const CGFloat size = [_config taskListCheckboxSize];
+  const CGFloat radius = [_config taskListCheckboxBorderRadius];
+  const CGRect rect = CGRectMake(x - size / 2.0, y - size / 2.0, size, size);
+
+  [self
+      executeDrawing:^(CGContextRef ctx) {
+        UIBezierPath *borderPath = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius];
+
+        if (checked) {
+          [[_config taskListCheckedColor] setFill];
+          [borderPath fill];
+
+          [self drawCheckmarkInsideRect:rect size:size];
+        } else {
+          CGFloat lineWidth = MAX(1.0, size * 0.09);
+          CGRect insetRect = CGRectInset(rect, lineWidth / 2.0, lineWidth / 2.0);
+          UIBezierPath *insetPath = [UIBezierPath bezierPathWithRoundedRect:insetRect cornerRadius:radius];
+          insetPath.lineWidth = lineWidth;
+          [[_config taskListBorderColor] setStroke];
+          [insetPath stroke];
+        }
+      }
+                 atX:x
+                   y:y];
+}
+
+- (void)drawCheckmarkInsideRect:(CGRect)rect size:(CGFloat)size
+{
+  const CGFloat inset = size * 0.22;
+  const CGFloat verticalMid = CGRectGetMidY(rect);
+  const CGFloat horizontalMidOffset = size * 0.05;
+
+  UIBezierPath *checkmark = [UIBezierPath bezierPath];
+
+  [checkmark moveToPoint:CGPointMake(rect.origin.x + inset, verticalMid)];
+
+  [checkmark addLineToPoint:CGPointMake(CGRectGetMidX(rect) - horizontalMidOffset, CGRectGetMaxY(rect) - inset)];
+
+  [checkmark addLineToPoint:CGPointMake(CGRectGetMaxX(rect) - inset, rect.origin.y + inset)];
+
+  checkmark.lineWidth = MAX(1.5, size * 0.12);
+  checkmark.lineCapStyle = kCGLineCapRound;
+  checkmark.lineJoinStyle = kCGLineJoinRound;
+
+  [[_config taskListCheckmarkColor] setStroke];
+  [checkmark stroke];
+}
 
 - (void)drawBulletAtX:(CGFloat)x centerY:(CGFloat)y
 {

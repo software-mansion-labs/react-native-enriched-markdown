@@ -71,7 +71,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     bulletSize: 6,
     markerColor: '#6b7280',
     markerFontWeight: '500',
-    gapWidth: 12,
+    gapWidth: 8,
     marginLeft: 24,
     marginBottom: 16,
   },
@@ -131,5 +131,14 @@ export const customMarkdownStyle: MarkdownStyle = {
     borderRadius: 8,
     cellPaddingHorizontal: 12,
     cellPaddingVertical: 8,
+  },
+  taskList: {
+    checkedColor: '#2563eb',
+    borderColor: '#9ca3af',
+    checkboxSize: 18,
+    checkboxBorderRadius: 4,
+    checkmarkColor: '#ffffff',
+    checkedTextColor: '#9ca3af',
+    checkedStrikethrough: true,
   },
 };

@@ -1,8 +1,12 @@
 package com.swmansion.enriched.markdown.renderer
 
 import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.StrikethroughSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
+import com.swmansion.enriched.markdown.spans.BaseListSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
+import com.swmansion.enriched.markdown.spans.TaskListSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
 import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
@@ -20,15 +24,19 @@ class ListItemRenderer(
     val start = builder.length
     val listType = styleContext.listType ?: return
 
-    // 1. Maintain item state
+    val isTask = node.attributes["isTask"] == "true"
+    val isChecked = isTask && node.attributes["taskChecked"] == "true"
+
     if (listType == BlockStyleContext.ListType.ORDERED) {
       styleContext.incrementListItemNumber()
     }
 
-    // 2. Render Children
+    // Capture task index BEFORE children so parent gets a lower index than nested sub-items
+    val taskIndex = if (isTask) styleContext.taskItemCount++ else -1
+
     factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
 
-    // 3. Normalize whitespace: Ensure the item ends with exactly one newline
+    // Normalize: ensure the item ends with exactly one newline
     if (builder.length == start || builder.substring(start).isBlank()) return
 
     while (builder.length > start && builder.last() == '\n') {
@@ -36,24 +44,87 @@ class ListItemRenderer(
     }
     builder.append("\n")
 
-    // 4. Calculate Depth and Style
     val depth = styleContext.listDepth - 1
     val listStyle = config.style.listStyle
-
-    // 5. Apply the correct Span
+    val itemEnd = builder.length
     val span =
-      when (listType) {
-        BlockStyleContext.ListType.UNORDERED -> {
-          UnorderedListSpan(listStyle, depth, factory.context, factory.styleCache)
-        }
+      if (isTask) {
+        TaskListSpan(
+          taskStyle = config.style.taskListStyle,
+          listStyle = listStyle,
+          depth = depth,
+          context = factory.context,
+          styleCache = factory.styleCache,
+          taskIndex = taskIndex,
+          isChecked = isChecked,
+        )
+      } else {
+        when (listType) {
+          BlockStyleContext.ListType.UNORDERED -> {
+            UnorderedListSpan(listStyle, depth, factory.context, factory.styleCache)
+          }
 
-        BlockStyleContext.ListType.ORDERED -> {
-          OrderedListSpan(listStyle, depth, factory.context, factory.styleCache).apply {
-            setItemNumber(styleContext.listItemNumber)
+          BlockStyleContext.ListType.ORDERED -> {
+            OrderedListSpan(listStyle, depth, factory.context, factory.styleCache).apply {
+              setItemNumber(styleContext.listItemNumber)
+            }
           }
         }
       }
 
-    builder.setSpan(span, start, builder.length, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+    builder.setSpan(span, start, itemEnd, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+
+    if (isTask && isChecked) {
+      applyCheckedDecorations(builder, start, itemEnd, depth)
+    }
+  }
+
+  private fun applyCheckedDecorations(
+    builder: SpannableStringBuilder,
+    itemStart: Int,
+    itemEnd: Int,
+    itemDepth: Int,
+  ) {
+    val taskStyle = config.style.taskListStyle
+    val checkedTextColor = taskStyle.checkedTextColor
+    val strikethrough = taskStyle.checkedStrikethrough
+
+    if (checkedTextColor == 0 && !strikethrough) return
+
+    // Exclude nested sub-lists from inheriting checked decorations
+    val excludedRanges =
+      builder
+        .getSpans(itemStart, itemEnd, BaseListSpan::class.java)
+        .filter { it.depth > itemDepth }
+        .map { builder.getSpanStart(it) to builder.getSpanEnd(it) }
+        .sortedBy { it.first }
+
+    var currentPos = itemStart
+
+    for ((start, end) in excludedRanges) {
+      if (start > currentPos) {
+        applySpans(builder, currentPos, start, checkedTextColor, strikethrough)
+      }
+      currentPos = maxOf(currentPos, end)
+    }
+
+    if (currentPos < itemEnd) {
+      applySpans(builder, currentPos, itemEnd, checkedTextColor, strikethrough)
+    }
+  }
+
+  private fun applySpans(
+    builder: SpannableStringBuilder,
+    start: Int,
+    end: Int,
+    color: Int,
+    strikethrough: Boolean,
+  ) {
+    if (color != 0) {
+      builder.setSpan(ForegroundColorSpan(color), start, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+    }
+    if (strikethrough) {
+      builder.setSpan(StrikethroughSpan(), start, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+    }
   }
 }

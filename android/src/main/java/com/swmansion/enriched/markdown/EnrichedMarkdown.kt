@@ -69,6 +69,7 @@ class EnrichedMarkdown
 
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
+    private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
 
     fun setMarkdownContent(markdown: String) {
       if (currentMarkdown == markdown) return
@@ -135,6 +136,10 @@ class EnrichedMarkdown
 
     fun setOnLinkLongPressCallback(callback: (String) -> Unit) {
       onLinkLongPressCallback = callback
+    }
+
+    fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
+      onTaskListItemPressCallback = callback
     }
 
     private fun recreateStyleConfig() {
@@ -232,6 +237,10 @@ class EnrichedMarkdown
         lastElementMarginBottom = segment.lastElementMarginBottom
         applyStyledText(segment.styledText)
         segment.imageSpans.forEach { it.registerTextView(this) }
+
+        onTaskListItemPressCallback = { taskIndex, checked, itemText ->
+          this@EnrichedMarkdown.onTaskListItemPressCallback?.invoke(taskIndex, checked, itemText)
+        }
       }
 
     private fun createTableView(

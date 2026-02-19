@@ -58,6 +58,7 @@ class BlockStyleContext {
   var listDepth = 0
   var listType: ListType? = null
   var listItemNumber = 0
+  var taskItemCount = 0
 
   // Optimization: ArrayDeque is more efficient for stack operations than MutableList
   private val orderedListItemNumbers = ArrayDeque<Int>()
@@ -161,6 +162,7 @@ class BlockStyleContext {
     listDepth = 0
     listType = null
     listItemNumber = 0
+    taskItemCount = 0
     orderedListItemNumbers.clear()
   }
 }

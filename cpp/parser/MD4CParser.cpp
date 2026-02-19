@@ -17,6 +17,8 @@ public:
   static const std::string ATTR_TITLE;
   static const std::string ATTR_FENCE_CHAR;
   static const std::string ATTR_LANGUAGE;
+  static const std::string ATTR_IS_TASK;
+  static const std::string ATTR_TASK_CHECKED;
 
   void reset(size_t estimatedDepth) {
     root = std::make_shared<MarkdownASTNode>(NodeType::Document);
@@ -116,7 +118,16 @@ public:
       }
 
       case MD_BLOCK_LI: {
-        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::ListItem));
+        auto node = std::make_shared<MarkdownASTNode>(NodeType::ListItem);
+        if (detail) {
+          auto *li = static_cast<MD_BLOCK_LI_DETAIL *>(detail);
+          if (li->is_task) {
+            node->setAttribute(ATTR_IS_TASK, "true");
+            // 'x' or 'X' = checked, ' ' = unchecked
+            node->setAttribute(ATTR_TASK_CHECKED, (li->task_mark == 'x' || li->task_mark == 'X') ? "true" : "false");
+          }
+        }
+        impl->pushNode(node);
         break;
       }
 
@@ -347,7 +358,8 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   // MD_FLAG_STRIKETHROUGH: Enable ~~strikethrough~~ syntax
   // MD_FLAG_UNDERLINE: When enabled, __ creates underline; when disabled, __ creates emphasis
   // MD_FLAG_PERMISSIVEAUTOLINKS: Bare URLs, emails, www. links become clickable
-  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_PERMISSIVEAUTOLINKS;
+  unsigned flags =
+      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_PERMISSIVEAUTOLINKS;
   if (md4cFlags.underline) {
     flags |= MD_FLAG_UNDERLINE;
   }
@@ -378,5 +390,7 @@ const std::string MD4CParser::Impl::ATTR_URL = "url";
 const std::string MD4CParser::Impl::ATTR_TITLE = "title";
 const std::string MD4CParser::Impl::ATTR_FENCE_CHAR = "fenceChar";
 const std::string MD4CParser::Impl::ATTR_LANGUAGE = "language";
+const std::string MD4CParser::Impl::ATTR_IS_TASK = "isTask";
+const std::string MD4CParser::Impl::ATTR_TASK_CHECKED = "taskChecked";
 
 } // namespace Markdown

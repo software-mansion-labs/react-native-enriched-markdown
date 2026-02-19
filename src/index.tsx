@@ -7,4 +7,5 @@ export type {
 export type {
   LinkPressEvent,
   LinkLongPressEvent,
+  TaskListItemPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';

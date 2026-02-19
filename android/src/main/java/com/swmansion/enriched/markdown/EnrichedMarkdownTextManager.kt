@@ -13,6 +13,7 @@ import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
+import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 
 @ReactModule(name = EnrichedMarkdownTextManager.NAME)
@@ -35,8 +36,10 @@ class EnrichedMarkdownTextManager :
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     val map = mutableMapOf<String, Any>()
-    map.put(LinkPressEvent.EVENT_NAME, mapOf("registrationName" to LinkPressEvent.EVENT_NAME))
-    map.put(LinkLongPressEvent.EVENT_NAME, mapOf("registrationName" to LinkLongPressEvent.EVENT_NAME))
+    map[LinkPressEvent.EVENT_NAME] = mapOf("registrationName" to LinkPressEvent.EVENT_NAME)
+    map[LinkLongPressEvent.EVENT_NAME] = mapOf("registrationName" to LinkLongPressEvent.EVENT_NAME)
+    map[TaskListItemPressEvent.EVENT_NAME] =
+      mapOf("registrationName" to TaskListItemPressEvent.EVENT_NAME)
     return map
   }
 
@@ -51,6 +54,17 @@ class EnrichedMarkdownTextManager :
 
     view?.setOnLinkLongPressCallback { url ->
       emitOnLinkLongPress(view, url)
+    }
+
+    view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
+      val updatedMarkdown =
+        com.swmansion.enriched.markdown.utils.TaskListToggleUtils.toggleAtIndex(
+          view.currentMarkdown,
+          taskIndex,
+          checked,
+        )
+      view.setMarkdownContent(updatedMarkdown)
+      emitOnTaskListItemPress(view, taskIndex, !checked, itemText)
     }
 
     view?.setMarkdownContent(markdown ?: "No markdown content")
@@ -148,6 +162,20 @@ class EnrichedMarkdownTextManager :
     val surfaceId = UIManagerHelper.getSurfaceId(context)
     val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
     val event = LinkLongPressEvent(surfaceId, view.id, url)
+
+    eventDispatcher?.dispatchEvent(event)
+  }
+
+  private fun emitOnTaskListItemPress(
+    view: EnrichedMarkdownText,
+    taskIndex: Int,
+    checked: Boolean,
+    itemText: String,
+  ) {
+    val context = view.context as com.facebook.react.bridge.ReactContext
+    val surfaceId = UIManagerHelper.getSurfaceId(context)
+    val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
+    val event = TaskListItemPressEvent(surfaceId, view.id, taskIndex, checked, itemText)
 
     eventDispatcher?.dispatchEvent(event)
   }

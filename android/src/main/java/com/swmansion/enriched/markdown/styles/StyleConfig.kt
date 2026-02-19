@@ -170,6 +170,14 @@ class StyleConfig(
     TableStyle.fromReadableMap(map, styleParser)
   }
 
+  val taskListStyle: TaskListStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("taskList")) {
+        "TaskList style not found. JS should always provide defaults."
+      }
+    TaskListStyle.fromReadableMap(map, styleParser)
+  }
+
   val tableTypeface: Typeface? by lazy {
     val fontFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
     val fontWeight = parseFontWeight(tableStyle.fontWeight)
@@ -229,7 +237,8 @@ class StyleConfig(
       listStyle == other.listStyle &&
       codeBlockStyle == other.codeBlockStyle &&
       thematicBreakStyle == other.thematicBreakStyle &&
-      tableStyle == other.tableStyle
+      tableStyle == other.tableStyle &&
+      taskListStyle == other.taskListStyle
   }
 
   override fun hashCode(): Int {
@@ -248,6 +257,7 @@ class StyleConfig(
     result = 31 * result + codeBlockStyle.hashCode()
     result = 31 * result + thematicBreakStyle.hashCode()
     result = 31 * result + tableStyle.hashCode()
+    result = 31 * result + taskListStyle.hashCode()
     return result
   }
 }

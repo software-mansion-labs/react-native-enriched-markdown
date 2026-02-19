@@ -17,6 +17,7 @@
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import "StylePropsUtils.h"
+#import "TaskListTapUtils.h"
 #import "TextViewLayoutManager.h"
 #import <React/RCTUtils.h>
 #import <objc/runtime.h>
@@ -421,6 +422,25 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 - (void)textTapped:(UITapGestureRecognizer *)recognizer
 {
   UITextView *textView = (UITextView *)recognizer.view;
+
+  if (handleTaskListTap(textView, recognizer, ^(NSInteger index, BOOL checked, NSString *itemText) {
+        NSString *updatedMarkdown = toggleTaskListItemAtIndex(self->_cachedMarkdown, index, checked);
+        self->_cachedMarkdown = updatedMarkdown;
+        [self renderMarkdownContent:updatedMarkdown];
+
+        BOOL newChecked = !checked;
+        auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(self->_eventEmitter);
+        if (eventEmitter) {
+          eventEmitter->onTaskListItemPress({
+              .index = (int)index,
+              .checked = newChecked,
+              .text = std::string([itemText UTF8String] ?: ""),
+          });
+        }
+      })) {
+    return;
+  }
+
   NSString *url = linkURLAtTapLocation(textView, recognizer);
   if (url) {
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);

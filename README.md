@@ -308,7 +308,7 @@ Inline elements modify text within blocks. They inherit the parent block's base 
 | `strikethrough` | Parent block | Strike line with custom color (iOS only) |
 | `underline` | Parent block | Underline with custom color (iOS only) |
 | `code` | Parent block | Monospace font, background, optional fontSize |
-| `link` | Parent block | Color, underline |
+| `link` | Parent block | Optional font family, color, underline |
 
 ### Style Inheritance
 
@@ -387,6 +387,7 @@ The library provides sensible default styles for all Markdown elements out of th
       color: '#333',
     },
     link: {
+      fontFamily: 'System-Bold',
       color: '#007AFF',
       underline: true,
     },
@@ -510,6 +511,7 @@ The library provides sensible default styles for all Markdown elements out of th
 
 | Property | Type | Description |
 |----------|------|-------------|
+| `fontFamily` | `string` | Font family for links. Overrides the parent block's font family when set |
 | `color` | `string` | Link text color |
 | `underline` | `boolean` | Show underline |
 

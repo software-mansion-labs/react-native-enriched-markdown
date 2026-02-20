@@ -229,16 +229,13 @@ const defaultTableStyle: MarkdownStyleInternal['table'] = {
 };
 
 const defaultTaskListStyle: MarkdownStyleInternal['taskList'] = {
-  // Checkbox fill when checked — system blue on iOS, Material blue on Android
   checkedColor: Platform.select({
     ios: processColor('#007AFF'),
     android: processColor('#2196F3'),
     default: processColor('#007AFF'),
   }) as ColorValue,
-  // Unchecked border
   borderColor: processColor('#9E9E9E') as ColorValue,
-  // 0 = derive from list.fontSize × 0.9 at render time
-  checkboxSize: 0,
+  checkboxSize: Math.round(defaultListStyle.fontSize * 0.9),
   checkboxBorderRadius: 3,
   checkmarkColor: processColor('#FFFFFF') as ColorValue,
   checkedTextColor: processColor('#000000') as ColorValue,
@@ -498,7 +495,8 @@ export const normalizeMarkdownStyle = (
         normalizeColor(style.taskList?.borderColor) ??
         defaultTaskListStyle.borderColor,
       checkboxSize:
-        style.taskList?.checkboxSize ?? defaultTaskListStyle.checkboxSize,
+        style.taskList?.checkboxSize ??
+        Math.round((style.list?.fontSize ?? defaultListStyle.fontSize) * 0.9),
       checkboxBorderRadius:
         style.taskList?.checkboxBorderRadius ??
         defaultTaskListStyle.checkboxBorderRadius,

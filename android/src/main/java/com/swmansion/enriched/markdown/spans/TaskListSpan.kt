@@ -33,7 +33,7 @@ class TaskListSpan(
     marginLeft = listStyle.marginLeft,
     gapWidth = listStyle.gapWidth,
   ) {
-  private val checkboxSize = taskStyle.checkboxSize.takeIf { it > 0f } ?: (listStyle.fontSize * DEFAULT_CHECKBOX_SIZE_RATIO)
+  private val checkboxSize = taskStyle.checkboxSize
   private val cornerRadius = taskStyle.checkboxBorderRadius
   private val rect = RectF()
   private val checkPath = Path()
@@ -41,7 +41,6 @@ class TaskListSpan(
   companion object {
     private const val CAP_HEIGHT_RATIO = 0.72f
     private const val HALF_DIVISOR = 2f
-    private const val DEFAULT_CHECKBOX_SIZE_RATIO = 0.9f
     private const val CHECKMARK_MIN_STROKE_WIDTH = 1.5f
     private const val CHECKMARK_STROKE_RATIO = 0.12f
     private const val CHECKMARK_INSET_RATIO = 0.22f

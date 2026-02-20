@@ -123,7 +123,6 @@ public:
           auto *li = static_cast<MD_BLOCK_LI_DETAIL *>(detail);
           if (li->is_task) {
             node->setAttribute(ATTR_IS_TASK, "true");
-            // 'x' or 'X' = checked, ' ' = unchecked
             node->setAttribute(ATTR_TASK_CHECKED, (li->task_mark == 'x' || li->task_mark == 'X') ? "true" : "false");
           }
         }

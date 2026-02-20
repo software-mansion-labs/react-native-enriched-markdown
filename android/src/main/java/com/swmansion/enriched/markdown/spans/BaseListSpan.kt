@@ -57,6 +57,11 @@ abstract class BaseListSpan(
   ) {
     if (!first || shouldSkipDrawing(text, start) || !hasContent(text, start, end)) return
 
+    // Only draw the marker on the true first line of this span.
+    // \n inside list item content creates inner paragraphs, each with first=true,
+    // but only the line at the span start should get a bullet/number.
+    if (text is Spanned && text.getSpanStart(this) != start) return
+
     val originalStyle = paint.style
     val originalColor = paint.color
     drawMarker(canvas, paint, x, dir, top, baseline, bottom, layout, start)

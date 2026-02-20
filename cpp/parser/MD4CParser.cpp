@@ -57,6 +57,7 @@ public:
   }
 
   void addInlineNode(std::shared_ptr<MarkdownASTNode> node) {
+    flushText();
     if (node && !nodeStack.empty()) {
       nodeStack.back()->addChild(node);
     }

@@ -8,6 +8,7 @@
 #import "LinkRenderer.h"
 #import "ListItemRenderer.h"
 #import "ListRenderer.h"
+#import "MarkdownASTNode.h"
 #import "ParagraphRenderer.h"
 #import "RenderContext.h"
 #import "StrikethroughRenderer.h"
@@ -106,6 +107,12 @@
                      context:(RenderContext *)context
 {
   for (MarkdownASTNode *child in node.children) {
+    if (child.type == MarkdownNodeTypeLineBreak) {
+      NSAttributedString *lineBreak = [[NSAttributedString alloc] initWithString:@"\u2028"
+                                                                      attributes:[context getTextAttributes]];
+      [output appendAttributedString:lineBreak];
+      continue;
+    }
     id<NodeRenderer> renderer = [self rendererForNodeType:child.type];
     if (renderer) {
       [renderer renderNode:child into:output context:context];

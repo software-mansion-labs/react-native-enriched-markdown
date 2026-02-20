@@ -30,7 +30,8 @@ typedef NS_ENUM(NSInteger, ParagraphType) {
   ParagraphTypeCodeBlock,
   ParagraphTypeBlockquote,
   ParagraphTypeListItemUnordered,
-  ParagraphTypeListItemOrdered
+  ParagraphTypeListItemOrdered,
+  ParagraphTypeTaskList
 };
 
 typedef struct {
@@ -38,6 +39,7 @@ typedef struct {
   ParagraphType type;
   NSInteger depth;
   NSInteger listNumber;
+  BOOL isTaskChecked;
 } ParagraphData;
 
 #pragma mark - Cached Style Config
@@ -56,6 +58,11 @@ typedef struct {
 @property (nonatomic, copy) NSString *blockquoteBackgroundColor;
 @property (nonatomic, copy) NSString *blockquoteBorderColor;
 @property (nonatomic, copy) NSString *listStyleColor;
+@property (nonatomic, copy) NSString *taskCheckedColor;
+@property (nonatomic, copy) NSString *taskBorderColor;
+@property (nonatomic, copy) NSString *taskCheckmarkColor;
+@property (nonatomic) CGFloat taskCheckboxSize;
+@property (nonatomic) CGFloat taskCheckboxBorderRadius;
 @property (nonatomic, copy) NSString *h1Color;
 @property (nonatomic, copy) NSString *h2Color;
 @property (nonatomic, copy) NSString *h3Color;
@@ -233,6 +240,11 @@ static CachedStyles *cacheStyles(StyleConfig *styleConfig)
   cache.blockquoteBackgroundColor = colorToCSS([styleConfig blockquoteBackgroundColor]);
   cache.blockquoteBorderColor = colorToCSS([styleConfig blockquoteBorderColor]);
   cache.listStyleColor = colorToCSS([styleConfig listStyleColor]);
+  cache.taskCheckedColor = colorToCSS([styleConfig taskListCheckedColor]);
+  cache.taskBorderColor = colorToCSS([styleConfig taskListBorderColor]);
+  cache.taskCheckmarkColor = colorToCSS([styleConfig taskListCheckmarkColor]);
+  cache.taskCheckboxSize = [styleConfig taskListCheckboxSize];
+  cache.taskCheckboxBorderRadius = [styleConfig taskListCheckboxBorderRadius];
   cache.h1Color = colorToCSS([styleConfig h1Color]);
   cache.h2Color = colorToCSS([styleConfig h2Color]);
   cache.h3Color = colorToCSS([styleConfig h3Color]);
@@ -333,6 +345,8 @@ static ParagraphType getParagraphType(NSDictionary *attrs)
 
   NSNumber *listDepth = attrs[ListDepthAttribute];
   if (listDepth && [listDepth integerValue] >= 0) {
+    if ([attrs[TaskItemAttribute] boolValue])
+      return ParagraphTypeTaskList;
     NSNumber *listType = attrs[ListTypeAttribute];
     if (listType && [listType integerValue] == ListTypeOrdered)
       return ParagraphTypeListItemOrdered;
@@ -354,7 +368,8 @@ static NSData *collectParagraphsData(NSAttributedString *attributedString, NSUIn
   while (currentIndex < string.length) {
     NSRange lineRange = [string lineRangeForRange:NSMakeRange(currentIndex, 0)];
 
-    ParagraphData para = {.range = lineRange, .type = ParagraphTypeNormal, .depth = 0, .listNumber = 1};
+    ParagraphData para = {
+        .range = lineRange, .type = ParagraphTypeNormal, .depth = 0, .listNumber = 1, .isTaskChecked = NO};
 
     if (lineRange.location < attributedString.length) {
       NSDictionary *attrs = [attributedString attributesAtIndex:lineRange.location effectiveRange:NULL];
@@ -366,6 +381,10 @@ static NSData *collectParagraphsData(NSAttributedString *attributedString, NSUIn
 
       para.depth = listDepth ? [listDepth integerValue] : (blockquoteDepth ? [blockquoteDepth integerValue] : 0);
       para.listNumber = listNumber ? [listNumber integerValue] : 1;
+
+      if (para.type == ParagraphTypeTaskList) {
+        para.isTaskChecked = [attrs[TaskCheckedAttribute] boolValue];
+      }
     }
 
     [data appendBytes:&para length:sizeof(ParagraphData)];
@@ -604,6 +623,7 @@ static void handleListItem(NSMutableString *html, ParagraphData *para, NSMutable
 {
   NSInteger depth = para->depth;
   BOOL isOrdered = (para->type == ParagraphTypeListItemOrdered);
+  BOOL isTask = (para->type == ParagraphTypeTaskList);
   NSInteger listTypeValue = isOrdered ? 1 : 0;
 
   while (state.currentListDepth > depth) {
@@ -631,13 +651,36 @@ static void handleListItem(NSMutableString *html, ParagraphData *para, NSMutable
     if (isOrdered) {
       [html appendFormat:@"<ol style=\"margin: 0; padding-left: %.0fpx;\">", indent];
     } else {
-      [html appendFormat:@"<ul style=\"margin: 0; padding-left: %.0fpx; list-style-type: disc;\">", indent];
+      NSString *listStyleType = isTask ? @"none" : @"disc";
+      [html
+          appendFormat:@"<ul style=\"margin: 0; padding-left: %.0fpx; list-style-type: %@;\">", indent, listStyleType];
     }
     [state.openListTypes addObject:@(listTypeValue)];
   }
 
-  [html appendFormat:@"<li style=\"margin-bottom: %.0fpx; color: %@; font-size: %.0fpx;\">%@</li>",
-                     styles.listStyleMarginBottom, styles.listStyleColor, styles.listStyleFontSize, inlineContent];
+  [html appendFormat:@"<li style=\"margin-bottom: %.0fpx; color: %@; font-size: %.0fpx;\">",
+                     styles.listStyleMarginBottom, styles.listStyleColor, styles.listStyleFontSize];
+
+  if (isTask) {
+    CGFloat size = styles.taskCheckboxSize;
+    CGFloat radius = styles.taskCheckboxBorderRadius;
+    if (para->isTaskChecked) {
+      [html appendFormat:
+                @"<span style=\"display: inline-block; width: %.0fpx; height: %.0fpx; "
+                @"border-radius: %.0fpx; background-color: %@; color: %@; "
+                @"font-size: %.0fpx; line-height: %.0fpx; text-align: center; "
+                @"vertical-align: middle; margin-right: 4px;\">&#10003;</span> ",
+                size, size, radius, styles.taskCheckedColor, styles.taskCheckmarkColor, size - 2, size];
+    } else {
+      [html appendFormat:
+                @"<span style=\"display: inline-block; width: %.0fpx; height: %.0fpx; "
+                @"border-radius: %.0fpx; border: 1.5px solid %@; "
+                @"vertical-align: middle; margin-right: 4px;\"></span> ",
+                size, size, radius, styles.taskBorderColor];
+    }
+  }
+
+  [html appendFormat:@"%@</li>", inlineContent];
 }
 
 static void handleHeading(NSMutableString *html, ParagraphData *para, NSMutableString *inlineContent,
@@ -765,7 +808,8 @@ NSString *_Nullable generateHTML(NSAttributedString *attributedString, StyleConf
     }
     state.previousWasBlockquote = NO;
 
-    if (para->type == ParagraphTypeListItemUnordered || para->type == ParagraphTypeListItemOrdered) {
+    if (para->type == ParagraphTypeListItemUnordered || para->type == ParagraphTypeListItemOrdered ||
+        para->type == ParagraphTypeTaskList) {
       handleListItem(html, para, inlineBuffer, styles, state);
       continue;
     }

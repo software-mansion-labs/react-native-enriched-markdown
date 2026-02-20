@@ -7,9 +7,12 @@ import android.text.Spannable
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewParent
 import android.widget.TextView
+import com.swmansion.enriched.markdown.EnrichedMarkdown
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.spans.ImageSpan
+import com.swmansion.enriched.markdown.styles.StyleConfig
 
 private const val MENU_ITEM_COPY_MARKDOWN = 1000
 private const val MENU_ITEM_COPY_IMAGE_URL = 1001
@@ -91,8 +94,9 @@ private fun TextView.copyWithHTML() {
   val selectedText = spannable.subSequence(start, end)
   val plainText = selectedText.toString()
 
-  val enrichedMarkdownText = this as? EnrichedMarkdownText
-  val styleConfig = enrichedMarkdownText?.markdownStyle
+  val styleConfig =
+    (this as? EnrichedMarkdownText)?.markdownStyle
+      ?: findParentMarkdownStyle()
   val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
   if (styleConfig != null && selectedText is Spannable) {
@@ -136,4 +140,13 @@ private fun TextView.copyImageUrlsToClipboard() {
 
   val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
   clipboard.setPrimaryClip(ClipData.newPlainText("Image URLs", urls.joinToString("\n")))
+}
+
+private fun TextView.findParentMarkdownStyle(): StyleConfig? {
+  var current: ViewParent? = parent
+  while (current != null) {
+    if (current is EnrichedMarkdown) return current.markdownStyle
+    current = current.parent
+  }
+  return null
 }

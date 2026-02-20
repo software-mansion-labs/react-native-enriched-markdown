@@ -2,6 +2,7 @@
 #import "BlockquoteBorder.h"
 #import "EnrichedMarkdownImageAttachment.h"
 #import "LastElementUtils.h"
+#import "ListItemRenderer.h"
 #import "RuntimeKeys.h"
 #import "ThematicBreakAttachment.h"
 
@@ -167,7 +168,7 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         // Newlines
                         if ([text isEqualToString:@"\n"] || [text isEqualToString:@"\n\n"]) {
                           NSNumber *bqDepth = attrs[BlockquoteDepthAttributeName];
-                          NSNumber *listDepth = attrs[@"ListDepth"];
+                          NSNumber *listDepth = attrs[ListDepthAttribute];
                           BOOL inBlockquote = (bqDepth != nil);
                           BOOL inList = (listDepth != nil);
 
@@ -246,9 +247,11 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         }
 
                         // Lists
-                        NSNumber *listDepthNum = attrs[@"ListDepth"];
-                        NSNumber *listTypeNum = attrs[@"ListType"];
-                        NSNumber *listItemNum = attrs[@"ListItemNumber"];
+                        NSNumber *listDepthNum = attrs[ListDepthAttribute];
+                        NSNumber *listTypeNum = attrs[ListTypeAttribute];
+                        NSNumber *listItemNum = attrs[ListItemNumberAttribute];
+                        BOOL isTaskItem = [attrs[TaskItemAttribute] boolValue];
+                        BOOL isTaskChecked = [attrs[TaskCheckedAttribute] boolValue];
                         NSInteger currentListDepth = listDepthNum ? [listDepthNum integerValue] : -1;
 
                         if (currentListDepth >= 0) {
@@ -276,9 +279,17 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                           NSMutableString *prefixedSegment = [NSMutableString string];
 
                           if (listDepthNum && ![text hasPrefix:@"\n"]) {
-                            BOOL isOrdered = ([listTypeNum integerValue] == 1);
-                            NSInteger itemNumber = listItemNum ? [listItemNum integerValue] : 1;
-                            [prefixedSegment appendString:buildListPrefix(currentListDepth, isOrdered, itemNumber)];
+                            if (isTaskItem) {
+                              NSString *indent = [@"" stringByPaddingToLength:(currentListDepth * 2)
+                                                                   withString:@" "
+                                                              startingAtIndex:0];
+                              NSString *checkbox = isTaskChecked ? @"[x]" : @"[ ]";
+                              [prefixedSegment appendFormat:@"%@- %@ ", indent, checkbox];
+                            } else {
+                              BOOL isOrdered = ([listTypeNum integerValue] == 1);
+                              NSInteger itemNumber = listItemNum ? [listItemNum integerValue] : 1;
+                              [prefixedSegment appendString:buildListPrefix(currentListDepth, isOrdered, itemNumber)];
+                            }
                           }
 
                           if (blockquotePrefix) {

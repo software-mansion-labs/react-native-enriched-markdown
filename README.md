@@ -16,6 +16,7 @@
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
 - 🗣️ Accessibility support (VoiceOver & TalkBack)
+- 🔄 RTL (right-to-left) language support
 
 Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
 We can help you build your next dream product –

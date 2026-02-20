@@ -71,7 +71,7 @@ class TaskListSpan(
     val fontMetrics = paint.fontMetrics
     val capHeight = -fontMetrics.ascent * CAP_HEIGHT_RATIO
     val centerY = baseline - capHeight / HALF_DIVISOR
-    val centerX = (depth * marginLeft + checkboxSize / HALF_DIVISOR) * dir
+    val centerX = x + (depth * marginLeft + checkboxSize / HALF_DIVISOR) * dir
     val half = checkboxSize / HALF_DIVISOR
     rect.set(centerX - half, centerY - half, centerX + half, centerY + half)
 

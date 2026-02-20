@@ -65,12 +65,11 @@ class BlockquoteSpan(
     val borderPaint = configureBorderPaint()
     val borderTop = top.toFloat()
     val borderBottom = bottom.toFloat()
-    val containerLeft = layout?.getLineLeft(0) ?: 0f
 
     for (level in 0..depth) {
-      val borderX = containerLeft + (levelSpacing * level * dir)
+      val borderX = x + (levelSpacing * level * dir)
       val borderRight = borderX + (blockquoteStyle.borderWidth * dir)
-      c.drawRect(borderX, borderTop, borderRight, borderBottom, borderPaint)
+      c.drawRect(minOf(borderX, borderRight), borderTop, maxOf(borderX, borderRight), borderBottom, borderPaint)
     }
   }
 

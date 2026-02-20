@@ -33,7 +33,8 @@
   UIFontDescriptorSymbolicTraits traits = blockFont.fontDescriptor.symbolicTraits;
   UIFontWeight weight = (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
 
-  UIFont *monospacedFont = [UIFont monospacedSystemFontOfSize:blockStyle.fontSize weight:weight];
+  CGFloat codeFontSize = _config.codeFontSize > 0 ? _config.codeFontSize : blockStyle.fontSize;
+  UIFont *monospacedFont = [UIFont monospacedSystemFontOfSize:codeFontSize weight:weight];
 
   NSUInteger start = output.length;
 

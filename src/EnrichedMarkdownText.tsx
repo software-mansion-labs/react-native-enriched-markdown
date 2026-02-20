@@ -83,6 +83,7 @@ interface UnderlineStyle {
 }
 
 interface CodeStyle {
+  fontSize?: number;
   color?: string;
   backgroundColor?: string;
   borderColor?: string;

@@ -70,6 +70,7 @@ interface UnderlineStyleInternal {
 }
 
 interface CodeStyleInternal {
+  fontSize: CodegenTypes.Float;
   color: ColorValue;
   backgroundColor: ColorValue;
   borderColor: ColorValue;

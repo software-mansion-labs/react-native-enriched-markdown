@@ -161,6 +161,8 @@
 - (UIColor *)underlineColor;
 - (void)setUnderlineColor:(UIColor *)newValue;
 // Code properties
+- (CGFloat)codeFontSize;
+- (void)setCodeFontSize:(CGFloat)newValue;
 - (UIColor *)codeColor;
 - (void)setCodeColor:(UIColor *)newValue;
 - (UIColor *)codeBackgroundColor;

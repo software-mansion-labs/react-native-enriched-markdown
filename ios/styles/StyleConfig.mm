@@ -112,6 +112,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   // Underline properties
   UIColor *_underlineColor;
   // Code properties
+  CGFloat _codeFontSize;
   UIColor *_codeColor;
   UIColor *_codeBackgroundColor;
   UIColor *_codeBorderColor;
@@ -370,6 +371,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_emphasisColor = [_emphasisColor copy];
   copy->_strikethroughColor = [_strikethroughColor copy];
   copy->_underlineColor = [_underlineColor copy];
+  copy->_codeFontSize = _codeFontSize;
   copy->_codeColor = [_codeColor copy];
   copy->_codeBackgroundColor = [_codeBackgroundColor copy];
   copy->_codeBorderColor = [_codeBorderColor copy];
@@ -1275,6 +1277,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setUnderlineColor:(UIColor *)newValue
 {
   _underlineColor = newValue;
+}
+
+- (CGFloat)codeFontSize
+{
+  return _codeFontSize;
+}
+
+- (void)setCodeFontSize:(CGFloat)newValue
+{
+  _codeFontSize = newValue;
 }
 
 - (UIColor *)codeColor

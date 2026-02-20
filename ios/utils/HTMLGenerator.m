@@ -503,7 +503,7 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                           [html appendFormat:
                                     @"<code style=\"background-color: %@; color: %@; "
                                     @"padding: %.0fpx %.0fpx; border-radius: %.0fpx; "
-                                    @"font-size: 0.7em; font-family: Menlo, Monaco, Consolas, monospace;\">",
+                                    @"font-size: 1em; font-family: Menlo, Monaco, Consolas, monospace;\">",
                                     styles.codeBackgroundColor, styles.codeColor, kCodePadding, kCodePadding * 2,
                                     kCodeBorderRadius];
                         }

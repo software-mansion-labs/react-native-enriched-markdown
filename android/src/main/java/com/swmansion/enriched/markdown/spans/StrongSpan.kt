@@ -23,11 +23,7 @@ class StrongSpan(
   }
 
   private fun applyStrongStyle(tp: TextPaint) {
-    // Preserve code fontSize if code is nested inside strong text
-    val codeFontSize = blockStyle.fontSize * 0.85f
-    if (kotlin.math.abs(tp.textSize - codeFontSize) > 0.1f) {
-      tp.textSize = blockStyle.fontSize
-    }
+    tp.textSize = blockStyle.fontSize
 
     val currentTypeface = tp.typeface ?: Typeface.DEFAULT
     val isItalic = (currentTypeface.style) and Typeface.ITALIC != 0

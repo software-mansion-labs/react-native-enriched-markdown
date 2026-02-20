@@ -96,7 +96,7 @@ object HTMLGenerator {
     val inlineImageVerticalAlign = "-0.2em"
     val codePadding = "2px 4px"
     val codeBorderRadius = "4px"
-    val codeFontSize = "0.7em"
+    val codeFontSize = "1em"
 
     // Headings (array for O(1) lookup)
     val headingFontSizes: IntArray

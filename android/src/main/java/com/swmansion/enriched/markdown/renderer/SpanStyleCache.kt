@@ -15,6 +15,7 @@ class SpanStyleCache(
   val strikethroughColor: Int = style.strikethroughStyle.color
   val linkColor: Int = style.linkStyle.color
   val linkUnderline: Boolean = style.linkStyle.underline
+  val codeFontSize: Float = style.codeStyle.fontSize
   val codeColor: Int = style.codeStyle.color
 
   private fun buildColorsToPreserve(style: StyleConfig): IntArray =

@@ -534,6 +534,11 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   // ── Code ───────────────────────────────────────────────────────────────────
 
+  if (newStyle.code.fontSize != oldStyle.code.fontSize) {
+    [config setCodeFontSize:newStyle.code.fontSize];
+    changed = YES;
+  }
+
   if (newStyle.code.color != oldStyle.code.color) {
     if (newStyle.code.color) {
       UIColor *codeColor = RCTUIColorFromSharedColor(newStyle.code.color);

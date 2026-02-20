@@ -120,6 +120,7 @@ const defaultCodeBackgroundColor = processColor('#FDF2F4') as ColorValue;
 const defaultCodeBorderColor = processColor('#F8D7DA') as ColorValue;
 
 const defaultCodeStyle: MarkdownStyleInternal['code'] = {
+  fontSize: 0,
   color: defaultCodeColor,
   backgroundColor: defaultCodeBackgroundColor,
   borderColor: defaultCodeBorderColor,
@@ -424,6 +425,7 @@ export const normalizeMarkdownStyle = (
     },
     code: {
       ...defaultCodeStyle,
+      fontSize: style.code?.fontSize ?? defaultCodeStyle.fontSize,
       color: normalizeColor(style.code?.color) ?? defaultCodeStyle.color,
       backgroundColor:
         normalizeColor(style.code?.backgroundColor) ??

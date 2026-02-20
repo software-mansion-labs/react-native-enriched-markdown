@@ -15,6 +15,7 @@ import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
+import com.swmansion.enriched.markdown.utils.TaskListToggleUtils
 
 @ReactModule(name = EnrichedMarkdownManager.NAME)
 class EnrichedMarkdownManager :
@@ -52,7 +53,7 @@ class EnrichedMarkdownManager :
 
     view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
       val updatedMarkdown =
-        com.swmansion.enriched.markdown.utils.TaskListToggleUtils.toggleAtIndex(
+        TaskListToggleUtils.toggleAtIndex(
           view.currentMarkdown,
           taskIndex,
           checked,

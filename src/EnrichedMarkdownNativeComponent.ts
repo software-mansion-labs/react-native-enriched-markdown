@@ -49,6 +49,7 @@ interface CodeBlockStyleInternal extends BaseBlockStyleInternal {
 }
 
 interface LinkStyleInternal {
+  fontFamily: string;
   color: ColorValue;
   underline: boolean;
 }

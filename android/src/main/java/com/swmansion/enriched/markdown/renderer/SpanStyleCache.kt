@@ -13,6 +13,7 @@ class SpanStyleCache(
   val strongColor: Int? = style.strongStyle.color
   val emphasisColor: Int? = style.emphasisStyle.color
   val strikethroughColor: Int = style.strikethroughStyle.color
+  val linkFontFamily: String = style.linkStyle.fontFamily
   val linkColor: Int = style.linkStyle.color
   val linkUnderline: Boolean = style.linkStyle.underline
   val codeFontSize: Float = style.codeStyle.fontSize

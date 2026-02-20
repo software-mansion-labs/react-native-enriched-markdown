@@ -101,6 +101,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIFont *_h6Font;
   BOOL _h6FontNeedsRecreation;
   // Link properties
+  NSString *_linkFontFamily;
   UIColor *_linkColor;
   BOOL _linkUnderline;
   // Strong properties
@@ -365,6 +366,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_h6LineHeight = _h6LineHeight;
   copy->_h6TextAlign = _h6TextAlign;
   copy->_h6FontNeedsRecreation = YES;
+  copy->_linkFontFamily = [_linkFontFamily copy];
   copy->_linkColor = [_linkColor copy];
   copy->_linkUnderline = _linkUnderline;
   copy->_strongColor = [_strongColor copy];
@@ -1217,6 +1219,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
     _h6FontNeedsRecreation = NO;
   }
   return _h6Font;
+}
+
+- (NSString *)linkFontFamily
+{
+  return _linkFontFamily;
+}
+
+- (void)setLinkFontFamily:(NSString *)newValue
+{
+  _linkFontFamily = newValue;
 }
 
 - (UIColor *)linkColor

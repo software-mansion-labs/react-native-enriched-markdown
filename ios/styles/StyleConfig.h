@@ -144,6 +144,8 @@
 - (void)setH6TextAlign:(NSTextAlignment)newValue;
 - (UIFont *)h6Font;
 // Link properties
+- (NSString *)linkFontFamily;
+- (void)setLinkFontFamily:(NSString *)newValue;
 - (UIColor *)linkColor;
 - (void)setLinkColor:(UIColor *)newValue;
 - (BOOL)linkUnderline;

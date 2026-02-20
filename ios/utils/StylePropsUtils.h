@@ -481,6 +481,16 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   // ── Link ───────────────────────────────────────────────────────────────────
 
+  if (newStyle.link.fontFamily != oldStyle.link.fontFamily) {
+    if (!newStyle.link.fontFamily.empty()) {
+      NSString *fontFamily = [[NSString alloc] initWithUTF8String:newStyle.link.fontFamily.c_str()];
+      [config setLinkFontFamily:fontFamily];
+    } else {
+      [config setLinkFontFamily:nullptr];
+    }
+    changed = YES;
+  }
+
   if (newStyle.link.color != oldStyle.link.color) {
     UIColor *linkColor = RCTUIColorFromSharedColor(newStyle.link.color);
     [config setLinkColor:linkColor];

@@ -54,6 +54,7 @@ interface CodeBlockStyle extends BaseBlockStyle {
 }
 
 interface LinkStyle {
+  fontFamily?: string;
   color?: string;
   underline?: boolean;
 }

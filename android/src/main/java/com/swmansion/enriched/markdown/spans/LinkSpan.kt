@@ -43,7 +43,14 @@ class LinkSpan(
     super.updateDrawState(textPaint)
 
     textPaint.textSize = blockStyle.fontSize
-    textPaint.applyBlockStyleFont(blockStyle, context)
+
+    if (styleCache.linkFontFamily.isNotEmpty()) {
+      val overriddenBlockStyle =
+        blockStyle.copy(fontFamily = styleCache.linkFontFamily)
+      textPaint.applyBlockStyleFont(overriddenBlockStyle, context)
+    } else {
+      textPaint.applyBlockStyleFont(blockStyle, context)
+    }
 
     textPaint.color = styleCache.linkColor
     textPaint.isUnderlineText = styleCache.linkUnderline

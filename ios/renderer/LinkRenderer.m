@@ -3,6 +3,7 @@
 #import "RenderContext.h"
 #import "RendererFactory.h"
 #import "StyleConfig.h"
+#import <React/RCTFont.h>
 
 @implementation LinkRenderer {
   RendererFactory *_rendererFactory;
@@ -36,6 +37,7 @@
   NSString *url = node.attributes[@"url"] ?: @"";
   UIColor *linkColor = [_config linkColor];
   NSNumber *underlineStyle = @([_config linkUnderline] ? NSUnderlineStyleSingle : NSUnderlineStyleNone);
+  NSString *linkFontFamily = [_config linkFontFamily];
 
   // 3. Apply core link functionality (non-destructive)
   [output addAttribute:NSLinkAttributeName value:url range:range];
@@ -55,6 +57,22 @@
                             // Only update underline style if it differs from the config
                             if (![attrs[NSUnderlineStyleAttributeName] isEqual:underlineStyle]) {
                               newAttributes[NSUnderlineStyleAttributeName] = underlineStyle;
+                            }
+
+                            if (linkFontFamily.length > 0) {
+                              UIFont *currentFont = attrs[NSFontAttributeName];
+                              if (currentFont) {
+                                UIFont *linkFont = [RCTFont updateFont:currentFont
+                                                            withFamily:linkFontFamily
+                                                                  size:nil
+                                                                weight:nil
+                                                                 style:nil
+                                                               variant:nil
+                                                       scaleMultiplier:1.0];
+                                if (linkFont && ![currentFont isEqual:linkFont]) {
+                                  newAttributes[NSFontAttributeName] = linkFont;
+                                }
+                              }
                             }
 
                             if (newAttributes.count > 0) {

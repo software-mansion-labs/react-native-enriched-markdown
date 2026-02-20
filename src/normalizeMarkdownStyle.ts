@@ -111,6 +111,7 @@ const defaultH6Style: MarkdownStyleInternal['h6'] = {
 const defaultLinkColor = processColor('#2563EB') as ColorValue;
 
 const defaultLinkStyle: MarkdownStyleInternal['link'] = {
+  fontFamily: '',
   color: defaultLinkColor,
   underline: true,
 };

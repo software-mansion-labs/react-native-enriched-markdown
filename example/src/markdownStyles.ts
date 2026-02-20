@@ -93,6 +93,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     borderColor: '#ddd6fe',
   },
   link: {
+    fontFamily: 'Montserrat-Bold',
     color: '#2563eb',
     underline: true,
   },

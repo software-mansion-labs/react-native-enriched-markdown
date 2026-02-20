@@ -49,7 +49,6 @@ typedef struct {
 @property (nonatomic, copy) NSString *paragraphColor;
 @property (nonatomic, copy) NSString *strongColor;
 @property (nonatomic, copy) NSString *emphasisColor;
-@property (nonatomic, copy) NSString *linkColor;
 @property (nonatomic, copy) NSString *codeColor;
 @property (nonatomic, copy) NSString *codeBackgroundColor;
 @property (nonatomic, copy) NSString *codeBlockColor;
@@ -102,6 +101,8 @@ typedef struct {
 @property (nonatomic, copy) NSString *h4FontWeight;
 @property (nonatomic, copy) NSString *h5FontWeight;
 @property (nonatomic, copy) NSString *h6FontWeight;
+@property (nonatomic, copy) NSString *linkFontFamily;
+@property (nonatomic, copy) NSString *linkColor;
 @property (nonatomic) BOOL linkUnderline;
 @property (nonatomic, copy) NSString *thematicBreakColor;
 @property (nonatomic) CGFloat thematicBreakHeight;
@@ -231,7 +232,6 @@ static CachedStyles *cacheStyles(StyleConfig *styleConfig)
   cache.paragraphColor = colorToCSS([styleConfig paragraphColor]);
   cache.strongColor = colorToCSS([styleConfig strongColor]);
   cache.emphasisColor = colorToCSS([styleConfig emphasisColor]);
-  cache.linkColor = colorToCSS([styleConfig linkColor]);
   cache.codeColor = colorToCSS([styleConfig codeColor]);
   cache.codeBackgroundColor = colorToCSS([styleConfig codeBackgroundColor]);
   cache.codeBlockColor = colorToCSS([styleConfig codeBlockColor]);
@@ -285,6 +285,8 @@ static CachedStyles *cacheStyles(StyleConfig *styleConfig)
   cache.h4FontWeight = fontWeightToCSS([styleConfig h4FontWeight]);
   cache.h5FontWeight = fontWeightToCSS([styleConfig h5FontWeight]);
   cache.h6FontWeight = fontWeightToCSS([styleConfig h6FontWeight]);
+  cache.linkFontFamily = [styleConfig linkFontFamily];
+  cache.linkColor = colorToCSS([styleConfig linkColor]);
   cache.linkUnderline = [styleConfig linkUnderline];
   cache.thematicBreakColor = colorToCSS([styleConfig thematicBreakColor]);
   cache.thematicBreakHeight = [styleConfig thematicBreakHeight];
@@ -494,9 +496,16 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                         if (linkAttr) {
                           NSString *href =
                               [linkAttr isKindOfClass:[NSURL class]] ? [(NSURL *)linkAttr absoluteString] : linkAttr;
-                          [html appendFormat:@"<a href=\"%@\" style=\"color: %@; text-decoration: %@;\">",
-                                             escapeHTML(href), styles.linkColor,
-                                             styles.linkUnderline ? @"underline" : @"none"];
+                          if (styles.linkFontFamily.length > 0) {
+                            [html appendFormat:
+                                      @"<a href=\"%@\" style=\"color: %@; text-decoration: %@; font-family: '%@';\">",
+                                      escapeHTML(href), styles.linkColor, styles.linkUnderline ? @"underline" : @"none",
+                                      styles.linkFontFamily];
+                          } else {
+                            [html appendFormat:@"<a href=\"%@\" style=\"color: %@; text-decoration: %@;\">",
+                                               escapeHTML(href), styles.linkColor,
+                                               styles.linkUnderline ? @"underline" : @"none"];
+                          }
                         }
 
                         if (isCode) {

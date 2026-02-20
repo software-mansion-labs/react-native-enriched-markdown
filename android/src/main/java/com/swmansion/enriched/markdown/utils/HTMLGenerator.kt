@@ -74,6 +74,7 @@ object HTMLGenerator {
     val taskCheckboxBorderRadius: Int
 
     // Link
+    val linkFontFamily: String
     val linkColor: String
     val linkUnderline: Boolean
 
@@ -151,6 +152,7 @@ object HTMLGenerator {
       taskCheckboxBorderRadius = dimPx(tlStyle.checkboxBorderRadius)
 
       // Link
+      linkFontFamily = style.linkStyle.fontFamily
       linkColor = colorToCSS(style.linkStyle.color)
       linkUnderline = style.linkStyle.underline
 
@@ -740,7 +742,10 @@ object HTMLGenerator {
         .append(styles.linkColor)
         .append("; text-decoration: ")
         .append(if (styles.linkUnderline) "underline" else "none")
-        .append(";\">")
+      if (styles.linkFontFamily.isNotEmpty()) {
+        html.append("; font-family: '").append(styles.linkFontFamily).append("'")
+      }
+      html.append(";\">")
     }
 
     if (isCode) {

@@ -307,7 +307,7 @@ Inline elements modify text within blocks. They inherit the parent block's base 
 | `em` | Parent block | Italic style, optional color |
 | `strikethrough` | Parent block | Strike line with custom color (iOS only) |
 | `underline` | Parent block | Underline with custom color (iOS only) |
-| `code` | Parent block | Monospace font, background |
+| `code` | Parent block | Monospace font, background, optional fontSize |
 | `link` | Parent block | Color, underline |
 
 ### Style Inheritance
@@ -391,6 +391,7 @@ The library provides sensible default styles for all Markdown elements out of th
       underline: true,
     },
     code: {
+      fontSize: 16,
       color: '#E91E63',
       backgroundColor: '#F5F5F5',
       borderColor: '#E0E0E0',
@@ -500,6 +501,7 @@ The library provides sensible default styles for all Markdown elements out of th
 
 | Property | Type | Description |
 |----------|------|-------------|
+| `fontSize` | `number` | Font size in points. Defaults to the parent block's font size (1em). Set to customize the monospaced font size independently |
 | `color` | `string` | Text color |
 | `backgroundColor` | `string` | Background color |
 | `borderColor` | `string` | Border color |

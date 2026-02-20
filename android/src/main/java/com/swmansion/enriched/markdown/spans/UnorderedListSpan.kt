@@ -44,8 +44,8 @@ class UnorderedListSpan(
   override fun getMarkerWidth(): Float = radius
 
   override fun drawMarker(
-    c: Canvas,
-    p: Paint,
+    canvas: Canvas,
+    paint: Paint,
     x: Int,
     dir: Int,
     top: Int,
@@ -55,15 +55,10 @@ class UnorderedListSpan(
     start: Int,
   ) {
     val bulletPaint = configureBulletPaint()
-
-    // Calculate bullet position based on depth
-    // depth 0: radius, depth 1: marginLeft + radius, etc.
     val bulletX = (depth * marginLeft + radius) * dir
+    val fontMetrics = paint.fontMetrics
+    val bulletY = baseline + (fontMetrics.ascent + fontMetrics.descent) / 2f
 
-    // Vertical centering based on font metrics
-    val fm = p.fontMetrics
-    val bulletY = baseline + (fm.ascent + fm.descent) / 2f
-
-    c.drawCircle(bulletX, bulletY, radius, bulletPaint)
+    canvas.drawCircle(bulletX, bulletY, radius, bulletPaint)
   }
 }

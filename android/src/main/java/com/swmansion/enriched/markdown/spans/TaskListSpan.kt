@@ -33,10 +33,23 @@ class TaskListSpan(
     marginLeft = listStyle.marginLeft,
     gapWidth = listStyle.gapWidth,
   ) {
-  private val checkboxSize = taskStyle.checkboxSize.takeIf { it > 0f } ?: (listStyle.fontSize * 0.9f)
+  private val checkboxSize = taskStyle.checkboxSize.takeIf { it > 0f } ?: (listStyle.fontSize * DEFAULT_CHECKBOX_SIZE_RATIO)
   private val cornerRadius = taskStyle.checkboxBorderRadius
   private val rect = RectF()
   private val checkPath = Path()
+
+  companion object {
+    private const val CAP_HEIGHT_RATIO = 0.72f
+    private const val HALF_DIVISOR = 2f
+    private const val DEFAULT_CHECKBOX_SIZE_RATIO = 0.9f
+    private const val CHECKMARK_MIN_STROKE_WIDTH = 1.5f
+    private const val CHECKMARK_STROKE_RATIO = 0.12f
+    private const val CHECKMARK_INSET_RATIO = 0.22f
+    private const val CHECKMARK_MID_OFFSET_RATIO = 0.05f
+    private const val BORDER_MIN_STROKE_WIDTH = 1f
+    private const val BORDER_STROKE_RATIO = 0.09f
+  }
+
   private val boxPaint =
     Paint(Paint.ANTI_ALIAS_FLAG).apply {
       strokeCap = Paint.Cap.ROUND
@@ -46,8 +59,8 @@ class TaskListSpan(
   override fun getMarkerWidth(): Float = checkboxSize
 
   override fun drawMarker(
-    c: Canvas,
-    p: Paint,
+    canvas: Canvas,
+    paint: Paint,
     x: Int,
     dir: Int,
     top: Int,
@@ -56,38 +69,38 @@ class TaskListSpan(
     layout: Layout?,
     start: Int,
   ) {
-    val fm = p.fontMetrics
-    val capHeight = -fm.ascent * 0.72f
-    val centerY = baseline - capHeight / 2f
-    val centerX = (depth * marginLeft + checkboxSize / 2f) * dir
-    val half = checkboxSize / 2f
+    val fontMetrics = paint.fontMetrics
+    val capHeight = -fontMetrics.ascent * CAP_HEIGHT_RATIO
+    val centerY = baseline - capHeight / HALF_DIVISOR
+    val centerX = (depth * marginLeft + checkboxSize / HALF_DIVISOR) * dir
+    val half = checkboxSize / HALF_DIVISOR
     rect.set(centerX - half, centerY - half, centerX + half, centerY + half)
 
     if (isChecked) {
-      drawChecked(c, centerY)
+      drawChecked(canvas, centerY)
     } else {
-      drawUnchecked(c)
+      drawUnchecked(canvas)
     }
   }
 
   private fun drawChecked(
-    c: Canvas,
+    canvas: Canvas,
     centerY: Float,
   ) {
     boxPaint.apply {
       style = Paint.Style.FILL
       color = taskStyle.checkedColor
     }
-    c.drawRoundRect(rect, cornerRadius, cornerRadius, boxPaint)
+    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, boxPaint)
 
     boxPaint.apply {
       style = Paint.Style.STROKE
       color = taskStyle.checkmarkColor
-      strokeWidth = maxOf(1.5f, checkboxSize * 0.12f)
+      strokeWidth = maxOf(CHECKMARK_MIN_STROKE_WIDTH, checkboxSize * CHECKMARK_STROKE_RATIO)
     }
 
-    val inset = checkboxSize * 0.22f
-    val midOffset = checkboxSize * 0.05f
+    val inset = checkboxSize * CHECKMARK_INSET_RATIO
+    val midOffset = checkboxSize * CHECKMARK_MID_OFFSET_RATIO
 
     checkPath.run {
       reset()
@@ -95,14 +108,14 @@ class TaskListSpan(
       lineTo(rect.centerX() - midOffset, rect.bottom - inset)
       lineTo(rect.right - inset, rect.top + inset)
     }
-    c.drawPath(checkPath, boxPaint)
+    canvas.drawPath(checkPath, boxPaint)
   }
 
-  private fun drawUnchecked(c: Canvas) {
+  private fun drawUnchecked(canvas: Canvas) {
     boxPaint.apply {
       style = Paint.Style.STROKE
       color = taskStyle.borderColor
-      strokeWidth = maxOf(1f, checkboxSize * 0.09f)
+      strokeWidth = maxOf(BORDER_MIN_STROKE_WIDTH, checkboxSize * BORDER_STROKE_RATIO)
     }
 
     val halfStroke = boxPaint.strokeWidth / 2f
@@ -113,6 +126,6 @@ class TaskListSpan(
         rect.right - halfStroke,
         rect.bottom - halfStroke,
       )
-    c.drawRoundRect(insetRect, cornerRadius, cornerRadius, boxPaint)
+    canvas.drawRoundRect(insetRect, cornerRadius, cornerRadius, boxPaint)
   }
 }

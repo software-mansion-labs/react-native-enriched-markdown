@@ -60,7 +60,6 @@ class BlockStyleContext {
   var listItemNumber = 0
   var taskItemCount = 0
 
-  // Optimization: ArrayDeque is more efficient for stack operations than MutableList
   private val orderedListItemNumbers = ArrayDeque<Int>()
 
   enum class ListType { UNORDERED, ORDERED }
@@ -72,13 +71,10 @@ class BlockStyleContext {
   ) {
     currentBlockType = type
     currentHeadingLevel = headingLevel
-    // Update mutable style in place - no allocation here
     mutableBlockStyle.updateFrom(style)
-    // Invalidate cached immutable copy
     cachedBlockStyle = null
   }
 
-  // Unified Setters
   fun setParagraphStyle(style: ParagraphStyle) = updateBlockStyle(BlockType.PARAGRAPH, style)
 
   fun setHeadingStyle(
@@ -100,7 +96,6 @@ class BlockStyleContext {
 
   fun setCodeBlockStyle(style: CodeBlockStyle) = updateBlockStyle(BlockType.CODE_BLOCK, style)
 
-  // List State Management
   fun isInsideBlockElement(): Boolean = blockquoteDepth > 0 || listDepth > 0
 
   fun incrementListItemNumber() {
@@ -111,7 +106,6 @@ class BlockStyleContext {
     listItemNumber = 0
   }
 
-  // Using ArrayDeque methods for clarity: addLast/removeLast
   fun pushOrderedListItemNumber() {
     orderedListItemNumbers.addLast(listItemNumber)
   }
@@ -123,7 +117,6 @@ class BlockStyleContext {
   }
 
   fun clearListStyle() {
-    // Only trigger full reset when we have completely exited all nested lists
     if (listDepth == 0) {
       reset()
     }
@@ -142,7 +135,7 @@ class BlockStyleContext {
         "BlockStyle is null. Inline renderers must be used within a block context.",
       )
     }
-    // Create immutable copy only when needed, cache for reuse within same block
+
     return cachedBlockStyle ?: mutableBlockStyle.toImmutable().also { cachedBlockStyle = it }
   }
 

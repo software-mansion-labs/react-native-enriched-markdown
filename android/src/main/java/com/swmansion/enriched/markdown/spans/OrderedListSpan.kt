@@ -59,8 +59,8 @@ class OrderedListSpan(
     private set
 
   override fun drawMarker(
-    c: Canvas,
-    p: Paint,
+    canvas: Canvas,
+    paint: Paint,
     x: Int,
     dir: Int,
     top: Int,
@@ -72,13 +72,10 @@ class OrderedListSpan(
     val markerPaint = configureMarkerPaint()
     val text = "$itemNumber."
     val textWidth = markerPaint.measureText(text)
-
-    // Calculate marker position based on depth
-    // depth 0: markerWidth, depth 1: marginLeft + markerWidth, etc.
     val markerRightEdge = (depth * marginLeft + getMarkerWidth()) * dir
     val markerX = markerRightEdge - textWidth * dir
 
-    c.drawText(text, markerX, baseline.toFloat(), markerPaint)
+    canvas.drawText(text, markerX, baseline.toFloat(), markerPaint)
   }
 
   fun setItemNumber(number: Int) {

@@ -31,12 +31,10 @@ class ListItemRenderer(
       styleContext.incrementListItemNumber()
     }
 
-    // Capture task index BEFORE children so parent gets a lower index than nested sub-items
     val taskIndex = if (isTask) styleContext.taskItemCount++ else -1
 
     factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
 
-    // Normalize: ensure the item ends with exactly one newline
     if (builder.length == start || builder.substring(start).isBlank()) return
 
     while (builder.length > start && builder.last() == '\n') {
@@ -91,7 +89,6 @@ class ListItemRenderer(
 
     if (checkedTextColor == 0 && !strikethrough) return
 
-    // Exclude nested sub-lists from inheriting checked decorations
     val excludedRanges =
       builder
         .getSpans(itemStart, itemEnd, BaseListSpan::class.java)

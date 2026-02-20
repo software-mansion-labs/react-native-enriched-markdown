@@ -155,6 +155,7 @@ Tables support column alignment, rich text in cells (bold, italic, code, links),
 | Code Blocks | ` ``` code ``` ` | Multi-line code blocks |
 | Unordered Lists | `- Item`, `* Item`, or `+ Item` | Bullet lists with unlimited nesting |
 | Ordered Lists | `1. Item` | Numbered lists with unlimited nesting |
+| Task Lists | `- [x] Done`, `- [ ] Todo` | Interactive checkboxes (requires `flavor="github"`) |
 | Thematic Break | `---`, `***`, or `___` | Visual separator line |
 | Images | `![alt](url)` | Block-level images |
 | Tables | `| col | col |` | GFM tables with alignment support (requires `flavor="github"`) |
@@ -294,6 +295,7 @@ Block elements are structural containers that define the layout. Each block has 
 | `list` | Ordered and unordered lists |
 | `codeBlock` | Multi-line code containers |
 | `table` | GFM tables (requires `flavor="github"`) |
+| `taskList` | Task list checkboxes |
 
 #### Inline Elements
 
@@ -422,6 +424,12 @@ The library provides sensible default styles for all Markdown elements out of th
     },
     inlineImage: {
       size: 20,
+    },
+    taskList: {
+      checkedColor: '#2196F3',
+      borderColor: '#9E9E9E',
+      checkmarkColor: '#FFFFFF',
+      checkboxSize: 16,
     },
   }}
 />
@@ -556,6 +564,18 @@ Table styles only apply when `flavor="github"` is set. Tables inherit the base b
 | `cellPaddingHorizontal` | `number` | Horizontal padding inside cells |
 | `cellPaddingVertical` | `number` | Vertical padding inside cells |
 
+#### Task List-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `checkedColor` | `string` | Background color of checked checkbox |
+| `borderColor` | `string` | Border color of unchecked checkbox |
+| `checkmarkColor` | `string` | Color of the checkmark inside checked checkbox |
+| `checkboxSize` | `number` | Size of the checkbox (defaults to 90% of list font size) |
+| `checkboxBorderRadius` | `number` | Corner radius of the checkbox |
+| `checkedTextColor` | `string` | Text color for checked items |
+| `checkedStrikethrough` | `boolean` | Whether to apply strikethrough to checked items |
+
 ## API Reference
 
 ### Props
@@ -567,6 +587,7 @@ Table styles only apply when `flavor="github"` is set. Tables inherit the base b
 | `containerStyle` | `ViewStyle` | - | Style for the container view |
 | `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
 | `onLinkLongPress` | `(event: LinkLongPressEvent) => void` | - | Callback when a link is long pressed. Access URL via `event.url`. On iOS, automatically disables the system link preview |
+| `onTaskListItemPress` | `(event: TaskListItemPressEvent) => void` | - | Callback when a task list checkbox is tapped. Receives `index` (0-based), `checked` (previous state), and `text` (item text) |
 | `enableLinkPreview` | `boolean` | `true` | Controls the native link preview on long press (iOS only). Automatically set to `false` when `onLinkLongPress` is provided |
 | `selectable` | `boolean` | `true` | Whether text can be selected |
 | `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |

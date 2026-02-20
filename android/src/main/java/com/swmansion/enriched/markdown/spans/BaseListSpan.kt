@@ -24,36 +24,26 @@ abstract class BaseListSpan(
   protected val gapWidth: Float,
 ) : MetricAffectingSpan(),
   LeadingMarginSpan {
-  // Cache for shouldSkipDrawing to avoid repeated getSpans() calls during draw passes
   private var cachedText: CharSequence? = null
   private var cachedHasDeeperSpanByPosition = mutableMapOf<Int, Boolean>()
 
   protected abstract fun getMarkerWidth(): Float
 
-  // --- MetricAffectingSpan Implementation ---
+  override fun updateMeasureState(textPaint: TextPaint) = applyTextStyle(textPaint)
 
-  override fun updateMeasureState(tp: TextPaint) = applyTextStyle(tp)
+  override fun updateDrawState(textPaint: TextPaint) = applyTextStyle(textPaint)
 
-  override fun updateDrawState(tp: TextPaint) = applyTextStyle(tp)
-
-  // --- LeadingMarginSpan Implementation ---
-
-  override fun getLeadingMargin(first: Boolean): Int {
-    // Root items: just marker width + gap (flush to left edge)
-    // Nested items: add marginLeft for each nesting level
-    return if (depth == 0) {
+  override fun getLeadingMargin(first: Boolean): Int =
+    if (depth == 0) {
       val effectiveGap = gapWidth.coerceAtLeast(DEFAULT_MIN_GAP)
       (getMarkerWidth() + effectiveGap).toInt()
     } else {
       marginLeft.toInt()
     }
-  }
-
-  protected fun getEffectiveGapWidth(): Float = gapWidth.coerceAtLeast(DEFAULT_MIN_GAP)
 
   override fun drawLeadingMargin(
-    c: Canvas,
-    p: Paint,
+    canvas: Canvas,
+    paint: Paint,
     x: Int,
     dir: Int,
     top: Int,
@@ -65,19 +55,18 @@ abstract class BaseListSpan(
     first: Boolean,
     layout: Layout?,
   ) {
-    // Draw only on the first line of paragraphs that have content and are not nested deeper
     if (!first || shouldSkipDrawing(text, start) || !hasContent(text, start, end)) return
 
-    val originalStyle = p.style
-    val originalColor = p.color
-    drawMarker(c, p, x, dir, top, baseline, bottom, layout, start)
-    p.style = originalStyle
-    p.color = originalColor
+    val originalStyle = paint.style
+    val originalColor = paint.color
+    drawMarker(canvas, paint, x, dir, top, baseline, bottom, layout, start)
+    paint.style = originalStyle
+    paint.color = originalColor
   }
 
   protected abstract fun drawMarker(
-    c: Canvas,
-    p: Paint,
+    canvas: Canvas,
+    paint: Paint,
     x: Int,
     dir: Int,
     top: Int,
@@ -87,25 +76,23 @@ abstract class BaseListSpan(
     start: Int,
   )
 
-  @SuppressLint("WrongConstant") // Result of mask is always valid: 0, 1, 2, or 3
-  private fun applyTextStyle(tp: TextPaint) {
-    tp.textSize = blockStyle.fontSize
+  @SuppressLint("WrongConstant")
+  private fun applyTextStyle(textPaint: TextPaint) {
+    textPaint.textSize = blockStyle.fontSize
 
-    val preservedStyle = (tp.typeface?.style ?: 0) and BOLD_ITALIC_MASK
-    tp.applyBlockStyleFont(blockStyle, context)
+    val preservedStyle = (textPaint.typeface?.style ?: 0) and BOLD_ITALIC_MASK
+    textPaint.applyBlockStyleFont(blockStyle, context)
     if (preservedStyle != 0) {
-      tp.typeface?.let { base -> tp.typeface = Typeface.create(base, preservedStyle) }
+      textPaint.typeface?.let { base -> textPaint.typeface = Typeface.create(base, preservedStyle) }
     }
 
-    tp.applyColorPreserving(blockStyle.color, *styleCache.colorsToPreserve)
+    textPaint.applyColorPreserving(blockStyle.color, *styleCache.colorsToPreserve)
   }
 
   companion object {
-    private const val BOLD_ITALIC_MASK = Typeface.BOLD or Typeface.ITALIC // 3
+    private const val BOLD_ITALIC_MASK = Typeface.BOLD or Typeface.ITALIC
     private const val DEFAULT_MIN_GAP = 4f
   }
-
-  // --- Helper Methods ---
 
   private fun hasContent(
     text: CharSequence?,
@@ -113,7 +100,6 @@ abstract class BaseListSpan(
     end: Int,
   ): Boolean {
     if (text == null || end <= start) return false
-    // Check if there is at least one non-whitespace character in the range
     return (start until end).any { !text[it].isWhitespace() }
   }
 

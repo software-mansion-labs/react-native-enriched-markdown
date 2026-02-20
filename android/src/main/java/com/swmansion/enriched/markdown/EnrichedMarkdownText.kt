@@ -8,6 +8,7 @@ import android.os.Looper
 import android.text.Layout
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import com.facebook.react.bridge.ReadableMap
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
@@ -15,6 +16,7 @@ import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.applySelectableState
 import com.swmansion.enriched.markdown.utils.emitLinkLongPressEvent
@@ -37,6 +39,7 @@ class EnrichedMarkdownText
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
+    private val checkboxTouchHelper = CheckboxTouchHelper(this)
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val executor = Executors.newSingleThreadExecutor()
@@ -222,6 +225,15 @@ class EnrichedMarkdownText
 
     fun setOnLinkLongPressCallback(callback: (String) -> Unit) {
       onLinkLongPressCallback = callback
+    }
+
+    fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
+      checkboxTouchHelper.onCheckboxTap = callback
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+      if (checkboxTouchHelper.onTouchEvent(event)) return true
+      return super.onTouchEvent(event)
     }
 
     companion object {

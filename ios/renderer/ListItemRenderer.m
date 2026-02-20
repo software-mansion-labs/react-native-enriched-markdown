@@ -8,6 +8,15 @@
 NSString *const ListDepthAttribute = @"ListDepth";
 NSString *const ListTypeAttribute = @"ListType";
 NSString *const ListItemNumberAttribute = @"ListItemNumber";
+NSString *const TaskItemAttribute = @"TaskItem";
+NSString *const TaskCheckedAttribute = @"TaskChecked";
+NSString *const TaskIndexAttribute = @"TaskIndex";
+
+@interface ListItemRenderer ()
+- (void)applyCheckedDecorationsTo:(NSMutableAttributedString *)output
+                            range:(NSRange)range
+                     nestingLevel:(NSInteger)nestingLevel;
+@end
 
 @implementation ListItemRenderer {
   RendererFactory *_rendererFactory;
@@ -32,6 +41,14 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
   const NSInteger currentPosition = context.listItemNumber;
   const NSInteger currentDepth = context.listDepth; // 1-based (1 = top level)
 
+  const BOOL isTask = [node.attributes[@"isTask"] isEqualToString:@"true"];
+  const BOOL isChecked = isTask && [node.attributes[@"taskChecked"] isEqualToString:@"true"];
+  NSInteger taskIndex = -1;
+  if (isTask) {
+    taskIndex = context.taskItemCount;
+    context.taskItemCount++;
+  }
+
   const NSUInteger startLocation = output.length;
 
   // Render the actual content of the list item (text, bolding, etc.)
@@ -54,8 +71,9 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
 
   // currentDepth - 1 handles the horizontal offset for nested lists
   const NSInteger nestingLevel = currentDepth - 1;
-  const CGFloat baseMarkerWidth = (context.listType == ListTypeOrdered) ? [_config effectiveListMarginLeftForNumber]
-                                                                        : [_config effectiveListMarginLeftForBullet];
+  const CGFloat baseMarkerWidth = isTask                                  ? [_config taskListCheckboxSize]
+                                  : (context.listType == ListTypeOrdered) ? [_config effectiveListMarginLeftForNumber]
+                                                                          : [_config effectiveListMarginLeftForBullet];
 
   const CGFloat totalIndent =
       baseMarkerWidth + [_config effectiveListGapWidth] + (nestingLevel * [_config listStyleMarginLeft]);
@@ -63,11 +81,17 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
   const CGFloat lineHeightConfig = [_config listStyleLineHeight];
 
   // Boxing metadata for attributed string storage
-  NSDictionary *metadata = @{
+  NSMutableDictionary *metadata = [@{
     ListDepthAttribute : @(nestingLevel),
     ListTypeAttribute : @(context.listType),
     ListItemNumberAttribute : @(currentPosition)
-  };
+  } mutableCopy];
+
+  if (isTask) {
+    metadata[TaskItemAttribute] = @YES;
+    metadata[TaskCheckedAttribute] = @(isChecked);
+    metadata[TaskIndexAttribute] = @(taskIndex);
+  }
 
   // We enumerate to ensure we don't overwrite styles of nested sub-lists
   // that may have already been rendered inside this item.
@@ -97,6 +121,48 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
                     attributesToApply[NSParagraphStyleAttributeName] = style;
 
                     [output addAttributes:attributesToApply range:range];
+                  }];
+
+  if (isTask && isChecked) {
+    [self applyCheckedDecorationsTo:output range:itemRange nestingLevel:nestingLevel];
+  }
+}
+
+- (void)applyCheckedDecorationsTo:(NSMutableAttributedString *)output
+                            range:(NSRange)range
+                     nestingLevel:(NSInteger)nestingLevel
+{
+  UIColor *checkedColor = [_config taskListCheckedTextColor];
+  BOOL shouldStrikethrough = [_config taskListCheckedStrikethrough];
+
+  if (!checkedColor && !shouldStrikethrough) {
+    return;
+  }
+
+  NSMutableDictionary *checkedAttrs = [NSMutableDictionary dictionary];
+
+  if (checkedColor) {
+    checkedAttrs[NSForegroundColorAttributeName] = checkedColor;
+  }
+
+  if (shouldStrikethrough) {
+    checkedAttrs[NSStrikethroughStyleAttributeName] = @(NSUnderlineStyleSingle);
+
+    UIColor *lineColor = checkedColor ?: [_config listStyleColor];
+    if (lineColor) {
+      checkedAttrs[NSStrikethroughColorAttributeName] = lineColor;
+    }
+  }
+
+  [output enumerateAttribute:ListDepthAttribute
+                     inRange:range
+                     options:0
+                  usingBlock:^(NSNumber *depth, NSRange segmentRange, BOOL *stop) {
+                    BOOL isNestedSubItem = (depth && [depth integerValue] > nestingLevel);
+
+                    if (!isNestedSubItem) {
+                      [output addAttributes:checkedAttrs range:segmentRange];
+                    }
                   }];
 }
 

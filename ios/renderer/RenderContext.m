@@ -256,6 +256,7 @@
   _listDepth = 0;
   _listType = ListTypeUnordered;
   _listItemNumber = 0;
+  _taskItemCount = 0;
 
   // Revert shared style object to baseline defaults
   _currentBlockStyle.fontSize = 0;

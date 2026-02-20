@@ -106,6 +106,16 @@ interface TableStyleInternal extends BaseBlockStyleInternal {
   cellPaddingVertical: CodegenTypes.Float;
 }
 
+interface TaskListStyleInternal {
+  checkedColor: ColorValue;
+  borderColor: ColorValue;
+  checkboxSize: CodegenTypes.Float;
+  checkboxBorderRadius: CodegenTypes.Float;
+  checkmarkColor: ColorValue;
+  checkedTextColor: ColorValue;
+  checkedStrikethrough: boolean;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -127,6 +137,7 @@ export interface MarkdownStyleInternal {
   inlineImage: InlineImageStyleInternal;
   thematicBreak: ThematicBreakStyleInternal;
   table: TableStyleInternal;
+  taskList: TaskListStyleInternal;
 }
 
 export interface LinkPressEvent {
@@ -135,6 +146,12 @@ export interface LinkPressEvent {
 
 export interface LinkLongPressEvent {
   url: string;
+}
+
+export interface TaskListItemPressEvent {
+  index: CodegenTypes.Int32;
+  checked: boolean;
+  text: string;
 }
 
 /**
@@ -174,6 +191,11 @@ export interface NativeProps extends ViewProps {
    * - Android: Handles long press gestures on links.
    */
   onLinkLongPress?: CodegenTypes.BubblingEventHandler<LinkLongPressEvent>;
+  /**
+   * Callback fired when a task list checkbox is tapped.
+   * Receives the 0-based task index, current checked state, and the item's plain text.
+   */
+  onTaskListItemPress?: CodegenTypes.BubblingEventHandler<TaskListItemPressEvent>;
   /**
    * Controls whether the system link preview is shown on long press (iOS only).
    *

@@ -3,8 +3,10 @@ package com.swmansion.enriched.markdown
 import android.content.Context
 import android.text.Layout
 import android.util.AttributeSet
+import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.utils.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.applySelectableState
 import com.swmansion.enriched.markdown.utils.setupAsMarkdownTextView
@@ -21,6 +23,14 @@ class EnrichedMarkdownInternalText
     private val accessibilityHelper = MarkdownAccessibilityHelper(this)
 
     var lastElementMarginBottom: Float = 0f
+
+    private val checkboxTouchHelper = CheckboxTouchHelper(this)
+
+    var onTaskListItemPressCallback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?
+      get() = checkboxTouchHelper.onCheckboxTap
+      set(value) {
+        checkboxTouchHelper.onCheckboxTap = value
+      }
 
     override val segmentMarginBottom: Int get() = lastElementMarginBottom.toInt()
 
@@ -40,6 +50,11 @@ class EnrichedMarkdownInternalText
 
     fun setIsSelectable(selectable: Boolean) {
       applySelectableState(selectable)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+      if (checkboxTouchHelper.onTouchEvent(event)) return true
+      return super.onTouchEvent(event)
     }
 
     fun setJustificationMode(needsJustify: Boolean) {

@@ -196,6 +196,14 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _tableBorderRadius;
   CGFloat _tableCellPaddingHorizontal;
   CGFloat _tableCellPaddingVertical;
+  // Task list checkbox
+  UIColor *_taskListCheckedColor;
+  UIColor *_taskListBorderColor;
+  CGFloat _taskListCheckboxSize;
+  CGFloat _taskListCheckboxBorderRadius;
+  UIColor *_taskListCheckmarkColor;
+  UIColor *_taskListCheckedTextColor;
+  BOOL _taskListCheckedStrikethrough;
 }
 
 - (instancetype)init
@@ -432,6 +440,13 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_tableBorderRadius = _tableBorderRadius;
   copy->_tableCellPaddingHorizontal = _tableCellPaddingHorizontal;
   copy->_tableCellPaddingVertical = _tableCellPaddingVertical;
+  copy->_taskListCheckedColor = [_taskListCheckedColor copy];
+  copy->_taskListBorderColor = [_taskListBorderColor copy];
+  copy->_taskListCheckboxSize = _taskListCheckboxSize;
+  copy->_taskListCheckboxBorderRadius = _taskListCheckboxBorderRadius;
+  copy->_taskListCheckmarkColor = [_taskListCheckmarkColor copy];
+  copy->_taskListCheckedTextColor = [_taskListCheckedTextColor copy];
+  copy->_taskListCheckedStrikethrough = _taskListCheckedStrikethrough;
 
   return copy;
 }
@@ -2057,6 +2072,78 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setTableCellPaddingVertical:(CGFloat)newValue
 {
   _tableCellPaddingVertical = newValue;
+}
+
+// Task list
+
+- (UIColor *)taskListCheckedColor
+{
+  return _taskListCheckedColor;
+}
+
+- (void)setTaskListCheckedColor:(UIColor *)newValue
+{
+  _taskListCheckedColor = newValue;
+}
+
+- (UIColor *)taskListBorderColor
+{
+  return _taskListBorderColor;
+}
+
+- (void)setTaskListBorderColor:(UIColor *)newValue
+{
+  _taskListBorderColor = newValue;
+}
+
+- (CGFloat)taskListCheckboxSize
+{
+  return _taskListCheckboxSize;
+}
+
+- (void)setTaskListCheckboxSize:(CGFloat)newValue
+{
+  _taskListCheckboxSize = newValue;
+}
+
+- (CGFloat)taskListCheckboxBorderRadius
+{
+  return _taskListCheckboxBorderRadius;
+}
+
+- (void)setTaskListCheckboxBorderRadius:(CGFloat)newValue
+{
+  _taskListCheckboxBorderRadius = newValue;
+}
+
+- (UIColor *)taskListCheckmarkColor
+{
+  return _taskListCheckmarkColor;
+}
+
+- (void)setTaskListCheckmarkColor:(UIColor *)newValue
+{
+  _taskListCheckmarkColor = newValue;
+}
+
+- (UIColor *)taskListCheckedTextColor
+{
+  return _taskListCheckedTextColor;
+}
+
+- (void)setTaskListCheckedTextColor:(UIColor *)newValue
+{
+  _taskListCheckedTextColor = newValue;
+}
+
+- (BOOL)taskListCheckedStrikethrough
+{
+  return _taskListCheckedStrikethrough;
+}
+
+- (void)setTaskListCheckedStrikethrough:(BOOL)newValue
+{
+  _taskListCheckedStrikethrough = newValue;
 }
 
 @end

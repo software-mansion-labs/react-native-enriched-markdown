@@ -228,6 +228,20 @@ const defaultTableStyle: MarkdownStyleInternal['table'] = {
   cellPaddingVertical: 8,
 };
 
+const defaultTaskListStyle: MarkdownStyleInternal['taskList'] = {
+  checkedColor: Platform.select({
+    ios: processColor('#007AFF'),
+    android: processColor('#2196F3'),
+    default: processColor('#007AFF'),
+  }) as ColorValue,
+  borderColor: processColor('#9E9E9E') as ColorValue,
+  checkboxSize: Math.round(defaultListStyle.fontSize * 0.9),
+  checkboxBorderRadius: 3,
+  checkmarkColor: processColor('#FFFFFF') as ColorValue,
+  checkedTextColor: processColor('#000000') as ColorValue,
+  checkedStrikethrough: false,
+};
+
 export const normalizeMarkdownStyle = (
   style: MarkdownStyle
 ): MarkdownStyleInternal => {
@@ -472,6 +486,29 @@ export const normalizeMarkdownStyle = (
       cellPaddingVertical:
         style.table?.cellPaddingVertical ??
         defaultTableStyle.cellPaddingVertical,
+    },
+    taskList: {
+      checkedColor:
+        normalizeColor(style.taskList?.checkedColor) ??
+        defaultTaskListStyle.checkedColor,
+      borderColor:
+        normalizeColor(style.taskList?.borderColor) ??
+        defaultTaskListStyle.borderColor,
+      checkboxSize:
+        style.taskList?.checkboxSize ??
+        Math.round((style.list?.fontSize ?? defaultListStyle.fontSize) * 0.9),
+      checkboxBorderRadius:
+        style.taskList?.checkboxBorderRadius ??
+        defaultTaskListStyle.checkboxBorderRadius,
+      checkmarkColor:
+        normalizeColor(style.taskList?.checkmarkColor) ??
+        defaultTaskListStyle.checkmarkColor,
+      checkedTextColor:
+        normalizeColor(style.taskList?.checkedTextColor) ??
+        defaultTaskListStyle.checkedTextColor,
+      checkedStrikethrough:
+        style.taskList?.checkedStrikethrough ??
+        defaultTaskListStyle.checkedStrikethrough,
     },
   };
 };

@@ -868,5 +868,50 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  // ── Task List ───────────────────────────────────────────────────────────────
+
+  if (newStyle.taskList.checkedColor != oldStyle.taskList.checkedColor) {
+    UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkedColor);
+    [config setTaskListCheckedColor:color];
+    changed = YES;
+  }
+
+  if (newStyle.taskList.borderColor != oldStyle.taskList.borderColor) {
+    UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.borderColor);
+    [config setTaskListBorderColor:color];
+    changed = YES;
+  }
+
+  if (newStyle.taskList.checkboxSize != oldStyle.taskList.checkboxSize) {
+    [config setTaskListCheckboxSize:newStyle.taskList.checkboxSize];
+    changed = YES;
+  }
+
+  if (newStyle.taskList.checkboxBorderRadius != oldStyle.taskList.checkboxBorderRadius) {
+    [config setTaskListCheckboxBorderRadius:newStyle.taskList.checkboxBorderRadius];
+    changed = YES;
+  }
+
+  if (newStyle.taskList.checkmarkColor != oldStyle.taskList.checkmarkColor) {
+    UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkmarkColor);
+    [config setTaskListCheckmarkColor:color];
+    changed = YES;
+  }
+
+  if (newStyle.taskList.checkedTextColor != oldStyle.taskList.checkedTextColor) {
+    if (newStyle.taskList.checkedTextColor) {
+      UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkedTextColor);
+      [config setTaskListCheckedTextColor:color];
+    } else {
+      [config setTaskListCheckedTextColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.taskList.checkedStrikethrough != oldStyle.taskList.checkedStrikethrough) {
+    [config setTaskListCheckedStrikethrough:newStyle.taskList.checkedStrikethrough];
+    changed = YES;
+  }
+
   return changed;
 }

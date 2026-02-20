@@ -307,5 +307,20 @@
 - (void)setTableCellPaddingHorizontal:(CGFloat)newValue;
 - (CGFloat)tableCellPaddingVertical;
 - (void)setTableCellPaddingVertical:(CGFloat)newValue;
+// Task list checkbox properties
+- (UIColor *)taskListCheckedColor;
+- (void)setTaskListCheckedColor:(UIColor *)newValue;
+- (UIColor *)taskListBorderColor;
+- (void)setTaskListBorderColor:(UIColor *)newValue;
+- (CGFloat)taskListCheckboxSize;
+- (void)setTaskListCheckboxSize:(CGFloat)newValue;
+- (CGFloat)taskListCheckboxBorderRadius;
+- (void)setTaskListCheckboxBorderRadius:(CGFloat)newValue;
+- (UIColor *)taskListCheckmarkColor;
+- (void)setTaskListCheckmarkColor:(UIColor *)newValue;
+- (UIColor *)taskListCheckedTextColor;
+- (void)setTaskListCheckedTextColor:(UIColor *)newValue;
+- (BOOL)taskListCheckedStrikethrough;
+- (void)setTaskListCheckedStrikethrough:(BOOL)newValue;
 
 @end

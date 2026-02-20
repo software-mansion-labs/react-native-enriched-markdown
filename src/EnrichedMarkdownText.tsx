@@ -3,6 +3,7 @@ import EnrichedMarkdownTextNativeComponent, {
   type NativeProps,
   type LinkPressEvent,
   type LinkLongPressEvent,
+  type TaskListItemPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';
 import EnrichedMarkdownNativeComponent from './EnrichedMarkdownNativeComponent';
 import { normalizeMarkdownStyle } from './normalizeMarkdownStyle';
@@ -118,6 +119,15 @@ interface TableStyle extends BaseBlockStyle {
   cellPaddingVertical?: number;
 }
 
+interface TaskListStyle {
+  checkedColor?: string;
+  borderColor?: string;
+  checkboxSize?: number;
+  checkboxBorderRadius?: number;
+  checkmarkColor?: string;
+  checkedTextColor?: string;
+  checkedStrikethrough?: boolean;
+}
 export interface MarkdownStyle {
   paragraph?: ParagraphStyle;
   h1?: HeadingStyle;
@@ -139,6 +149,7 @@ export interface MarkdownStyle {
   inlineImage?: InlineImageStyle;
   thematicBreak?: ThematicBreakStyle;
   table?: TableStyle;
+  taskList?: TaskListStyle;
 }
 
 /**
@@ -162,6 +173,7 @@ export interface EnrichedMarkdownTextProps
     | 'style'
     | 'onLinkPress'
     | 'onLinkLongPress'
+    | 'onTaskListItemPress'
     | 'md4cFlags'
     | 'enableLinkPreview'
   > {
@@ -185,6 +197,16 @@ export interface EnrichedMarkdownTextProps
    * - Android: Handles long press gestures on links.
    */
   onLinkLongPress?: (event: LinkLongPressEvent) => void;
+  /**
+   * Callback fired when a task list checkbox is tapped.
+   *
+   * The checkbox is toggled on the native side automatically.
+   * Receives the 0-based task index, the new checked state (after toggling),
+   * and the item's plain text.
+   *
+   * Only fires when `flavor="github"` (GFM task lists require GitHub flavor).
+   */
+  onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
   /**
    * Controls whether the system link preview is shown on long press (iOS only).
    *
@@ -245,6 +267,7 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   onLinkPress,
   onLinkLongPress,
+  onTaskListItemPress,
   enableLinkPreview,
   selectable = true,
   md4cFlags = defaultMd4cFlags,
@@ -282,11 +305,20 @@ export const EnrichedMarkdownText = ({
     [onLinkLongPress]
   );
 
+  const handleTaskListItemPress = useCallback(
+    (e: NativeSyntheticEvent<TaskListItemPressEvent>) => {
+      const { index, checked, text } = e.nativeEvent;
+      onTaskListItemPress?.({ index, checked, text });
+    },
+    [onTaskListItemPress]
+  );
+
   const sharedProps = {
     markdown,
     markdownStyle: normalizedStyle,
     onLinkPress: handleLinkPress,
     onLinkLongPress: handleLinkLongPress,
+    onTaskListItemPress: handleTaskListItemPress,
     enableLinkPreview: onLinkLongPress == null && (enableLinkPreview ?? true),
     selectable,
     md4cFlags: normalizedMd4cFlags,

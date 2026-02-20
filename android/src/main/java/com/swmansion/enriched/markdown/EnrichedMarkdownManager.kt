@@ -13,7 +13,9 @@ import com.facebook.react.viewmanagers.EnrichedMarkdownManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
+import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
+import com.swmansion.enriched.markdown.utils.TaskListToggleUtils
 
 @ReactModule(name = EnrichedMarkdownManager.NAME)
 class EnrichedMarkdownManager :
@@ -31,6 +33,8 @@ class EnrichedMarkdownManager :
     val map = mutableMapOf<String, Any>()
     map[LinkPressEvent.EVENT_NAME] = mapOf("registrationName" to LinkPressEvent.EVENT_NAME)
     map[LinkLongPressEvent.EVENT_NAME] = mapOf("registrationName" to LinkLongPressEvent.EVENT_NAME)
+    map[TaskListItemPressEvent.EVENT_NAME] =
+      mapOf("registrationName" to TaskListItemPressEvent.EVENT_NAME)
     return map
   }
 
@@ -45,6 +49,17 @@ class EnrichedMarkdownManager :
 
     view?.setOnLinkLongPressCallback { url ->
       emitOnLinkLongPress(view, url)
+    }
+
+    view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
+      val updatedMarkdown =
+        TaskListToggleUtils.toggleAtIndex(
+          view.currentMarkdown,
+          taskIndex,
+          checked,
+        )
+      view.setMarkdownContent(updatedMarkdown)
+      emitOnTaskListItemPress(view, taskIndex, !checked, itemText)
     }
 
     view?.setMarkdownContent(markdown ?: "")
@@ -139,6 +154,18 @@ class EnrichedMarkdownManager :
     val surfaceId = UIManagerHelper.getSurfaceId(context)
     val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
     eventDispatcher?.dispatchEvent(LinkLongPressEvent(surfaceId, view.id, url))
+  }
+
+  private fun emitOnTaskListItemPress(
+    view: EnrichedMarkdown,
+    taskIndex: Int,
+    checked: Boolean,
+    itemText: String,
+  ) {
+    val context = view.context as com.facebook.react.bridge.ReactContext
+    val surfaceId = UIManagerHelper.getSurfaceId(context)
+    val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
+    eventDispatcher?.dispatchEvent(TaskListItemPressEvent(surfaceId, view.id, taskIndex, checked, itemText))
   }
 
   override fun measure(

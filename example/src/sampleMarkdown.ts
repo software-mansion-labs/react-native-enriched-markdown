@@ -98,9 +98,38 @@ The largest terrestrial biome, spanning across **Northern Russia, Canada, and Sc
 
 ---
 
+## Forest Statistics by Type
+
+| Forest Type | Coverage | Annual Rainfall | Biodiversity | Carbon Storage |
+|------------|----------|-----------------|--------------|----------------|
+| Tropical Rainforest | ~7% of land | 80-400 inches | Highest (50%+ species) | High |
+| Temperate Forest | ~16% of land | 30-60 inches | Moderate | Moderate |
+| Boreal Forest (Taiga) | ~11% of land | 15-40 inches | Lower | Highest |
+| Mediterranean Forest | ~2% of land | 20-40 inches | Moderate | Moderate |
+
+---
+
 ## Fascinating Forest Facts
 
 Did you know that trees communicate through an underground network? Scientists call this the \`Wood Wide Web\` — a fungal network connecting tree roots across entire forests.
+
+\`\`\`javascript
+// Example: Tree network simulation
+class TreeNetwork {
+  constructor() {
+    this.trees = [];
+    this.fungalConnections = new Map();
+  }
+  
+  connectTrees(tree1, tree2) {
+    // Trees share nutrients through mycorrhizal networks
+    this.fungalConnections.set(\`\${tree1.id}-\${tree2.id}\`, {
+      nutrientFlow: 'bidirectional',
+      signalTransmission: true
+    });
+  }
+}
+\`\`\`
 
 > Trees share nutrients and information through mycorrhizal networks, essentially "talking" to each other underground.
 
@@ -209,14 +238,38 @@ Non-native species disrupt forest ecosystems:
 
 Conservation efforts are critical for preserving these vital ecosystems. Here's how you can help:
 
-1. Support *sustainable forestry* practices
-2. Reduce paper consumption and **recycle**
-3. Plant native trees in your community
-4. Donate to ***conservation organizations***
-5. Choose products with \`FSC certification\`
-6. Advocate for *protected areas*
-7. Reduce your **carbon footprint**
-8. Educate others about forest importance
+### Action Checklist
+
+- [x] Support *sustainable forestry* practices
+  - [x] Research certified sustainable wood products
+  - [ ] Learn about forest management practices
+- [x] Reduce paper consumption and **recycle**
+  - [x] Switch to digital documents when possible
+  - [ ] Set up paper recycling at home
+- [ ] Plant native trees in your community
+  - [ ] Join local tree planting events
+  - [ ] Choose appropriate native species
+- [ ] Donate to ***conservation organizations***
+- [ ] Choose products with \`FSC certification\`
+  - [ ] Look for FSC logo on products
+  - [ ] Support companies with sustainable practices
+- [ ] Advocate for *protected areas*
+- [ ] Reduce your **carbon footprint**
+  - [ ] Use public transportation
+  - [ ] Reduce energy consumption
+- [ ] Educate others about forest importance
+
+### Priority Actions
+
+1. ~~Ignore the problem~~ → **Take immediate action**
+2. Support *sustainable forestry* practices
+3. Reduce paper consumption and **recycle**
+4. Plant native trees in your community
+5. Donate to ***conservation organizations***
+6. Choose products with \`FSC certification\`
+7. Advocate for *protected areas*
+8. Reduce your **carbon footprint**
+9. Educate others about forest importance
 
 > The best time to plant a tree was 20 years ago. The second best time is now.
 >
@@ -233,10 +286,12 @@ Conservation efforts are making a difference:
 
 ### Organizations Making an Impact
 
-- **World Wildlife Fund** — global conservation
-- *Rainforest Alliance* — sustainable agriculture
-- ***The Nature Conservancy*** — land protection
-- One Tree Planted — reforestation projects
+| Organization | Focus Area | Impact |
+|--------------|------------|--------|
+| **World Wildlife Fund** | Global conservation | Protected millions of hectares |
+| *Rainforest Alliance* | Sustainable agriculture | Certified 5M+ hectares |
+| ***The Nature Conservancy*** | Land protection | Protected 125M+ acres |
+| One Tree Planted | Reforestation | Planted 100M+ trees |
 
 ---
 
@@ -250,6 +305,22 @@ Scientists and conservationists are developing innovative approaches to protect 
 - *Drone planting* that can seed 100,000 trees per day
 - ***DNA barcoding*** to track illegal logging
 - AI-powered \`fire prediction\` systems
+
+\`\`\`python
+# Example: Forest monitoring with satellite data
+import satellite_imagery
+
+def detect_deforestation(region):
+    """Monitor forest cover changes using satellite imagery"""
+    current_cover = satellite_imagery.get_forest_cover(region)
+    previous_cover = satellite_imagery.get_historical_cover(region, years_ago=1)
+    
+    deforestation_rate = (previous_cover - current_cover) / previous_cover
+    if deforestation_rate > 0.05:  # 5% threshold
+        alert_conservation_team(region, deforestation_rate)
+    
+    return deforestation_rate
+\`\`\`
 
 ### Restoration Efforts
 

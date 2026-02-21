@@ -1,8 +1,16 @@
 package com.swmansion.enriched.markdown.utils
 
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StrikethroughSpan
 import android.widget.TextView
+import com.swmansion.enriched.markdown.renderer.SpanStyleCache
+import com.swmansion.enriched.markdown.spans.BaseListSpan
 import com.swmansion.enriched.markdown.spans.TaskListSpan
+import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
 data class TaskListHitTestResult(
   val taskIndex: Int,
@@ -23,7 +31,8 @@ object TaskListToggleUtils {
 
     val match = matches[index]
     val prefix = match.groupValues[1]
-    val replacement = "$prefix[${if (checked) " " else "x"}]"
+
+    val replacement = "$prefix[${if (checked) "x" else " "}]"
 
     return markdown.replaceRange(match.range, replacement)
   }
@@ -79,4 +88,166 @@ object TaskListTapUtils {
         itemText = itemText,
       )
     }
+
+  /**
+   * Optimized function that directly updates the task list item's checked state
+   * without triggering a full markdown re-render.
+   */
+  fun updateTaskListItemCheckedState(
+    textView: TextView,
+    targetIndex: Int,
+    newChecked: Boolean,
+    styleConfig: StyleConfig,
+  ): Boolean {
+    val text = textView.text
+    if (text !is Spannable) {
+      return false
+    }
+
+    val spannable = SpannableStringBuilder(text)
+    val taskSpans = spannable.getSpans(0, spannable.length, TaskListSpan::class.java)
+
+    val targetSpan = taskSpans.firstOrNull { it.taskIndex == targetIndex }
+    if (targetSpan == null) {
+      return false
+    }
+
+    if (targetSpan.isChecked == newChecked) {
+      return true
+    }
+
+    val spanStart = spannable.getSpanStart(targetSpan)
+    val spanEnd = spannable.getSpanEnd(targetSpan)
+    val itemDepth = targetSpan.depth
+
+    val styleCache = SpanStyleCache(styleConfig)
+    val newTaskSpan =
+      TaskListSpan(
+        taskStyle = styleConfig.taskListStyle,
+        listStyle = styleConfig.listStyle,
+        depth = itemDepth,
+        context = textView.context,
+        styleCache = styleCache,
+        taskIndex = targetIndex,
+        isChecked = newChecked,
+      )
+
+    spannable.removeSpan(targetSpan)
+    spannable.setSpan(newTaskSpan, spanStart, spanEnd, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+
+    val verifySpans = spannable.getSpans(spanStart, spanEnd, TaskListSpan::class.java)
+    val verifySpan = verifySpans.firstOrNull { it.taskIndex == targetIndex }
+    if (verifySpan == null || verifySpan.isChecked != newChecked) {
+      return false
+    }
+
+    val taskStyle = styleConfig.taskListStyle
+    val checkedTextColor = taskStyle.checkedTextColor
+    val strikethrough = taskStyle.checkedStrikethrough
+
+    val excludedRanges =
+      spannable
+        .getSpans(spanStart, spanEnd, BaseListSpan::class.java)
+        .filter { it.depth > itemDepth }
+        .map { spannable.getSpanStart(it) to spannable.getSpanEnd(it) }
+        .sortedBy { it.first }
+
+    applyDecorationsToRanges(
+      spannable = spannable,
+      spanStart = spanStart,
+      spanEnd = spanEnd,
+      excludedRanges = excludedRanges,
+      isChecked = newChecked,
+      checkedTextColor = checkedTextColor,
+      strikethrough = strikethrough,
+      styleConfig = styleConfig,
+    )
+
+    val imageSpans = text.getSpans(0, text.length, com.swmansion.enriched.markdown.spans.ImageSpan::class.java).toList()
+    val originalSpanStarts = imageSpans.associateWith { text.getSpanStart(it) }
+
+    textView.text = spannable
+
+    val newImageSpans = spannable.getSpans(0, spannable.length, com.swmansion.enriched.markdown.spans.ImageSpan::class.java)
+    imageSpans.forEach { originalSpan ->
+      val matchingSpan =
+        newImageSpans.firstOrNull {
+          it.imageUrl == originalSpan.imageUrl &&
+            spannable.getSpanStart(it) == originalSpanStarts[originalSpan]
+        }
+      (matchingSpan ?: originalSpan).registerTextView(textView)
+    }
+
+    textView.invalidate()
+
+    return true
+  }
+
+  private fun applyDecorationsToRanges(
+    spannable: Spannable,
+    spanStart: Int,
+    spanEnd: Int,
+    excludedRanges: List<Pair<Int, Int>>,
+    isChecked: Boolean,
+    checkedTextColor: Int,
+    strikethrough: Boolean,
+    styleConfig: StyleConfig,
+  ) {
+    var currentPos = spanStart
+    for ((start, end) in excludedRanges) {
+      if (start > currentPos) {
+        if (isChecked) {
+          applyCheckedSpans(spannable, currentPos, start, checkedTextColor, strikethrough)
+        } else {
+          removeCheckedSpans(spannable, currentPos, start, styleConfig)
+        }
+      }
+      currentPos = maxOf(currentPos, end)
+    }
+    if (currentPos < spanEnd) {
+      if (isChecked) {
+        applyCheckedSpans(spannable, currentPos, spanEnd, checkedTextColor, strikethrough)
+      } else {
+        removeCheckedSpans(spannable, currentPos, spanEnd, styleConfig)
+      }
+    }
+  }
+
+  private fun applyCheckedSpans(
+    spannable: Spannable,
+    start: Int,
+    end: Int,
+    color: Int,
+    strikethrough: Boolean,
+  ) {
+    if (color != 0) {
+      spannable.setSpan(ForegroundColorSpan(color), start, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+    }
+    if (strikethrough) {
+      spannable.setSpan(StrikethroughSpan(), start, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+    }
+  }
+
+  private fun removeCheckedSpans(
+    spannable: Spannable,
+    start: Int,
+    end: Int,
+    styleConfig: StyleConfig,
+  ) {
+    val strikethroughSpans = spannable.getSpans(start, end, StrikethroughSpan::class.java)
+    strikethroughSpans.forEach { spannable.removeSpan(it) }
+
+    val colorSpans = spannable.getSpans(start, end, ForegroundColorSpan::class.java)
+    colorSpans.forEach { spannable.removeSpan(it) }
+
+    val listStyleColor = styleConfig.listStyle.color
+    if (listStyleColor != 0) {
+      spannable.setSpan(
+        ForegroundColorSpan(listStyleColor),
+        start,
+        end,
+        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+      )
+    }
+  }
 }

@@ -515,21 +515,19 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 {
   UITextView *textView = (UITextView *)recognizer.view;
 
-  if (handleTaskListTap(textView, recognizer, ^(NSInteger index, BOOL checked, NSString *itemText) {
-        NSString *updatedMarkdown = toggleTaskListItemAtIndex(self->_cachedMarkdown, index, checked);
-        self->_cachedMarkdown = updatedMarkdown;
-        [self renderMarkdownContent:updatedMarkdown];
-
-        BOOL newChecked = !checked;
-        auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(self->_eventEmitter);
-        if (eventEmitter) {
-          eventEmitter->onTaskListItemPress({
-              .index = (int)index,
-              .checked = newChecked,
-              .text = std::string([itemText UTF8String] ?: ""),
-          });
-        }
-      })) {
+  if (handleTaskListTapWithSharedLogic(
+          textView, recognizer, &self->_cachedMarkdown, self->_config,
+          ^(NSInteger index, BOOL checked, NSString *itemText) {
+            auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(self->_eventEmitter);
+            if (eventEmitter) {
+              eventEmitter->onTaskListItemPress({
+                  .index = (int)index,
+                  .checked = checked,
+                  .text = std::string([itemText UTF8String] ?: ""),
+              });
+            }
+          },
+          ^(NSString *updatedMarkdown) { [self renderMarkdownContent:updatedMarkdown]; })) {
     return;
   }
 

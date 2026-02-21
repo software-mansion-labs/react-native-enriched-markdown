@@ -17,7 +17,6 @@ runs:
     - name: Set up environment
       shell: bash
       run: |
-        echo "YARN_ENABLE_HARDENED_MODE=0" >> $GITHUB_ENV
         echo "PACKAGE_NAME=PLACEHOLDER" >> $GITHUB_ENV
 
     - name: Setup Node

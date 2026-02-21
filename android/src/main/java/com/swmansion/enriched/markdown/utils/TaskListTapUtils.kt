@@ -89,10 +89,6 @@ object TaskListTapUtils {
       )
     }
 
-  /**
-   * Optimized function that directly updates the task list item's checked state
-   * without triggering a full markdown re-render.
-   */
   fun updateTaskListItemCheckedState(
     textView: TextView,
     targetIndex: Int,

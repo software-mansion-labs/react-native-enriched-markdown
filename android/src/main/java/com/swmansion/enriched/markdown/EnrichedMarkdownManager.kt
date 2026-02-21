@@ -53,8 +53,6 @@ class EnrichedMarkdownManager :
 
     view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
       val newChecked = !checked
-      // For EnrichedMarkdown with segments, full re-render is needed
-      // The optimization is primarily for EnrichedMarkdownText
       val updatedMarkdown = TaskListToggleUtils.toggleAtIndex(view.currentMarkdown, taskIndex, newChecked)
       view.setMarkdownContent(updatedMarkdown)
       emitOnTaskListItemPress(view, taskIndex, newChecked, itemText)

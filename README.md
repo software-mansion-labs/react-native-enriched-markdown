@@ -16,7 +16,7 @@
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
 - 🗣️ Accessibility support (VoiceOver & TalkBack)
-- 🔄 RTL (right-to-left) language support
+- 🔄 Full RTL (right-to-left) support including text, lists, blockquotes, tables, and task lists
 
 Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
 We can help you build your next dream product –
@@ -31,6 +31,7 @@ We can help you build your next dream product –
 - [Link Handling](#link-handling)
 - [Copy Options](#copy-options)
 - [Accessibility](#accessibility)
+- [RTL Support](#rtl-support)
 - [Styling Architecture](#styling-architecture)
 - [Customizing Styles](#customizing-styles)
 - [API Reference](#api-reference)
@@ -275,6 +276,36 @@ When selecting text that contains images, a **Copy Image URL** option appears to
 | **Images** | Alt text announced, rotor navigation | Alt text announced |
 | **List items** | Position announced (e.g., "bullet point", "list item 1") | Position announced |
 | **Nested lists** | Proper depth handling | "Nested" prefix for deeper items |
+
+## RTL Support
+
+`react-native-enriched-markdown` fully supports right-to-left (RTL) languages such as Arabic, Hebrew, and Persian.
+
+### Platform Behavior
+
+- **Android** — RTL works automatically. Android's text system detects RTL characters (Arabic, Hebrew, etc.) and renders them right-to-left with no additional configuration.
+- **iOS** — Requires `I18nManager.forceRTL(true)` to enable RTL layout direction. This must be called early in the app lifecycle (before the root component mounts) and requires an app restart to take effect.
+
+```tsx
+import { I18nManager } from 'react-native';
+
+// Required for iOS, Android handles RTL automatically
+I18nManager.forceRTL(true);
+```
+
+When RTL content is rendered, the following elements automatically mirror their layout:
+
+| Element | RTL Behavior |
+|---------|-------------|
+| **Paragraphs & Headings** | Right-aligned with RTL writing direction |
+| **Unordered lists** | Bullets on the right, text indented from the right |
+| **Ordered lists** | Numbers on the right, text indented from the right |
+| **Task lists** | Checkboxes on the right, tappable in RTL |
+| **Blockquotes** | Border on the right side |
+| **Tables** | Columns ordered right-to-left, scrolls to show first column |
+| **Code blocks** | Always LTR (code is inherently left-to-right) |
+| **Inline code** | Positioned correctly within RTL text flow |
+| **Copy as HTML** | Exported HTML includes `dir="rtl"` for correct rendering in paste targets |
 
 ## Styling Architecture
 

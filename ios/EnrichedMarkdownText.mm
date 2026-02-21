@@ -252,6 +252,8 @@ using namespace facebook::react;
   CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;
   BOOL allowTrailingMargin = _allowTrailingMargin;
 
+  NSWritingDirection writingDirection = currentWritingDirection();
+
   dispatch_async(_renderQueue, ^{
     MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
     if (!ast) {
@@ -263,6 +265,7 @@ using namespace facebook::react;
     RenderContext *context = [RenderContext new];
     context.allowFontScaling = allowFontScaling;
     context.maxFontSizeMultiplier = maxFontSizeMultiplier;
+    context.writingDirection = writingDirection;
     NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
     CGFloat lastElementMarginBottom = [renderer getLastElementMarginBottom];
@@ -304,6 +307,7 @@ using namespace facebook::react;
   RenderContext *context = [RenderContext new];
   context.allowFontScaling = _fontScaleObserver.allowFontScaling;
   context.maxFontSizeMultiplier = _maxFontSizeMultiplier;
+  context.writingDirection = currentWritingDirection();
   NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
 
   _lastElementMarginBottom = [renderer getLastElementMarginBottom];

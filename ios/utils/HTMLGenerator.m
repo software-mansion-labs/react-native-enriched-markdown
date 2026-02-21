@@ -4,6 +4,7 @@
 #import "EnrichedMarkdownImageAttachment.h"
 #import "LastElementUtils.h"
 #import "ListItemRenderer.h"
+#import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
@@ -574,8 +575,8 @@ static void handleCodeBlock(NSMutableString *html, NSMutableString *inlineConten
   if (!state.inCodeBlock) {
     state.inCodeBlock = YES;
     [html appendFormat:
-              @"<pre style=\"background-color: %@; padding: %.0fpx; border-radius: %.0fpx; "
-              @"margin: 0 0 %.0fpx 0; overflow-x: auto;\"><code style=\"font-family: Menlo, Monaco, "
+              @"<pre dir=\"ltr\" style=\"background-color: %@; padding: %.0fpx; border-radius: %.0fpx; "
+              @"margin: 0 0 %.0fpx 0; overflow-x: auto; text-align: left;\"><code style=\"font-family: Menlo, Monaco, "
               @"Consolas, monospace; font-size: %.0fpx; color: %@;\">",
               styles.codeBlockBackgroundColor, styles.codeBlockPadding, styles.codeBlockBorderRadius,
               styles.codeBlockMarginBottom, styles.codeBlockFontSize, styles.codeBlockColor];
@@ -609,7 +610,8 @@ static void handleBlockquote(NSMutableString *html, ParagraphData *para, NSMutab
     if (state.currentBlockquoteDepth == 0) {
       [html appendFormat:
                 @"<blockquote style=\"background-color: %@; border-inline-start: %.0fpx solid %@; "
-                @"padding: %.0fpx %.0fpx; margin: 0 0 %.0fpx 0; border-start-end-radius: 8px; border-end-end-radius: 8px;\">",
+                @"padding: %.0fpx %.0fpx; margin: 0 0 %.0fpx 0; border-start-end-radius: 8px; border-end-end-radius: "
+                @"8px;\">",
                 styles.blockquoteBackgroundColor, styles.blockquoteBorderWidth, styles.blockquoteBorderColor,
                 kBlockquoteVerticalPadding, styles.blockquoteGapWidth, styles.blockquoteMarginBottom];
     } else {
@@ -661,7 +663,8 @@ static void handleListItem(NSMutableString *html, ParagraphData *para, NSMutable
       [html appendFormat:@"<ol style=\"margin: 0; padding-inline-start: %.0fpx;\">", indent];
     } else {
       NSString *listStyleType = isTask ? @"none" : @"disc";
-      [html appendFormat:@"<ul style=\"margin: 0; padding-inline-start: %.0fpx; list-style-type: %@;\">", indent, listStyleType];
+      [html appendFormat:@"<ul style=\"margin: 0; padding-inline-start: %.0fpx; list-style-type: %@;\">", indent,
+                         listStyleType];
     }
     [state.openListTypes addObject:@(listTypeValue)];
   }
@@ -677,13 +680,13 @@ static void handleListItem(NSMutableString *html, ParagraphData *para, NSMutable
                 @"<span style=\"display: inline-block; width: %.0fpx; height: %.0fpx; "
                 @"border-radius: %.0fpx; background-color: %@; color: %@; "
                 @"font-size: %.0fpx; line-height: %.0fpx; text-align: center; "
-                @"vertical-align: middle; margin-right: 4px;\">&#10003;</span> ",
+                @"vertical-align: middle; margin-inline-end: 4px;\">&#10003;</span> ",
                 size, size, radius, styles.taskCheckedColor, styles.taskCheckmarkColor, size - 2, size];
     } else {
       [html appendFormat:
                 @"<span style=\"display: inline-block; width: %.0fpx; height: %.0fpx; "
                 @"border-radius: %.0fpx; border: 1.5px solid %@; "
-                @"vertical-align: middle; margin-right: 4px;\"></span> ",
+                @"vertical-align: middle; margin-inline-end: 4px;\"></span> ",
                 size, size, radius, styles.taskBorderColor];
     }
   }
@@ -762,10 +765,17 @@ NSString *_Nullable generateHTML(NSAttributedString *attributedString, StyleConf
 
   CachedStyles *styles = cacheStyles(styleConfig);
 
+  BOOL isRTL = currentWritingDirection() == NSWritingDirectionRightToLeft;
+  NSString *dirAttr = isRTL ? @" dir=\"rtl\"" : @"";
+
   NSMutableString *html = [NSMutableString stringWithCapacity:attributedString.length * 2];
-  [html appendString:
-            @"<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body "
-            @"style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">"];
+  [html appendFormat:
+            @"<!DOCTYPE html><html%@><head><meta charset=\"UTF-8\"></head><body "
+            @"style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">",
+            dirAttr];
+  if (isRTL) {
+    [html appendString:@"<div dir=\"rtl\" style=\"direction: rtl; text-align: right;\">"];
+  }
 
   NSUInteger paragraphCount = 0;
   NSData *paragraphsData = collectParagraphsData(attributedString, &paragraphCount);
@@ -839,6 +849,9 @@ NSString *_Nullable generateHTML(NSAttributedString *attributedString, StyleConf
   closeBlockquotes(html, state);
   closeLists(html, state);
 
+  if (isRTL) {
+    [html appendString:@"</div>"];
+  }
   [html appendString:@"</body></html>"];
 
   return html;

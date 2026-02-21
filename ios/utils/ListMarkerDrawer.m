@@ -2,6 +2,7 @@
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
 #import "StyleConfig.h"
+#import <React/RCTI18nUtil.h>
 
 extern NSString *const ListDepthAttribute;
 extern NSString *const ListTypeAttribute;
@@ -31,7 +32,7 @@ extern NSString *const TaskCheckedAttribute;
     return;
 
   // Cache gap and track paragraphs to prevent double-drawing on wrapped lines
-  BOOL isRTL = UIApplication.sharedApplication.userInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
+  BOOL isRTL = [[RCTI18nUtil sharedInstance] isRTL];
   CGFloat gap = [_config effectiveListGapWidth];
   NSMutableSet *drawnParagraphs = [NSMutableSet set];
 
@@ -72,9 +73,7 @@ extern NSString *const TaskCheckedAttribute;
                                    UIFont *font = attrs[NSFontAttributeName] ?: [self defaultFont];
                                    BOOL checked = [attrs[TaskCheckedAttribute] boolValue];
                                    const CGFloat size = [_config taskListCheckboxSize];
-                                   CGFloat checkboxX = isRTL
-                                     ? markerX + size / 2.0
-                                     : markerX - size / 2.0;
+                                   CGFloat checkboxX = isRTL ? markerX + size / 2.0 : markerX - size / 2.0;
                                    [self drawCheckboxAtX:checkboxX
                                                  centerY:baselineY - (font.capHeight / 2.0)
                                                  checked:checked];
@@ -152,15 +151,17 @@ extern NSString *const TaskCheckedAttribute;
                    y:y];
 }
 
-- (void)drawOrderedMarkerAtX:(CGFloat)boundaryX attrs:(NSDictionary *)attrs baselineY:(CGFloat)baselineY isRTL:(BOOL)isRTL
+- (void)drawOrderedMarkerAtX:(CGFloat)boundaryX
+                       attrs:(NSDictionary *)attrs
+                   baselineY:(CGFloat)baselineY
+                       isRTL:(BOOL)isRTL
 {
   NSNumber *num = attrs[ListItemNumberAttribute];
   if (!num)
     return;
 
-  NSString *text = isRTL
-    ? [NSString stringWithFormat:@".%ld", (long)num.integerValue]
-    : [NSString stringWithFormat:@"%ld.", (long)num.integerValue];
+  NSString *text = isRTL ? [NSString stringWithFormat:@".%ld", (long)num.integerValue]
+                         : [NSString stringWithFormat:@"%ld.", (long)num.integerValue];
   UIFont *font = [_config listMarkerFont] ?: [self defaultFont];
 
   NSDictionary *mAttrs = @{

@@ -39,7 +39,7 @@ const paragraphDefaultStyles: MarkdownStyleInternal['paragraph'] = {
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
   marginTop: 0,
   marginBottom: 16,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultH1Style: MarkdownStyleInternal['h1'] = {
@@ -50,7 +50,7 @@ const defaultH1Style: MarkdownStyleInternal['h1'] = {
   lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
   marginTop: 0,
   marginBottom: 8,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultH2Style: MarkdownStyleInternal['h2'] = {
@@ -61,7 +61,7 @@ const defaultH2Style: MarkdownStyleInternal['h2'] = {
   lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
   marginTop: 0,
   marginBottom: 8,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultH3Style: MarkdownStyleInternal['h3'] = {
@@ -72,7 +72,7 @@ const defaultH3Style: MarkdownStyleInternal['h3'] = {
   lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
   marginTop: 0,
   marginBottom: 8,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultH4Style: MarkdownStyleInternal['h4'] = {
@@ -83,7 +83,7 @@ const defaultH4Style: MarkdownStyleInternal['h4'] = {
   lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
   marginTop: 0,
   marginBottom: 8,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultH5Style: MarkdownStyleInternal['h5'] = {
@@ -94,7 +94,7 @@ const defaultH5Style: MarkdownStyleInternal['h5'] = {
   lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
   marginTop: 0,
   marginBottom: 8,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultH6Style: MarkdownStyleInternal['h6'] = {
@@ -105,7 +105,7 @@ const defaultH6Style: MarkdownStyleInternal['h6'] = {
   lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
   marginTop: 0,
   marginBottom: 8,
-  textAlign: 'left',
+  textAlign: 'auto',
 };
 
 const defaultLinkColor = processColor('#2563EB') as ColorValue;

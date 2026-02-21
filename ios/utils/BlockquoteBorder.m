@@ -1,5 +1,6 @@
 #import "BlockquoteBorder.h"
 #import "StyleConfig.h"
+#import <React/RCTI18nUtil.h>
 
 // Attribute constants for identifying blockquote segments in text storage
 NSString *const BlockquoteDepthAttributeName = @"BlockquoteDepth";
@@ -40,7 +41,7 @@ NSString *const BlockquoteBackgroundColorAttributeName = @"BlockquoteBackgroundC
   UIColor *defaultBgColor = c.blockquoteBackgroundColor;
   UIColor *borderColor = c.blockquoteBorderColor;
 
-  BOOL isRTL = UIApplication.sharedApplication.userInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
+  BOOL isRTL = [[RCTI18nUtil sharedInstance] isRTL];
 
   // Use a Bezier path to batch all vertical border rectangles into a single GPU draw call
   UIBezierPath *borderPath = [UIBezierPath bezierPath];
@@ -78,9 +79,9 @@ NSString *const BlockquoteBackgroundColorAttributeName = @"BlockquoteBackgroundC
 
                                  // 2. Aggregate vertical borders into the batch path
                                  for (NSInteger level = 0; level <= depth; level++) {
-                                   CGFloat borderX = isRTL
-                                     ? origin.x + containerWidth - borderWidth - (levelSpacing * level)
-                                     : origin.x + (levelSpacing * level);
+                                   CGFloat borderX =
+                                       isRTL ? origin.x + containerWidth - borderWidth - (levelSpacing * level)
+                                             : origin.x + (levelSpacing * level);
                                    CGRect borderRect = CGRectMake(borderX, baseY, borderWidth, rect.size.height);
                                    [borderPath appendPath:[UIBezierPath bezierPathWithRect:borderRect]];
                                  }

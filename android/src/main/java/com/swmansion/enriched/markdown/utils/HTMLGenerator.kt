@@ -249,6 +249,7 @@ object HTMLGenerator {
     style: StyleConfig,
     scaledDensity: Float = 1f,
     density: Float = 1f,
+    isRTL: Boolean = false,
   ): String {
     if (text.isEmpty()) return "<html></html>"
 
@@ -258,7 +259,12 @@ object HTMLGenerator {
 
     // Estimate capacity (average 2x text length)
     val html = StringBuilder(text.length * 2)
-    html.append("<html>")
+    if (isRTL) {
+      html.append("<html dir=\"rtl\">")
+      html.append("<div dir=\"rtl\" style=\"direction: rtl; text-align: right;\">")
+    } else {
+      html.append("<html>")
+    }
 
     // Collect paragraphs
     val paragraphs = collectParagraphs(text)
@@ -268,6 +274,9 @@ object HTMLGenerator {
     }
 
     closeRemainingContainers(html, state, styles)
+    if (isRTL) {
+      html.append("</div>")
+    }
     html.append("</html>")
 
     return html.toString()
@@ -326,7 +335,7 @@ object HTMLGenerator {
     if (lines.isEmpty()) return
 
     html
-      .append("<pre style=\"background-color: ")
+      .append("<pre dir=\"ltr\" style=\"background-color: ")
       .append(styles.codeBlockBgColor)
       .append("; padding: ")
       .append(styles.codeBlockPadding)
@@ -334,7 +343,7 @@ object HTMLGenerator {
       .append(styles.codeBlockBorderRadius)
       .append("px; margin: 0 0 ")
       .append(styles.codeBlockMarginBottom)
-      .append("px 0; overflow-x: auto;\"><code style=\"font-family: Menlo, Monaco, Consolas, monospace; font-size: ")
+      .append("px 0; overflow-x: auto; text-align: left;\"><code style=\"font-family: Menlo, Monaco, Consolas, monospace; font-size: ")
       .append(styles.codeBlockFontSize)
       .append("px; color: ")
       .append(styles.codeBlockColor)
@@ -508,7 +517,7 @@ object HTMLGenerator {
           .append(size - 2)
           .append("px; line-height: ")
           .append(size)
-          .append("px; text-align: center; vertical-align: middle; margin-right: 4px;\">&#10003;</span> ")
+          .append("px; text-align: center; vertical-align: middle; margin-inline-end: 4px;\">&#10003;</span> ")
       } else {
         html
           .append("<span style=\"display: inline-block; width: ")
@@ -519,7 +528,7 @@ object HTMLGenerator {
           .append(radius)
           .append("px; border: 1.5px solid ")
           .append(styles.taskBorderColor)
-          .append("; vertical-align: middle; margin-right: 4px;\"></span> ")
+          .append("; vertical-align: middle; margin-inline-end: 4px;\"></span> ")
       }
     }
 

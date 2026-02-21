@@ -1,4 +1,5 @@
 #import "ParagraphStyleUtils.h"
+#import <React/RCTI18nUtil.h>
 
 NSAttributedString *kNewlineAttributedString;
 static NSParagraphStyle *kBlockSpacerTemplate;
@@ -13,10 +14,18 @@ __attribute__((constructor)) static void initParagraphStyleUtils(void)
   kBlockSpacerTemplate = [template copy];
 }
 
+NSWritingDirection currentWritingDirection(void)
+{
+  BOOL isRTL = [[RCTI18nUtil sharedInstance] isRTL];
+  return isRTL ? NSWritingDirectionRightToLeft : NSWritingDirectionLeftToRight;
+}
+
 NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *output, NSUInteger index)
 {
   NSParagraphStyle *existing = [output attribute:NSParagraphStyleAttributeName atIndex:index effectiveRange:NULL];
-  return existing ? [existing mutableCopy] : [[NSMutableParagraphStyle alloc] init];
+  NSMutableParagraphStyle *style = existing ? [existing mutableCopy] : [[NSMutableParagraphStyle alloc] init];
+  style.baseWritingDirection = currentWritingDirection();
+  return style;
 }
 
 void applyParagraphSpacingAfter(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom)
@@ -50,6 +59,7 @@ NSUInteger applyBlockSpacingBefore(NSMutableAttributedString *output, NSUInteger
   }
 
   NSMutableParagraphStyle *spacerStyle = [kBlockSpacerTemplate mutableCopy];
+  spacerStyle.baseWritingDirection = currentWritingDirection();
   spacerStyle.paragraphSpacing = marginTop;
 
   NSAttributedString *spacer =
@@ -69,6 +79,7 @@ void applyBlockSpacingAfter(NSMutableAttributedString *output, CGFloat marginBot
   [output appendAttributedString:kNewlineAttributedString];
 
   NSMutableParagraphStyle *spacerStyle = [kBlockSpacerTemplate mutableCopy];
+  spacerStyle.baseWritingDirection = currentWritingDirection();
   spacerStyle.paragraphSpacing = marginBottom;
 
   [output addAttribute:NSParagraphStyleAttributeName value:spacerStyle range:NSMakeRange(spacerLocation, 1)];
@@ -97,15 +108,14 @@ void applyTextAlignment(NSMutableAttributedString *output, NSRange range, NSText
 
 NSTextAlignment textAlignmentFromString(NSString *textAlign)
 {
-  if ([textAlign isEqualToString:@"center"]) {
+  if ([textAlign isEqualToString:@"left"]) {
+    return NSTextAlignmentLeft;
+  } else if ([textAlign isEqualToString:@"center"]) {
     return NSTextAlignmentCenter;
   } else if ([textAlign isEqualToString:@"right"]) {
     return NSTextAlignmentRight;
   } else if ([textAlign isEqualToString:@"justify"]) {
     return NSTextAlignmentJustified;
-  } else if ([textAlign isEqualToString:@"auto"]) {
-    return NSTextAlignmentNatural;
   }
-  // Default to left for "left" or any unknown value
-  return NSTextAlignmentLeft;
+  return NSTextAlignmentNatural;
 }

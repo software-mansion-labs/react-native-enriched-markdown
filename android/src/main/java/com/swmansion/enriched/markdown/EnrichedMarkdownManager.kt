@@ -52,14 +52,10 @@ class EnrichedMarkdownManager :
     }
 
     view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
-      val updatedMarkdown =
-        TaskListToggleUtils.toggleAtIndex(
-          view.currentMarkdown,
-          taskIndex,
-          checked,
-        )
+      val newChecked = !checked
+      val updatedMarkdown = TaskListToggleUtils.toggleAtIndex(view.currentMarkdown, taskIndex, newChecked)
       view.setMarkdownContent(updatedMarkdown)
-      emitOnTaskListItemPress(view, taskIndex, !checked, itemText)
+      emitOnTaskListItemPress(view, taskIndex, newChecked, itemText)
     }
 
     view?.setMarkdownContent(markdown ?: "")

@@ -15,6 +15,7 @@ import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
+import com.swmansion.enriched.markdown.utils.TaskListTapUtils
 import com.swmansion.enriched.markdown.utils.TaskListToggleUtils
 
 @ReactModule(name = EnrichedMarkdownTextManager.NAME)
@@ -58,14 +59,22 @@ class EnrichedMarkdownTextManager :
     }
 
     view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
-      val updatedMarkdown =
-        TaskListToggleUtils.toggleAtIndex(
-          view.currentMarkdown,
-          taskIndex,
-          checked,
-        )
+      val newChecked = !checked
+
+      val styleConfig = view.markdownStyle
+      val optimizedSuccess =
+        styleConfig != null && TaskListTapUtils.updateTaskListItemCheckedState(view, taskIndex, newChecked, styleConfig)
+
+      if (optimizedSuccess) {
+        emitOnTaskListItemPress(view, taskIndex, newChecked, itemText)
+        return@setOnTaskListItemPressCallback
+      }
+
+      val currentMarkdown = view.currentMarkdown
+      val updatedMarkdown = TaskListToggleUtils.toggleAtIndex(currentMarkdown, taskIndex, newChecked)
       view.setMarkdownContent(updatedMarkdown)
-      emitOnTaskListItemPress(view, taskIndex, !checked, itemText)
+
+      emitOnTaskListItemPress(view, taskIndex, newChecked, itemText)
     }
 
     view?.setMarkdownContent(markdown ?: "No markdown content")

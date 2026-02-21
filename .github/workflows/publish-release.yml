@@ -1,0 +1,58 @@
+name: Publish release to npm
+on:
+  # For nightly releases
+  schedule:
+    - cron: '27 23 * * *' # at 23:27 every day
+  # For manual releases
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: Type of release to publish.
+        type: choice
+        options:
+          - stable
+          - nightly
+          - beta
+          - rc
+        default: stable
+      version:
+        description: Specific version to publish (usually inferred from x.y-stable branch name).
+        type: string
+        required: false
+        default: ''
+      dry-run:
+        description: Whether to perform a dry run of the publish.
+        type: boolean
+        default: true
+
+jobs:
+  npm-build:
+    if: github.repository == 'software-mansion-labs/react-native-enriched-markdown'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write # for OIDC
+
+    concurrency:
+      group: publish-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Publish manual release
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/publish-npm-package
+        with:
+          release-type: ${{ inputs.release-type }}
+          version: ${{ inputs.version }}
+          dry-run: ${{ inputs.dry-run }}
+
+      - name: Publish automatic nightly release
+        if: ${{ github.event_name == 'schedule' }}
+        uses: ./.github/actions/publish-npm-package
+        with:
+          release-type: 'nightly'
+          dry-run: false

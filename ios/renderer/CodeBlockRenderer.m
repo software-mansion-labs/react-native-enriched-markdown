@@ -36,6 +36,7 @@
   // Top Padding: Inserted as a spacer character inside the background area
   [output appendAttributedString:kNewlineAttributedString];
   NSMutableParagraphStyle *topSpacerStyle = [context spacerStyleWithHeight:padding spacing:0];
+  topSpacerStyle.baseWritingDirection = NSWritingDirectionLeftToRight;
   [output addAttribute:NSParagraphStyleAttributeName value:topSpacerStyle range:NSMakeRange(blockStart, 1)];
 
   NSUInteger contentStart = output.length;
@@ -64,8 +65,10 @@
     applyLineHeight(output, contentRange, lineHeight);
   }
 
-  // Apply horizontal indents to the content
+  // Code is always LTR regardless of app writing direction
   NSMutableParagraphStyle *baseStyle = [getOrCreateParagraphStyle(output, contentStart) mutableCopy];
+  baseStyle.baseWritingDirection = NSWritingDirectionLeftToRight;
+  baseStyle.alignment = NSTextAlignmentLeft;
   baseStyle.firstLineHeadIndent = padding;
   baseStyle.headIndent = padding;
   baseStyle.tailIndent = -padding;
@@ -75,6 +78,7 @@
   NSUInteger bottomPaddingStart = output.length;
   [output appendAttributedString:kNewlineAttributedString];
   NSMutableParagraphStyle *bottomPaddingStyle = [context spacerStyleWithHeight:padding spacing:0];
+  bottomPaddingStyle.baseWritingDirection = NSWritingDirectionLeftToRight;
   [output addAttribute:NSParagraphStyleAttributeName value:bottomPaddingStyle range:NSMakeRange(bottomPaddingStart, 1)];
 
   // Define the range for background rendering (includes padding, excludes margins)

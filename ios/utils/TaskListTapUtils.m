@@ -1,5 +1,6 @@
 #import "TaskListTapUtils.h"
 #import "ListItemRenderer.h"
+#import <React/RCTI18nUtil.h>
 
 TaskListHitTestResult taskListHitTest(UITextView *textView, UITapGestureRecognizer *recognizer)
 {
@@ -26,8 +27,16 @@ TaskListHitTestResult taskListHitTest(UITextView *textView, UITapGestureRecogniz
   NSParagraphStyle *style = attributes[NSParagraphStyleAttributeName];
   CGFloat checkboxWidth = style ? style.firstLineHeadIndent : 0;
 
-  if (tapPoint.x >= checkboxWidth) {
-    return notFound;
+  BOOL isRTL = [[RCTI18nUtil sharedInstance] isRTL];
+  if (isRTL) {
+    CGFloat viewWidth = textView.bounds.size.width;
+    if (tapPoint.x <= viewWidth - checkboxWidth) {
+      return notFound;
+    }
+  } else {
+    if (tapPoint.x >= checkboxWidth) {
+      return notFound;
+    }
   }
 
   NSRange itemRange;

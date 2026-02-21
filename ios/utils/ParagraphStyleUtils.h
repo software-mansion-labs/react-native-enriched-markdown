@@ -7,6 +7,7 @@ __BEGIN_DECLS
 
 extern NSAttributedString *kNewlineAttributedString;
 
+NSWritingDirection currentWritingDirection(void);
 NSMutableParagraphStyle *getOrCreateParagraphStyle(NSMutableAttributedString *output, NSUInteger index);
 void applyParagraphSpacingAfter(NSMutableAttributedString *output, NSUInteger start, CGFloat marginBottom);
 void applyParagraphSpacingBefore(NSMutableAttributedString *output, NSRange range, CGFloat marginTop);

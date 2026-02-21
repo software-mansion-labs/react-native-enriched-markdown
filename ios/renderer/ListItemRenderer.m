@@ -106,6 +106,7 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
                     }
 
                     NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+                    style.baseWritingDirection = currentWritingDirection();
                     style.firstLineHeadIndent = totalIndent;
                     style.headIndent = totalIndent;
 

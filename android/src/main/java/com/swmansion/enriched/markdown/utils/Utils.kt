@@ -1,10 +1,12 @@
 package com.swmansion.enriched.markdown.utils
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.TextPaint
+import android.view.View
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.ReactConstants
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
@@ -24,6 +26,12 @@ import android.text.style.LineHeightSpan as AndroidLineHeightSpan
  * Spans with these flags do not expand when text is inserted at their boundaries.
  */
 const val SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE = SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+
+// ============================================================================
+// RTL Utilities
+// ============================================================================
+
+fun Resources.isLayoutRTL(): Boolean = configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
 
 // ============================================================================
 // TextPaint Extensions

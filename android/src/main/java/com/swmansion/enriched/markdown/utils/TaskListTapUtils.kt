@@ -52,9 +52,16 @@ object TaskListTapUtils {
             TaskListSpan::class.java,
           ).maxByOrNull { it.depth } ?: return null
 
-      val lineLeft = layout.getLineLeft(line).toInt()
-      val indentWidth = layout.getParagraphLeft(line).toInt() - lineLeft
-      if (x >= indentWidth) return null
+      val isRtl = layout.getParagraphDirection(line) == android.text.Layout.DIR_RIGHT_TO_LEFT
+      if (isRtl) {
+        val lineRight = layout.getLineRight(line).toInt()
+        val indentWidth = lineRight - layout.getParagraphRight(line).toInt()
+        if (x <= layout.width - indentWidth) return null
+      } else {
+        val lineLeft = layout.getLineLeft(line).toInt()
+        val indentWidth = layout.getParagraphLeft(line).toInt() - lineLeft
+        if (x >= indentWidth) return null
+      }
 
       val spanStart = spannable.getSpanStart(taskSpan)
       val spanEnd = spannable.getSpanEnd(taskSpan)

@@ -27,6 +27,7 @@ import com.swmansion.enriched.markdown.utils.ContextMenuPopup
 import com.swmansion.enriched.markdown.utils.HTMLGenerator
 import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.MarkdownASTSerializer
+import com.swmansion.enriched.markdown.utils.isLayoutRTL
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -41,6 +42,7 @@ class TableContainerView(
   override val segmentMarginTop: Int get() = tableStyle.marginTop.toInt()
   override val segmentMarginBottom: Int get() = tableStyle.marginBottom.toInt()
   private val density = resources.displayMetrics.density
+  private val isRtl = resources.isLayoutRTL()
 
   var allowFontScaling = true
   var maxFontSizeMultiplier = 0f
@@ -89,7 +91,7 @@ class TableContainerView(
     columnCount = rows.maxOfOrNull { it.size } ?: 0
     tableMarkdown = buildMarkdownFromRows()
 
-    val (widths, heights) = computeTableDimensions(rows.map { r -> r.map { it.attributedText } }, styleConfig, context)
+    val (widths, heights) = computeTableDimensions(rows.map { row -> row.map { it.attributedText } }, styleConfig, context)
     columnWidths = widths
     rowHeights = heights
     totalTableWidth = columnWidths.sum() + tableStyle.borderWidth
@@ -114,10 +116,11 @@ class TableContainerView(
 
   private fun extractPlainText(node: MarkdownASTNode): String = node.content + node.children.joinToString("") { extractPlainText(it) }
 
-  private fun textAlignmentFromString(align: String?) =
+  private fun textAlignmentFromString(align: String?): Layout.Alignment =
     when (align) {
       "center" -> Layout.Alignment.ALIGN_CENTER
-      "right" -> Layout.Alignment.ALIGN_OPPOSITE
+      "right" -> if (isRtl) Layout.Alignment.ALIGN_NORMAL else Layout.Alignment.ALIGN_OPPOSITE
+      "left" -> if (isRtl) Layout.Alignment.ALIGN_OPPOSITE else Layout.Alignment.ALIGN_NORMAL
       else -> Layout.Alignment.ALIGN_NORMAL
     }
 
@@ -138,9 +141,18 @@ class TableContainerView(
           else -> tableStyle.rowOddBackgroundColor
         }
 
-      var xOffset = 0f
+      var xOffset = if (isRtl) totalTableWidth - tableStyle.borderWidth else 0f
       for (col in 0 until columnCount) {
         val columnWidth = columnWidths[col]
+
+        val cellX =
+          if (isRtl) {
+            xOffset -= columnWidth
+            xOffset
+          } else {
+            xOffset
+          }
+
         val cellBg =
           CellBackgroundView(context).apply {
             configure(rowBg, tableStyle.borderColor, tableStyle.borderWidth)
@@ -153,13 +165,13 @@ class TableContainerView(
         gridContainer.addView(
           cellBg,
           LayoutParams(ceil(columnWidth + tableStyle.borderWidth).toInt(), ceil(rowHeight + tableStyle.borderWidth).toInt()).apply {
-            leftMargin = ceil(xOffset).toInt()
+            leftMargin = ceil(cellX).toInt()
             topMargin = ceil(yOffset).toInt()
           },
         )
 
         if (col < row.size) addTextToCell(cellBg, row[col], columnWidth, rowHeight)
-        xOffset += columnWidth
+        if (!isRtl) xOffset += columnWidth
       }
       if (!isHeaderRow) bodyRowIndex++
       yOffset += rowHeight
@@ -209,28 +221,36 @@ class TableContainerView(
     widthSpec: Int,
     heightSpec: Int,
   ) {
-    val w = MeasureSpec.getSize(widthSpec)
-    val h = ceil(totalTableHeight).toInt()
-    scrollView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
-    setMeasuredDimension(w, h)
+    val measuredWidth = MeasureSpec.getSize(widthSpec)
+    val measuredHeight = ceil(totalTableHeight).toInt()
+    scrollView.measure(
+      MeasureSpec.makeMeasureSpec(measuredWidth, MeasureSpec.EXACTLY),
+      MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY),
+    )
+    setMeasuredDimension(measuredWidth, measuredHeight)
   }
 
   override fun onLayout(
     changed: Boolean,
-    l: Int,
-    t: Int,
-    r: Int,
-    b: Int,
+    left: Int,
+    top: Int,
+    right: Int,
+    bottom: Int,
   ) {
-    scrollView.layout(0, 0, r - l, b - t)
-    scrollView.isHorizontalScrollBarEnabled = totalTableWidth > (r - l)
+    scrollView.layout(0, 0, right - left, bottom - top)
+    val viewWidth = right - left
+    scrollView.isHorizontalScrollBarEnabled = totalTableWidth > viewWidth
+
+    if (isRtl && totalTableWidth > viewWidth) {
+      scrollView.scrollTo((totalTableWidth - viewWidth).toInt(), 0)
+    }
   }
 
   private fun showContextMenu(anchor: View) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     ContextMenuPopup.show(anchor, this) {
       item(ContextMenuPopup.Icon.COPY, "Copy") {
-        val plainText = rows.joinToString("\n") { r -> r.joinToString("\t") { it.plainText } }
+        val plainText = rows.joinToString("\n") { row -> row.joinToString("\t") { it.plainText } }
         if (plainText.isNotEmpty()) {
           val displayMetrics = context.resources.displayMetrics
           val tableRows =
@@ -266,14 +286,14 @@ class TableContainerView(
 
   companion object {
     private class HeaderTypefaceSpan(
-      private val tf: Typeface,
+      private val typeface: Typeface,
     ) : MetricAffectingSpan() {
-      override fun updateDrawState(tp: TextPaint) {
-        tp.typeface = tf
+      override fun updateDrawState(paint: TextPaint) {
+        paint.typeface = typeface
       }
 
-      override fun updateMeasureState(tp: TextPaint) {
-        tp.typeface = tf
+      override fun updateMeasureState(paint: TextPaint) {
+        paint.typeface = typeface
       }
     }
 
@@ -362,9 +382,13 @@ class TableContainerView(
     private val path = Path()
     private val rect = RectF()
 
+    init {
+      layoutDirection = View.LAYOUT_DIRECTION_LTR
+    }
+
     fun configure(
-      w: Float,
-      h: Float,
+      tableWidth: Float,
+      tableHeight: Float,
       style: TableStyle,
     ) {
       radius = style.borderRadius
@@ -426,6 +450,8 @@ class TableContainerView(
       setPadding(0, 0, 0, 0)
       includeFontPadding = false
       movementMethod = LinkLongPressMovementMethod.createInstance()
+      layoutDirection = View.LAYOUT_DIRECTION_LOCALE
+      textDirection = View.TEXT_DIRECTION_LOCALE
     }
   }
 

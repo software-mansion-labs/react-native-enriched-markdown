@@ -4,6 +4,7 @@
 #import "LinkTapUtils.h"
 #import "MarkdownASTNode.h"
 #import "MarkdownASTSerializer.h"
+#import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "StyleConfig.h"
 #import <UIKit/UIPasteboard.h>
@@ -114,6 +115,7 @@
                 usingBlock:^(NSParagraphStyle *paragraphStyle, NSRange range, BOOL *stop) {
                   NSMutableParagraphStyle *mutableStyle =
                       paragraphStyle ? [paragraphStyle mutableCopy] : [[NSMutableParagraphStyle alloc] init];
+                  mutableStyle.baseWritingDirection = currentWritingDirection();
                   mutableStyle.alignment = alignment;
                   [attributedText addAttribute:NSParagraphStyleAttributeName value:mutableStyle range:range];
                 }];

@@ -102,12 +102,14 @@ private fun TextView.copyWithHTML() {
   if (styleConfig != null && selectedText is Spannable) {
     // Density values convert device pixels back to CSS pixels
     val displayMetrics = context.resources.displayMetrics
+    val isRTL = context.resources.isLayoutRTL()
     val html =
       HTMLGenerator.generateHTML(
         selectedText,
         styleConfig,
         displayMetrics.scaledDensity,
         displayMetrics.density,
+        isRTL,
       )
     clipboard.setPrimaryClip(ClipData.newHtmlText("EnrichedMarkdown", plainText, html))
   } else {

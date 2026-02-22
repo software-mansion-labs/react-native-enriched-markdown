@@ -28,11 +28,9 @@ We can help you build your next dream product –
 - [Installation](#installation)
 - [Usage](#usage)
 - [Supported Markdown Elements](#supported-markdown-elements)
-- [Link Handling](#link-handling)
 - [Copy Options](#copy-options)
 - [Accessibility](#accessibility)
 - [RTL Support](#rtl-support)
-- [Styling Architecture](#styling-architecture)
 - [Customizing Styles](#customizing-styles)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
@@ -120,7 +118,7 @@ export default function App() {
 
 ### GFM (tables)
 
-Set `flavor="github"` to enable GitHub Flavored Markdown features like tables:
+Set `flavor="github"` to enable GitHub Flavored Markdown features like tables and task lists:
 
 ```tsx
 <EnrichedMarkdownText
@@ -143,494 +141,57 @@ Set `flavor="github"` to enable GitHub Flavored Markdown features like tables:
 
 Tables support column alignment, rich text in cells (bold, italic, code, links), horizontal scrolling, header styling, alternating row colors, and a long-press context menu with "Copy" and "Copy as Markdown".
 
-## Supported Markdown Elements
+### Task Lists
 
-`react-native-enriched-markdown` supports a comprehensive set of Markdown elements:
+Task lists with interactive checkboxes are available when `flavor="github"` is set. Handle checkbox taps with `onTaskListItemPress`:
 
-### Block Elements
-
-| Element | Syntax | Description |
-|---------|--------|-------------|
-| Headings | `# H1` to `###### H6` | Six levels of headings |
-| Paragraphs | Plain text | Regular text paragraphs |
-| Blockquotes | `> Quote` | Quoted text with unlimited nesting |
-| Code Blocks | ` ``` code ``` ` | Multi-line code blocks |
-| Unordered Lists | `- Item`, `* Item`, or `+ Item` | Bullet lists with unlimited nesting |
-| Ordered Lists | `1. Item` | Numbered lists with unlimited nesting |
-| Task Lists | `- [x] Done`, `- [ ] Todo` | Interactive checkboxes (requires `flavor="github"`) |
-| Thematic Break | `---`, `***`, or `___` | Visual separator line |
-| Images | `![alt](url)` | Block-level images |
-| Tables | `| col | col |` | GFM tables with alignment support (requires `flavor="github"`) |
-
-### Inline Elements
-
-| Element | Syntax | Description |
-|---------|--------|-------------|
-| Bold | `**text**` or `__text__` | Strong emphasis |
-| Italic | `*text*` or `_text_` | Emphasis |
-| Underline | `_text_` | Underlined text (requires `md4cFlags`) |
-| Strikethrough | `~~text~~` | Strikethrough text |
-| Bold + Italic | `***text***`, `___text___`, etc. | Combined emphasis |
-| Links | `[text](url)` | Clickable links |
-| Inline Code | `` `code` `` | Inline code snippets |
-| Inline Images | `![alt](url)` | Images within text flow |
-
-> **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
-
-### Nested Lists Example
-
-```markdown
-- First level
-  - Second level
-    - Third level
-      - Fourth level (unlimited depth!)
-
-1. First item
-   1. Nested numbered
-      1. Deep nested
-   2. Another nested
-2. Second item
+```tsx
+<EnrichedMarkdownText
+  flavor="github"
+  markdown={`
+- [x] Completed task
+- [ ] Incomplete task
+- [x] Another completed task
+  `}
+  onTaskListItemPress={({ index, checked, text }) => {
+    console.log(`Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`);
+    // Update your state or data model here
+  }}
+/>
 ```
 
-### Nested Blockquotes Example
-
-```markdown
-> Level 1 quote
-> > Level 2 nested
-> > > Level 3 nested (unlimited depth!)
-```
-
-## Link Handling
+### Link Handling
 
 Links in Markdown are interactive and can be handled with the `onLinkPress` and `onLinkLongPress` callbacks:
 
-```tsx
-<EnrichedMarkdownText
-  markdown="Check out [React Native](https://reactnative.dev)!"
-  onLinkPress={({ url }) => {
-    Alert.alert('Link pressed', url);
-    Linking.openURL(url);
-  }}
-  onLinkLongPress={({ url }) => {
-    Alert.alert('Link long pressed', url);
-  }}
-/>
-```
+- **`onLinkPress`**: Fired when a link is tapped. Use this to open URLs or handle link navigation.
+- **`onLinkLongPress`**: Fired when a link is long-pressed. On iOS, providing this callback automatically disables the system link preview so your handler can fire instead.
 
-### Link Preview (iOS)
+See the [API Reference](docs/API_REFERENCE.md#onlinkpress) for detailed examples and usage.
 
-By default, long-pressing a link on iOS shows the native system link preview. When you provide `onLinkLongPress`, the system preview is automatically disabled so your handler can fire instead.
+## Supported Markdown Elements
 
-You can also control this behavior explicitly with the `enableLinkPreview` prop:
-
-```tsx
-// Disable system link preview without providing a handler
-<EnrichedMarkdownText
-  markdown={content}
-  enableLinkPreview={false}
-/>
-```
+`react-native-enriched-markdown` supports a comprehensive set of Markdown elements. See [Element Structure](docs/ELEMENTS_STRUCTURE.md) for a detailed overview of all supported elements, their syntax, block vs inline categorization, nesting behavior, and how elements inherit typography from their parent blocks.
 
 ## Copy Options
 
-When text is selected, `react-native-enriched-markdown` provides enhanced copy functionality through the context menu on both platforms.
-
-### Smart Copy
-
-The default **Copy** action copies the selected text with rich formatting support:
-
-#### iOS
-
-Copies in multiple formats simultaneously — receiving apps pick the richest format they support:
-
-| Format | Description |
-|--------|-------------|
-| **Plain Text** | Basic text without formatting |
-| **Markdown** | Original Markdown syntax preserved |
-| **HTML** | Rich HTML representation |
-| **RTF** | Rich Text Format for apps like Notes, Pages |
-| **RTFD** | RTF with embedded images |
-
-#### Android
-
-Copies as both **Plain Text** and **HTML** — apps that support rich text (like Gmail, Google Docs) will preserve formatting.
-
-### Copy as Markdown
-
-A dedicated **Copy as Markdown** option is available in the context menu on both platforms. This copies only the Markdown source text, useful when you want to preserve the original syntax.
-
-### Copy Image URL
-
-When selecting text that contains images, a **Copy Image URL** option appears to copy the image's source URL. On Android, if multiple images are selected, all URLs are copied (one per line).
+When text is selected, `react-native-enriched-markdown` provides enhanced copy functionality through the context menu. See [Copy Options](docs/COPY_OPTIONS.md) for details on smart copy, copy as Markdown, and copy image URL features.
 
 ## Accessibility
 
-`react-native-enriched-markdown` provides accessibility support for screen readers on both platforms — VoiceOver on iOS and TalkBack on Android.
-
-### Supported Elements
-
-| Element | VoiceOver (iOS) | TalkBack (Android) |
-|---------|-----------------|---------------------|
-| **Headings (h1-h6)** | Rotor navigation | Reading controls navigation |
-| **Links** | Rotor navigation, activatable | Reading controls navigation, activatable |
-| **Images** | Alt text announced, rotor navigation | Alt text announced |
-| **List items** | Position announced (e.g., "bullet point", "list item 1") | Position announced |
-| **Nested lists** | Proper depth handling | "Nested" prefix for deeper items |
+`react-native-enriched-markdown` provides comprehensive accessibility support for screen readers on both platforms. See [Accessibility](docs/ACCESSIBILITY.md) for detailed information about VoiceOver and TalkBack support, custom rotors, semantic traits, and best practices.
 
 ## RTL Support
 
-`react-native-enriched-markdown` fully supports right-to-left (RTL) languages such as Arabic, Hebrew, and Persian.
-
-### Platform Behavior
-
-- **Android** — RTL works automatically. Android's text system detects RTL characters (Arabic, Hebrew, etc.) and renders them right-to-left with no additional configuration.
-- **iOS** — Requires `I18nManager.forceRTL(true)` to enable RTL layout direction. This must be called early in the app lifecycle (before the root component mounts) and requires an app restart to take effect.
-
-```tsx
-import { I18nManager } from 'react-native';
-
-// Required for iOS, Android handles RTL automatically
-I18nManager.forceRTL(true);
-```
-
-When RTL content is rendered, the following elements automatically mirror their layout:
-
-| Element | RTL Behavior |
-|---------|-------------|
-| **Paragraphs & Headings** | Right-aligned with RTL writing direction |
-| **Unordered lists** | Bullets on the right, text indented from the right |
-| **Ordered lists** | Numbers on the right, text indented from the right |
-| **Task lists** | Checkboxes on the right, tappable in RTL |
-| **Blockquotes** | Border on the right side |
-| **Tables** | Columns ordered right-to-left, scrolls to show first column |
-| **Code blocks** | Always LTR (code is inherently left-to-right) |
-| **Inline code** | Positioned correctly within RTL text flow |
-| **Copy as HTML** | Exported HTML includes `dir="rtl"` for correct rendering in paste targets |
-
-## Styling Architecture
-
-Understanding how `react-native-enriched-markdown` handles styling helps you create consistent, well-designed Markdown content.
-
-### Block vs Inline Elements
-
-Markdown elements are divided into two categories:
-
-#### Block Elements
-
-Block elements are structural containers that define the layout. Each block has its own typography settings (`fontSize`, `fontFamily`, `fontWeight`, `color`, `lineHeight`, `marginTop`, `marginBottom`).
-
-| Block Type | Description |
-|------------|-------------|
-| `paragraph` | Default text container |
-| `h1` - `h6` | Heading levels |
-| `blockquote` | Quoted content with accent bar |
-| `list` | Ordered and unordered lists |
-| `codeBlock` | Multi-line code containers |
-| `table` | GFM tables (requires `flavor="github"`) |
-| `taskList` | Task list checkboxes |
-
-#### Inline Elements
-
-Inline elements modify text within blocks. They inherit the parent block's base typography and apply additional styling.
-
-| Inline Type | Inherits From | Adds |
-|-------------|---------------|------|
-| `strong` | Parent block | Bold weight, optional color |
-| `em` | Parent block | Italic style, optional color |
-| `strikethrough` | Parent block | Strike line with custom color (iOS only) |
-| `underline` | Parent block | Underline with custom color (iOS only) |
-| `code` | Parent block | Monospace font, background, optional fontSize |
-| `link` | Parent block | Optional font family, color, underline |
-
-### Style Inheritance
-
-Inline styles automatically inherit from their containing block:
-
-```
-Heading (h2: fontSize 24, color blue)
-└── Strong text inherits → fontSize 24, color blue + bold weight
-└── Link inherits → fontSize 24 + link color + underline
-
-List item (list: fontSize 16, color gray)
-└── Emphasis inherits → fontSize 16, color gray + italic style
-└── Inline code inherits → fontSize 16 + code background
-```
-
-### Nested Elements
-
-Some elements support unlimited nesting depth with automatic indentation:
-
-- **Blockquotes**: Each level adds a new accent bar
-- **Unordered Lists**: Each level indents with `marginLeft`
-- **Ordered Lists**: Each level indents and maintains separate numbering
-
-```markdown
-> Level 1
-> > Level 2 (inherits L1 styles + additional indent)
-> > > Level 3 (inherits L2 styles + additional indent)
-```
-
-### Platform Defaults
-
-The library provides sensible defaults optimized for each platform:
-
-| Property | iOS | Android |
-|----------|-----|---------|
-| System Font | SF Pro | Roboto |
-| Monospace Font | Menlo | monospace |
-| Line Height | Tighter (0.75x multiplier) | Standard |
+`react-native-enriched-markdown` fully supports right-to-left (RTL) languages such as Arabic, Hebrew, and Persian. See [RTL Support](docs/RTL.md) for platform-specific setup instructions and how each element behaves in RTL contexts.
 
 ## Customizing Styles
 
-The library provides sensible default styles for all Markdown elements out of the box. You can override any of these defaults using the `markdownStyle` prop — only specify the properties you want to change:
-
-```tsx
-<EnrichedMarkdownText
-  markdown={content}
-  markdownStyle={{
-    paragraph: {
-      fontSize: 16,
-      color: '#333',
-      lineHeight: 24,
-    },
-    h1: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      color: '#000',
-      marginBottom: 16,
-      textAlign: 'center',
-    },
-    h2: {
-      fontSize: 24,
-      fontWeight: '600',
-      marginBottom: 12,
-      textAlign: 'left',
-    },
-    strong: {
-      color: '#000',
-    },
-    em: {
-      color: '#666',
-    },
-    strikethrough: {
-      color: '#999',
-    },
-    underline: {
-      color: '#333',
-    },
-    link: {
-      fontFamily: 'System-Bold',
-      color: '#007AFF',
-      underline: true,
-    },
-    code: {
-      fontSize: 16,
-      color: '#E91E63',
-      backgroundColor: '#F5F5F5',
-      borderColor: '#E0E0E0',
-    },
-    codeBlock: {
-      fontSize: 14,
-      fontFamily: 'monospace',
-      backgroundColor: '#1E1E1E',
-      color: '#D4D4D4',
-      padding: 16,
-      borderRadius: 8,
-      marginBottom: 16,
-    },
-    blockquote: {
-      borderColor: '#007AFF',
-      borderWidth: 3,
-      backgroundColor: '#F0F8FF',
-      marginBottom: 12,
-    },
-    list: {
-      fontSize: 16,
-      bulletColor: '#007AFF',
-      bulletSize: 6,
-      markerColor: '#007AFF',
-      gapWidth: 8,
-      marginLeft: 20,
-    },
-    image: {
-      borderRadius: 8,
-      marginBottom: 12,
-    },
-    inlineImage: {
-      size: 20,
-    },
-    taskList: {
-      checkedColor: '#2196F3',
-      borderColor: '#9E9E9E',
-      checkmarkColor: '#FFFFFF',
-      checkboxSize: 16,
-    },
-  }}
-/>
-```
-
-> [!NOTE]
-> **Performance:** Memoize the `markdownStyle` prop with `useMemo` to avoid unnecessary re-renders:
-> ```tsx
-> import type { MarkdownStyle } from 'react-native-enriched-markdown';
->
-> const markdownStyle: MarkdownStyle = useMemo(() => ({
->   paragraph: { fontSize: 16 },
->   h1: { fontSize: 32 },
-> }), []);
-> ```
-
-### Style Properties Reference
-
-#### Block Styles (paragraph, h1-h6, blockquote, list, codeBlock)
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `fontSize` | `number` | Font size in points |
-| `fontFamily` | `string` | Font family name |
-| `fontWeight` | `string` | Font weight |
-| `color` | `string` | Text color |
-| `marginTop` | `number` | Top margin |
-| `marginBottom` | `number` | Bottom margin |
-| `lineHeight` | `number` | Line height |
-
-#### Paragraph and Heading-specific (paragraph, h1-h6)
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `textAlign` | `'auto' \| 'left' \| 'right' \| 'center' \| 'justify'` | Text alignment (default: `'left'`) |
-
-#### Blockquote-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `borderColor` | `string` | Left border color |
-| `borderWidth` | `number` | Left border width |
-| `gapWidth` | `number` | Gap between border and text |
-| `backgroundColor` | `string` | Background color |
-
-#### List-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `bulletColor` | `string` | Bullet point color |
-| `bulletSize` | `number` | Bullet point size |
-| `markerColor` | `string` | Number marker color |
-| `markerFontWeight` | `string` | Number marker font weight |
-| `gapWidth` | `number` | Gap between marker and text |
-| `marginLeft` | `number` | Left margin for nesting |
-
-#### Code Block-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `backgroundColor` | `string` | Background color |
-| `borderColor` | `string` | Border color |
-| `borderRadius` | `number` | Corner radius |
-| `borderWidth` | `number` | Border width |
-| `padding` | `number` | Inner padding |
-
-#### Inline Code-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `fontSize` | `number` | Font size in points. Defaults to the parent block's font size (1em). Set to customize the monospaced font size independently |
-| `color` | `string` | Text color |
-| `backgroundColor` | `string` | Background color |
-| `borderColor` | `string` | Border color |
-
-#### Link-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `fontFamily` | `string` | Font family for links. Overrides the parent block's font family when set |
-| `color` | `string` | Link text color |
-| `underline` | `boolean` | Show underline |
-
-#### Strikethrough-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `color` | `string` | Strikethrough line color (iOS only) |
-
-#### Underline-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `color` | `string` | Underline color (iOS only) |
-
-#### Image-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `height` | `number` | Image height |
-| `borderRadius` | `number` | Corner radius |
-| `marginTop` | `number` | Top margin |
-| `marginBottom` | `number` | Bottom margin |
-
-#### Inline Image-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `size` | `number` | Image size (square) |
-
-#### Thematic Break (Horizontal Rule)-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `color` | `string` | Line color |
-| `height` | `number` | Line thickness |
-| `marginTop` | `number` | Top margin |
-| `marginBottom` | `number` | Bottom margin |
-
-#### Table-specific
-
-Table styles only apply when `flavor="github"` is set. Tables inherit the base block styles (`fontSize`, `fontFamily`, `fontWeight`, `color`, `marginTop`, `marginBottom`, `lineHeight`) and add the following:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `headerFontFamily` | `string` | Font family for header cells (falls back to `fontFamily` if not set) |
-| `headerBackgroundColor` | `string` | Background color for the header row |
-| `headerTextColor` | `string` | Text color for the header row |
-| `rowEvenBackgroundColor` | `string` | Background color for even data rows |
-| `rowOddBackgroundColor` | `string` | Background color for odd data rows |
-| `borderColor` | `string` | Color of the table grid lines |
-| `borderWidth` | `number` | Width of the table grid lines |
-| `borderRadius` | `number` | Corner radius of the table container |
-| `cellPaddingHorizontal` | `number` | Horizontal padding inside cells |
-| `cellPaddingVertical` | `number` | Vertical padding inside cells |
-
-#### Task List-specific
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `checkedColor` | `string` | Background color of checked checkbox |
-| `borderColor` | `string` | Border color of unchecked checkbox |
-| `checkmarkColor` | `string` | Color of the checkmark inside checked checkbox |
-| `checkboxSize` | `number` | Size of the checkbox (defaults to 90% of list font size) |
-| `checkboxBorderRadius` | `number` | Corner radius of the checkbox |
-| `checkedTextColor` | `string` | Text color for checked items |
-| `checkedStrikethrough` | `boolean` | Whether to apply strikethrough to checked items |
+`react-native-enriched-markdown` allows customizing styles of all Markdown elements using the `markdownStyle` prop. See the [Style Properties Reference](docs/STYLES.md) for a detailed overview of all available style properties.
 
 ## API Reference
 
-### Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `markdown` | `string` | Required | The Markdown content to render |
-| `markdownStyle` | `MarkdownStyle` | `{}` | Style configuration for Markdown elements |
-| `containerStyle` | `ViewStyle` | - | Style for the container view |
-| `onLinkPress` | `(event: LinkPressEvent) => void` | - | Callback when a link is pressed. Access URL via `event.url` |
-| `onLinkLongPress` | `(event: LinkLongPressEvent) => void` | - | Callback when a link is long pressed. Access URL via `event.url`. On iOS, automatically disables the system link preview |
-| `onTaskListItemPress` | `(event: TaskListItemPressEvent) => void` | - | Callback when a task list checkbox is tapped. Receives `index` (0-based), `checked` (previous state), and `text` (item text) |
-| `enableLinkPreview` | `boolean` | `true` | Controls the native link preview on long press (iOS only). Automatically set to `false` when `onLinkLongPress` is provided |
-| `selectable` | `boolean` | `true` | Whether text can be selected |
-| `md4cFlags` | `Md4cFlags` | `{ underline: false }` | Configuration for md4c parser extension flags |
-| `allowFontScaling` | `boolean` | `true` | Whether fonts should scale to respect Text Size accessibility settings |
-| `maxFontSizeMultiplier` | `number` | `undefined` | Maximum font scale multiplier when `allowFontScaling` is enabled |
-| `allowTrailingMargin` | `boolean` | `false` | Whether to preserve the bottom margin of the last block element |
-| `flavor` | `'commonmark' \| 'github'` | `'commonmark'` | Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table support |
+See the [API Reference](docs/API_REFERENCE.md) for a detailed overview of all the props, methods, and events available.
 
 ## Future Plans
 

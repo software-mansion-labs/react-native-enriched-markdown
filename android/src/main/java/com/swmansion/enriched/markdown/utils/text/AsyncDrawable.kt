@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text
 
 import android.content.res.Resources
 import android.graphics.BitmapFactory

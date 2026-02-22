@@ -1,8 +1,10 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text.interaction
 
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.widget.TextView
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListHitTestResult
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListTapUtils
 import kotlin.math.abs
 
 class CheckboxTouchHelper(

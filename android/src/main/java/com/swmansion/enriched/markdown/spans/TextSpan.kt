@@ -4,7 +4,7 @@ import android.content.Context
 import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.renderer.BlockStyle
-import com.swmansion.enriched.markdown.utils.applyBlockStyleFont
+import com.swmansion.enriched.markdown.utils.text.extensions.applyBlockStyleFont
 
 class TextSpan(
   private val blockStyle: BlockStyle,

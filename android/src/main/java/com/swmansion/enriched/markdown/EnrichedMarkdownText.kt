@@ -16,12 +16,12 @@ import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
-import com.swmansion.enriched.markdown.utils.CheckboxTouchHelper
-import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
-import com.swmansion.enriched.markdown.utils.applySelectableState
-import com.swmansion.enriched.markdown.utils.emitLinkLongPressEvent
-import com.swmansion.enriched.markdown.utils.emitLinkPressEvent
-import com.swmansion.enriched.markdown.utils.setupAsMarkdownTextView
+import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
+import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
+import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
+import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
+import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
+import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
 import java.util.concurrent.Executors
 
 /**

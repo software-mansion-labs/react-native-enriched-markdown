@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text.view
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -13,6 +13,9 @@ import com.swmansion.enriched.markdown.EnrichedMarkdown
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.common.layout.isLayoutRTL
+import com.swmansion.enriched.markdown.utils.text.conversion.HTMLGenerator
+import com.swmansion.enriched.markdown.utils.text.conversion.MarkdownExtractor
 
 private const val MENU_ITEM_COPY_MARKDOWN = 1000
 private const val MENU_ITEM_COPY_IMAGE_URL = 1001

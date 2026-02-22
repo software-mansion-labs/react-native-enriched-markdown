@@ -5,7 +5,7 @@ import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.renderer.SpanStyleCache
-import com.swmansion.enriched.markdown.utils.applyColorPreserving
+import com.swmansion.enriched.markdown.utils.text.extensions.applyColorPreserving
 
 class StrongSpan(
   private val styleCache: SpanStyleCache,

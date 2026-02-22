@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text.conversion
 
 import android.graphics.Typeface
 import android.text.Layout

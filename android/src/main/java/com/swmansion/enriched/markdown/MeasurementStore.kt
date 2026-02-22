@@ -16,9 +16,9 @@ import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
-import com.swmansion.enriched.markdown.utils.getBooleanOrDefault
-import com.swmansion.enriched.markdown.utils.getMapOrNull
-import com.swmansion.enriched.markdown.utils.getStringOrDefault
+import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
+import com.swmansion.enriched.markdown.utils.common.getMapOrNull
+import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil

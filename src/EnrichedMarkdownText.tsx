@@ -60,10 +60,24 @@ interface LinkStyle {
 }
 
 interface StrongStyle {
+  fontFamily?: string;
+  /**
+   * Controls whether bold is applied on top of the custom fontFamily.
+   * Only relevant when fontFamily is set. Defaults to 'bold'.
+   * Set to 'normal' to use the font face as-is without adding bold.
+   */
+  fontWeight?: 'bold' | 'normal';
   color?: string;
 }
 
 interface EmphasisStyle {
+  fontFamily?: string;
+  /**
+   * Controls whether italic is applied on top of the custom fontFamily.
+   * Only relevant when fontFamily is set. Defaults to 'italic'.
+   * Set to 'normal' to use the font face as-is without adding italic.
+   */
+  fontStyle?: 'italic' | 'normal';
   color?: string;
 }
 
@@ -84,6 +98,7 @@ interface UnderlineStyle {
 }
 
 interface CodeStyle {
+  fontFamily?: string;
   fontSize?: number;
   color?: string;
   backgroundColor?: string;

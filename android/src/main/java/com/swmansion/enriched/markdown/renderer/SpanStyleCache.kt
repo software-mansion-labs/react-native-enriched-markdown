@@ -10,12 +10,17 @@ class SpanStyleCache(
   // Colors to preserve when applying inline styles (links, code, strong, emphasis)
   val colorsToPreserve: IntArray = buildColorsToPreserve(style)
 
+  val strongFontFamily: String = style.strongStyle.fontFamily
+  val strongFontWeight: String = style.strongStyle.fontWeight
   val strongColor: Int? = style.strongStyle.color
+  val emphasisFontFamily: String = style.emphasisStyle.fontFamily
+  val emphasisFontStyle: String = style.emphasisStyle.fontStyle
   val emphasisColor: Int? = style.emphasisStyle.color
   val strikethroughColor: Int = style.strikethroughStyle.color
   val linkFontFamily: String = style.linkStyle.fontFamily
   val linkColor: Int = style.linkStyle.color
   val linkUnderline: Boolean = style.linkStyle.underline
+  val codeFontFamily: String = style.codeStyle.fontFamily
   val codeFontSize: Float = style.codeStyle.fontSize
   val codeColor: Int = style.codeStyle.color
 

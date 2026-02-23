@@ -4,6 +4,7 @@
 #import "RenderContext.h"
 #import "RendererFactory.h"
 #import "StyleConfig.h"
+#import <React/RCTFont.h>
 
 @implementation EmphasisRenderer {
   RendererFactory *_rendererFactory;
@@ -33,45 +34,60 @@
 
   BlockStyle *blockStyle = [context getBlockStyle];
   UIColor *configEmphasisColor = [_config emphasisColor];
+  NSString *emphasisFontFamily = [_config emphasisFontFamily];
+  NSString *emphasisFontStyle = [_config emphasisFontStyle];
+  BOOL useNormalStyle = [emphasisFontStyle isEqualToString:@"normal"];
 
   // Cache the Strong color calculation to efficiently detect nested Strong nodes
   UIColor *strongColorToPreserve = [_config strongColor] ? [RenderContext calculateStrongColor:[_config strongColor]
                                                                                     blockColor:blockStyle.color]
                                                          : nil;
 
-  [output
-      enumerateAttributesInRange:range
-                         options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
-                      usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
-                        // 1. Font Optimization: Only apply italic trait if not already present
-                        UIFont *currentFont =
-                            attrs[NSFontAttributeName] ?: cachedFontFromBlockStyle(blockStyle, context);
-                        if (currentFont && !(currentFont.fontDescriptor.symbolicTraits & UIFontDescriptorTraitItalic)) {
-                          UIFont *italicFont = [self ensureFontIsItalic:currentFont];
-                          if (italicFont) {
-                            [output addAttribute:NSFontAttributeName value:italicFont range:subrange];
-                          }
-                        }
+  [output enumerateAttributesInRange:range
+                             options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
+                          usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
+                            UIFont *currentFont =
+                                attrs[NSFontAttributeName] ?: cachedFontFromBlockStyle(blockStyle, context);
+                            UIFont *resolvedFont = nil;
 
-                        // 2. Color Optimization: Handle nesting and avoid redundant updates
-                        if (configEmphasisColor) {
-                          UIColor *currentColor = attrs[NSForegroundColorAttributeName];
-                          BOOL isLink = attrs[NSLinkAttributeName] != nil;
-
-                          // Verify if the current color belongs to a Strong parent
-                          BOOL isStrongColor = strongColorToPreserve && [currentColor isEqual:strongColorToPreserve];
-
-                          // Preserving colors for higher-priority elements (links, strong nodes, etc.)
-                          if (!isLink && !isStrongColor && ![RenderContext shouldPreserveColors:attrs]) {
-                            // Only modify the string if the color is actually different
-                            if (![currentColor isEqual:configEmphasisColor]) {
-                              [output addAttribute:NSForegroundColorAttributeName
-                                             value:configEmphasisColor
-                                             range:subrange];
+                            if (emphasisFontFamily.length > 0) {
+                              resolvedFont = [RCTFont updateFont:currentFont
+                                                      withFamily:emphasisFontFamily
+                                                            size:nil
+                                                          weight:nil
+                                                           style:useNormalStyle ? nil : @"italic"
+                                                         variant:nil
+                                                 scaleMultiplier:1.0];
+                            } else if (currentFont &&
+                                       !(currentFont.fontDescriptor.symbolicTraits & UIFontDescriptorTraitItalic)) {
+                              resolvedFont = [self ensureFontIsItalic:currentFont];
                             }
-                          }
-                        }
-                      }];
+
+                            // Only apply the attribute if we actually found a new, different font
+                            if (resolvedFont && ![resolvedFont isEqual:currentFont]) {
+                              [output addAttribute:NSFontAttributeName value:resolvedFont range:subrange];
+                            }
+
+                            // 2. Color Optimization: Handle nesting and avoid redundant updates
+                            if (configEmphasisColor) {
+                              UIColor *currentColor = attrs[NSForegroundColorAttributeName];
+                              BOOL isLink = attrs[NSLinkAttributeName] != nil;
+
+                              // Verify if the current color belongs to a Strong parent
+                              BOOL isStrongColor =
+                                  strongColorToPreserve && [currentColor isEqual:strongColorToPreserve];
+
+                              // Preserving colors for higher-priority elements (links, strong nodes, etc.)
+                              if (!isLink && !isStrongColor && ![RenderContext shouldPreserveColors:attrs]) {
+                                // Only modify the string if the color is actually different
+                                if (![currentColor isEqual:configEmphasisColor]) {
+                                  [output addAttribute:NSForegroundColorAttributeName
+                                                 value:configEmphasisColor
+                                                 range:subrange];
+                                }
+                              }
+                            }
+                          }];
 }
 
 #pragma mark - Helper Methods

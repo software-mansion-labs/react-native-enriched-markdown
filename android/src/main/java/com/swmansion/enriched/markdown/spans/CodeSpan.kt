@@ -22,6 +22,11 @@ class CodeSpan(
   private fun applyMonospacedFont(paint: TextPaint) {
     paint.textSize = if (styleCache.codeFontSize > 0) styleCache.codeFontSize else blockStyle.fontSize
     val preservedStyle = (paint.typeface?.style ?: 0) and (Typeface.BOLD or Typeface.ITALIC)
-    paint.typeface = SpanStyleCache.getMonospaceTypeface(preservedStyle)
+    paint.typeface =
+      if (styleCache.codeFontFamily.isNotEmpty()) {
+        SpanStyleCache.getTypeface(styleCache.codeFontFamily, preservedStyle)
+      } else {
+        SpanStyleCache.getMonospaceTypeface(preservedStyle)
+      }
   }
 }

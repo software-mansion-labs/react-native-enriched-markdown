@@ -28,6 +28,12 @@ class StrongSpan(
     val currentTypeface = tp.typeface ?: Typeface.DEFAULT
     val isItalic = (currentTypeface.style) and Typeface.ITALIC != 0
     val style = if (isItalic) Typeface.BOLD_ITALIC else Typeface.BOLD
-    tp.typeface = Typeface.create(currentTypeface, style)
+    tp.typeface =
+      if (styleCache.strongFontFamily.isNotEmpty()) {
+        val resolvedStyle = if (styleCache.strongFontWeight == "normal") Typeface.NORMAL else style
+        SpanStyleCache.getTypeface(styleCache.strongFontFamily, resolvedStyle)
+      } else {
+        Typeface.create(currentTypeface, style)
+      }
   }
 }

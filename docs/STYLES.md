@@ -84,9 +84,6 @@ markdownStyle={{
 }}
 ```
 
-> [!NOTE]
-> **Platform difference:** On iOS, font names like `Montserrat-Bold` map directly to a specific font file that already contains bold glyphs, so `fontWeight: 'normal'` is typically what you want. On Android, font names are treated as family names and bold/italic must be applied via the style parameter — so keeping the default `fontWeight: 'bold'` is usually correct even with a custom font family.
-
 ## Customizing Styles
 
 The library provides sensible default styles for all Markdown elements out of the box. You can override any of these defaults using the `markdownStyle` prop — only specify the properties you want to change:

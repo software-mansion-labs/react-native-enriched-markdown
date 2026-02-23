@@ -114,7 +114,9 @@
     measuredHeight += _lastElementMarginBottom;
   }
 
-  return ceil(measuredHeight);
+  // Round to pixel boundaries to match React Native's <Text> measurement
+  CGFloat scale = [UIScreen mainScreen].scale;
+  return ceil(measuredHeight * scale) / scale;
 }
 
 - (void)layoutSubviews

@@ -198,7 +198,10 @@ using namespace facebook::react;
   CGFloat totalHeight = [self computeSegmentLayoutForWidth:maxWidth applyFrames:NO];
   if (totalHeight == 0)
     return CGSizeMake(maxWidth, defaultHeight);
-  return CGSizeMake(maxWidth, ceil(totalHeight));
+
+  // Round to pixel boundaries to match React Native's <Text> measurement
+  CGFloat scale = [UIScreen mainScreen].scale;
+  return CGSizeMake(maxWidth, ceil(totalHeight * scale) / scale);
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state

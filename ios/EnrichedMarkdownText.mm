@@ -89,7 +89,7 @@ using namespace facebook::react;
   [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
   CGRect usedRect = [_textView.layoutManager usedRectForTextContainer:_textView.textContainer];
 
-  CGFloat measuredWidth = ceil(usedRect.size.width);
+  CGFloat measuredWidth = usedRect.size.width;
   CGFloat measuredHeight = usedRect.size.height;
 
   // When text ends with \n (e.g. code block's bottom padding spacer),
@@ -109,7 +109,9 @@ using namespace facebook::react;
     measuredHeight += _lastElementMarginBottom;
   }
 
-  return CGSizeMake(measuredWidth, ceil(measuredHeight));
+  // Round to pixel boundaries to match React Native's <Text> measurement
+  CGFloat scale = [UIScreen mainScreen].scale;
+  return CGSizeMake(ceil(measuredWidth * scale) / scale, ceil(measuredHeight * scale) / scale);
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state

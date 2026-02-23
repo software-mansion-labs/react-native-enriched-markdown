@@ -105,14 +105,19 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_linkColor;
   BOOL _linkUnderline;
   // Strong properties
+  NSString *_strongFontFamily;
+  NSString *_strongFontWeight;
   UIColor *_strongColor;
   // Emphasis properties
+  NSString *_emphasisFontFamily;
+  NSString *_emphasisFontStyle;
   UIColor *_emphasisColor;
   // Strikethrough properties
   UIColor *_strikethroughColor;
   // Underline properties
   UIColor *_underlineColor;
   // Code properties
+  NSString *_codeFontFamily;
   CGFloat _codeFontSize;
   UIColor *_codeColor;
   UIColor *_codeBackgroundColor;
@@ -376,10 +381,15 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_linkFontFamily = [_linkFontFamily copy];
   copy->_linkColor = [_linkColor copy];
   copy->_linkUnderline = _linkUnderline;
+  copy->_strongFontFamily = [_strongFontFamily copy];
+  copy->_strongFontWeight = [_strongFontWeight copy];
   copy->_strongColor = [_strongColor copy];
+  copy->_emphasisFontFamily = [_emphasisFontFamily copy];
+  copy->_emphasisFontStyle = [_emphasisFontStyle copy];
   copy->_emphasisColor = [_emphasisColor copy];
   copy->_strikethroughColor = [_strikethroughColor copy];
   copy->_underlineColor = [_underlineColor copy];
+  copy->_codeFontFamily = [_codeFontFamily copy];
   copy->_codeFontSize = _codeFontSize;
   copy->_codeColor = [_codeColor copy];
   copy->_codeBackgroundColor = [_codeBackgroundColor copy];
@@ -1258,6 +1268,26 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _linkUnderline = newValue;
 }
 
+- (NSString *)strongFontFamily
+{
+  return _strongFontFamily;
+}
+
+- (void)setStrongFontFamily:(NSString *)newValue
+{
+  _strongFontFamily = newValue;
+}
+
+- (NSString *)strongFontWeight
+{
+  return _strongFontWeight;
+}
+
+- (void)setStrongFontWeight:(NSString *)newValue
+{
+  _strongFontWeight = newValue;
+}
+
 - (UIColor *)strongColor
 {
   return _strongColor;
@@ -1266,6 +1296,26 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setStrongColor:(UIColor *)newValue
 {
   _strongColor = newValue;
+}
+
+- (NSString *)emphasisFontFamily
+{
+  return _emphasisFontFamily;
+}
+
+- (void)setEmphasisFontFamily:(NSString *)newValue
+{
+  _emphasisFontFamily = newValue;
+}
+
+- (NSString *)emphasisFontStyle
+{
+  return _emphasisFontStyle;
+}
+
+- (void)setEmphasisFontStyle:(NSString *)newValue
+{
+  _emphasisFontStyle = newValue;
 }
 
 - (UIColor *)emphasisColor
@@ -1296,6 +1346,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
 - (void)setUnderlineColor:(UIColor *)newValue
 {
   _underlineColor = newValue;
+}
+
+- (NSString *)codeFontFamily
+{
+  return _codeFontFamily;
+}
+
+- (void)setCodeFontFamily:(NSString *)newValue
+{
+  _codeFontFamily = newValue;
 }
 
 - (CGFloat)codeFontSize

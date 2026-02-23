@@ -24,7 +24,13 @@ class EmphasisSpan(
     val currentTypeface = tp.typeface ?: Typeface.DEFAULT
     val isBold = (currentTypeface.style) and Typeface.BOLD != 0
     val style = if (isBold) Typeface.BOLD_ITALIC else Typeface.ITALIC
-    tp.typeface = Typeface.create(currentTypeface, style)
+    tp.typeface =
+      if (styleCache.emphasisFontFamily.isNotEmpty()) {
+        val resolvedStyle = if (styleCache.emphasisFontStyle == "normal") Typeface.NORMAL else style
+        SpanStyleCache.getTypeface(styleCache.emphasisFontFamily, resolvedStyle)
+      } else {
+        Typeface.create(currentTypeface, style)
+      }
   }
 
   private fun applyEmphasisColor(tp: TextPaint) {

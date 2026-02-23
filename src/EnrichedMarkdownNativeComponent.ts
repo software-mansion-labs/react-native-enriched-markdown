@@ -55,10 +55,14 @@ interface LinkStyleInternal {
 }
 
 interface StrongStyleInternal {
+  fontFamily: string;
+  fontWeight: string;
   color?: ColorValue;
 }
 
 interface EmphasisStyleInternal {
+  fontFamily: string;
+  fontStyle: string;
   color?: ColorValue;
 }
 
@@ -71,6 +75,7 @@ interface UnderlineStyleInternal {
 }
 
 interface CodeStyleInternal {
+  fontFamily: string;
   fontSize: CodegenTypes.Float;
   color: ColorValue;
   backgroundColor: ColorValue;

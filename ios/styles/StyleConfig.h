@@ -151,9 +151,17 @@
 - (BOOL)linkUnderline;
 - (void)setLinkUnderline:(BOOL)newValue;
 // Strong properties
+- (NSString *)strongFontFamily;
+- (void)setStrongFontFamily:(NSString *)newValue;
+- (NSString *)strongFontWeight;
+- (void)setStrongFontWeight:(NSString *)newValue;
 - (UIColor *)strongColor;
 - (void)setStrongColor:(UIColor *)newValue;
 // Emphasis properties
+- (NSString *)emphasisFontFamily;
+- (void)setEmphasisFontFamily:(NSString *)newValue;
+- (NSString *)emphasisFontStyle;
+- (void)setEmphasisFontStyle:(NSString *)newValue;
 - (UIColor *)emphasisColor;
 - (void)setEmphasisColor:(UIColor *)newValue;
 // Strikethrough properties
@@ -163,6 +171,8 @@
 - (UIColor *)underlineColor;
 - (void)setUnderlineColor:(UIColor *)newValue;
 // Code properties
+- (NSString *)codeFontFamily;
+- (void)setCodeFontFamily:(NSString *)newValue;
 - (CGFloat)codeFontSize;
 - (void)setCodeFontSize:(CGFloat)newValue;
 - (UIColor *)codeColor;

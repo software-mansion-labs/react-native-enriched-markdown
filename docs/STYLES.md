@@ -44,6 +44,46 @@ List item (list: fontSize 16, color gray)
 
 This inheritance model ensures consistent typography throughout your Markdown content while allowing inline elements to add their own visual emphasis.
 
+### Custom Font Family for Inline Styles
+
+Strong, emphasis, and inline code support an optional `fontFamily` property that gives you full control over the font face used for that element.
+
+**Default behavior (no `fontFamily` set):**
+- **Strong** — adds the bold trait to the current block font
+- **Emphasis** — adds the italic trait to the current block font
+- **Inline code** — uses the platform's system monospace font (SF Mono on iOS, monospace on Android)
+
+**With `fontFamily` set:**
+
+By default, bold/italic traits are still applied on top of the custom font family. Use `fontWeight: 'normal'` or `fontStyle: 'normal'` to disable this and use the font face exactly as-is:
+
+```tsx
+markdownStyle={{
+  strong: {
+    // Bold trait is applied on top of Montserrat-Bold (default: fontWeight 'bold')
+    fontFamily: 'Montserrat-Bold',
+  },
+  strong: {
+    // Uses Montserrat-SemiBold as-is, no bold trait added
+    fontFamily: 'Montserrat-SemiBold',
+    fontWeight: 'normal',
+  },
+  em: {
+    // Italic trait is applied on top of Montserrat-Italic (default: fontStyle 'italic')
+    fontFamily: 'Montserrat-Italic',
+  },
+  em: {
+    // Uses Montserrat-Regular as-is, no italic trait added
+    fontFamily: 'Montserrat-Regular',
+    fontStyle: 'normal',
+  },
+  code: {
+    // Uses CutiveMono-Regular directly, no system monospace applied
+    fontFamily: 'CutiveMono-Regular',
+  },
+}}
+```
+
 ## Customizing Styles
 
 The library provides sensible default styles for all Markdown elements out of the box. You can override any of these defaults using the `markdownStyle` prop — only specify the properties you want to change:
@@ -71,9 +111,11 @@ The library provides sensible default styles for all Markdown elements out of th
       textAlign: 'left',
     },
     strong: {
+      fontFamily: 'Montserrat-Bold',
       color: '#000',
     },
     em: {
+      fontFamily: 'Montserrat-Italic',
       color: '#666',
     },
     strikethrough: {
@@ -88,6 +130,7 @@ The library provides sensible default styles for all Markdown elements out of th
       underline: true,
     },
     code: {
+      fontFamily: 'CutiveMono-Regular',
       fontSize: 16,
       color: '#E91E63',
       backgroundColor: '#F5F5F5',
@@ -198,6 +241,7 @@ The library provides sensible default styles for all Markdown elements out of th
 
 | Property | Type | Description |
 |----------|------|-------------|
+| `fontFamily` | `string` | Font family for inline code. Uses the exact font face as-is. When not set, uses the platform's system monospace font (SF Mono on iOS, monospace on Android) |
 | `fontSize` | `number` | Font size in points. Defaults to the parent block's font size (1em). Set to customize the monospaced font size independently |
 | `color` | `string` | Text color |
 | `backgroundColor` | `string` | Background color |
@@ -210,6 +254,22 @@ The library provides sensible default styles for all Markdown elements out of th
 | `fontFamily` | `string` | Font family for links. Overrides the parent block's font family when set |
 | `color` | `string` | Link text color |
 | `underline` | `boolean` | Show underline |
+
+### Strong-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fontFamily` | `string` | Font family for bold text. When not set, adds the bold trait to the parent block's font |
+| `fontWeight` | `'bold' \| 'normal'` | Controls whether bold is applied on top of the custom `fontFamily`. Defaults to `'bold'`. Set to `'normal'` to use the font face as-is. Only relevant when `fontFamily` is set |
+| `color` | `string` | Bold text color |
+
+### Emphasis-specific
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fontFamily` | `string` | Font family for italic text. When not set, adds the italic trait to the parent block's font |
+| `fontStyle` | `'italic' \| 'normal'` | Controls whether italic is applied on top of the custom `fontFamily`. Defaults to `'italic'`. Set to `'normal'` to use the font face as-is. Only relevant when `fontFamily` is set |
+| `color` | `string` | Italic text color |
 
 ### Strikethrough-specific
 

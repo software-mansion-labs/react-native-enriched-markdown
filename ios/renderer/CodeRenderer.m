@@ -5,6 +5,7 @@
 #import "RenderContext.h"
 #import "RendererFactory.h"
 #import "StyleConfig.h"
+#import <React/RCTFont.h>
 
 @implementation CodeRenderer {
   RendererFactory *_rendererFactory;
@@ -34,7 +35,21 @@
   UIFontWeight weight = (traits & UIFontDescriptorTraitBold) ? UIFontWeightBold : UIFontWeightRegular;
 
   CGFloat codeFontSize = _config.codeFontSize > 0 ? _config.codeFontSize : blockStyle.fontSize;
-  UIFont *monospacedFont = [UIFont monospacedSystemFontOfSize:codeFontSize weight:weight];
+
+  NSString *codeFontFamily = _config.codeFontFamily;
+  UIFont *codeFont;
+  if (codeFontFamily.length > 0) {
+    NSString *weightStr = (weight == UIFontWeightBold) ? @"bold" : nil;
+    codeFont = [RCTFont updateFont:nil
+                        withFamily:codeFontFamily
+                              size:@(codeFontSize)
+                            weight:weightStr
+                             style:nil
+                           variant:nil
+                   scaleMultiplier:1.0];
+  } else {
+    codeFont = [UIFont monospacedSystemFontOfSize:codeFontSize weight:weight];
+  }
 
   NSUInteger start = output.length;
 
@@ -45,7 +60,7 @@
     NSDictionary *existingAttributes = [output attributesAtIndex:start effectiveRange:NULL];
     NSMutableDictionary *codeAttributes = [existingAttributes ?: @{} mutableCopy];
 
-    codeAttributes[NSFontAttributeName] = monospacedFont;
+    codeAttributes[NSFontAttributeName] = codeFont;
     if (codeColor) {
       codeAttributes[NSForegroundColorAttributeName] = codeColor;
     }

@@ -3,6 +3,7 @@ package com.swmansion.enriched.markdown.styles
 import com.facebook.react.bridge.ReadableMap
 
 data class CodeStyle(
+  val fontFamily: String,
   val fontSize: Float,
   val color: Int,
   val backgroundColor: Int,
@@ -13,12 +14,13 @@ data class CodeStyle(
       map: ReadableMap,
       parser: StyleParser,
     ): CodeStyle {
+      val fontFamily = parser.parseString(map, "fontFamily")
       val fontSizeRaw = parser.parseOptionalDouble(map, "fontSize").toFloat()
       val fontSize = if (fontSizeRaw > 0) parser.toPixelFromSP(fontSizeRaw) else 0f
       val color = parser.parseColor(map, "color")
       val backgroundColor = parser.parseColor(map, "backgroundColor")
       val borderColor = parser.parseColor(map, "borderColor")
-      return CodeStyle(fontSize, color, backgroundColor, borderColor)
+      return CodeStyle(fontFamily, fontSize, color, backgroundColor, borderColor)
     }
   }
 }

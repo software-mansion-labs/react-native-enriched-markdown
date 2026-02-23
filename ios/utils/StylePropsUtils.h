@@ -504,6 +504,26 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   // ── Strong ─────────────────────────────────────────────────────────────────
 
+  if (newStyle.strong.fontFamily != oldStyle.strong.fontFamily) {
+    if (!newStyle.strong.fontFamily.empty()) {
+      NSString *fontFamily = [[NSString alloc] initWithUTF8String:newStyle.strong.fontFamily.c_str()];
+      [config setStrongFontFamily:fontFamily];
+    } else {
+      [config setStrongFontFamily:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.strong.fontWeight != oldStyle.strong.fontWeight) {
+    if (!newStyle.strong.fontWeight.empty()) {
+      NSString *fontWeight = [[NSString alloc] initWithUTF8String:newStyle.strong.fontWeight.c_str()];
+      [config setStrongFontWeight:fontWeight];
+    } else {
+      [config setStrongFontWeight:nullptr];
+    }
+    changed = YES;
+  }
+
   if (newStyle.strong.color != oldStyle.strong.color) {
     if (newStyle.strong.color) {
       UIColor *strongColor = RCTUIColorFromSharedColor(newStyle.strong.color);
@@ -515,6 +535,26 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   // ── Emphasis ───────────────────────────────────────────────────────────────
+
+  if (newStyle.em.fontFamily != oldStyle.em.fontFamily) {
+    if (!newStyle.em.fontFamily.empty()) {
+      NSString *fontFamily = [[NSString alloc] initWithUTF8String:newStyle.em.fontFamily.c_str()];
+      [config setEmphasisFontFamily:fontFamily];
+    } else {
+      [config setEmphasisFontFamily:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.em.fontStyle != oldStyle.em.fontStyle) {
+    if (!newStyle.em.fontStyle.empty()) {
+      NSString *fontStyle = [[NSString alloc] initWithUTF8String:newStyle.em.fontStyle.c_str()];
+      [config setEmphasisFontStyle:fontStyle];
+    } else {
+      [config setEmphasisFontStyle:nullptr];
+    }
+    changed = YES;
+  }
 
   if (newStyle.em.color != oldStyle.em.color) {
     if (newStyle.em.color) {
@@ -543,6 +583,16 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   // ── Code ───────────────────────────────────────────────────────────────────
+
+  if (newStyle.code.fontFamily != oldStyle.code.fontFamily) {
+    if (!newStyle.code.fontFamily.empty()) {
+      NSString *fontFamily = [[NSString alloc] initWithUTF8String:newStyle.code.fontFamily.c_str()];
+      [config setCodeFontFamily:fontFamily];
+    } else {
+      [config setCodeFontFamily:nullptr];
+    }
+    changed = YES;
+  }
 
   if (newStyle.code.fontSize != oldStyle.code.fontSize) {
     [config setCodeFontSize:newStyle.code.fontSize];

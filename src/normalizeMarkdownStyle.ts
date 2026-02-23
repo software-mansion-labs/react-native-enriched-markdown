@@ -116,11 +116,24 @@ const defaultLinkStyle: MarkdownStyleInternal['link'] = {
   underline: true,
 };
 
+const defaultStrongStyle: MarkdownStyleInternal['strong'] = {
+  fontFamily: '',
+  fontWeight: 'bold',
+  color: undefined,
+};
+
+const defaultEmphasisStyle: MarkdownStyleInternal['em'] = {
+  fontFamily: '',
+  fontStyle: 'italic',
+  color: undefined,
+};
+
 const defaultCodeColor = processColor('#E01E5A') as ColorValue;
 const defaultCodeBackgroundColor = processColor('#FDF2F4') as ColorValue;
 const defaultCodeBorderColor = processColor('#F8D7DA') as ColorValue;
 
 const defaultCodeStyle: MarkdownStyleInternal['code'] = {
+  fontFamily: '',
   fontSize: 0,
   color: defaultCodeColor,
   backgroundColor: defaultCodeBackgroundColor,
@@ -412,10 +425,16 @@ export const normalizeMarkdownStyle = (
       color: normalizeColor(style.link?.color) ?? defaultLinkStyle.color,
     },
     strong: {
-      color: normalizeColor(style.strong?.color),
+      ...defaultStrongStyle,
+      fontFamily: style.strong?.fontFamily ?? defaultStrongStyle.fontFamily,
+      fontWeight: style.strong?.fontWeight ?? defaultStrongStyle.fontWeight,
+      color: normalizeColor(style.strong?.color) ?? defaultStrongStyle.color,
     },
     em: {
-      color: normalizeColor(style.em?.color),
+      ...defaultEmphasisStyle,
+      fontFamily: style.em?.fontFamily ?? defaultEmphasisStyle.fontFamily,
+      fontStyle: style.em?.fontStyle ?? defaultEmphasisStyle.fontStyle,
+      color: normalizeColor(style.em?.color) ?? defaultEmphasisStyle.color,
     },
     strikethrough: {
       color:
@@ -426,6 +445,7 @@ export const normalizeMarkdownStyle = (
     },
     code: {
       ...defaultCodeStyle,
+      fontFamily: style.code?.fontFamily ?? defaultCodeStyle.fontFamily,
       fontSize: style.code?.fontSize ?? defaultCodeStyle.fontSize,
       color: normalizeColor(style.code?.color) ?? defaultCodeStyle.color,
       backgroundColor:

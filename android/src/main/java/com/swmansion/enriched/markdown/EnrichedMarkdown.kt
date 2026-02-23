@@ -17,8 +17,8 @@ import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
-import com.swmansion.enriched.markdown.utils.emitLinkLongPressEvent
-import com.swmansion.enriched.markdown.utils.emitLinkPressEvent
+import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
+import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ExecutorService

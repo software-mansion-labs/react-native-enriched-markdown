@@ -14,7 +14,7 @@ import android.widget.TextView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withSave
 import com.swmansion.enriched.markdown.styles.StyleConfig
-import com.swmansion.enriched.markdown.utils.AsyncDrawable
+import com.swmansion.enriched.markdown.utils.text.AsyncDrawable
 import java.lang.ref.WeakReference
 import android.text.style.ImageSpan as AndroidImageSpan
 import android.text.style.LineHeightSpan as AndroidLineHeightSpan

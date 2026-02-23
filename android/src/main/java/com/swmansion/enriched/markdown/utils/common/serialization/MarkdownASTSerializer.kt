@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.common.serialization
 
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode.NodeType

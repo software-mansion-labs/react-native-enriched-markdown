@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text.conversion
 
 import android.text.Spannable
 import android.text.style.UnderlineSpan

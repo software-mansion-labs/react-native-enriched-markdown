@@ -4,11 +4,11 @@ import android.text.SpannableStringBuilder
 import android.text.style.AlignmentSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.styles.ParagraphStyle
-import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
-import com.swmansion.enriched.markdown.utils.applyMarginBottom
-import com.swmansion.enriched.markdown.utils.applyMarginTop
-import com.swmansion.enriched.markdown.utils.containsBlockImage
-import com.swmansion.enriched.markdown.utils.createLineHeightSpan
+import com.swmansion.enriched.markdown.utils.text.extensions.containsBlockImage
+import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.text.span.applyMarginBottom
+import com.swmansion.enriched.markdown.utils.text.span.applyMarginTop
+import com.swmansion.enriched.markdown.utils.text.span.createLineHeightSpan
 
 class ParagraphRenderer(
   private val config: RendererConfig,

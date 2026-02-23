@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.views
 
 import android.content.Context
 import android.graphics.Canvas

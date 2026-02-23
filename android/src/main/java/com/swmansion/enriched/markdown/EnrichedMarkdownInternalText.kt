@@ -6,10 +6,10 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
-import com.swmansion.enriched.markdown.utils.CheckboxTouchHelper
-import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
-import com.swmansion.enriched.markdown.utils.applySelectableState
-import com.swmansion.enriched.markdown.utils.setupAsMarkdownTextView
+import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
+import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
+import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
+import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
 import com.swmansion.enriched.markdown.views.BlockSegmentView
 
 class EnrichedMarkdownInternalText

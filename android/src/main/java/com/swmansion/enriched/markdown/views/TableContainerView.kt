@@ -23,11 +23,11 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode.NodeType
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.styles.TableStyle
-import com.swmansion.enriched.markdown.utils.ContextMenuPopup
-import com.swmansion.enriched.markdown.utils.HTMLGenerator
-import com.swmansion.enriched.markdown.utils.LinkLongPressMovementMethod
-import com.swmansion.enriched.markdown.utils.MarkdownASTSerializer
-import com.swmansion.enriched.markdown.utils.isLayoutRTL
+import com.swmansion.enriched.markdown.utils.common.layout.isLayoutRTL
+import com.swmansion.enriched.markdown.utils.common.serialization.MarkdownASTSerializer
+import com.swmansion.enriched.markdown.utils.text.conversion.HTMLGenerator
+import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
+import com.swmansion.enriched.markdown.views.ContextMenuPopup
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min

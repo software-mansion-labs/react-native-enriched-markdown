@@ -7,7 +7,7 @@ import android.view.View
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.renderer.SpanStyleCache
-import com.swmansion.enriched.markdown.utils.applyBlockStyleFont
+import com.swmansion.enriched.markdown.utils.text.extensions.applyBlockStyleFont
 
 class LinkSpan(
   val url: String,

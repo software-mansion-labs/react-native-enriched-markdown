@@ -15,8 +15,8 @@ import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
-import com.swmansion.enriched.markdown.utils.TaskListTapUtils
-import com.swmansion.enriched.markdown.utils.TaskListToggleUtils
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListTapUtils
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
 
 @ReactModule(name = EnrichedMarkdownTextManager.NAME)
 class EnrichedMarkdownTextManager :

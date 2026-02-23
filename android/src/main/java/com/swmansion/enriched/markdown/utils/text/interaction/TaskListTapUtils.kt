@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text.interaction
 
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -10,7 +10,7 @@ import com.swmansion.enriched.markdown.renderer.SpanStyleCache
 import com.swmansion.enriched.markdown.spans.BaseListSpan
 import com.swmansion.enriched.markdown.spans.TaskListSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
-import com.swmansion.enriched.markdown.utils.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
+import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
 data class TaskListHitTestResult(
   val taskIndex: Int,

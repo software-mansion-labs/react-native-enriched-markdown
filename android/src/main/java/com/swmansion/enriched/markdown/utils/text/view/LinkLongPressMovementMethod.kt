@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.utils
+package com.swmansion.enriched.markdown.utils.text.view
 
 import android.os.Handler
 import android.os.Looper

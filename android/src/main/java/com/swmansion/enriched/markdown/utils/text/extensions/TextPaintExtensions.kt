@@ -8,9 +8,6 @@ import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 
-/**
- * Applies a color to TextPaint while preserving priority colors (e.g., link color).
- */
 fun TextPaint.applyColorPreserving(
   color: Int,
   vararg preserveColors: Int,
@@ -23,10 +20,6 @@ fun TextPaint.applyColorPreserving(
 private val typefaceCache = mutableMapOf<String, Typeface>()
 private val fontWeightCache = mutableMapOf<String?, Int>()
 
-/**
- * Applies fontFamily and fontWeight from BlockStyle to TextPaint.
- * Uses caching to avoid expensive typeface creation on every call.
- */
 fun TextPaint.applyBlockStyleFont(
   blockStyle: BlockStyle,
   context: Context,

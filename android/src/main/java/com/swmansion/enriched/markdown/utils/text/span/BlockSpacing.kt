@@ -27,17 +27,6 @@ fun applyMarginTop(
   )
 }
 
-/**
- * Applies marginBottom spacing to a block element.
- * Appends a newline spacer and applies MarginBottomSpan to ONLY the spacer character.
- *
- * The span covers only the trailing newline to avoid overlapping with LineHeightSpan
- * on content lines, which would cause incorrect spacing due to conflicting font metric
- * modifications in chooseHeight().
- *
- * @param builder The SpannableStringBuilder to modify
- * @param marginBottom The spacing value to apply after the block
- */
 fun applyMarginBottom(
   builder: SpannableStringBuilder,
   marginBottom: Float,

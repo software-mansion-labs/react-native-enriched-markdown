@@ -63,7 +63,6 @@
                               resolvedFont = [self ensureFontIsItalic:currentFont];
                             }
 
-                            // Only apply the attribute if we actually found a new, different font
                             if (resolvedFont && ![resolvedFont isEqual:currentFont]) {
                               [output addAttribute:NSFontAttributeName value:resolvedFont range:subrange];
                             }

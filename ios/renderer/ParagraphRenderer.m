@@ -65,9 +65,10 @@
 
   applyTextAlignment(output, range, _config.paragraphTextAlign);
 
-  // Apply marginTop for non-index-0 elements using paragraphSpacingBefore
+  // Skip marginTop for the first block — already handled by applyBlockSpacingBefore above
   if (shouldApplyMargin && contentStart != 1) {
-    applyParagraphSpacingBefore(output, range, marginTop);
+    NSUInteger inserted = applyParagraphSpacingBefore(output, range, marginTop);
+    start += inserted;
   }
 
   CGFloat marginBottom = 0;

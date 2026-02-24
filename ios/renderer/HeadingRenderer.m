@@ -72,9 +72,10 @@ static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-
   applyLineHeight(output, range, style.lineHeight);
   applyTextAlignment(output, range, style.textAlign);
 
-  // Use paragraphSpacingBefore for internal elements; applyBlockSpacingBefore handles index 0
+  // Skip marginTop for the first block — already handled by applyBlockSpacingBefore above
   if (contentStart != 1) {
-    applyParagraphSpacingBefore(output, range, style.marginTop);
+    NSUInteger inserted = applyParagraphSpacingBefore(output, range, style.marginTop);
+    start += inserted;
   }
   applyParagraphSpacingAfter(output, start, style.marginBottom);
 }

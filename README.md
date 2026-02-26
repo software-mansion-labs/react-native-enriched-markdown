@@ -52,6 +52,13 @@ We can help you build your next dream product –
 yarn add react-native-enriched-markdown
 ```
 
+> [!TIP]
+> To try the latest features before they land in a stable release, install the nightly build:
+> ```sh
+> yarn add react-native-enriched-markdown@nightly
+> ```
+> Nightly versions are published to npm automatically and may contain breaking changes.
+
 #### 2. Install iOS dependencies
 
 The library includes native code so you will need to re-build the native app.

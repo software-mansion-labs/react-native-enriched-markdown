@@ -8,6 +8,7 @@ PODS:
   - hermes-engine (0.81.1):
     - hermes-engine/Pre-built (= 0.81.1)
   - hermes-engine/Pre-built (0.81.1)
+  - iosMath (0.9.4)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2347,6 +2348,7 @@ PODS:
     - fmt
     - glog
     - hermes-engine
+    - iosMath (~> 0.9)
     - RCT-Folly
     - RCT-Folly/Fabric
     - RCTRequired
@@ -2450,6 +2452,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - iosMath
     - SocketRocket
 
 EXTERNAL SOURCES:
@@ -2609,6 +2612,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 4f8246b1f6d79f625e0d99472d1f3a71da4d28ca
+  iosMath: f7a6cbadf9d836d2149c2a84c435b1effc244cba
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: c4b9e2fd0ab200e3af72b013ed6113187c607077
   RCTRequired: e97dd5dafc1db8094e63bc5031e0371f092ae92a
@@ -2673,7 +2677,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 3eb9096cb139eb433965693bbe541d96eb3d3ec9
   ReactCodegen: 4d203eddf6f977caa324640a20f92e70408d648b
   ReactCommon: ce5d4226dfaf9d5dacbef57b4528819e39d3a120
-  ReactNativeEnrichedMarkdown: 2b63e15b65890fcb479fb0a9b0d8b8aadbf22a51
+  ReactNativeEnrichedMarkdown: 0d447f34e7fdd4790fca4e6b40694653fcd8b7cc
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 

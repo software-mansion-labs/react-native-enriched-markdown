@@ -20,6 +20,7 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
+import com.swmansion.enriched.markdown.views.MathContainerView
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -34,6 +35,10 @@ private sealed interface RenderSegment {
 
   data class Table(
     val node: MarkdownASTNode,
+  ) : RenderSegment
+
+  data class Math(
+    val latex: String,
   ) : RenderSegment
 }
 
@@ -170,10 +175,24 @@ class EnrichedMarkdown
             splitASTIntoSegments(ast).map { segmentNode ->
               when (segmentNode) {
                 is MarkdownASTNode -> {
-                  if (segmentNode.type == MarkdownASTNode.NodeType.Table) {
-                    RenderSegment.Table(segmentNode)
-                  } else {
-                    renderTextSegment(listOf(segmentNode), style)
+                  when (segmentNode.type) {
+                    MarkdownASTNode.NodeType.Table -> {
+                      RenderSegment.Table(segmentNode)
+                    }
+
+                    MarkdownASTNode.NodeType.LatexMathDisplay -> {
+                      val latex =
+                        if (segmentNode.children.isNotEmpty()) {
+                          segmentNode.children.first().content
+                        } else {
+                          segmentNode.content
+                        }
+                      RenderSegment.Math(latex)
+                    }
+
+                    else -> {
+                      renderTextSegment(listOf(segmentNode), style)
+                    }
                   }
                 }
 
@@ -221,6 +240,7 @@ class EnrichedMarkdown
           when (segment) {
             is RenderSegment.Text -> createTextView(segment)
             is RenderSegment.Table -> createTableView(segment, style)
+            is RenderSegment.Math -> createMathView(segment, style)
           }
         segmentViews.add(view)
         addView(view)
@@ -254,6 +274,13 @@ class EnrichedMarkdown
       applyTableNode(segment.node)
     }
 
+    private fun createMathView(
+      segment: RenderSegment.Math,
+      style: StyleConfig,
+    ) = MathContainerView(context, style).apply {
+      applyLatex(segment.latex)
+    }
+
     private fun splitASTIntoSegments(root: MarkdownASTNode): List<Any> {
       val segments = mutableListOf<Any>()
       val currentTextBuffer = mutableListOf<MarkdownASTNode>()
@@ -267,6 +294,9 @@ class EnrichedMarkdown
 
       root.children.forEach { child ->
         if (child.type == MarkdownASTNode.NodeType.Table) {
+          flushTextBuffer()
+          segments.add(child)
+        } else if (child.type == MarkdownASTNode.NodeType.LatexMathDisplay) {
           flushTextBuffer()
           segments.add(child)
         } else {

@@ -291,6 +291,16 @@ public:
         break;
       }
 
+      case MD_SPAN_LATEXMATH: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::LatexMathInline));
+        break;
+      }
+
+      case MD_SPAN_LATEXMATH_DISPLAY: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::LatexMathDisplay));
+        break;
+      }
+
       default:
         break;
     }
@@ -323,8 +333,8 @@ public:
       return 0;
     }
 
-    // Handle text content (normal text, code text, etc.)
-    if (type == MD_TEXT_NORMAL || type == MD_TEXT_CODE) {
+    // Handle text content (normal text, code text, LaTeX math, etc.)
+    if (type == MD_TEXT_NORMAL || type == MD_TEXT_CODE || type == MD_TEXT_LATEXMATH) {
       impl->currentText.append(text, size);
     }
 
@@ -358,8 +368,8 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   // MD_FLAG_STRIKETHROUGH: Enable ~~strikethrough~~ syntax
   // MD_FLAG_UNDERLINE: When enabled, __ creates underline; when disabled, __ creates emphasis
   // MD_FLAG_PERMISSIVEAUTOLINKS: Bare URLs, emails, www. links become clickable
-  unsigned flags =
-      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_PERMISSIVEAUTOLINKS;
+  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS |
+                   MD_FLAG_PERMISSIVEAUTOLINKS | MD_FLAG_LATEXMATHSPANS;
   if (md4cFlags.underline) {
     flags |= MD_FLAG_UNDERLINE;
   }
@@ -381,6 +391,20 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   }
 
   impl_->flushText();
+
+  // md4c emits $$...$$ as an inline span inside a Paragraph — promote to block-level
+  // so the segment splitter treats it as a standalone math segment.
+  if (impl_->root) {
+    auto &children = impl_->root->children;
+    for (size_t i = 0; i < children.size(); ++i) {
+      auto &child = children[i];
+      if (child->type == NodeType::Paragraph && child->children.size() == 1 &&
+          child->children[0]->type == NodeType::LatexMathDisplay) {
+        children[i] = child->children[0];
+      }
+    }
+  }
+
   return impl_->root ? impl_->root : std::make_shared<MarkdownASTNode>(NodeType::Document);
 }
 

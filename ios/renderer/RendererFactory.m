@@ -2,9 +2,9 @@
 #import "BlockquoteRenderer.h"
 #import "CodeBlockRenderer.h"
 #import "CodeRenderer.h"
+#import "ENRMImageRenderer.h"
 #import "EmphasisRenderer.h"
 #import "HeadingRenderer.h"
-#import "ImageRenderer.h"
 #import "LinkRenderer.h"
 #import "ListItemRenderer.h"
 #import "ListRenderer.h"
@@ -80,7 +80,7 @@
     case MarkdownNodeTypeCode:
       return [[CodeRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeImage:
-      return [[ImageRenderer alloc] initWithRendererFactory:self config:_config];
+      return [[ENRMImageRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeBlockquote:
       return [[BlockquoteRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeListItem:

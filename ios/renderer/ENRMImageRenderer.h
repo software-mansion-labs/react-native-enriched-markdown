@@ -3,7 +3,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ImageRenderer : NSObject <NodeRenderer>
+@interface ENRMImageRenderer : NSObject <NodeRenderer>
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
 

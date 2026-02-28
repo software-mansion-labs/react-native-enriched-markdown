@@ -1,10 +1,10 @@
-#import "EnrichedMarkdownImageAttachment.h"
+#import "ENRMImageAttachment.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import <React/RCTLog.h>
 #import <objc/runtime.h>
 
-@interface EnrichedMarkdownImageAttachment ()
+@interface ENRMImageAttachment ()
 
 @property (nonatomic, readwrite) NSString *imageURL;
 @property (nonatomic, weak) StyleConfig *styleConfiguration;
@@ -19,7 +19,7 @@
 
 @end
 
-@implementation EnrichedMarkdownImageAttachment
+@implementation ENRMImageAttachment
 
 - (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline
 {

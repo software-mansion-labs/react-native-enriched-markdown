@@ -1,5 +1,5 @@
-#import "ImageRenderer.h"
-#import "EnrichedMarkdownImageAttachment.h"
+#import "ENRMImageRenderer.h"
+#import "ENRMImageAttachment.h"
 #import "MarkdownASTNode.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
@@ -8,7 +8,7 @@
 static const unichar kLineBreak = '\n';
 static const unichar kZeroWidthSpace = 0x200B;
 
-@implementation ImageRenderer {
+@implementation ENRMImageRenderer {
   RendererFactory *_rendererFactory;
   StyleConfig *_config;
 }
@@ -22,8 +22,6 @@ static const unichar kZeroWidthSpace = 0x200B;
   return self;
 }
 
-#pragma mark - Rendering
-
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   NSString *imageURL = node.attributes[@"url"];
@@ -32,9 +30,9 @@ static const unichar kZeroWidthSpace = 0x200B;
   }
 
   BOOL isInline = [self isInlineImageInOutput:output];
-  EnrichedMarkdownImageAttachment *attachment = [[EnrichedMarkdownImageAttachment alloc] initWithImageURL:imageURL
-                                                                                                   config:_config
-                                                                                                 isInline:isInline];
+  ENRMImageAttachment *attachment = [[ENRMImageAttachment alloc] initWithImageURL:imageURL
+                                                                           config:_config
+                                                                         isInline:isInline];
 
   NSUInteger startIndex = output.length;
 
@@ -46,8 +44,6 @@ static const unichar kZeroWidthSpace = 0x200B;
   NSRange imageRange = NSMakeRange(startIndex, output.length - startIndex);
   [context registerImageRange:imageRange altText:altText url:imageURL];
 }
-
-#pragma mark - Private Helpers
 
 - (NSString *)extractTextFromNode:(MarkdownASTNode *)node
 {

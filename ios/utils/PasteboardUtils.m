@@ -1,5 +1,5 @@
 #import "PasteboardUtils.h"
-#import "EnrichedMarkdownImageAttachment.h"
+#import "ENRMImageAttachment.h"
 #import "HTMLGenerator.h"
 #import "MarkdownExtractor.h"
 #import "RTFExportUtils.h"
@@ -121,10 +121,10 @@ NSArray<NSString *> *imageURLsInRange(NSAttributedString *attributedText, NSRang
                              inRange:range
                              options:0
                           usingBlock:^(id value, NSRange r, BOOL *stop) {
-                            if (![value isKindOfClass:[EnrichedMarkdownImageAttachment class]])
+                            if (![value isKindOfClass:[ENRMImageAttachment class]])
                               return;
 
-                            NSString *url = ((EnrichedMarkdownImageAttachment *)value).imageURL;
+                            NSString *url = ((ENRMImageAttachment *)value).imageURL;
                             if ([url hasPrefix:@"http://"] || [url hasPrefix:@"https://"]) {
                               [urls addObject:url];
                             }

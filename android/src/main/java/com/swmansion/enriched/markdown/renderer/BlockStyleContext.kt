@@ -24,35 +24,18 @@ data class BlockStyle(
   val color: Int,
 )
 
-private class MutableBlockStyle {
-  var fontSize: Float = 0f
-  var fontFamily: String = ""
-  var fontWeight: String = ""
-  var color: Int = 0
-  var isDirty: Boolean = false
-
-  fun updateFrom(style: BaseBlockStyle) {
-    fontSize = style.fontSize
-    fontFamily = style.fontFamily
-    fontWeight = style.fontWeight
-    color = style.color
-    isDirty = true
-  }
-
-  fun toImmutable(): BlockStyle = BlockStyle(fontSize, fontFamily, fontWeight, color)
-
-  fun clear() {
-    isDirty = false
-  }
-}
+private data class BlockStyleEntry(
+  val blockType: BlockType,
+  val blockStyle: BlockStyle,
+  val headingLevel: Int,
+)
 
 class BlockStyleContext {
   var currentBlockType = BlockType.NONE
     private set
 
-  private val mutableBlockStyle = MutableBlockStyle()
-  private var cachedBlockStyle: BlockStyle? = null
   private var currentHeadingLevel = 0
+  private val blockStyleStack = ArrayDeque<BlockStyleEntry>()
 
   var blockquoteDepth = 0
   var listDepth = 0
@@ -64,37 +47,58 @@ class BlockStyleContext {
 
   enum class ListType { UNORDERED, ORDERED }
 
-  private fun updateBlockStyle(
+  private fun pushBlockStyle(
     type: BlockType,
     style: BaseBlockStyle,
     headingLevel: Int = 0,
   ) {
+    val entry =
+      BlockStyleEntry(
+        blockType = type,
+        blockStyle = BlockStyle(style.fontSize, style.fontFamily, style.fontWeight, style.color),
+        headingLevel = headingLevel,
+      )
+
+    blockStyleStack.addLast(entry)
     currentBlockType = type
     currentHeadingLevel = headingLevel
-    mutableBlockStyle.updateFrom(style)
-    cachedBlockStyle = null
   }
 
-  fun setParagraphStyle(style: ParagraphStyle) = updateBlockStyle(BlockType.PARAGRAPH, style)
+  fun popBlockStyle() {
+    if (blockStyleStack.isNotEmpty()) {
+      blockStyleStack.removeLast()
+    }
+
+    val parentStyle = blockStyleStack.lastOrNull()
+    if (parentStyle != null) {
+      currentBlockType = parentStyle.blockType
+      currentHeadingLevel = parentStyle.headingLevel
+    } else {
+      currentBlockType = BlockType.NONE
+      currentHeadingLevel = 0
+    }
+  }
+
+  fun setParagraphStyle(style: ParagraphStyle) = pushBlockStyle(BlockType.PARAGRAPH, style)
 
   fun setHeadingStyle(
     style: HeadingStyle,
     level: Int,
-  ) = updateBlockStyle(BlockType.HEADING, style, level)
+  ) = pushBlockStyle(BlockType.HEADING, style, level)
 
-  fun setBlockquoteStyle(style: BlockquoteStyle) = updateBlockStyle(BlockType.BLOCKQUOTE, style)
+  fun setBlockquoteStyle(style: BlockquoteStyle) = pushBlockStyle(BlockType.BLOCKQUOTE, style)
 
   fun setUnorderedListStyle(style: ListStyle) {
     listType = ListType.UNORDERED
-    updateBlockStyle(BlockType.UNORDERED_LIST, style)
+    pushBlockStyle(BlockType.UNORDERED_LIST, style)
   }
 
   fun setOrderedListStyle(style: ListStyle) {
     listType = ListType.ORDERED
-    updateBlockStyle(BlockType.ORDERED_LIST, style)
+    pushBlockStyle(BlockType.ORDERED_LIST, style)
   }
 
-  fun setCodeBlockStyle(style: CodeBlockStyle) = updateBlockStyle(BlockType.CODE_BLOCK, style)
+  fun setCodeBlockStyle(style: CodeBlockStyle) = pushBlockStyle(BlockType.CODE_BLOCK, style)
 
   fun isInsideBlockElement(): Boolean = blockquoteDepth > 0 || listDepth > 0
 
@@ -117,39 +121,26 @@ class BlockStyleContext {
   }
 
   fun clearListStyle() {
-    if (listDepth == 0) {
-      reset()
-    }
-  }
+    popBlockStyle()
 
-  private fun reset() {
-    clearBlockStyle()
-    listType = null
-    listItemNumber = 0
-    orderedListItemNumbers.clear()
+    if (listDepth == 0) {
+      listType = null
+      listItemNumber = 0
+      orderedListItemNumbers.clear()
+    }
   }
 
   fun requireBlockStyle(): BlockStyle {
-    if (!mutableBlockStyle.isDirty) {
-      throw IllegalStateException(
+    val entry = blockStyleStack.lastOrNull()
+    return entry?.blockStyle
+      ?: throw IllegalStateException(
         "BlockStyle is null. Inline renderers must be used within a block context.",
       )
-    }
-
-    return cachedBlockStyle ?: mutableBlockStyle.toImmutable().also { cachedBlockStyle = it }
-  }
-
-  fun clearBlockStyle() {
-    currentBlockType = BlockType.NONE
-    mutableBlockStyle.clear()
-    cachedBlockStyle = null
-    currentHeadingLevel = 0
   }
 
   fun resetForNewRender() {
+    blockStyleStack.clear()
     currentBlockType = BlockType.NONE
-    mutableBlockStyle.clear()
-    cachedBlockStyle = null
     currentHeadingLevel = 0
     blockquoteDepth = 0
     listDepth = 0

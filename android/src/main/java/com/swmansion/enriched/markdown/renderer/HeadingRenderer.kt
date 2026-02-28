@@ -23,12 +23,13 @@ class HeadingRenderer(
     val start = builder.length
 
     val headingStyle = config.style.headingStyles[level]!!
-    factory.blockStyleContext.setHeadingStyle(headingStyle, level)
+    val blockStyleContext = factory.blockStyleContext
+    blockStyleContext.setHeadingStyle(headingStyle, level)
 
     try {
       factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
-      factory.blockStyleContext.clearBlockStyle()
+      blockStyleContext.popBlockStyle()
     }
 
     val end = builder.length

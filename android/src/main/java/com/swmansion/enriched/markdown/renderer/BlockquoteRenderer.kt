@@ -30,7 +30,7 @@ class BlockquoteRenderer(
     try {
       factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
-      context.clearBlockStyle()
+      context.popBlockStyle()
       context.blockquoteDepth = depth
     }
 

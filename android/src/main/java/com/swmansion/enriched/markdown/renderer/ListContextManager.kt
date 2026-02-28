@@ -16,7 +16,8 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
  */
 class ListContextManager(
   private val context: BlockStyleContext,
-  private val styleConfig: StyleConfig,
+  @Suppress("UNUSED_PARAMETER")
+  styleConfig: StyleConfig,
 ) {
   /**
    * Captures the state when entering a list, needed for proper restoration when exiting.
@@ -37,7 +38,7 @@ class ListContextManager(
    */
   fun enterList(
     listType: BlockStyleContext.ListType,
-    style: Any,
+    style: ListStyle,
   ): ListEntryState {
     val previousDepth = context.listDepth
     val isNested = previousDepth > 0
@@ -53,11 +54,11 @@ class ListContextManager(
     context.listDepth = previousDepth + 1
     when (listType) {
       BlockStyleContext.ListType.ORDERED -> {
-        context.setOrderedListStyle(style as ListStyle)
+        context.setOrderedListStyle(style)
       }
 
       BlockStyleContext.ListType.UNORDERED -> {
-        context.setUnorderedListStyle(style as ListStyle)
+        context.setUnorderedListStyle(style)
       }
     }
     context.resetListItemNumber()
@@ -71,35 +72,21 @@ class ListContextManager(
 
   /**
    * Exits a list context. Handles:
-   * - Clearing list style (only if top-level, depth == 0)
+   * - Popping current list block style from stack
    * - Decrementing list depth back to previousDepth
    * - Restoring parent list item numbers from stack (if applicable)
-   * - Restoring parent list context (if nested) so subsequent parent items render correctly
+   * - Restoring parent list metadata (if nested) so subsequent parent items render correctly
    */
   fun exitList(entryState: ListEntryState) {
-    context.clearListStyle()
     context.listDepth = entryState.previousDepth
+    context.clearListStyle()
 
     if (entryState.wasNestedInOrderedList) {
       context.popOrderedListItemNumber()
     }
 
     if (entryState.previousDepth > 0) {
-      restoreParentListContext(entryState.parentListType)
-    }
-  }
-
-  private fun restoreParentListContext(parentListType: BlockStyleContext.ListType?) {
-    when (parentListType) {
-      BlockStyleContext.ListType.UNORDERED -> {
-        context.setUnorderedListStyle(styleConfig.listStyle)
-      }
-
-      BlockStyleContext.ListType.ORDERED -> {
-        context.setOrderedListStyle(styleConfig.listStyle)
-      }
-
-      null -> {}
+      context.listType = entryState.parentListType
     }
   }
 }

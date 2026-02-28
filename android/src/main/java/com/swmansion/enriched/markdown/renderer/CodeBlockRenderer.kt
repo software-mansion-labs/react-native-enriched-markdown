@@ -34,7 +34,7 @@ class CodeBlockRenderer(
     try {
       factory.renderChildren(node, builder, onLinkPress, onLinkLongPress)
     } finally {
-      context.clearBlockStyle()
+      context.popBlockStyle()
     }
 
     if (builder.length == contentStart) return

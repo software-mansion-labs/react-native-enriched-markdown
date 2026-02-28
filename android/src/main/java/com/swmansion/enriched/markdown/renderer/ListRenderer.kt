@@ -22,7 +22,7 @@ class ListRenderer(
     val listStyle = config.style.listStyle
     val listType = if (isOrdered) BlockStyleContext.ListType.ORDERED else BlockStyleContext.ListType.UNORDERED
 
-    val contextManager = ListContextManager(factory.blockStyleContext, config.style)
+    val contextManager = ListContextManager(factory.blockStyleContext)
     val entryState = contextManager.enterList(listType, listStyle)
 
     // For top-level lists, insert marginTop spacer before rendering content

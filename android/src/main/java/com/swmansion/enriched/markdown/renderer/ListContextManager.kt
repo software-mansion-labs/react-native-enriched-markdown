@@ -1,7 +1,6 @@
 package com.swmansion.enriched.markdown.renderer
 
 import com.swmansion.enriched.markdown.styles.ListStyle
-import com.swmansion.enriched.markdown.styles.StyleConfig
 
 /**
  * Manages list context transitions (entering/exiting lists, handling nesting, etc.).
@@ -16,8 +15,6 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
  */
 class ListContextManager(
   private val context: BlockStyleContext,
-  @Suppress("UNUSED_PARAMETER")
-  styleConfig: StyleConfig,
 ) {
   /**
    * Captures the state when entering a list, needed for proper restoration when exiting.

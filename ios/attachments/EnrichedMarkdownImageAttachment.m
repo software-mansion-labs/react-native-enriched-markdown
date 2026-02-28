@@ -5,8 +5,9 @@
 #import <objc/runtime.h>
 
 @interface EnrichedMarkdownImageAttachment ()
+
 @property (nonatomic, readwrite) NSString *imageURL;
-@property (nonatomic, weak) StyleConfig *config;
+@property (nonatomic, weak) StyleConfig *styleConfiguration;
 @property (nonatomic, assign) BOOL isInline;
 @property (nonatomic, assign) CGFloat cachedHeight;
 @property (nonatomic, assign) CGFloat cachedBorderRadius;
@@ -15,45 +16,77 @@
 @property (nonatomic, strong) UIImage *originalImage;
 @property (nonatomic, strong) UIImage *loadedImage;
 @property (nonatomic, strong) NSURLSessionDataTask *loadingTask;
+
 @end
 
 @implementation EnrichedMarkdownImageAttachment
 
 - (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline
 {
-  if (self = [super init]) {
+  self = [super init];
+  if (self) {
     _imageURL = imageURL;
-    _config = config;
+    _styleConfiguration = config;
     _isInline = isInline;
+
     _cachedHeight = isInline ? [config inlineImageSize] : [config imageHeight];
     _cachedBorderRadius = [config imageBorderRadius];
 
     [self setupPlaceholder];
-    [self loadImage];
+    [self startDownloadingImage];
   }
   return self;
 }
 
 - (CGRect)attachmentBoundsForTextContainer:(NSTextContainer *)textContainer
-                      proposedLineFragment:(CGRect)lineFrag
+                      proposedLineFragment:(CGRect)lineFragment
                              glyphPosition:(CGPoint)position
-                            characterIndex:(NSUInteger)charIndex
+                            characterIndex:(NSUInteger)characterIndex
 {
   CGFloat height = self.cachedHeight;
-  CGFloat width = self.isInline ? height : (lineFrag.size.width > 0 ? lineFrag.size.width : height);
+  CGFloat width = self.isInline ? height : (lineFragment.size.width > 0 ? lineFragment.size.width : height);
+
+  if (self.isInline) {
+    UIFont *appliedFont = nil;
+    NSLayoutManager *layoutManager = textContainer.layoutManager;
+    NSTextStorage *textStorage = layoutManager.textStorage;
+
+    if (textStorage && characterIndex < textStorage.length) {
+      appliedFont = [textStorage attribute:NSFontAttributeName atIndex:characterIndex effectiveRange:NULL];
+    }
+
+    // Determine the vertical alignment:
+    // Center against the font's Capital Height if available,
+    // otherwise center within the line fragment.
+    CGFloat verticalOffset;
+    if (appliedFont) {
+      verticalOffset = (appliedFont.capHeight - height) / 2.0;
+    } else {
+      verticalOffset = (lineFragment.size.height - height) / 2.0;
+    }
+
+    return CGRectMake(0, verticalOffset, width, height);
+  }
+
   return CGRectMake(0, 0, width, height);
 }
 
 - (UIImage *)imageForBounds:(CGRect)imageBounds
               textContainer:(NSTextContainer *)textContainer
-             characterIndex:(NSUInteger)charIndex
+             characterIndex:(NSUInteger)characterIndex
 {
   self.textContainer = textContainer;
 
-  // If width is now known but we haven't scaled yet, trigger it
-  if (self.originalImage && !self.loadedImage && imageBounds.size.width > 0) {
-    self.bounds = imageBounds;
-    [self handleLoadedImage:self.originalImage];
+  if (self.originalImage && imageBounds.size.width > 0) {
+    CGFloat currentWidth = imageBounds.size.width;
+
+    BOOL isFirstLoad = (self.loadedImage == nil);
+    BOOL hasWidthChanged = !self.isInline && self.loadedImage && fabs(self.loadedImage.size.width - currentWidth) > 1.0;
+
+    if (isFirstLoad || hasWidthChanged) {
+      self.bounds = imageBounds;
+      [self processAndApplyImage:self.originalImage withTargetWidth:currentWidth];
+    }
   }
 
   return self.loadedImage ?: self.image;
@@ -61,9 +94,27 @@
 
 - (void)handleLoadedImage:(UIImage *)image
 {
-  if (!image)
+  if (!image) {
     return;
+  }
+
   self.originalImage = image;
+  CGFloat targetWidth = self.isInline ? self.cachedHeight : self.bounds.size.width;
+
+  // If bounds width isn't known yet (image loaded before layout), defer scaling
+  // until imageForBounds: provides the real width via the text system.
+  if (!self.isInline && targetWidth <= self.cachedHeight) {
+    return;
+  }
+
+  [self processAndApplyImage:image withTargetWidth:targetWidth];
+}
+
+- (void)processAndApplyImage:(UIImage *)image withTargetWidth:(CGFloat)targetWidth
+{
+  if (targetWidth <= 0) {
+    return;
+  }
 
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -71,54 +122,91 @@
     if (!strongSelf)
       return;
 
-    CGFloat targetWidth = strongSelf.isInline ? strongSelf.cachedHeight : strongSelf.bounds.size.width;
-    if (targetWidth <= 0)
-      return;
-
-    UIImage *scaled = [strongSelf scaleImage:image
-                                     toWidth:targetWidth
-                                      height:strongSelf.cachedHeight
-                                borderRadius:strongSelf.cachedBorderRadius];
+    UIImage *processedImage = [strongSelf createScaledImage:image
+                                                    toWidth:targetWidth
+                                                     height:strongSelf.cachedHeight
+                                               borderRadius:strongSelf.cachedBorderRadius];
 
     dispatch_async(dispatch_get_main_queue(), ^{
-      strongSelf.loadedImage = scaled;
+      strongSelf.loadedImage = processedImage;
 
       if (strongSelf.isInline) {
-        // Use scaled image for RTF export (RTF uses self.image dimensions)
-        strongSelf.image = scaled;
+        strongSelf.image = processedImage;
         strongSelf.bounds = CGRectMake(0, 0, strongSelf.cachedHeight, strongSelf.cachedHeight);
       } else {
-        // Use original for "Save to Camera Roll" (no baked-in rounded corners)
         strongSelf.image = image;
       }
 
-      [strongSelf updateUI];
+      [strongSelf refreshDisplay];
     });
   });
 }
 
-- (void)updateUI
+- (UIImage *)createScaledImage:(UIImage *)image
+                       toWidth:(CGFloat)targetWidth
+                        height:(CGFloat)targetHeight
+                  borderRadius:(CGFloat)radius
 {
-  UITextView *textView = [self getTextView];
-  if (!textView)
-    return;
+  CGFloat sourceWidth = image.size.width;
+  CGFloat sourceHeight = image.size.height;
 
-  NSRange range = [self findAttachmentRangeInText:textView.attributedText];
-  if (range.location == NSNotFound)
-    return;
+  CGFloat drawingWidth, drawingHeight;
 
-  [textView.layoutManager invalidateDisplayForCharacterRange:range];
+  if (!self.isInline && sourceWidth > 0 && sourceHeight > 0) {
+    CGFloat aspectRatioScale = targetWidth / sourceWidth;
+    drawingWidth = targetWidth;
+    drawingHeight = sourceHeight * aspectRatioScale;
+  } else {
+    drawingWidth = targetWidth;
+    drawingHeight = targetHeight;
+  }
+
+  CGFloat xOffset = (targetWidth - drawingWidth) / 2.0;
+  CGFloat yOffset = (targetHeight - drawingHeight) / 2.0;
+  CGRect drawingRect = CGRectMake(xOffset, yOffset, drawingWidth, drawingHeight);
+
+  UIGraphicsImageRenderer *renderer =
+      [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(targetWidth, targetHeight)];
+
+  return [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
+    if (radius > 0) {
+      CGRect clippingRect = CGRectIntersection(CGRectMake(0, 0, targetWidth, targetHeight), drawingRect);
+      UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:clippingRect cornerRadius:radius];
+      [path addClip];
+    }
+    [image drawInRect:drawingRect];
+  }];
+}
+
+- (void)refreshDisplay
+{
+  UITextView *textView = [self fetchAssociatedTextView];
+  if (!textView) {
+    return;
+  }
+
+  NSRange attachmentRange = [self findAttachmentRangeInText:textView.attributedText];
+  if (attachmentRange.location == NSNotFound) {
+    return;
+  }
+
+  [textView.layoutManager invalidateDisplayForCharacterRange:attachmentRange];
   if (!self.isInline) {
-    [textView.layoutManager invalidateLayoutForCharacterRange:range actualCharacterRange:NULL];
+    [textView.layoutManager invalidateLayoutForCharacterRange:attachmentRange actualCharacterRange:NULL];
   }
 }
 
-- (UITextView *)getTextView
+- (UITextView *)fetchAssociatedTextView
 {
-  if (self.textView)
+  if (self.textView) {
     return self.textView;
-  if (!self.textContainer)
+  }
+
+  if (!self.textContainer) {
     return nil;
+  }
+
+  // Look up the text view via the associated object key stored on the container
   self.textView = objc_getAssociatedObject(self.textContainer, kTextViewKey);
   return self.textView;
 }
@@ -127,54 +215,52 @@
 {
   CGFloat size = self.cachedHeight;
   self.bounds = CGRectMake(0, 0, size, size);
+
   UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(size, size)];
-  self.image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx){}];
-}
-
-- (void)loadImage
-{
-  if (self.imageURL.length == 0)
-    return;
-  NSURL *url = [NSURL URLWithString:self.imageURL];
-  if (!url)
-    return;
-
-  __weak typeof(self) weakSelf = self;
-  self.loadingTask =
-      [[NSURLSession sharedSession] dataTaskWithURL:url
-                                  completionHandler:^(NSData *data, NSURLResponse *res, NSError *err) {
-                                    if (data) {
-                                      UIImage *img = [UIImage imageWithData:data];
-                                      dispatch_async(dispatch_get_main_queue(), ^{ [weakSelf handleLoadedImage:img]; });
-                                    }
-                                  }];
-  [self.loadingTask resume];
-}
-
-- (UIImage *)scaleImage:(UIImage *)image toWidth:(CGFloat)w height:(CGFloat)h borderRadius:(CGFloat)r
-{
-  UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(w, h)];
-  return [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
-    if (r > 0) {
-      [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, w, h) cornerRadius:r] addClip];
-    }
-    [image drawInRect:CGRectMake(0, 0, w, h)];
+  self.image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *context){
+      // Generates an empty transparent placeholder
   }];
 }
 
-- (NSRange)findAttachmentRangeInText:(NSAttributedString *)text
+- (void)startDownloadingImage
 {
-  __block NSRange found = NSMakeRange(NSNotFound, 0);
-  [text enumerateAttribute:NSAttachmentAttributeName
-                   inRange:NSMakeRange(0, text.length)
-                   options:0
-                usingBlock:^(id val, NSRange range, BOOL *stop) {
-                  if (val == self) {
-                    found = range;
-                    *stop = YES;
-                  }
-                }];
-  return found;
+  if (self.imageURL.length == 0) {
+    return;
+  }
+
+  NSURL *url = [NSURL URLWithString:self.imageURL];
+  if (!url) {
+    return;
+  }
+
+  __weak typeof(self) weakSelf = self;
+  self.loadingTask = [[NSURLSession sharedSession]
+        dataTaskWithURL:url
+      completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (data && !error) {
+          UIImage *downloadedImage = [UIImage imageWithData:data];
+          dispatch_async(dispatch_get_main_queue(), ^{ [weakSelf handleLoadedImage:downloadedImage]; });
+        }
+      }];
+
+  [self.loadingTask resume];
+}
+
+- (NSRange)findAttachmentRangeInText:(NSAttributedString *)attributedString
+{
+  __block NSRange foundRange = NSMakeRange(NSNotFound, 0);
+
+  [attributedString enumerateAttribute:NSAttachmentAttributeName
+                               inRange:NSMakeRange(0, attributedString.length)
+                               options:0
+                            usingBlock:^(id value, NSRange range, BOOL *stop) {
+                              if (value == self) {
+                                foundRange = range;
+                                *stop = YES;
+                              }
+                            }];
+
+  return foundRange;
 }
 
 - (void)dealloc

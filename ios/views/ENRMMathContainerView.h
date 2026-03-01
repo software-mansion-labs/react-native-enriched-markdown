@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (CGFloat)measureHeight:(CGFloat)maxWidth;
 
 @property (nonatomic, strong) StyleConfig *config;
+@property (nonatomic, copy, readonly) NSString *cachedLatex;
 
 @end
 

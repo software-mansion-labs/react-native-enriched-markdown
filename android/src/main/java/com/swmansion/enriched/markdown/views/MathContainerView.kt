@@ -1,7 +1,10 @@
 package com.swmansion.enriched.markdown.views
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.view.Gravity
+import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
@@ -16,6 +19,7 @@ class MathContainerView(
   BlockSegmentView {
   private val mathStyle: MathStyle = styleConfig.mathStyle
   private val mathView = MTMathView(context)
+  private var cachedLatex: String = ""
 
   override val segmentMarginTop: Int get() = mathStyle.marginTop.toInt()
   override val segmentMarginBottom: Int get() = mathStyle.marginBottom.toInt()
@@ -45,10 +49,32 @@ class MathContainerView(
       }
 
     addView(mathView, lp)
+
+    setOnLongClickListener { view ->
+      showContextMenu(view)
+      true
+    }
+    mathView.setOnLongClickListener { view ->
+      showContextMenu(view)
+      true
+    }
   }
 
   fun applyLatex(latex: String) {
+    cachedLatex = latex
     mathView.latex = latex
+  }
+
+  private fun showContextMenu(anchor: View) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    ContextMenuPopup.show(anchor, this) {
+      item(ContextMenuPopup.Icon.COPY, "Copy") {
+        clipboard.setPrimaryClip(ClipData.newPlainText("Math", cachedLatex))
+      }
+      item(ContextMenuPopup.Icon.DOCUMENT, "Copy as Markdown") {
+        clipboard.setPrimaryClip(ClipData.newPlainText("Math", "$$\n$cachedLatex\n$$"))
+      }
+    }
   }
 
   companion object {

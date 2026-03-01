@@ -1,8 +1,9 @@
 #import "ENRMMathContainerView.h"
 #import <IosMath/IosMath.h>
 
-@interface ENRMMathContainerView ()
+@interface ENRMMathContainerView () <UIContextMenuInteractionDelegate>
 @property (nonatomic, strong, readonly) MTMathUILabel *mathLabel;
+@property (nonatomic, copy, readwrite) NSString *cachedLatex;
 @end
 
 @implementation ENRMMathContainerView
@@ -12,10 +13,14 @@
   self = [super initWithFrame:CGRectZero];
   if (self) {
     _config = config;
+    _cachedLatex = @"";
     _mathLabel = [[MTMathUILabel alloc] init];
     _mathLabel.labelMode = kMTMathUILabelModeDisplay;
 
     self.isAccessibilityElement = YES;
+
+    UIContextMenuInteraction *contextMenu = [[UIContextMenuInteraction alloc] initWithDelegate:self];
+    [self addInteraction:contextMenu];
 
     [self addSubview:_mathLabel];
   }
@@ -24,6 +29,8 @@
 
 - (void)applyLatex:(NSString *)latex
 {
+  _cachedLatex = [latex copy];
+
   StyleConfig *config = self.config;
 
   _mathLabel.latex = latex;
@@ -37,6 +44,42 @@
   self.backgroundColor = config.mathBackgroundColor ?: [UIColor clearColor];
 
   [self setNeedsLayout];
+}
+
+#pragma mark - Context Menu
+
+- (UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
+                        configurationForMenuAtLocation:(CGPoint)location
+{
+  return [UIContextMenuConfiguration
+      configurationWithIdentifier:nil
+                  previewProvider:nil
+                   actionProvider:^UIMenu *(NSArray<UIMenuElement *> *suggestedActions) {
+                     UIAction *copyPlainText =
+                         [UIAction actionWithTitle:@"Copy"
+                                             image:[UIImage systemImageNamed:@"doc.on.doc"]
+                                        identifier:nil
+                                           handler:^(__kindof UIAction *action) { [self copyLatexToPasteboard]; }];
+
+                     UIAction *copyMarkdown =
+                         [UIAction actionWithTitle:@"Copy as Markdown"
+                                             image:[UIImage systemImageNamed:@"doc.text"]
+                                        identifier:nil
+                                           handler:^(__kindof UIAction *action) { [self copyMarkdownToPasteboard]; }];
+
+                     return [UIMenu menuWithTitle:@"" children:@[ copyPlainText, copyMarkdown ]];
+                   }];
+}
+
+- (void)copyLatexToPasteboard
+{
+  [[UIPasteboard generalPasteboard] setString:_cachedLatex];
+}
+
+- (void)copyMarkdownToPasteboard
+{
+  NSString *markdown = [NSString stringWithFormat:@"$$\n%@\n$$", _cachedLatex];
+  [[UIPasteboard generalPasteboard] setString:markdown];
 }
 
 - (MTTextAlignment)mapAlignment:(NSString *)align

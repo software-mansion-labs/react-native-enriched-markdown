@@ -11,7 +11,7 @@ import kotlin.math.roundToInt
 
 class MathInlineSpan(
   private val context: Context,
-  private val latex: String,
+  internal val latex: String,
   private val fontSize: Float,
   private val textColor: Int,
 ) : ReplacementSpan() {

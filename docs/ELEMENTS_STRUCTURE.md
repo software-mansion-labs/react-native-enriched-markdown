@@ -20,6 +20,7 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Thematic Break | `---`, `***`, or `___` | `thematicBreak` | Horizontal rule separator |
 | Images | `![alt](url)` | `image` | Block-level images with spacing |
 | Tables | `| col | col |` | `table` | GFM tables with alignment support (requires `flavor="github"`) |
+| Math Block | `$$...$$` | `math` | Block-level LaTeX math (display equations) (requires `flavor="github"`) |
 
 ### Inline Elements
 
@@ -33,6 +34,7 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Links | `[text](url)` | `link` | Parent block | Optional font family, color, underline |
 | Inline Code | `` `code` `` | `code` | Parent block | Monospace font, background, optional fontSize |
 | Inline Images | `![alt](url)` | `inlineImage` | N/A | Inline images within text flow |
+| Inline Math | `$...$` | `inlineMath` | Parent block | LaTeX math rendered within the text flow |
 
 > **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
 

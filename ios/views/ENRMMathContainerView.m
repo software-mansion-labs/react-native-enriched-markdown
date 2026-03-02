@@ -46,8 +46,6 @@
   [self setNeedsLayout];
 }
 
-#pragma mark - Context Menu
-
 - (UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
                         configurationForMenuAtLocation:(CGPoint)location
 {

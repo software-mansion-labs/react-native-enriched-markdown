@@ -22,13 +22,12 @@
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
   NSString *latex = [self extractLatexFromNode:node];
-  if (!latex || latex.length == 0) {
+  if (latex.length == 0) {
     return;
   }
 
   NSDictionary *textAttrs = [context getTextAttributes];
   UIFont *currentFont = textAttrs[NSFontAttributeName];
-  UIColor *currentColor = textAttrs[NSForegroundColorAttributeName];
 
   ENRMMathInlineAttachment *attachment = [[ENRMMathInlineAttachment alloc] init];
   attachment.latex = latex;

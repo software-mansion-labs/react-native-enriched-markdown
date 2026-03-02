@@ -354,7 +354,7 @@ Styles for block-level LaTeX math (`$$...$$`). Block math is rendered as a stand
 | Property | Type | Description |
 |----------|------|-------------|
 | `fontSize` | `number` | Font size used when rendering the equation |
-| `color` | `string` | Equation foreground color |
+| `color` | `string` | Equation text color |
 | `backgroundColor` | `string` | Background color of the math block container |
 | `padding` | `number` | Inner padding around the equation |
 | `marginTop` | `number` | Top margin |
@@ -367,4 +367,4 @@ Styles for inline LaTeX math (`$...$`). Inline math is rendered within the surro
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `color` | `string` | Equation foreground color |
+| `color` | `string` | Equation text color |

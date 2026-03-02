@@ -8,6 +8,7 @@
 - 🎯 High-performance Markdown parsing with [md4c](https://github.com/mity/md4c)
 - 📐 CommonMark standard compliant
 - 📊 GitHub Flavored Markdown (GFM)
+- 🧮 LaTeX math rendering (block `$$...$$` with `flavor="github"`, inline `$...$` in all flavors)
 - 🎨 Fully customizable styles for all elements
 - 📱 iOS and Android support
 - 🏛 Supports only the New Architecture (Fabric)
@@ -167,6 +168,38 @@ Task lists with interactive checkboxes are available when `flavor="github"` is s
 />
 ```
 
+### LaTeX Math
+
+LaTeX math rendering is supported for both block and inline equations:
+
+- **Block math (`$$...$$`)**: Rendered as a standalone display element. Requires `flavor="github"`.
+- **Inline math (`$...$`)**: Rendered within the text flow. Works with both `flavor="commonmark"` and `flavor="github"`.
+
+```tsx
+<EnrichedMarkdownText
+  flavor="github"
+  markdown={`
+The quadratic formula: $$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$
+
+Einstein's mass-energy equivalence $E = mc^2$ is one of the most famous equations.
+  `}
+  markdownStyle={{
+    math: {
+      fontSize: 20,
+      color: '#1F2937',
+      backgroundColor: '#F3F4F6',
+      padding: 12,
+      textAlign: 'center',
+    },
+    inlineMath: {
+      color: '#1F2937',
+    },
+  }}
+/>
+```
+
+Block math equations are rendered as standalone display elements with spacing and an optional background. Inline math inherits the surrounding block's typography.
+
 ### Link Handling
 
 Links in Markdown are interactive and can be handled with the `onLinkPress` and `onLinkLongPress` callbacks:
@@ -204,10 +237,8 @@ See the [API Reference](docs/API_REFERENCE.md) for a detailed overview of all th
 
 We're actively working on expanding the capabilities of `react-native-enriched-markdown`. Here's what's on the roadmap:
 
-- GFM (GitHub Flavored Markdown) Support
-- LaTeX / Math Rendering
 - `EnrichedMarkdownInput`
-- Web Implementation via `react-native-web`
+- Web implementation via `react-native-web`
 
 ## Contributing
 

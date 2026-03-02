@@ -3,6 +3,7 @@
 #import "CodeBlockRenderer.h"
 #import "CodeRenderer.h"
 #import "ENRMImageRenderer.h"
+#import "ENRMMathInlineRenderer.h"
 #import "EmphasisRenderer.h"
 #import "HeadingRenderer.h"
 #import "LinkRenderer.h"
@@ -93,6 +94,8 @@
       return [[CodeBlockRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeThematicBreak:
       return [[ThematicBreakRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeLatexMathInline:
+      return [[ENRMMathInlineRenderer alloc] initWithRendererFactory:self config:_config];
     default:
       return nil;
   }

@@ -2,6 +2,7 @@
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
 #import "ENRMImageAttachment.h"
+#import "ENRMMathInlineAttachment.h"
 #import "LastElementUtils.h"
 #import "ListItemRenderer.h"
 #import "ParagraphStyleUtils.h"
@@ -477,6 +478,16 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                                       @"margin: %.0fpx 0 %.0fpx 0;\"><p>",
                                       styles.thematicBreakHeight, styles.thematicBreakColor,
                                       styles.thematicBreakMarginTop, styles.thematicBreakMarginBottom];
+                          } else if ([attachment isKindOfClass:[ENRMMathInlineAttachment class]]) {
+                            ENRMMathInlineAttachment *math = (ENRMMathInlineAttachment *)attachment;
+                            if (math.latex.length > 0) {
+                              [html appendFormat:
+                                        @"<code style=\"background-color: %@; color: %@; "
+                                        @"padding: %.0fpx %.0fpx; border-radius: %.0fpx; "
+                                        @"font-size: 1em; font-family: Menlo, Monaco, Consolas, monospace;\">%@</code>",
+                                        styles.codeBackgroundColor, styles.codeColor, kCodePadding, kCodePadding * 2,
+                                        kCodeBorderRadius, escapeHTML(math.latex)];
+                            }
                           }
                           return;
                         }

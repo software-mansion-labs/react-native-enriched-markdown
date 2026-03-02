@@ -19,6 +19,7 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.common.getMapOrNull
 import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
+import com.swmansion.enriched.markdown.views.MathContainerView
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
@@ -273,6 +274,11 @@ object MeasurementStore {
     data class Table(
       val node: MarkdownASTNode,
     ) : MarkdownSegment
+
+    data class Math(
+      val latex: String,
+      val node: MarkdownASTNode,
+    ) : MarkdownSegment
   }
 
   private fun measureAndCacheSplit(
@@ -331,6 +337,14 @@ object MeasurementStore {
               totalHeightPx += style.tableStyle.marginBottom
             }
           }
+
+          is MarkdownSegment.Math -> {
+            totalHeightPx += style.mathStyle.marginTop
+            totalHeightPx += MathContainerView.measureMathHeight(segment.latex, style.mathStyle, context)
+            if (includeBottomMargin) {
+              totalHeightPx += style.mathStyle.marginBottom
+            }
+          }
         }
       }
 
@@ -379,11 +393,26 @@ object MeasurementStore {
     }
 
     for (child in root.children) {
-      if (child.type == MarkdownASTNode.NodeType.Table) {
-        flushTextNodes()
-        segments.add(MarkdownSegment.Table(child))
-      } else {
-        currentTextNodes.add(child)
+      when (child.type) {
+        MarkdownASTNode.NodeType.Table -> {
+          flushTextNodes()
+          segments.add(MarkdownSegment.Table(child))
+        }
+
+        MarkdownASTNode.NodeType.LatexMathDisplay -> {
+          flushTextNodes()
+          val latex =
+            if (child.children.isNotEmpty()) {
+              child.children.first().content
+            } else {
+              child.content
+            }
+          segments.add(MarkdownSegment.Math(latex, child))
+        }
+
+        else -> {
+          currentTextNodes.add(child)
+        }
       }
     }
     flushTextNodes()

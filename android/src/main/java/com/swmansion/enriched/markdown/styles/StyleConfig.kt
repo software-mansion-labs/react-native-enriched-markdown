@@ -178,6 +178,22 @@ class StyleConfig(
     TaskListStyle.fromReadableMap(map, styleParser)
   }
 
+  val mathStyle: MathStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("math")) {
+        "Math style not found. JS should always provide defaults."
+      }
+    MathStyle.fromReadableMap(map, styleParser)
+  }
+
+  val inlineMathStyle: InlineMathStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("inlineMath")) {
+        "InlineMath style not found. JS should always provide defaults."
+      }
+    InlineMathStyle.fromReadableMap(map, styleParser)
+  }
+
   val tableTypeface: Typeface? by lazy {
     val fontFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
     val fontWeight = parseFontWeight(tableStyle.fontWeight)
@@ -238,7 +254,9 @@ class StyleConfig(
       codeBlockStyle == other.codeBlockStyle &&
       thematicBreakStyle == other.thematicBreakStyle &&
       tableStyle == other.tableStyle &&
-      taskListStyle == other.taskListStyle
+      taskListStyle == other.taskListStyle &&
+      mathStyle == other.mathStyle &&
+      inlineMathStyle == other.inlineMathStyle
   }
 
   override fun hashCode(): Int {
@@ -258,6 +276,8 @@ class StyleConfig(
     result = 31 * result + thematicBreakStyle.hashCode()
     result = 31 * result + tableStyle.hashCode()
     result = 31 * result + taskListStyle.hashCode()
+    result = 31 * result + mathStyle.hashCode()
+    result = 31 * result + inlineMathStyle.hashCode()
     return result
   }
 }

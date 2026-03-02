@@ -211,6 +211,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIColor *_taskListCheckmarkColor;
   UIColor *_taskListCheckedTextColor;
   BOOL _taskListCheckedStrikethrough;
+  // Math properties
+  CGFloat _mathFontSize;
+  UIColor *_mathColor;
+  UIColor *_mathBackgroundColor;
+  CGFloat _mathPadding;
+  CGFloat _mathMarginTop;
+  CGFloat _mathMarginBottom;
+  NSString *_mathTextAlign;
+  // Inline Math properties
+  UIColor *_inlineMathColor;
 }
 
 - (instancetype)init
@@ -468,6 +478,14 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_taskListCheckmarkColor = [_taskListCheckmarkColor copy];
   copy->_taskListCheckedTextColor = [_taskListCheckedTextColor copy];
   copy->_taskListCheckedStrikethrough = _taskListCheckedStrikethrough;
+  copy->_mathFontSize = _mathFontSize;
+  copy->_mathColor = [_mathColor copy];
+  copy->_mathBackgroundColor = [_mathBackgroundColor copy];
+  copy->_mathPadding = _mathPadding;
+  copy->_mathMarginTop = _mathMarginTop;
+  copy->_mathMarginBottom = _mathMarginBottom;
+  copy->_mathTextAlign = [_mathTextAlign copy];
+  copy->_inlineMathColor = [_inlineMathColor copy];
 
   return copy;
 }
@@ -2235,6 +2253,90 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setTaskListCheckedStrikethrough:(BOOL)newValue
 {
   _taskListCheckedStrikethrough = newValue;
+}
+
+// Math
+
+- (CGFloat)mathFontSize
+{
+  return _mathFontSize;
+}
+
+- (void)setMathFontSize:(CGFloat)newValue
+{
+  _mathFontSize = newValue;
+}
+
+- (UIColor *)mathColor
+{
+  return _mathColor;
+}
+
+- (void)setMathColor:(UIColor *)newValue
+{
+  _mathColor = newValue;
+}
+
+- (UIColor *)mathBackgroundColor
+{
+  return _mathBackgroundColor;
+}
+
+- (void)setMathBackgroundColor:(UIColor *)newValue
+{
+  _mathBackgroundColor = newValue;
+}
+
+- (CGFloat)mathPadding
+{
+  return _mathPadding;
+}
+
+- (void)setMathPadding:(CGFloat)newValue
+{
+  _mathPadding = newValue;
+}
+
+- (CGFloat)mathMarginTop
+{
+  return _mathMarginTop;
+}
+
+- (void)setMathMarginTop:(CGFloat)newValue
+{
+  _mathMarginTop = newValue;
+}
+
+- (CGFloat)mathMarginBottom
+{
+  return _mathMarginBottom;
+}
+
+- (void)setMathMarginBottom:(CGFloat)newValue
+{
+  _mathMarginBottom = newValue;
+}
+
+- (NSString *)mathTextAlign
+{
+  return _mathTextAlign ?: @"center";
+}
+
+- (void)setMathTextAlign:(NSString *)newValue
+{
+  _mathTextAlign = newValue;
+}
+
+// ── Inline Math ─────────────────────────────────────────────────────────────
+
+- (UIColor *)inlineMathColor
+{
+  return _inlineMathColor;
+}
+
+- (void)setInlineMathColor:(UIColor *)newValue
+{
+  _inlineMathColor = newValue;
 }
 
 @end

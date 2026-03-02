@@ -31,7 +31,9 @@ enum class NodeType {
     TableBody,
     TableRow,
     TableHeaderCell,
-    TableCell
+    TableCell,
+    LatexMathInline,
+    LatexMathDisplay
 };
 
 struct MarkdownASTNode {

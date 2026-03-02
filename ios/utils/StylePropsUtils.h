@@ -978,5 +978,64 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  // ── Math ───────────────────────────────────────────────────────────────────
+
+  if (newStyle.math.fontSize != oldStyle.math.fontSize) {
+    [config setMathFontSize:newStyle.math.fontSize];
+    changed = YES;
+  }
+
+  if (newStyle.math.color != oldStyle.math.color) {
+    if (newStyle.math.color) {
+      UIColor *color = RCTUIColorFromSharedColor(newStyle.math.color);
+      [config setMathColor:color];
+    } else {
+      [config setMathColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.math.backgroundColor != oldStyle.math.backgroundColor) {
+    if (newStyle.math.backgroundColor) {
+      UIColor *color = RCTUIColorFromSharedColor(newStyle.math.backgroundColor);
+      [config setMathBackgroundColor:color];
+    } else {
+      [config setMathBackgroundColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.math.padding != oldStyle.math.padding) {
+    [config setMathPadding:newStyle.math.padding];
+    changed = YES;
+  }
+
+  if (newStyle.math.marginTop != oldStyle.math.marginTop) {
+    [config setMathMarginTop:newStyle.math.marginTop];
+    changed = YES;
+  }
+
+  if (newStyle.math.marginBottom != oldStyle.math.marginBottom) {
+    [config setMathMarginBottom:newStyle.math.marginBottom];
+    changed = YES;
+  }
+
+  if (newStyle.math.textAlign != oldStyle.math.textAlign) {
+    [config setMathTextAlign:@(newStyle.math.textAlign.c_str())];
+    changed = YES;
+  }
+
+  // ── Inline Math ───────────────────────────────────────────────────────────
+
+  if (newStyle.inlineMath.color != oldStyle.inlineMath.color) {
+    if (newStyle.inlineMath.color) {
+      UIColor *color = RCTUIColorFromSharedColor(newStyle.inlineMath.color);
+      [config setInlineMathColor:color];
+    } else {
+      [config setInlineMathColor:nullptr];
+    }
+    changed = YES;
+  }
+
   return changed;
 }

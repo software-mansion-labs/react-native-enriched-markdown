@@ -123,6 +123,20 @@ interface TaskListStyleInternal {
   checkedStrikethrough: boolean;
 }
 
+interface MathStyleInternal {
+  fontSize: CodegenTypes.Float;
+  color: ColorValue;
+  backgroundColor: ColorValue;
+  padding: CodegenTypes.Float;
+  marginTop: CodegenTypes.Float;
+  marginBottom: CodegenTypes.Float;
+  textAlign: string;
+}
+
+interface InlineMathStyleInternal {
+  color: ColorValue;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -145,6 +159,8 @@ export interface MarkdownStyleInternal {
   thematicBreak: ThematicBreakStyleInternal;
   table: TableStyleInternal;
   taskList: TaskListStyleInternal;
+  math: MathStyleInternal;
+  inlineMath: InlineMathStyleInternal;
 }
 
 export interface LinkPressEvent {

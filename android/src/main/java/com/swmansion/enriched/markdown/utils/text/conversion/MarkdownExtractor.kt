@@ -11,6 +11,7 @@ import com.swmansion.enriched.markdown.spans.EmphasisSpan
 import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.MathInlineSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
@@ -99,6 +100,12 @@ object MarkdownExtractor {
       val imageSpans = spannable.getSpans(segmentStart, segmentEnd, ImageSpan::class.java)
       if (imageSpans.isNotEmpty()) {
         appendImage(imageSpans[0], result, state)
+        return true
+      }
+
+      val mathSpans = spannable.getSpans(segmentStart, segmentEnd, MathInlineSpan::class.java)
+      if (mathSpans.isNotEmpty()) {
+        result.append("$${mathSpans[0].latex}$")
         return true
       }
     }

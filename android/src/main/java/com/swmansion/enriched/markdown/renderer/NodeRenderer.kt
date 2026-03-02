@@ -56,6 +56,7 @@ class RendererFactory(
       MarkdownASTNode.NodeType.Image to ImageRenderer(config, context),
       MarkdownASTNode.NodeType.LineBreak to lineBreakRenderer,
       MarkdownASTNode.NodeType.ThematicBreak to ThematicBreakRenderer(config),
+      MarkdownASTNode.NodeType.LatexMathInline to MathInlineRenderer(config, context),
     )
   }
 

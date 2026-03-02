@@ -145,6 +145,21 @@ interface TaskListStyle {
   checkedTextColor?: string;
   checkedStrikethrough?: boolean;
 }
+
+interface MathStyle {
+  fontSize?: number;
+  color?: string;
+  backgroundColor?: string;
+  padding?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  textAlign?: 'left' | 'center' | 'right';
+}
+
+interface InlineMathStyle {
+  color?: string;
+}
+
 export interface MarkdownStyle {
   paragraph?: ParagraphStyle;
   h1?: HeadingStyle;
@@ -167,6 +182,8 @@ export interface MarkdownStyle {
   thematicBreak?: ThematicBreakStyle;
   table?: TableStyle;
   taskList?: TaskListStyle;
+  math?: MathStyle;
+  inlineMath?: InlineMathStyle;
 }
 
 /**

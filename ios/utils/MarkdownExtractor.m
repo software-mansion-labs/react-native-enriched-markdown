@@ -1,6 +1,7 @@
 #import "MarkdownExtractor.h"
 #import "BlockquoteBorder.h"
 #import "ENRMImageAttachment.h"
+#import "ENRMMathInlineAttachment.h"
 #import "LastElementUtils.h"
 #import "ListItemRenderer.h"
 #import "RuntimeKeys.h"
@@ -159,6 +160,14 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                           state.needsBlankLine = YES;
                           state.blockquoteDepth = -1;
                           state.listDepth = -1;
+                          return;
+                        }
+
+                        if ([attachment isKindOfClass:[ENRMMathInlineAttachment class]]) {
+                          ENRMMathInlineAttachment *math = (ENRMMathInlineAttachment *)attachment;
+                          if (math.latex.length > 0) {
+                            [result appendFormat:@"$%@$", math.latex];
+                          }
                           return;
                         }
 

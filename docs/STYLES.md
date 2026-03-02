@@ -172,6 +172,17 @@ The library provides sensible default styles for all Markdown elements out of th
       checkmarkColor: '#FFFFFF',
       checkboxSize: 16,
     },
+    math: {
+      fontSize: 20,
+      color: '#1F2937',
+      backgroundColor: '#F3F4F6',
+      padding: 12,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    inlineMath: {
+      color: '#1F2937',
+    },
   }}
 />
 ```
@@ -335,3 +346,25 @@ Table styles only apply when `flavor="github"` is set. Tables inherit the base b
 | `checkboxBorderRadius` | `number` | Corner radius of the checkbox |
 | `checkedTextColor` | `string` | Text color for checked items |
 | `checkedStrikethrough` | `boolean` | Whether to apply strikethrough to checked items |
+
+### Math Block-specific
+
+Styles for block-level LaTeX math (`$$...$$`). Block math is rendered as a standalone display element and only applies when `flavor="github"` is set.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fontSize` | `number` | Font size used when rendering the equation |
+| `color` | `string` | Equation text color |
+| `backgroundColor` | `string` | Background color of the math block container |
+| `padding` | `number` | Inner padding around the equation |
+| `marginTop` | `number` | Top margin |
+| `marginBottom` | `number` | Bottom margin |
+| `textAlign` | `'left' \| 'center' \| 'right'` | Horizontal alignment of the equation (default: `'center'`) |
+
+### Inline Math-specific
+
+Styles for inline LaTeX math (`$...$`). Inline math is rendered within the surrounding text flow.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `color` | `string` | Equation text color |

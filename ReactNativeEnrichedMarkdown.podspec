@@ -23,5 +23,7 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17'
   }
 
+  s.dependency 'iosMath', '~> 0.9'
+
   install_modules_dependencies(s)
 end

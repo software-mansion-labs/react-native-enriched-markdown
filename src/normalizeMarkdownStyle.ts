@@ -243,6 +243,20 @@ const defaultTableStyle: MarkdownStyleInternal['table'] = {
   cellPaddingVertical: 8,
 };
 
+const defaultMathStyle: MarkdownStyleInternal['math'] = {
+  fontSize: 20,
+  color: processColor('#1F2937') as ColorValue,
+  backgroundColor: processColor('#F3F4F6') as ColorValue,
+  padding: 12,
+  marginTop: 0,
+  marginBottom: 16,
+  textAlign: 'center',
+};
+
+const defaultInlineMathStyle: MarkdownStyleInternal['inlineMath'] = {
+  color: processColor('#1F2937') as ColorValue,
+};
+
 const defaultTaskListStyle: MarkdownStyleInternal['taskList'] = {
   checkedColor: Platform.select({
     ios: processColor('#007AFF'),
@@ -532,6 +546,21 @@ export const normalizeMarkdownStyle = (
       checkedStrikethrough:
         style.taskList?.checkedStrikethrough ??
         defaultTaskListStyle.checkedStrikethrough,
+    },
+    math: {
+      fontSize: style.math?.fontSize ?? defaultMathStyle.fontSize,
+      color: normalizeColor(style.math?.color) ?? defaultMathStyle.color,
+      backgroundColor:
+        normalizeColor(style.math?.backgroundColor) ??
+        defaultMathStyle.backgroundColor,
+      padding: style.math?.padding ?? defaultMathStyle.padding,
+      marginTop: style.math?.marginTop ?? defaultMathStyle.marginTop,
+      marginBottom: style.math?.marginBottom ?? defaultMathStyle.marginBottom,
+      textAlign: style.math?.textAlign ?? defaultMathStyle.textAlign,
+    },
+    inlineMath: {
+      color:
+        normalizeColor(style.inlineMath?.color) ?? defaultInlineMathStyle.color,
     },
   };
 };

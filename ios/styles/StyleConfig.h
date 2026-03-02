@@ -336,5 +336,24 @@
 - (void)setTaskListCheckedTextColor:(UIColor *)newValue;
 - (BOOL)taskListCheckedStrikethrough;
 - (void)setTaskListCheckedStrikethrough:(BOOL)newValue;
+// Math properties
+- (CGFloat)mathFontSize;
+- (void)setMathFontSize:(CGFloat)newValue;
+- (UIColor *)mathColor;
+- (void)setMathColor:(UIColor *)newValue;
+- (UIColor *)mathBackgroundColor;
+- (void)setMathBackgroundColor:(UIColor *)newValue;
+- (CGFloat)mathPadding;
+- (void)setMathPadding:(CGFloat)newValue;
+- (CGFloat)mathMarginTop;
+- (void)setMathMarginTop:(CGFloat)newValue;
+- (CGFloat)mathMarginBottom;
+- (void)setMathMarginBottom:(CGFloat)newValue;
+- (NSString *)mathTextAlign;
+- (void)setMathTextAlign:(NSString *)newValue;
+
+// Inline Math properties
+- (UIColor *)inlineMathColor;
+- (void)setInlineMathColor:(UIColor *)newValue;
 
 @end

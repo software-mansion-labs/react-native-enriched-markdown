@@ -12,6 +12,7 @@ import com.swmansion.enriched.markdown.spans.EmphasisSpan
 import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.MathInlineSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
@@ -663,7 +664,7 @@ object HTMLGenerator {
         }
 
         char == OBJECT_REPLACEMENT_CHAR -> {
-          appendImageIfPresent(html, text, i, styles)
+          appendReplacementChar(html, text, i, styles)
           i++
         }
 
@@ -682,36 +683,55 @@ object HTMLGenerator {
     return html.toString()
   }
 
-  private fun appendImageIfPresent(
+  private fun appendReplacementChar(
     html: StringBuilder,
     text: Spannable,
     pos: Int,
     styles: CachedStyles,
   ) {
     val imageSpans = text.getSpans(pos, pos + 1, ImageSpan::class.java)
-    if (imageSpans.isEmpty()) return
+    if (imageSpans.isNotEmpty()) {
+      val imgSpan = imageSpans[0]
 
-    val imgSpan = imageSpans[0]
+      if (imgSpan.isInline) {
+        html.append("<img src=\"")
+        escapeHTMLTo(html, imgSpan.imageUrl)
+        html
+          .append("\" style=\"height: ")
+          .append(styles.inlineImageHeight)
+          .append("; width: auto; vertical-align: ")
+          .append(styles.inlineImageVerticalAlign)
+          .append(";\">")
+      } else {
+        html
+          .append("</p><div style=\"margin-bottom: ")
+          .append(styles.imageMarginBottom)
+          .append("px;\"><img src=\"")
+        escapeHTMLTo(html, imgSpan.imageUrl)
+        html
+          .append("\" style=\"max-width: 100%; border-radius: ")
+          .append(styles.imageBorderRadius)
+          .append("px;\"></div><p>")
+      }
+      return
+    }
 
-    if (imgSpan.isInline) {
-      html.append("<img src=\"")
-      escapeHTMLTo(html, imgSpan.imageUrl)
+    val mathSpans = text.getSpans(pos, pos + 1, MathInlineSpan::class.java)
+    if (mathSpans.isNotEmpty()) {
       html
-        .append("\" style=\"height: ")
-        .append(styles.inlineImageHeight)
-        .append("; width: auto; vertical-align: ")
-        .append(styles.inlineImageVerticalAlign)
-        .append(";\">")
-    } else {
-      html
-        .append("</p><div style=\"margin-bottom: ")
-        .append(styles.imageMarginBottom)
-        .append("px;\"><img src=\"")
-      escapeHTMLTo(html, imgSpan.imageUrl)
-      html
-        .append("\" style=\"max-width: 100%; border-radius: ")
-        .append(styles.imageBorderRadius)
-        .append("px;\"></div><p>")
+        .append("<code style=\"background-color: ")
+        .append(styles.codeBgColor)
+        .append("; color: ")
+        .append(styles.codeColor)
+        .append("; padding: ")
+        .append(styles.codePadding)
+        .append("; border-radius: ")
+        .append(styles.codeBorderRadius)
+        .append("; font-size: ")
+        .append(styles.codeFontSize)
+        .append("; font-family: Menlo, Monaco, Consolas, monospace;\">")
+      escapeHTMLTo(html, mathSpans[0].latex)
+      html.append("</code>")
     }
   }
 

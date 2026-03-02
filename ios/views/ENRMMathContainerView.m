@@ -105,7 +105,7 @@
 
 - (NSString *)accessibilityLabel
 {
-  return [NSString stringWithFormat:@"Math equation: %@", _mathLabel.latex ?: @"empty"];
+  return [NSString stringWithFormat:@"Math equation: %@", _cachedLatex];
 }
 
 - (UIAccessibilityTraits)accessibilityTraits

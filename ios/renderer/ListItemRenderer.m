@@ -110,12 +110,9 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
                     style.firstLineHeadIndent = totalIndent;
                     style.headIndent = totalIndent;
 
-                    // Apply line height if configured
-                    UIFont *currentFont = [output attribute:NSFontAttributeName
-                                                    atIndex:range.location
-                                             effectiveRange:NULL];
-                    if (lineHeightConfig > 0 && currentFont) {
-                      style.lineHeightMultiple = lineHeightConfig / currentFont.pointSize;
+                    if (lineHeightConfig > 0) {
+                      style.minimumLineHeight = lineHeightConfig;
+                      style.maximumLineHeight = lineHeightConfig;
                     }
 
                     NSMutableDictionary *attributesToApply = [metadata mutableCopy];

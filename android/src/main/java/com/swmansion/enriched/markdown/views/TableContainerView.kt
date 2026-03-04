@@ -107,12 +107,16 @@ class TableContainerView(
     alignment: Layout.Alignment,
   ): SpannableString {
     val root = MarkdownASTNode(NodeType.Document, children = listOf(MarkdownASTNode(NodeType.Paragraph, children = node.children)))
-    return (Renderer().apply { configure(styleConfig, context) }.renderDocument(root, onLinkPress, onLinkLongPress)).apply {
-      if (isNotEmpty()) {
-        if (isHeader) setSpan(HeaderTypefaceSpan(styleConfig.tableHeaderTypeface ?: Typeface.DEFAULT_BOLD), 0, length, 33)
-        if (alignment != Layout.Alignment.ALIGN_NORMAL) setSpan(AlignmentSpan.Standard(alignment), 0, length, 33)
+    val cellParagraphStyle = styleConfig.tableCellParagraphStyle(tableStyle, isHeader)
+    return styleConfig
+      .withParagraphOverride(cellParagraphStyle) {
+        Renderer().apply { configure(styleConfig, context) }.renderDocument(root, onLinkPress, onLinkLongPress)
+      }.apply {
+        if (isNotEmpty()) {
+          if (isHeader) setSpan(HeaderTypefaceSpan(styleConfig.tableHeaderTypeface ?: Typeface.DEFAULT_BOLD), 0, length, 33)
+          if (alignment != Layout.Alignment.ALIGN_NORMAL) setSpan(AlignmentSpan.Standard(alignment), 0, length, 33)
+        }
       }
-    }
   }
 
   private fun extractPlainText(node: MarkdownASTNode): String = node.content + node.children.joinToString("") { extractPlainText(it) }
@@ -352,18 +356,23 @@ class TableContainerView(
       config: StyleConfig,
       context: Context,
     ): Float {
+      val tableStyle = config.tableStyle
       val headerTypeface = config.tableHeaderTypeface ?: Typeface.DEFAULT_BOLD
       val texts =
         node.children.flatMap { section ->
           section.children.filter { it.type == NodeType.TableRow }.map { row ->
             row.children.map { cell ->
+              val isHeader = section.type == NodeType.TableHead || cell.type == NodeType.TableHeaderCell
               val paragraph = MarkdownASTNode(NodeType.Paragraph, children = cell.children)
+              val cellParagraphStyle = config.tableCellParagraphStyle(tableStyle, isHeader)
               val styledText =
-                Renderer()
-                  .apply { configure(config, context) }
-                  .renderDocument(MarkdownASTNode(NodeType.Document, children = listOf(paragraph)), null, null)
+                config.withParagraphOverride(cellParagraphStyle) {
+                  Renderer()
+                    .apply { configure(config, context) }
+                    .renderDocument(MarkdownASTNode(NodeType.Document, children = listOf(paragraph)), null, null)
+                }
               styledText.replaceMathSpansWithPlaceholders(context)
-              if ((section.type == NodeType.TableHead || cell.type == NodeType.TableHeaderCell) && styledText.isNotEmpty()) {
+              if (isHeader && styledText.isNotEmpty()) {
                 styledText.setSpan(HeaderTypefaceSpan(headerTypeface), 0, styledText.length, 33)
               }
               styledText
@@ -372,7 +381,7 @@ class TableContainerView(
         }
       if (texts.isEmpty()) return 0f
       val (_, heights) = computeTableDimensions(texts, config, context)
-      return heights.sum() + config.tableStyle.borderWidth
+      return heights.sum() + tableStyle.borderWidth
     }
   }
 

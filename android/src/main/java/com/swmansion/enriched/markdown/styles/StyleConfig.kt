@@ -22,13 +22,45 @@ class StyleConfig(
   private val styleParser = StyleParser(context, allowFontScaling, maxFontSizeMultiplier)
   private val assets: AssetManager = context.assets
 
-  val paragraphStyle: ParagraphStyle by lazy {
+  private var paragraphStyleOverride: ParagraphStyle? = null
+
+  val paragraphStyle: ParagraphStyle
+    get() = paragraphStyleOverride ?: paragraphStyleDefault
+
+  private val paragraphStyleDefault: ParagraphStyle by lazy {
     val map =
       requireNotNull(style.getMap("paragraph")) {
         "Paragraph style not found. JS should always provide defaults."
       }
     ParagraphStyle.fromReadableMap(map, styleParser)
   }
+
+  /** Runs block with a temporary paragraph style override for table cell rendering. */
+  fun <T> withParagraphOverride(
+    override: ParagraphStyle,
+    block: () -> T,
+  ): T {
+    paragraphStyleOverride = override
+    try {
+      return block()
+    } finally {
+      paragraphStyleOverride = null
+    }
+  }
+
+  fun tableCellParagraphStyle(
+    tableStyle: TableStyle,
+    isHeader: Boolean,
+  ): ParagraphStyle =
+    paragraphStyleDefault.copy(
+      fontSize = tableStyle.fontSize,
+      fontFamily = if (isHeader && tableStyle.headerFontFamily.isNotEmpty()) tableStyle.headerFontFamily else tableStyle.fontFamily,
+      fontWeight = if (isHeader) "bold" else tableStyle.fontWeight,
+      color = if (isHeader) tableStyle.headerTextColor else tableStyle.color,
+      lineHeight = tableStyle.lineHeight,
+      marginTop = 0f,
+      marginBottom = 0f,
+    )
 
   val headingStyles: Array<HeadingStyle?> by lazy {
     Array(7) { index ->

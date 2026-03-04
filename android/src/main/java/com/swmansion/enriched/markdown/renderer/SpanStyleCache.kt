@@ -24,8 +24,9 @@ class SpanStyleCache(
   val codeFontSize: Float = style.codeStyle.fontSize
   val codeColor: Int = style.codeStyle.color
 
-  private fun buildColorsToPreserve(style: StyleConfig): IntArray =
-    buildList {
+  private fun buildColorsToPreserve(style: StyleConfig): IntArray {
+    val paragraphColor = style.paragraphStyle.color
+    return buildList {
       style.strongStyle.color
         ?.takeIf { it != 0 }
         ?.let { add(it) }
@@ -33,7 +34,7 @@ class SpanStyleCache(
         ?.takeIf { it != 0 }
         ?.let { add(it) }
       style.linkStyle.color
-        .takeIf { it != 0 }
+        .takeIf { it != 0 && it != paragraphColor }
         ?.let { add(it) }
       style
         .codeStyle
@@ -44,6 +45,7 @@ class SpanStyleCache(
         .takeIf { it != 0 }
         ?.let { add(it) }
     }.toIntArray()
+  }
 
   fun getStrongColorFor(blockColor: Int): Int = strongColor ?: blockColor
 

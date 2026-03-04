@@ -28,6 +28,8 @@ class EmphasisSpan(
       if (styleCache.emphasisFontFamily.isNotEmpty()) {
         val resolvedStyle = if (styleCache.emphasisFontStyle == "normal") Typeface.NORMAL else style
         SpanStyleCache.getTypeface(styleCache.emphasisFontFamily, resolvedStyle)
+      } else if (styleCache.emphasisFontStyle == "normal") {
+        currentTypeface
       } else {
         Typeface.create(currentTypeface, style)
       }

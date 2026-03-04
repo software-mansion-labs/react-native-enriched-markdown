@@ -26,6 +26,7 @@ import com.swmansion.enriched.markdown.styles.TableStyle
 import com.swmansion.enriched.markdown.utils.common.layout.isLayoutRTL
 import com.swmansion.enriched.markdown.utils.common.serialization.MarkdownASTSerializer
 import com.swmansion.enriched.markdown.utils.text.conversion.HTMLGenerator
+import com.swmansion.enriched.markdown.utils.text.extensions.replaceMathSpansWithPlaceholders
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.views.ContextMenuPopup
 import kotlin.math.ceil
@@ -361,6 +362,7 @@ class TableContainerView(
                 Renderer()
                   .apply { configure(config, context) }
                   .renderDocument(MarkdownASTNode(NodeType.Document, children = listOf(paragraph)), null, null)
+              styledText.replaceMathSpansWithPlaceholders(context)
               if ((section.type == NodeType.TableHead || cell.type == NodeType.TableHeaderCell) && styledText.isNotEmpty()) {
                 styledText.setSpan(HeaderTypefaceSpan(headerTypeface), 0, styledText.length, 33)
               }

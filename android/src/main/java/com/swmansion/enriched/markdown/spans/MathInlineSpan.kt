@@ -12,40 +12,50 @@ import kotlin.math.roundToInt
 class MathInlineSpan(
   private val context: Context,
   internal val latex: String,
-  private val fontSize: Float,
+  internal val fontSize: Float,
   private val textColor: Int,
 ) : ReplacementSpan() {
   private var cachedBitmap: Bitmap? = null
   private var cachedWidth = 0
   private var mathAscent = 0f
   private var mathDescent = 0f
+  private var renderFailed = false
 
   private fun prepareResources() {
     if (cachedBitmap != null && !cachedBitmap!!.isRecycled) return
+    if (renderFailed) return
 
-    val mathView =
-      MTMathView(context).apply {
-        labelMode = MTMathView.MTMathViewMode.KMTMathViewModeText
-        textAlignment = MTMathView.MTTextAlignment.KMTTextAlignmentLeft
-        this.fontSize = this@MathInlineSpan.fontSize
-        this.textColor = this@MathInlineSpan.textColor
-        this.latex = this@MathInlineSpan.latex
-      }
+    try {
+      val mathView =
+        MTMathView(context).apply {
+          labelMode = MTMathView.MTMathViewMode.KMTMathViewModeText
+          textAlignment = MTMathView.MTTextAlignment.KMTTextAlignmentLeft
+          this.fontSize = this@MathInlineSpan.fontSize
+          this.textColor = this@MathInlineSpan.textColor
+          this.latex = this@MathInlineSpan.latex
+        }
 
-    val spec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-    mathView.measure(spec, spec)
+      val spec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+      mathView.measure(spec, spec)
 
-    val width = mathView.measuredWidth.coerceAtLeast(1)
-    val height = mathView.measuredHeight.coerceAtLeast(1)
+      val width = mathView.measuredWidth.coerceAtLeast(1)
+      val height = mathView.measuredHeight.coerceAtLeast(1)
 
-    cachedWidth = width
-    calculateMetrics(mathView, height)
+      cachedWidth = width
+      calculateMetrics(mathView, height)
 
-    mathView.layout(0, 0, width, height)
+      mathView.layout(0, 0, width, height)
 
-    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-    mathView.draw(Canvas(bitmap))
-    cachedBitmap = bitmap
+      val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+      mathView.draw(Canvas(bitmap))
+      cachedBitmap = bitmap
+    } catch (_: Exception) {
+      renderFailed = true
+      val estimatedHeight = fontSize * 1.2f
+      cachedWidth = (fontSize * latex.length * 0.6f).toInt().coerceAtLeast(1)
+      mathAscent = estimatedHeight * 0.7f
+      mathDescent = estimatedHeight * 0.3f
+    }
   }
 
   private fun calculateMetrics(

@@ -7,6 +7,7 @@ import android.os.Build
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.Log
+import com.agog.mathdisplay.MTMathView
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.yoga.YogaMeasureMode
@@ -15,11 +16,13 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spans.MathMeasureHelper
+import com.swmansion.enriched.markdown.spans.MathMeasureRequest
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.common.getMapOrNull
 import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
-import com.swmansion.enriched.markdown.views.MathContainerView
+import com.swmansion.enriched.markdown.utils.text.extensions.replaceMathSpansWithPlaceholders
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
@@ -308,6 +311,29 @@ object MeasurementStore {
       val style = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
       val segments = splitASTIntoSegments(ast)
 
+      // Pre-scan: batch all block-math measurements into a single main-thread post
+      val mathSegmentIndices = mutableListOf<Int>()
+      val mathRequests = mutableListOf<MathMeasureRequest>()
+      for ((i, segment) in segments.withIndex()) {
+        if (segment is MarkdownSegment.Math) {
+          mathSegmentIndices.add(i)
+          mathRequests.add(
+            MathMeasureRequest(
+              fontSize = style.mathStyle.fontSize,
+              latex = segment.latex,
+              mode = MTMathView.MTMathViewMode.KMTMathViewModeDisplay,
+            ),
+          )
+        }
+      }
+      val mathResults = MathMeasureHelper.measureOnMainThread(context, mathRequests)
+      val mathHeightByIndex = HashMap<Int, Float>(mathSegmentIndices.size)
+      for (i in mathSegmentIndices.indices) {
+        val metrics = mathResults[i]
+        mathHeightByIndex[mathSegmentIndices[i]] =
+          (metrics.ascent + metrics.descent).toInt() + (style.mathStyle.padding * 2)
+      }
+
       val widthPx = width.toInt().coerceAtLeast(1)
       val lastIndex = segments.lastIndex
       var totalHeightPx = 0f
@@ -321,6 +347,7 @@ object MeasurementStore {
             val segmentRenderer = Renderer().apply { configure(style, context) }
             val tempDoc = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = segment.nodes)
             val styledText = segmentRenderer.renderDocument(tempDoc, null)
+            styledText.replaceMathSpansWithPlaceholders(context)
 
             val layout = createStaticLayout(styledText, fontSize, widthPx)
             totalHeightPx += layout.height
@@ -340,7 +367,7 @@ object MeasurementStore {
 
           is MarkdownSegment.Math -> {
             totalHeightPx += style.mathStyle.marginTop
-            totalHeightPx += MathContainerView.measureMathHeight(segment.latex, style.mathStyle, context)
+            totalHeightPx += mathHeightByIndex[index] ?: 0f
             if (includeBottomMargin) {
               totalHeightPx += style.mathStyle.marginBottom
             }

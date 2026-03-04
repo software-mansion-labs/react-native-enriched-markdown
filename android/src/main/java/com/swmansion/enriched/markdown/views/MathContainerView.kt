@@ -5,10 +5,11 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.view.Gravity
 import android.view.View
-import android.view.View.MeasureSpec
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import com.agog.mathdisplay.MTMathView
+import com.swmansion.enriched.markdown.spans.MathMeasureHelper
+import com.swmansion.enriched.markdown.spans.MathMeasureRequest
 import com.swmansion.enriched.markdown.styles.MathStyle
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
@@ -83,17 +84,14 @@ class MathContainerView(
       mathStyle: MathStyle,
       context: Context,
     ): Float {
-      val tempView =
-        MTMathView(context).apply {
-          fontSize = mathStyle.fontSize
-          this.latex = latex
-          labelMode = MTMathView.MTMathViewMode.KMTMathViewModeDisplay
-        }
-
-      val spec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-      tempView.measure(spec, spec)
-
-      return tempView.measuredHeight + (mathStyle.padding * 2)
+      val request =
+        MathMeasureRequest(
+          fontSize = mathStyle.fontSize,
+          latex = latex,
+          mode = MTMathView.MTMathViewMode.KMTMathViewModeDisplay,
+        )
+      val metrics = MathMeasureHelper.measureOnMainThread(context, listOf(request)).first()
+      return (metrics.ascent + metrics.descent).toInt() + (mathStyle.padding * 2)
     }
   }
 }

@@ -179,7 +179,9 @@ LaTeX math rendering is supported for both block and inline equations:
 <EnrichedMarkdownText
   flavor="github"
   markdown={`
-The quadratic formula: $$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$
+The quadratic formula:
+
+$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$
 
 Einstein's mass-energy equivalence $E = mc^2$ is one of the most famous equations.
   `}
@@ -199,6 +201,8 @@ Einstein's mass-energy equivalence $E = mc^2$ is one of the most famous equation
 ```
 
 Block math equations are rendered as standalone display elements with spacing and an optional background. Inline math inherits the surrounding block's typography.
+
+> **Note:** LaTeX commands use backslashes (e.g. `\frac`, `\alpha`). In regular JS strings and template literals, backslashes are escape characters. Use `String.raw` or double backslashes (`\\frac`) to preserve them. Block math (`$$...$$`) must be on its own line to render as a display element.
 
 ### Link Handling
 

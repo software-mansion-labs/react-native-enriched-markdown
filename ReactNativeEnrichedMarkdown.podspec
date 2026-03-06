@@ -16,11 +16,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,cpp}", "cpp/md4c/*.{c,h}", "cpp/parser/*.{hpp,cpp}"
   s.private_header_files = "ios/**/*.h"
 
-  # LaTeX math rendering via iosMath is enabled by default.
-  # To disable it and save ~2.5 MB, set the environment variable before running pod install:
-  #   ENRICHED_MARKDOWN_ENABLE_MATH=0 bundle exec pod install
-  # Or add to your Podfile:
-  #   ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0'
+  # To disable LaTeX math (iosMath), add ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0' to your Podfile.
   enable_math = ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] != '0'
 
   preprocessor_defs = '$(inherited) MD4C_USE_UTF8=1'

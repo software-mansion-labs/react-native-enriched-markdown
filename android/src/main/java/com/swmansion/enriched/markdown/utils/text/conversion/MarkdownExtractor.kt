@@ -11,7 +11,6 @@ import com.swmansion.enriched.markdown.spans.EmphasisSpan
 import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
-import com.swmansion.enriched.markdown.spans.MathInlineSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
@@ -103,9 +102,9 @@ object MarkdownExtractor {
         return true
       }
 
-      val mathSpans = spannable.getSpans(segmentStart, segmentEnd, MathInlineSpan::class.java)
-      if (mathSpans.isNotEmpty()) {
-        result.append("$${mathSpans[0].latex}$")
+      val mathLatex = extractMathLatex(spannable, segmentStart, segmentEnd)
+      if (mathLatex != null) {
+        result.append("$$mathLatex$")
         return true
       }
     }
@@ -386,4 +385,20 @@ object MarkdownExtractor {
   }
 
   private fun StringBuilder.isAtLineStart(): Boolean = isEmpty() || endsWith("\n")
+
+  private fun extractMathLatex(
+    spannable: Spannable,
+    start: Int,
+    end: Int,
+  ): String? {
+    return try {
+      val mathInlineSpanClass = Class.forName("com.swmansion.enriched.markdown.spans.MathInlineSpan")
+      val spans = spannable.getSpans(start, end, mathInlineSpanClass)
+      if (spans.isEmpty()) return null
+      val latexField = mathInlineSpanClass.getDeclaredField("latex").apply { isAccessible = true }
+      latexField.get(spans[0]) as? String
+    } catch (_: Exception) {
+      null
+    }
+  }
 }

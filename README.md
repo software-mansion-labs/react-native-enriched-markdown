@@ -28,6 +28,7 @@ We can help you build your next dream product –
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Disabling LaTeX Math (reducing bundle size)](#disabling-latex-math-reducing-bundle-size)
 - [Supported Markdown Elements](#supported-markdown-elements)
 - [Copy Options](#copy-options)
 - [Accessibility](#accessibility)
@@ -55,9 +56,11 @@ yarn add react-native-enriched-markdown
 
 > [!TIP]
 > To try the latest features before they land in a stable release, install the nightly build:
+>
 > ```sh
 > yarn add react-native-enriched-markdown@nightly
 > ```
+>
 > Nightly versions are published to npm automatically and may contain breaking changes.
 
 #### 2. Install iOS dependencies
@@ -91,6 +94,7 @@ npx expo prebuild
 > **iOS: Save to Camera Roll**
 >
 > If your Markdown content includes images and you want users to save them to their photo library, add the following to your `Info.plist`:
+>
 > ```xml
 > <key>NSPhotoLibraryAddUsageDescription</key>
 > <string>This app needs access to your photo library to save images.</string>
@@ -162,7 +166,9 @@ Task lists with interactive checkboxes are available when `flavor="github"` is s
 - [x] Another completed task
   `}
   onTaskListItemPress={({ index, checked, text }) => {
-    console.log(`Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`);
+    console.log(
+      `Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`
+    );
     // Update your state or data model here
   }}
 />
@@ -203,6 +209,41 @@ Einstein's mass-energy equivalence $E = mc^2$ is one of the most famous equation
 Block math equations are rendered as standalone display elements with spacing and an optional background. Inline math inherits the surrounding block's typography.
 
 > **Note:** LaTeX commands use backslashes (e.g. `\frac`, `\alpha`). In regular JS strings and template literals, backslashes are escape characters. Use `String.raw` or double backslashes (`\\frac`) to preserve them. Block math (`$$...$$`) must be on its own line to render as a display element.
+
+## Disabling LaTeX Math (reducing bundle size)
+
+LaTeX math rendering relies on native third-party libraries — **iosMath** (~2.5 MB) on iOS and **AndroidMath** on Android. These are included by default but can be excluded to reduce your app's binary size if you don't need math rendering.
+
+### 1. Disable at the parser level (JS)
+
+Set `latexMath: false` in `md4cFlags` so the parser treats `$` as plain text:
+
+```tsx
+<EnrichedMarkdownText markdown="Price is $5" md4cFlags={{ latexMath: false }} />
+```
+
+This alone prevents math rendering without any native changes. The steps below go further by removing the native math libraries from your binary entirely.
+
+### 2. Remove the native iOS dependency
+
+Add the following to your Podfile (before the `target` block) and re-run `pod install`:
+
+```ruby
+# Podfile
+ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0'
+```
+
+This excludes `iosMath` (~2.5 MB) from the build. Inline math nodes will fall back to rendering the raw LaTeX as plain text; block math nodes will be skipped.
+
+### 3. Remove the native Android dependency
+
+Add the following to your project's `gradle.properties`:
+
+```properties
+enrichedMarkdown.enableMath=false
+```
+
+This excludes `AndroidMath` from the build. Math nodes will be skipped at runtime.
 
 ### Link Handling
 
@@ -253,6 +294,7 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 `react-native-enriched-markdown` library is licensed under [The MIT License](./LICENSE).
 
 ---
+
 Built by [Software Mansion](https://swmansion.com/).
 
 [<img width="128" height="69" alt="Software Mansion Logo" src="https://github.com/user-attachments/assets/f0e18471-a7aa-4e80-86ac-87686a86fe56" />](https://swmansion.com/)

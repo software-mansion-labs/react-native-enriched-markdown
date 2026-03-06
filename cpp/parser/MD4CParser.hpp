@@ -8,6 +8,7 @@ namespace Markdown {
 
 struct Md4cFlags {
     bool underline = false;
+    bool latexMath = true;
 };
 
 class MD4CParser {

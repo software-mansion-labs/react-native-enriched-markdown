@@ -1,10 +1,11 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef } from 'react';
 import EnrichedMarkdownTextNativeComponent, {
   type NativeProps,
   type LinkPressEvent,
   type LinkLongPressEvent,
   type TaskListItemPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';
+import type { MarkdownStyleInternal } from './EnrichedMarkdownTextNativeComponent';
 import EnrichedMarkdownNativeComponent from './EnrichedMarkdownNativeComponent';
 import { normalizeMarkdownStyle } from './normalizeMarkdownStyle';
 import type { ViewStyle, TextStyle, NativeSyntheticEvent } from 'react-native';
@@ -198,6 +199,14 @@ export interface Md4cFlags {
    * @default false
    */
   underline?: boolean;
+  /**
+   * Enable LaTeX math span parsing ($..$ and $$..$$).
+   * When enabled, the parser recognizes LaTeX math delimiters.
+   * When disabled, dollar signs are treated as plain text.
+   * Requires the optional iosMath (iOS) / AndroidMath (Android) native dependencies.
+   * @default true
+   */
+  latexMath?: boolean;
 }
 
 export interface EnrichedMarkdownTextProps
@@ -293,6 +302,7 @@ export interface EnrichedMarkdownTextProps
 
 const defaultMd4cFlags: Md4cFlags = {
   underline: false,
+  latexMath: true,
 };
 
 export const EnrichedMarkdownText = ({
@@ -311,14 +321,19 @@ export const EnrichedMarkdownText = ({
   flavor = 'commonmark',
   ...rest
 }: EnrichedMarkdownTextProps) => {
-  const normalizedStyle = useMemo(
-    () => normalizeMarkdownStyle(markdownStyle),
-    [markdownStyle]
-  );
+  const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
+  const normalized = normalizeMarkdownStyle(markdownStyle);
+  // normalizeMarkdownStyle returns cached objects for structurally equal inputs,
+  // so this referential check is sufficient to preserve a stable prop reference.
+  if (normalizedStyleRef.current !== normalized) {
+    normalizedStyleRef.current = normalized;
+  }
+  const normalizedStyle = normalizedStyleRef.current!;
 
   const normalizedMd4cFlags = useMemo(
     () => ({
       underline: md4cFlags.underline ?? false,
+      latexMath: md4cFlags.latexMath ?? true,
     }),
     [md4cFlags]
   );

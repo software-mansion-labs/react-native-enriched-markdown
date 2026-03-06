@@ -5,6 +5,10 @@
 #import "RendererFactory.h"
 #import "StyleConfig.h"
 
+#import "ENRMFeatureFlags.h"
+
+#if ENRICHED_MARKDOWN_MATH
+
 @implementation ENRMMathInlineRenderer {
   RendererFactory *_rendererFactory;
   StyleConfig *_config;
@@ -54,3 +58,5 @@
 }
 
 @end
+
+#endif

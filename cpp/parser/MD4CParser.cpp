@@ -368,8 +368,11 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   // MD_FLAG_STRIKETHROUGH: Enable ~~strikethrough~~ syntax
   // MD_FLAG_UNDERLINE: When enabled, __ creates underline; when disabled, __ creates emphasis
   // MD_FLAG_PERMISSIVEAUTOLINKS: Bare URLs, emails, www. links become clickable
-  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS |
-                   MD_FLAG_PERMISSIVEAUTOLINKS | MD_FLAG_LATEXMATHSPANS;
+  unsigned flags =
+      MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_PERMISSIVEAUTOLINKS;
+  if (md4cFlags.latexMath) {
+    flags |= MD_FLAG_LATEXMATHSPANS;
+  }
   if (md4cFlags.underline) {
     flags |= MD_FLAG_UNDERLINE;
   }

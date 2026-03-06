@@ -31,15 +31,17 @@ struct MeasurementCacheKey {
   bool allowFontScaling;
   double maxFontSizeMultiplier;
   bool md4cFlagsUnderline;
+  bool md4cFlagsLatexMath;
   size_t styleFingerprint;
   CGFloat fontScale;
 
   bool operator==(const MeasurementCacheKey &other) const
   {
     return std::tie(markdown, maxWidth, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
-                    md4cFlagsUnderline, styleFingerprint, fontScale) ==
+                    md4cFlagsUnderline, md4cFlagsLatexMath, styleFingerprint, fontScale) ==
            std::tie(other.markdown, other.maxWidth, other.allowTrailingMargin, other.allowFontScaling,
-                    other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.styleFingerprint, other.fontScale);
+                    other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.md4cFlagsLatexMath,
+                    other.styleFingerprint, other.fontScale);
   }
 };
 
@@ -53,6 +55,7 @@ struct MeasurementCacheKeyHash {
     HashUtils::hash_one(h, key.allowFontScaling);
     HashUtils::hash_one(h, key.maxFontSizeMultiplier);
     HashUtils::hash_one(h, key.md4cFlagsUnderline);
+    HashUtils::hash_one(h, key.md4cFlagsLatexMath);
     HashUtils::hash_one(h, key.styleFingerprint);
     HashUtils::hash_one(h, key.fontScale);
     return h;
@@ -120,6 +123,7 @@ inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFl
       .allowFontScaling = props.allowFontScaling,
       .maxFontSizeMultiplier = props.maxFontSizeMultiplier,
       .md4cFlagsUnderline = props.md4cFlags.underline,
+      .md4cFlagsLatexMath = props.md4cFlags.latexMath,
       .styleFingerprint = computeStyleFingerprint(props.markdownStyle),
       .fontScale = fontScale,
   };

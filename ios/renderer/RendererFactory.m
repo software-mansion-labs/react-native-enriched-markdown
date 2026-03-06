@@ -3,8 +3,13 @@
 #import "CodeBlockRenderer.h"
 #import "CodeRenderer.h"
 #import "ENRMImageRenderer.h"
-#import "ENRMMathInlineRenderer.h"
 #import "EmphasisRenderer.h"
+
+#import "ENRMFeatureFlags.h"
+
+#if ENRICHED_MARKDOWN_MATH
+#import "ENRMMathInlineRenderer.h"
+#endif
 #import "HeadingRenderer.h"
 #import "LinkRenderer.h"
 #import "ListItemRenderer.h"
@@ -94,8 +99,10 @@
       return [[CodeBlockRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeThematicBreak:
       return [[ThematicBreakRenderer alloc] initWithRendererFactory:self config:_config];
+#if ENRICHED_MARKDOWN_MATH
     case MarkdownNodeTypeLatexMathInline:
       return [[ENRMMathInlineRenderer alloc] initWithRendererFactory:self config:_config];
+#endif
     default:
       return nil;
   }
@@ -119,6 +126,8 @@
     id<NodeRenderer> renderer = [self rendererForNodeType:child.type];
     if (renderer) {
       [renderer renderNode:child into:output context:context];
+    } else if (child.children.count > 0) {
+      [self renderChildrenOfNode:child into:output context:context];
     }
   }
 }

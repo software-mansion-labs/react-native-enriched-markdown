@@ -9,6 +9,7 @@ extern MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, ENRMMd4cF
 {
   if (self = [super init]) {
     _underline = NO;
+    _latexMath = YES;
   }
   return self;
 }
@@ -22,6 +23,7 @@ extern MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, ENRMMd4cF
 {
   ENRMMd4cFlags *copy = [[ENRMMd4cFlags allocWithZone:zone] init];
   copy.underline = self.underline;
+  copy.latexMath = self.latexMath;
   return copy;
 }
 

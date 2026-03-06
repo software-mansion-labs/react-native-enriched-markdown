@@ -135,6 +135,7 @@ MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, ENRMMd4cFlags *f
   // Convert Objective-C flags to C++ flags
   Markdown::Md4cFlags cppFlags;
   cppFlags.underline = flags.underline;
+  cppFlags.latexMath = flags.latexMath;
 
   Markdown::MD4CParser parser;
   auto cppAST = parser.parse(cppMarkdown, cppFlags);

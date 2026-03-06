@@ -189,6 +189,12 @@ export interface Md4cFlagsInternal {
    * @default false
    */
   underline: boolean;
+  /**
+   * Enable LaTeX math span parsing ($..$ and $$..$$).
+   * When disabled, dollar signs are treated as plain text.
+   * @default true
+   */
+  latexMath: boolean;
 }
 
 export interface NativeProps extends ViewProps {

@@ -5,6 +5,7 @@ import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 
 interface NodeRenderer {
   fun render(
@@ -37,27 +38,35 @@ class RendererFactory(
   private val lineBreakRenderer = LineBreakRenderer()
 
   private val renderers: Map<MarkdownASTNode.NodeType, NodeRenderer> by lazy {
-    mapOf(
-      MarkdownASTNode.NodeType.Document to DocumentRenderer(),
-      MarkdownASTNode.NodeType.Paragraph to ParagraphRenderer(config),
-      MarkdownASTNode.NodeType.Heading to HeadingRenderer(config),
-      MarkdownASTNode.NodeType.Blockquote to BlockquoteRenderer(config),
-      MarkdownASTNode.NodeType.CodeBlock to CodeBlockRenderer(config),
-      MarkdownASTNode.NodeType.UnorderedList to ListRenderer(config, isOrdered = false),
-      MarkdownASTNode.NodeType.OrderedList to ListRenderer(config, isOrdered = true),
-      MarkdownASTNode.NodeType.ListItem to ListItemRenderer(config),
-      MarkdownASTNode.NodeType.Text to textRenderer,
-      MarkdownASTNode.NodeType.Link to LinkRenderer(config),
-      MarkdownASTNode.NodeType.Strong to StrongRenderer(config),
-      MarkdownASTNode.NodeType.Emphasis to EmphasisRenderer(config),
-      MarkdownASTNode.NodeType.Strikethrough to StrikethroughRenderer(config),
-      MarkdownASTNode.NodeType.Underline to UnderlineRenderer(config),
-      MarkdownASTNode.NodeType.Code to CodeRenderer(config),
-      MarkdownASTNode.NodeType.Image to ImageRenderer(config, context),
-      MarkdownASTNode.NodeType.LineBreak to lineBreakRenderer,
-      MarkdownASTNode.NodeType.ThematicBreak to ThematicBreakRenderer(config),
-      MarkdownASTNode.NodeType.LatexMathInline to MathInlineRenderer(config, context),
-    )
+    buildMap {
+      put(MarkdownASTNode.NodeType.Document, DocumentRenderer())
+      put(MarkdownASTNode.NodeType.Paragraph, ParagraphRenderer(config))
+      put(MarkdownASTNode.NodeType.Heading, HeadingRenderer(config))
+      put(MarkdownASTNode.NodeType.Blockquote, BlockquoteRenderer(config))
+      put(MarkdownASTNode.NodeType.CodeBlock, CodeBlockRenderer(config))
+      put(MarkdownASTNode.NodeType.UnorderedList, ListRenderer(config, isOrdered = false))
+      put(MarkdownASTNode.NodeType.OrderedList, ListRenderer(config, isOrdered = true))
+      put(MarkdownASTNode.NodeType.ListItem, ListItemRenderer(config))
+      put(MarkdownASTNode.NodeType.Text, textRenderer)
+      put(MarkdownASTNode.NodeType.Link, LinkRenderer(config))
+      put(MarkdownASTNode.NodeType.Strong, StrongRenderer(config))
+      put(MarkdownASTNode.NodeType.Emphasis, EmphasisRenderer(config))
+      put(MarkdownASTNode.NodeType.Strikethrough, StrikethroughRenderer(config))
+      put(MarkdownASTNode.NodeType.Underline, UnderlineRenderer(config))
+      put(MarkdownASTNode.NodeType.Code, CodeRenderer(config))
+      put(MarkdownASTNode.NodeType.Image, ImageRenderer(config, context))
+      put(MarkdownASTNode.NodeType.LineBreak, lineBreakRenderer)
+      put(MarkdownASTNode.NodeType.ThematicBreak, ThematicBreakRenderer(config))
+      if (FeatureFlags.isMathEnabled) {
+        try {
+          val mathInlineRendererClass = Class.forName("com.swmansion.enriched.markdown.renderer.MathInlineRenderer")
+          val constructor = mathInlineRendererClass.getConstructor(RendererConfig::class.java, Context::class.java)
+          put(MarkdownASTNode.NodeType.LatexMathInline, constructor.newInstance(config, context) as NodeRenderer)
+        } catch (_: Exception) {
+          // math not available
+        }
+      }
+    }
   }
 
   /**

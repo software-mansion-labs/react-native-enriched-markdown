@@ -200,6 +200,10 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
         if (underlineField) {
           md4cFlags.underline = env->GetBooleanField(flags, underlineField) == JNI_TRUE;
         }
+        jfieldID latexMathField = env->GetFieldID(flagsClass, "latexMath", "Z");
+        if (latexMathField) {
+          md4cFlags.latexMath = env->GetBooleanField(flags, latexMathField) == JNI_TRUE;
+        }
         env->DeleteLocalRef(flagsClass);
       }
     }

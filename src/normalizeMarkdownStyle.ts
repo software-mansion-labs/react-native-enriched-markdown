@@ -158,7 +158,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     color: defaultTextColor,
     marginTop: 0,
     marginBottom: 16,
-    lineHeight: 0,
+    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
     headerFontFamily: '',
     headerBackgroundColor: normalizeColor('#F3F4F6')!,
     headerTextColor: normalizeColor('#111827')!,

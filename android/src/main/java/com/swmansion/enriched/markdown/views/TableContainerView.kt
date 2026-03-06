@@ -196,7 +196,6 @@ class TableContainerView(
         textSize = tableStyle.fontSize / resources.displayMetrics.scaledDensity
         typeface = if (data.isHeader) styleConfig.tableHeaderTypeface else styleConfig.tableTypeface
         setTextColor(if (data.isHeader) tableStyle.headerTextColor else tableStyle.color)
-        if (tableStyle.lineHeight > 0f) setLineSpacing(tableStyle.lineHeight - (textSize * resources.displayMetrics.scaledDensity), 1f)
         gravity =
           when (data.alignment) {
             Layout.Alignment.ALIGN_CENTER -> Gravity.CENTER_HORIZONTAL

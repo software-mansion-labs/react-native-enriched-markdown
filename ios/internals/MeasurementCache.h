@@ -24,6 +24,11 @@ struct HashUtils {
   }
 };
 
+enum class MarkdownFlavor : uint8_t {
+  CommonMark = 0,
+  GitHub = 1,
+};
+
 struct MeasurementCacheKey {
   std::string markdown;
   CGFloat maxWidth;
@@ -34,14 +39,15 @@ struct MeasurementCacheKey {
   bool md4cFlagsLatexMath;
   size_t styleFingerprint;
   CGFloat fontScale;
+  MarkdownFlavor flavor;
 
   bool operator==(const MeasurementCacheKey &other) const
   {
     return std::tie(markdown, maxWidth, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
-                    md4cFlagsUnderline, md4cFlagsLatexMath, styleFingerprint, fontScale) ==
+                    md4cFlagsUnderline, md4cFlagsLatexMath, styleFingerprint, fontScale, flavor) ==
            std::tie(other.markdown, other.maxWidth, other.allowTrailingMargin, other.allowFontScaling,
                     other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.md4cFlagsLatexMath,
-                    other.styleFingerprint, other.fontScale);
+                    other.styleFingerprint, other.fontScale, other.flavor);
   }
 };
 
@@ -58,6 +64,7 @@ struct MeasurementCacheKeyHash {
     HashUtils::hash_one(h, key.md4cFlagsLatexMath);
     HashUtils::hash_one(h, key.styleFingerprint);
     HashUtils::hash_one(h, key.fontScale);
+    HashUtils::hash_one(h, static_cast<uint8_t>(key.flavor));
     return h;
   }
 };
@@ -73,7 +80,8 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
   auto hashFields = [&](auto... args) { (HashUtils::hash_one(h, args), ...); };
 
   auto hashTextLayout = [&](const auto &item) {
-    hashFields(item.fontFamily, item.fontSize, item.fontWeight, item.marginTop, item.marginBottom, item.lineHeight);
+    hashFields(item.fontFamily, item.fontSize, item.fontWeight, item.marginTop, item.marginBottom, item.lineHeight,
+               item.textAlign);
   };
 
   // Block Elements
@@ -107,14 +115,15 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
   hashTextLayout(s.table);
   hashFields(s.table.headerFontFamily, s.table.cellPaddingHorizontal, s.table.cellPaddingVertical, s.table.borderWidth,
              s.table.borderRadius);
-  hashFields(s.math.fontSize, s.math.padding, s.math.marginTop, s.math.marginBottom);
+  hashFields(s.math.fontSize, s.math.padding, s.math.marginTop, s.math.marginBottom, s.math.textAlign);
   hashFields(s.taskList.checkboxSize, s.taskList.checkboxBorderRadius);
 
   return h;
 }
 
 template <typename PropsType>
-inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFloat maxWidth, CGFloat fontScale)
+inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFloat maxWidth, CGFloat fontScale,
+                                                    MarkdownFlavor flavor)
 {
   return MeasurementCacheKey{
       .markdown = props.markdown,
@@ -126,6 +135,7 @@ inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFl
       .md4cFlagsLatexMath = props.md4cFlags.latexMath,
       .styleFingerprint = computeStyleFingerprint(props.markdownStyle),
       .fontScale = fontScale,
+      .flavor = flavor,
   };
 }
 

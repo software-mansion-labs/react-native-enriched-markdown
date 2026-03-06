@@ -63,7 +63,7 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
   CGFloat fontScale = typedProps.allowFontScaling ? RCTFontSizeMultiplier() : 1.0;
 
   if (!typedProps.markdown.empty()) {
-    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale);
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::CommonMark);
     CachedSize cached;
     if (MeasurementCache::shared().get(cacheKey, cached)) {
       return {cached.width, std::min(cached.height, (CGFloat)maxHeight)};
@@ -92,7 +92,7 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
   }
 
   if (!typedProps.markdown.empty()) {
-    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale);
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::CommonMark);
     MeasurementCache::shared().set(cacheKey, {size.width, size.height});
   }
 

@@ -83,7 +83,7 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
     hashFields(item.fontFamily, item.fontSize, item.fontWeight, item.marginTop, item.marginBottom, item.lineHeight);
   };
 
-  // Block Elements (paragraph and headings also have textAlign)
+  // Block Elements
   hashTextLayout(s.paragraph);
   hashFields(s.paragraph.textAlign);
   hashTextLayout(s.h1);

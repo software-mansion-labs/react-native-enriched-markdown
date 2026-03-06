@@ -80,18 +80,24 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
   auto hashFields = [&](auto... args) { (HashUtils::hash_one(h, args), ...); };
 
   auto hashTextLayout = [&](const auto &item) {
-    hashFields(item.fontFamily, item.fontSize, item.fontWeight, item.marginTop, item.marginBottom, item.lineHeight,
-               item.textAlign);
+    hashFields(item.fontFamily, item.fontSize, item.fontWeight, item.marginTop, item.marginBottom, item.lineHeight);
   };
 
-  // Block Elements
+  // Block Elements (paragraph and headings also have textAlign)
   hashTextLayout(s.paragraph);
+  hashFields(s.paragraph.textAlign);
   hashTextLayout(s.h1);
+  hashFields(s.h1.textAlign);
   hashTextLayout(s.h2);
+  hashFields(s.h2.textAlign);
   hashTextLayout(s.h3);
+  hashFields(s.h3.textAlign);
   hashTextLayout(s.h4);
+  hashFields(s.h4.textAlign);
   hashTextLayout(s.h5);
+  hashFields(s.h5.textAlign);
   hashTextLayout(s.h6);
+  hashFields(s.h6.textAlign);
 
   hashTextLayout(s.blockquote);
   hashFields(s.blockquote.borderWidth, s.blockquote.gapWidth);

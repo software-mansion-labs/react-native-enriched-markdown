@@ -56,18 +56,30 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
   CGFloat maxWidth = layoutConstraints.maximumSize.width;
   CGFloat maxHeight = layoutConstraints.maximumSize.height;
 
+  const auto &typedProps = *std::static_pointer_cast<const EnrichedMarkdownTextProps>(this->getProps());
+
+  // Check measurement cache before creating mock views or dispatching to main thread.
+  // This avoids the expensive mock view + synchronous md4c parse path for repeated content.
+  CGFloat fontScale = typedProps.allowFontScaling ? RCTFontSizeMultiplier() : 1.0;
+
+  if (!typedProps.markdown.empty()) {
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale);
+    CachedSize cached;
+    if (MeasurementCache::shared().get(cacheKey, cached)) {
+      return {cached.width, std::min(cached.height, (CGFloat)maxHeight)};
+    }
+  }
+
   RCTInternalGenericWeakWrapper *weakWrapper =
       (RCTInternalGenericWeakWrapper *)unwrapManagedObject(getStateData().getComponentViewRef());
   EnrichedMarkdownText *view = weakWrapper ? (EnrichedMarkdownText *)weakWrapper.object : nil;
 
   __block CGSize size;
 
-  // Measure on main thread (required for UIKit)
   void (^measureBlock)(void) = ^{
     if (view) {
       size = [view measureSize:maxWidth];
     } else {
-      // No view yet - create mock view for accurate initial measurement
       EnrichedMarkdownText *mockView = setupMockEnrichedMarkdownText_(maxWidth);
       size = [mockView measureSize:maxWidth];
     }
@@ -77,6 +89,11 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
     measureBlock();
   } else {
     dispatch_sync(dispatch_get_main_queue(), measureBlock);
+  }
+
+  if (!typedProps.markdown.empty()) {
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale);
+    MeasurementCache::shared().set(cacheKey, {size.width, size.height});
   }
 
   return {size.width, MIN(size.height, maxHeight)};

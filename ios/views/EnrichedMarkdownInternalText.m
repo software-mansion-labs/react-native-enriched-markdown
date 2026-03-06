@@ -11,6 +11,7 @@
 @implementation EnrichedMarkdownInternalText {
   UITextView *_textView;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
+  BOOL _accessibilityNeedsRebuild;
 }
 
 @synthesize textView = _textView;
@@ -73,17 +74,12 @@
 
   _textView.attributedText = text;
 
-  [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, text.length) actualCharacterRange:NULL];
 
   [_textView setNeedsLayout];
   [_textView setNeedsDisplay];
 
-  if (_accessibilityInfo != nil) {
-    _accessibilityElements = [MarkdownAccessibilityElementBuilder buildElementsForTextView:_textView
-                                                                                      info:_accessibilityInfo
-                                                                                 container:self];
-  }
+  _accessibilityNeedsRebuild = (_accessibilityInfo != nil);
 }
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth
@@ -127,6 +123,17 @@
 
 #pragma mark - Accessibility
 
+- (void)rebuildAccessibilityElementsIfNeeded
+{
+  if (!_accessibilityNeedsRebuild) {
+    return;
+  }
+  _accessibilityNeedsRebuild = NO;
+  _accessibilityElements = [MarkdownAccessibilityElementBuilder buildElementsForTextView:_textView
+                                                                                    info:_accessibilityInfo
+                                                                               container:self];
+}
+
 - (BOOL)isAccessibilityElement
 {
   return NO;
@@ -134,11 +141,13 @@
 
 - (NSInteger)accessibilityElementCount
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return _accessibilityElements.count;
 }
 
 - (id)accessibilityElementAtIndex:(NSInteger)index
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   if (index < 0 || index >= (NSInteger)_accessibilityElements.count) {
     return nil;
   }
@@ -147,11 +156,13 @@
 
 - (NSInteger)indexOfAccessibilityElement:(id)element
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return [_accessibilityElements indexOfObject:element];
 }
 
 - (NSArray *)accessibilityElements
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return _accessibilityElements;
 }
 

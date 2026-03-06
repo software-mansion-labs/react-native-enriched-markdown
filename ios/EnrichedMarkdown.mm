@@ -7,6 +7,7 @@
 #import "EnrichedMarkdownInternalText.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
+#import "HeightUpdateUtils.h"
 #import "LastElementUtils.h"
 #import "LinkTapUtils.h"
 #import "MarkdownASTNode.h"
@@ -393,7 +394,10 @@ using namespace facebook::react;
     }
   }
 
-  [self requestHeightUpdate];
+  if (needsHeightUpdate([self measureSize:self.bounds.size.width], self.bounds)) {
+    [self requestHeightUpdate];
+  }
+
   [self setNeedsLayout];
 }
 

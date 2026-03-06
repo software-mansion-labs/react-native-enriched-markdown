@@ -4,563 +4,254 @@ import type { MarkdownStyleInternal } from './EnrichedMarkdownTextNativeComponen
 
 export const normalizeColor = (
   color: string | undefined
-): ColorValue | undefined => {
-  if (!color) {
-    return undefined;
-  }
-
-  return processColor(color);
-};
-
-const defaultTextColor = processColor('#1F2937') as ColorValue;
-const defaultHeadingColor = processColor('#111827') as ColorValue;
-
-const getMonospaceFont = () =>
-  Platform.select({
-    ios: 'Menlo',
-    android: 'monospace',
-    default: 'monospace',
-  });
+): ColorValue | undefined => (color ? processColor(color) : undefined);
 
 const getSystemFont = () =>
   Platform.select({
-    ios: 'System', // SF Pro on iOS
+    ios: 'System',
     android: 'sans-serif',
     default: 'sans-serif',
   });
+const getMonospaceFont = () =>
+  Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
-// fontWeight: '' allows custom PostScript fonts (e.g., 'Montserrat-Bold') to work on Android
-// Setting a default weight like '700' would interfere with Android's font resolution
-const paragraphDefaultStyles: MarkdownStyleInternal['paragraph'] = {
-  fontSize: 16,
+function mergeSubStyle<T extends Record<string, unknown>>(
+  defaultStyle: T,
+  userStyle?: Partial<T>
+): T {
+  if (!userStyle) return defaultStyle;
+  const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
+  for (const key in result) {
+    if (
+      key.toLowerCase().includes('color') &&
+      typeof result[key] === 'string'
+    ) {
+      result[key] = normalizeColor(result[key]);
+    }
+  }
+  return result as T;
+}
+
+const defaultTextColor = normalizeColor('#1F2937')!;
+const defaultHeadingColor = normalizeColor('#111827')!;
+const baseHeader = {
   fontFamily: getSystemFont(),
   fontWeight: '',
-  color: defaultTextColor,
-  lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
-  marginTop: 0,
-  marginBottom: 16,
-  textAlign: 'auto',
-};
-
-const defaultH1Style: MarkdownStyleInternal['h1'] = {
-  fontSize: 30,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: defaultHeadingColor,
-  lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
   marginTop: 0,
   marginBottom: 8,
   textAlign: 'auto',
 };
 
-const defaultH2Style: MarkdownStyleInternal['h2'] = {
-  fontSize: 24,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: defaultHeadingColor,
-  lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
-  marginTop: 0,
-  marginBottom: 8,
-  textAlign: 'auto',
-};
+const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
+  paragraph: {
+    fontSize: 16,
+    fontFamily: getSystemFont(),
+    fontWeight: '',
+    color: defaultTextColor,
+    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+    marginTop: 0,
+    marginBottom: 16,
+    textAlign: 'auto',
+  },
+  h1: {
+    ...baseHeader,
+    fontSize: 30,
+    color: defaultHeadingColor,
+    lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
+  },
+  h2: {
+    ...baseHeader,
+    fontSize: 24,
+    color: defaultHeadingColor,
+    lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
+  },
+  h3: {
+    ...baseHeader,
+    fontSize: 20,
+    color: defaultHeadingColor,
+    lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
+  },
+  h4: {
+    ...baseHeader,
+    fontSize: 18,
+    color: defaultHeadingColor,
+    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+  },
+  h5: {
+    ...baseHeader,
+    fontSize: 16,
+    color: normalizeColor('#374151')!,
+    lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
+  },
+  h6: {
+    ...baseHeader,
+    fontSize: 14,
+    color: normalizeColor('#4B5563')!,
+    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+  },
+  blockquote: {
+    fontSize: 16,
+    fontFamily: getSystemFont(),
+    fontWeight: '',
+    color: normalizeColor('#4B5563')!,
+    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+    marginTop: 0,
+    marginBottom: 16,
+    borderColor: normalizeColor('#D1D5DB')!,
+    borderWidth: 3,
+    gapWidth: 16,
+    backgroundColor: normalizeColor('#F9FAFB')!,
+  },
+  list: {
+    fontSize: 16,
+    fontFamily: getSystemFont(),
+    fontWeight: '',
+    color: defaultTextColor,
+    lineHeight: Platform.select({ ios: 22, android: 26, default: 26 }),
+    marginTop: 0,
+    marginBottom: 16,
+    bulletColor: normalizeColor('#6B7280')!,
+    bulletSize: 6,
+    markerColor: normalizeColor('#6B7280')!,
+    markerFontWeight: '500',
+    gapWidth: 12,
+    marginLeft: 24,
+  },
+  codeBlock: {
+    fontSize: 14,
+    fontFamily: getMonospaceFont(),
+    fontWeight: '',
+    color: normalizeColor('#F3F4F6')!,
+    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+    marginTop: 0,
+    marginBottom: 16,
+    backgroundColor: normalizeColor('#1F2937')!,
+    borderColor: normalizeColor('#374151')!,
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 16,
+  },
+  link: { fontFamily: '', color: normalizeColor('#2563EB')!, underline: true },
+  strong: { fontFamily: '', fontWeight: 'bold', color: undefined },
+  em: { fontFamily: '', fontStyle: 'italic', color: undefined },
+  strikethrough: { color: normalizeColor('#9CA3AF')! },
+  underline: { color: defaultTextColor },
+  code: {
+    fontFamily: '',
+    fontSize: 0,
+    color: normalizeColor('#E01E5A')!,
+    backgroundColor: normalizeColor('#FDF2F4')!,
+    borderColor: normalizeColor('#F8D7DA')!,
+  },
+  image: { height: 200, borderRadius: 8, marginTop: 0, marginBottom: 16 },
+  inlineImage: { size: 20 },
+  thematicBreak: {
+    color: normalizeColor('#E5E7EB')!,
+    height: 1,
+    marginTop: 24,
+    marginBottom: 24,
+  },
+  table: {
+    fontSize: 14,
+    fontFamily: getSystemFont(),
+    fontWeight: '',
+    color: defaultTextColor,
+    marginTop: 0,
+    marginBottom: 16,
+    lineHeight: 0,
+    headerFontFamily: '',
+    headerBackgroundColor: normalizeColor('#F3F4F6')!,
+    headerTextColor: normalizeColor('#111827')!,
+    rowEvenBackgroundColor: normalizeColor('#FFFFFF')!,
+    rowOddBackgroundColor: normalizeColor('#F9FAFB')!,
+    borderColor: normalizeColor('#E5E7EB')!,
+    borderWidth: 1,
+    borderRadius: 6,
+    cellPaddingHorizontal: 12,
+    cellPaddingVertical: 8,
+  },
+  math: {
+    fontSize: 20,
+    color: defaultTextColor,
+    backgroundColor: normalizeColor('#F3F4F6')!,
+    padding: 12,
+    marginTop: 0,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  inlineMath: { color: defaultTextColor },
+  taskList: {
+    checkedColor: Platform.select({
+      ios: normalizeColor('#007AFF')!,
+      android: normalizeColor('#2196F3')!,
+      default: normalizeColor('#007AFF')!,
+    }),
+    borderColor: normalizeColor('#9E9E9E')!,
+    checkboxSize: 14,
+    checkboxBorderRadius: 3,
+    checkmarkColor: normalizeColor('#FFFFFF')!,
+    checkedTextColor: normalizeColor('#000000')!,
+    checkedStrikethrough: false,
+  },
+});
 
-const defaultH3Style: MarkdownStyleInternal['h3'] = {
-  fontSize: 20,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: defaultHeadingColor,
-  lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
-  marginTop: 0,
-  marginBottom: 8,
-  textAlign: 'auto',
-};
+const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();
+const structuralCache: {
+  style: MarkdownStyle;
+  result: MarkdownStyleInternal;
+}[] = [];
+const LRU_MAX = 8;
 
-const defaultH4Style: MarkdownStyleInternal['h4'] = {
-  fontSize: 18,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: defaultHeadingColor,
-  lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
-  marginTop: 0,
-  marginBottom: 8,
-  textAlign: 'auto',
-};
-
-const defaultH5Style: MarkdownStyleInternal['h5'] = {
-  fontSize: 16,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: processColor('#374151') as ColorValue,
-  lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
-  marginTop: 0,
-  marginBottom: 8,
-  textAlign: 'auto',
-};
-
-const defaultH6Style: MarkdownStyleInternal['h6'] = {
-  fontSize: 14,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: processColor('#4B5563') as ColorValue,
-  lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
-  marginTop: 0,
-  marginBottom: 8,
-  textAlign: 'auto',
-};
-
-const defaultLinkColor = processColor('#2563EB') as ColorValue;
-
-const defaultLinkStyle: MarkdownStyleInternal['link'] = {
-  fontFamily: '',
-  color: defaultLinkColor,
-  underline: true,
-};
-
-const defaultStrongStyle: MarkdownStyleInternal['strong'] = {
-  fontFamily: '',
-  fontWeight: 'bold',
-  color: undefined,
-};
-
-const defaultEmphasisStyle: MarkdownStyleInternal['em'] = {
-  fontFamily: '',
-  fontStyle: 'italic',
-  color: undefined,
-};
-
-const defaultCodeColor = processColor('#E01E5A') as ColorValue;
-const defaultCodeBackgroundColor = processColor('#FDF2F4') as ColorValue;
-const defaultCodeBorderColor = processColor('#F8D7DA') as ColorValue;
-
-const defaultCodeStyle: MarkdownStyleInternal['code'] = {
-  fontFamily: '',
-  fontSize: 0,
-  color: defaultCodeColor,
-  backgroundColor: defaultCodeBackgroundColor,
-  borderColor: defaultCodeBorderColor,
-};
-
-const defaultImageStyle: MarkdownStyleInternal['image'] = {
-  height: 200,
-  borderRadius: 8,
-  marginTop: 0,
-  marginBottom: 16,
-};
-
-const defaultInlineImageStyle: MarkdownStyleInternal['inlineImage'] = {
-  size: 20,
-};
-
-// Blockquote - subtle but distinct
-const defaultBlockquoteBorderColor = processColor('#D1D5DB') as ColorValue;
-const defaultBlockquoteBackgroundColor = processColor('#F9FAFB') as ColorValue;
-
-const defaultBlockquoteStyle: MarkdownStyleInternal['blockquote'] = {
-  fontSize: 16,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: processColor('#4B5563') as ColorValue,
-  lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
-  marginTop: 0,
-  marginBottom: 16,
-  borderColor: defaultBlockquoteBorderColor,
-  borderWidth: 3,
-  gapWidth: 16,
-  backgroundColor: defaultBlockquoteBackgroundColor,
-};
-
-const defaultListBulletColor = processColor('#6B7280') as ColorValue;
-const defaultListMarkerColor = processColor('#6B7280') as ColorValue;
-
-const defaultListStyle: MarkdownStyleInternal['list'] = {
-  fontSize: 16,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: defaultTextColor,
-  lineHeight: Platform.select({
-    ios: 22,
-    android: 26,
-    default: 26,
-  }),
-  marginTop: 0,
-  marginBottom: 16,
-  bulletColor: defaultListBulletColor,
-  bulletSize: 6,
-  markerColor: defaultListMarkerColor,
-  markerFontWeight: '500',
-  gapWidth: 12,
-  marginLeft: 24,
-};
-
-const defaultCodeBlockBackgroundColor = processColor('#1F2937') as ColorValue;
-const defaultCodeBlockBorderColor = processColor('#374151') as ColorValue;
-const defaultCodeBlockTextColor = processColor('#F3F4F6') as ColorValue;
-
-const defaultCodeBlockStyle: MarkdownStyleInternal['codeBlock'] = {
-  fontSize: 14,
-  fontFamily: getMonospaceFont(),
-  fontWeight: '',
-  color: defaultCodeBlockTextColor,
-  lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
-  marginTop: 0,
-  marginBottom: 16,
-  backgroundColor: defaultCodeBlockBackgroundColor,
-  borderColor: defaultCodeBlockBorderColor,
-  borderRadius: 8,
-  borderWidth: 1,
-  padding: 16,
-};
-
-const defaultStrikethroughColor = processColor('#9CA3AF') as ColorValue;
-const defaultUnderlineColor = defaultTextColor;
-
-const defaultThematicBreakColor = processColor('#E5E7EB') as ColorValue;
-
-const defaultThematicBreakStyle: MarkdownStyleInternal['thematicBreak'] = {
-  color: defaultThematicBreakColor,
-  height: 1,
-  marginTop: 24,
-  marginBottom: 24,
-};
-
-const defaultTableStyle: MarkdownStyleInternal['table'] = {
-  fontSize: 14,
-  fontFamily: getSystemFont(),
-  fontWeight: '',
-  color: defaultTextColor,
-  marginTop: 0,
-  marginBottom: 16,
-  lineHeight: 0,
-  headerFontFamily: '',
-  headerBackgroundColor: processColor('#F3F4F6') as ColorValue,
-  headerTextColor: processColor('#111827') as ColorValue,
-  rowEvenBackgroundColor: processColor('#FFFFFF') as ColorValue,
-  rowOddBackgroundColor: processColor('#F9FAFB') as ColorValue,
-  borderColor: processColor('#E5E7EB') as ColorValue,
-  borderWidth: 1,
-  borderRadius: 6,
-  cellPaddingHorizontal: 12,
-  cellPaddingVertical: 8,
-};
-
-const defaultMathStyle: MarkdownStyleInternal['math'] = {
-  fontSize: 20,
-  color: processColor('#1F2937') as ColorValue,
-  backgroundColor: processColor('#F3F4F6') as ColorValue,
-  padding: 12,
-  marginTop: 0,
-  marginBottom: 16,
-  textAlign: 'center',
-};
-
-const defaultInlineMathStyle: MarkdownStyleInternal['inlineMath'] = {
-  color: processColor('#1F2937') as ColorValue,
-};
-
-const defaultTaskListStyle: MarkdownStyleInternal['taskList'] = {
-  checkedColor: Platform.select({
-    ios: processColor('#007AFF'),
-    android: processColor('#2196F3'),
-    default: processColor('#007AFF'),
-  }) as ColorValue,
-  borderColor: processColor('#9E9E9E') as ColorValue,
-  checkboxSize: Math.round(defaultListStyle.fontSize * 0.9),
-  checkboxBorderRadius: 3,
-  checkmarkColor: processColor('#FFFFFF') as ColorValue,
-  checkedTextColor: processColor('#000000') as ColorValue,
-  checkedStrikethrough: false,
+const isStyleEqual = (a: MarkdownStyle, b: MarkdownStyle): boolean => {
+  const keys = Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyle)[];
+  return keys.every((key) => {
+    const subA = a[key],
+      subB = b[key];
+    if (subA === subB) return true;
+    if (!subA || !subB) return false;
+    const subKeys = Object.keys(subA) as (keyof typeof subA)[];
+    return subKeys.every((k) => subA[k] === subB[k]);
+  });
 };
 
 export const normalizeMarkdownStyle = (
   style: MarkdownStyle
 ): MarkdownStyleInternal => {
-  const paragraph: MarkdownStyleInternal['paragraph'] = {
-    fontSize: style.paragraph?.fontSize ?? paragraphDefaultStyles.fontSize,
-    fontFamily:
-      style.paragraph?.fontFamily ?? paragraphDefaultStyles.fontFamily,
-    fontWeight:
-      style.paragraph?.fontWeight ?? paragraphDefaultStyles.fontWeight,
-    color:
-      normalizeColor(style.paragraph?.color) ?? paragraphDefaultStyles.color,
-    marginTop: style.paragraph?.marginTop ?? paragraphDefaultStyles.marginTop,
-    marginBottom:
-      style.paragraph?.marginBottom ?? paragraphDefaultStyles.marginBottom,
-    lineHeight:
-      style.paragraph?.lineHeight ?? paragraphDefaultStyles.lineHeight,
-    textAlign: style.paragraph?.textAlign ?? paragraphDefaultStyles.textAlign,
-  };
+  if (!style || Object.keys(style).length === 0)
+    return DEFAULT_NORMALIZED_STYLE;
 
-  const h1: MarkdownStyleInternal['h1'] = {
-    fontSize: style.h1?.fontSize ?? defaultH1Style.fontSize,
-    fontFamily: style.h1?.fontFamily ?? defaultH1Style.fontFamily,
-    fontWeight: style.h1?.fontWeight ?? defaultH1Style.fontWeight,
-    color: normalizeColor(style.h1?.color) ?? defaultH1Style.color,
-    marginTop: style.h1?.marginTop ?? defaultH1Style.marginTop,
-    marginBottom: style.h1?.marginBottom ?? defaultH1Style.marginBottom,
-    lineHeight: style.h1?.lineHeight ?? defaultH1Style.lineHeight,
-    textAlign: style.h1?.textAlign ?? defaultH1Style.textAlign,
-  };
+  const refHit = refCache.get(style);
+  if (refHit) return refHit;
 
-  const h2: MarkdownStyleInternal['h2'] = {
-    fontSize: style.h2?.fontSize ?? defaultH2Style.fontSize,
-    fontFamily: style.h2?.fontFamily ?? defaultH2Style.fontFamily,
-    fontWeight: style.h2?.fontWeight ?? defaultH2Style.fontWeight,
-    color: normalizeColor(style.h2?.color) ?? defaultH2Style.color,
-    marginTop: style.h2?.marginTop ?? defaultH2Style.marginTop,
-    marginBottom: style.h2?.marginBottom ?? defaultH2Style.marginBottom,
-    lineHeight: style.h2?.lineHeight ?? defaultH2Style.lineHeight,
-    textAlign: style.h2?.textAlign ?? defaultH2Style.textAlign,
-  };
+  const structIdx = structuralCache.findIndex((e) =>
+    isStyleEqual(e.style, style)
+  );
+  if (structIdx !== -1) {
+    const entry = structuralCache.splice(structIdx, 1)[0]!;
+    structuralCache.unshift(entry);
+    refCache.set(style, entry.result);
+    return entry.result;
+  }
 
-  const h3: MarkdownStyleInternal['h3'] = {
-    fontSize: style.h3?.fontSize ?? defaultH3Style.fontSize,
-    fontFamily: style.h3?.fontFamily ?? defaultH3Style.fontFamily,
-    fontWeight: style.h3?.fontWeight ?? defaultH3Style.fontWeight,
-    color: normalizeColor(style.h3?.color) ?? defaultH3Style.color,
-    marginTop: style.h3?.marginTop ?? defaultH3Style.marginTop,
-    marginBottom: style.h3?.marginBottom ?? defaultH3Style.marginBottom,
-    lineHeight: style.h3?.lineHeight ?? defaultH3Style.lineHeight,
-    textAlign: style.h3?.textAlign ?? defaultH3Style.textAlign,
-  };
+  const result: any = {};
+  (
+    Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyleInternal)[]
+  ).forEach((key) => {
+    result[key] = mergeSubStyle(
+      DEFAULT_NORMALIZED_STYLE[key] as any,
+      style[key] as any
+    );
+  });
 
-  const h4: MarkdownStyleInternal['h4'] = {
-    fontSize: style.h4?.fontSize ?? defaultH4Style.fontSize,
-    fontFamily: style.h4?.fontFamily ?? defaultH4Style.fontFamily,
-    fontWeight: style.h4?.fontWeight ?? defaultH4Style.fontWeight,
-    color: normalizeColor(style.h4?.color) ?? defaultH4Style.color,
-    marginTop: style.h4?.marginTop ?? defaultH4Style.marginTop,
-    marginBottom: style.h4?.marginBottom ?? defaultH4Style.marginBottom,
-    lineHeight: style.h4?.lineHeight ?? defaultH4Style.lineHeight,
-    textAlign: style.h4?.textAlign ?? defaultH4Style.textAlign,
-  };
+  if (style.taskList?.checkboxSize === undefined) {
+    const listSize = result.list.fontSize;
+    result.taskList.checkboxSize = Math.round(listSize * 0.9);
+  }
 
-  const h5: MarkdownStyleInternal['h5'] = {
-    fontSize: style.h5?.fontSize ?? defaultH5Style.fontSize,
-    fontFamily: style.h5?.fontFamily ?? defaultH5Style.fontFamily,
-    fontWeight: style.h5?.fontWeight ?? defaultH5Style.fontWeight,
-    color: normalizeColor(style.h5?.color) ?? defaultH5Style.color,
-    marginTop: style.h5?.marginTop ?? defaultH5Style.marginTop,
-    marginBottom: style.h5?.marginBottom ?? defaultH5Style.marginBottom,
-    lineHeight: style.h5?.lineHeight ?? defaultH5Style.lineHeight,
-    textAlign: style.h5?.textAlign ?? defaultH5Style.textAlign,
-  };
+  const finalResult = Object.freeze(result);
+  refCache.set(style, finalResult);
+  structuralCache.unshift({ style, result: finalResult });
+  if (structuralCache.length > LRU_MAX) structuralCache.pop();
 
-  const h6: MarkdownStyleInternal['h6'] = {
-    fontSize: style.h6?.fontSize ?? defaultH6Style.fontSize,
-    fontFamily: style.h6?.fontFamily ?? defaultH6Style.fontFamily,
-    fontWeight: style.h6?.fontWeight ?? defaultH6Style.fontWeight,
-    color: normalizeColor(style.h6?.color) ?? defaultH6Style.color,
-    marginTop: style.h6?.marginTop ?? defaultH6Style.marginTop,
-    marginBottom: style.h6?.marginBottom ?? defaultH6Style.marginBottom,
-    lineHeight: style.h6?.lineHeight ?? defaultH6Style.lineHeight,
-    textAlign: style.h6?.textAlign ?? defaultH6Style.textAlign,
-  };
-
-  const blockquote: MarkdownStyleInternal['blockquote'] = {
-    fontSize: style.blockquote?.fontSize ?? defaultBlockquoteStyle.fontSize,
-    fontFamily:
-      style.blockquote?.fontFamily ?? defaultBlockquoteStyle.fontFamily,
-    fontWeight:
-      style.blockquote?.fontWeight ?? defaultBlockquoteStyle.fontWeight,
-    color:
-      normalizeColor(style.blockquote?.color) ?? defaultBlockquoteStyle.color,
-    marginTop: style.blockquote?.marginTop ?? defaultBlockquoteStyle.marginTop,
-    marginBottom:
-      style.blockquote?.marginBottom ?? defaultBlockquoteStyle.marginBottom,
-    lineHeight:
-      style.blockquote?.lineHeight ?? defaultBlockquoteStyle.lineHeight,
-    borderColor:
-      normalizeColor(style.blockquote?.borderColor) ??
-      defaultBlockquoteStyle.borderColor,
-    borderWidth:
-      style.blockquote?.borderWidth ?? defaultBlockquoteStyle.borderWidth,
-    gapWidth: style.blockquote?.gapWidth ?? defaultBlockquoteStyle.gapWidth,
-    backgroundColor:
-      (normalizeColor(style.blockquote?.backgroundColor) as ColorValue) ??
-      defaultBlockquoteStyle.backgroundColor,
-  };
-
-  const list: MarkdownStyleInternal['list'] = {
-    fontSize: style.list?.fontSize ?? defaultListStyle.fontSize,
-    fontFamily: style.list?.fontFamily ?? defaultListStyle.fontFamily,
-    fontWeight: style.list?.fontWeight ?? defaultListStyle.fontWeight,
-    color: normalizeColor(style.list?.color) ?? defaultListStyle.color,
-    marginTop: style.list?.marginTop ?? defaultListStyle.marginTop,
-    marginBottom: style.list?.marginBottom ?? defaultListStyle.marginBottom,
-    lineHeight: style.list?.lineHeight ?? defaultListStyle.lineHeight,
-    bulletColor:
-      normalizeColor(style.list?.bulletColor) ?? defaultListStyle.bulletColor,
-    bulletSize: style.list?.bulletSize ?? defaultListStyle.bulletSize,
-    markerColor:
-      normalizeColor(style.list?.markerColor) ?? defaultListStyle.markerColor,
-    markerFontWeight:
-      style.list?.markerFontWeight ?? defaultListStyle.markerFontWeight,
-    gapWidth: style.list?.gapWidth ?? defaultListStyle.gapWidth,
-    marginLeft: style.list?.marginLeft ?? defaultListStyle.marginLeft,
-  };
-
-  const codeBlock: MarkdownStyleInternal['codeBlock'] = {
-    fontSize: style.codeBlock?.fontSize ?? defaultCodeBlockStyle.fontSize,
-    fontFamily: style.codeBlock?.fontFamily ?? defaultCodeBlockStyle.fontFamily,
-    fontWeight: style.codeBlock?.fontWeight ?? defaultCodeBlockStyle.fontWeight,
-    color:
-      normalizeColor(style.codeBlock?.color) ?? defaultCodeBlockStyle.color,
-    marginTop: style.codeBlock?.marginTop ?? defaultCodeBlockStyle.marginTop,
-    marginBottom:
-      style.codeBlock?.marginBottom ?? defaultCodeBlockStyle.marginBottom,
-    lineHeight: style.codeBlock?.lineHeight ?? defaultCodeBlockStyle.lineHeight,
-    backgroundColor:
-      normalizeColor(style.codeBlock?.backgroundColor) ??
-      defaultCodeBlockStyle.backgroundColor,
-    borderColor:
-      normalizeColor(style.codeBlock?.borderColor) ??
-      defaultCodeBlockStyle.borderColor,
-    borderRadius:
-      style.codeBlock?.borderRadius ?? defaultCodeBlockStyle.borderRadius,
-    borderWidth:
-      style.codeBlock?.borderWidth ?? defaultCodeBlockStyle.borderWidth,
-    padding: style.codeBlock?.padding ?? defaultCodeBlockStyle.padding,
-  };
-
-  return {
-    paragraph,
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    blockquote,
-    list,
-    codeBlock,
-    link: {
-      ...defaultLinkStyle,
-      ...style.link,
-      color: normalizeColor(style.link?.color) ?? defaultLinkStyle.color,
-    },
-    strong: {
-      ...defaultStrongStyle,
-      fontFamily: style.strong?.fontFamily ?? defaultStrongStyle.fontFamily,
-      fontWeight: style.strong?.fontWeight ?? defaultStrongStyle.fontWeight,
-      color: normalizeColor(style.strong?.color) ?? defaultStrongStyle.color,
-    },
-    em: {
-      ...defaultEmphasisStyle,
-      fontFamily: style.em?.fontFamily ?? defaultEmphasisStyle.fontFamily,
-      fontStyle: style.em?.fontStyle ?? defaultEmphasisStyle.fontStyle,
-      color: normalizeColor(style.em?.color) ?? defaultEmphasisStyle.color,
-    },
-    strikethrough: {
-      color:
-        normalizeColor(style.strikethrough?.color) ?? defaultStrikethroughColor,
-    },
-    underline: {
-      color: normalizeColor(style.underline?.color) ?? defaultUnderlineColor,
-    },
-    code: {
-      ...defaultCodeStyle,
-      fontFamily: style.code?.fontFamily ?? defaultCodeStyle.fontFamily,
-      fontSize: style.code?.fontSize ?? defaultCodeStyle.fontSize,
-      color: normalizeColor(style.code?.color) ?? defaultCodeStyle.color,
-      backgroundColor:
-        normalizeColor(style.code?.backgroundColor) ??
-        defaultCodeStyle.backgroundColor,
-      borderColor:
-        normalizeColor(style.code?.borderColor) ?? defaultCodeStyle.borderColor,
-    },
-    image: {
-      ...defaultImageStyle,
-      height: style.image?.height ?? defaultImageStyle.height,
-      borderRadius: style.image?.borderRadius ?? defaultImageStyle.borderRadius,
-      marginTop: style.image?.marginTop ?? defaultImageStyle.marginTop,
-      marginBottom: style.image?.marginBottom ?? defaultImageStyle.marginBottom,
-    },
-    inlineImage: {
-      ...defaultInlineImageStyle,
-      size: style.inlineImage?.size ?? defaultInlineImageStyle.size,
-    },
-    thematicBreak: {
-      color:
-        normalizeColor(style.thematicBreak?.color) ??
-        defaultThematicBreakStyle.color,
-      height: style.thematicBreak?.height ?? defaultThematicBreakStyle.height,
-      marginTop:
-        style.thematicBreak?.marginTop ?? defaultThematicBreakStyle.marginTop,
-      marginBottom:
-        style.thematicBreak?.marginBottom ??
-        defaultThematicBreakStyle.marginBottom,
-    },
-    table: {
-      fontSize: style.table?.fontSize ?? defaultTableStyle.fontSize,
-      fontFamily: style.table?.fontFamily ?? defaultTableStyle.fontFamily,
-      fontWeight: style.table?.fontWeight ?? defaultTableStyle.fontWeight,
-      color: normalizeColor(style.table?.color) ?? defaultTableStyle.color,
-      marginTop: style.table?.marginTop ?? defaultTableStyle.marginTop,
-      marginBottom: style.table?.marginBottom ?? defaultTableStyle.marginBottom,
-      lineHeight: style.table?.lineHeight ?? defaultTableStyle.lineHeight,
-      headerFontFamily:
-        style.table?.headerFontFamily ?? defaultTableStyle.headerFontFamily,
-      headerBackgroundColor:
-        normalizeColor(style.table?.headerBackgroundColor) ??
-        defaultTableStyle.headerBackgroundColor,
-      headerTextColor:
-        normalizeColor(style.table?.headerTextColor) ??
-        defaultTableStyle.headerTextColor,
-      rowEvenBackgroundColor:
-        normalizeColor(style.table?.rowEvenBackgroundColor) ??
-        defaultTableStyle.rowEvenBackgroundColor,
-      rowOddBackgroundColor:
-        normalizeColor(style.table?.rowOddBackgroundColor) ??
-        defaultTableStyle.rowOddBackgroundColor,
-      borderColor:
-        normalizeColor(style.table?.borderColor) ??
-        defaultTableStyle.borderColor,
-      borderWidth: style.table?.borderWidth ?? defaultTableStyle.borderWidth,
-      borderRadius: style.table?.borderRadius ?? defaultTableStyle.borderRadius,
-      cellPaddingHorizontal:
-        style.table?.cellPaddingHorizontal ??
-        defaultTableStyle.cellPaddingHorizontal,
-      cellPaddingVertical:
-        style.table?.cellPaddingVertical ??
-        defaultTableStyle.cellPaddingVertical,
-    },
-    taskList: {
-      checkedColor:
-        normalizeColor(style.taskList?.checkedColor) ??
-        defaultTaskListStyle.checkedColor,
-      borderColor:
-        normalizeColor(style.taskList?.borderColor) ??
-        defaultTaskListStyle.borderColor,
-      checkboxSize:
-        style.taskList?.checkboxSize ??
-        Math.round((style.list?.fontSize ?? defaultListStyle.fontSize) * 0.9),
-      checkboxBorderRadius:
-        style.taskList?.checkboxBorderRadius ??
-        defaultTaskListStyle.checkboxBorderRadius,
-      checkmarkColor:
-        normalizeColor(style.taskList?.checkmarkColor) ??
-        defaultTaskListStyle.checkmarkColor,
-      checkedTextColor:
-        normalizeColor(style.taskList?.checkedTextColor) ??
-        defaultTaskListStyle.checkedTextColor,
-      checkedStrikethrough:
-        style.taskList?.checkedStrikethrough ??
-        defaultTaskListStyle.checkedStrikethrough,
-    },
-    math: {
-      fontSize: style.math?.fontSize ?? defaultMathStyle.fontSize,
-      color: normalizeColor(style.math?.color) ?? defaultMathStyle.color,
-      backgroundColor:
-        normalizeColor(style.math?.backgroundColor) ??
-        defaultMathStyle.backgroundColor,
-      padding: style.math?.padding ?? defaultMathStyle.padding,
-      marginTop: style.math?.marginTop ?? defaultMathStyle.marginTop,
-      marginBottom: style.math?.marginBottom ?? defaultMathStyle.marginBottom,
-      textAlign: style.math?.textAlign ?? defaultMathStyle.textAlign,
-    },
-    inlineMath: {
-      color:
-        normalizeColor(style.inlineMath?.color) ?? defaultInlineMathStyle.color,
-    },
-  };
+  return finalResult;
 };

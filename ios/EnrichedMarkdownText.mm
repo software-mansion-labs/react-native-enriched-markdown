@@ -7,6 +7,7 @@
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
+#import "HeightUpdateUtils.h"
 #import "LastElementUtils.h"
 #import "LinkTapUtils.h"
 #import "MarkdownASTNode.h"
@@ -65,6 +66,7 @@ using namespace facebook::react;
 
   AccessibilityInfo *_accessibilityInfo;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
+  BOOL _accessibilityNeedsRebuild;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -333,7 +335,6 @@ using namespace facebook::react;
 
   _textView.attributedText = attributedText;
 
-  [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, attributedText.length)
                                         actualCharacterRange:NULL];
 
@@ -341,9 +342,11 @@ using namespace facebook::react;
   [_textView setNeedsDisplay];
   [self setNeedsLayout];
 
-  // Height update must happen before accessibility elements are built
-  [self requestHeightUpdate];
-  [self buildAccessibilityElements];
+  if (needsHeightUpdate([self measureSize:self.bounds.size.width], self.bounds)) {
+    [self requestHeightUpdate];
+  }
+
+  _accessibilityNeedsRebuild = YES;
 
   // Next run loop — layout must settle before revealing content
   if (_textView.hidden) {
@@ -489,8 +492,12 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 
 #pragma mark - Accessibility (VoiceOver Navigation)
 
-- (void)buildAccessibilityElements
+- (void)rebuildAccessibilityElementsIfNeeded
 {
+  if (!_accessibilityNeedsRebuild) {
+    return;
+  }
+  _accessibilityNeedsRebuild = NO;
   _accessibilityElements = [MarkdownAccessibilityElementBuilder buildElementsForTextView:_textView
                                                                                     info:_accessibilityInfo
                                                                                container:self];
@@ -503,11 +510,13 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 
 - (NSInteger)accessibilityElementCount
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return _accessibilityElements.count;
 }
 
 - (id)accessibilityElementAtIndex:(NSInteger)index
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   if (index < 0 || index >= (NSInteger)_accessibilityElements.count) {
     return nil;
   }
@@ -516,16 +525,19 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 
 - (NSInteger)indexOfAccessibilityElement:(id)element
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return [_accessibilityElements indexOfObject:element];
 }
 
 - (NSArray *)accessibilityElements
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return _accessibilityElements;
 }
 
 - (NSArray<UIAccessibilityCustomRotor *> *)accessibilityCustomRotors
 {
+  [self rebuildAccessibilityElementsIfNeeded];
   return [MarkdownAccessibilityElementBuilder buildRotorsFromElements:_accessibilityElements];
 }
 

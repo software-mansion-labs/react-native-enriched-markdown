@@ -1,4 +1,5 @@
 #pragma once
+#include "MeasurementCache.h"
 #include <ReactNativeEnrichedMarkdown/EnrichedMarkdownState.h>
 #include <ReactNativeEnrichedMarkdown/EventEmitters.h>
 #include <ReactNativeEnrichedMarkdown/Props.h>

@@ -1,5 +1,11 @@
 #import "ENRMMathInlineAttachment.h"
+#import "ENRMFeatureFlags.h"
+
+#if ENRICHED_MARKDOWN_MATH
 #import <IosMath/IosMath.h>
+#endif
+
+#if ENRICHED_MARKDOWN_MATH
 
 @implementation ENRMMathInlineAttachment {
   CGSize _cachedSize;
@@ -73,3 +79,5 @@
 }
 
 @end
+
+#endif

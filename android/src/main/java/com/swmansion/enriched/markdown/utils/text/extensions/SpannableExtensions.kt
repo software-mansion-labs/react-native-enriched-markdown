@@ -3,10 +3,10 @@ package com.swmansion.enriched.markdown.utils.text.extensions
 import android.content.Context
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
-import com.swmansion.enriched.markdown.spans.MathInlinePlaceholderSpan
-import com.swmansion.enriched.markdown.spans.MathInlineSpan
-import com.swmansion.enriched.markdown.spans.MathMeasureHelper
+import android.util.Log
 import com.swmansion.enriched.markdown.spans.MathMeasureRequest
+import com.swmansion.enriched.markdown.spans.MathMetrics
+import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 
 fun SpannableStringBuilder.isInlineImage(): Boolean {
   if (isEmpty()) return false
@@ -16,23 +16,50 @@ fun SpannableStringBuilder.isInlineImage(): Boolean {
 
 /** Swaps MathInlineSpans for MathInlinePlaceholderSpans safe for background-thread measurement. */
 fun SpannableString.replaceMathSpansWithPlaceholders(context: Context) {
-  val mathSpans = getSpans(0, length, MathInlineSpan::class.java)
-  if (mathSpans.isEmpty()) return
+  if (!FeatureFlags.isMathEnabled) return
 
-  val requests = mathSpans.map { MathMeasureRequest(it.fontSize, it.latex) }
+  try {
+    val spanClass = Class.forName("com.swmansion.enriched.markdown.spans.MathInlineSpan")
+    val placeholderClass = Class.forName("com.swmansion.enriched.markdown.spans.MathInlinePlaceholderSpan")
 
-  val results = MathMeasureHelper.measureOnMainThread(context, requests)
+    val mathSpans = getSpans(0, length, spanClass)
+    if (mathSpans.isNullOrEmpty()) return
 
-  mathSpans.forEachIndexed { i, span ->
-    val metrics = results.getOrNull(i) ?: return@forEachIndexed
+    val fontSizeField = spanClass.getDeclaredField("fontSize").apply { isAccessible = true }
+    val latexField = spanClass.getDeclaredField("latex").apply { isAccessible = true }
 
-    val start = getSpanStart(span)
-    val end = getSpanEnd(span)
-    val flags = getSpanFlags(span)
+    val requests =
+      mathSpans.map { span ->
+        MathMeasureRequest(
+          fontSize = fontSizeField.getFloat(span),
+          latex = latexField.get(span) as String,
+        )
+      }
 
-    if (start >= 0 && end >= 0) {
-      removeSpan(span)
-      setSpan(MathInlinePlaceholderSpan(metrics), start, end, flags)
+    val mathMeasureHelperClass = Class.forName("com.swmansion.enriched.markdown.spans.MathMeasureHelper")
+    val measureMethod = mathMeasureHelperClass.getMethod("measureOnMainThread", Context::class.java, List::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    val results = measureMethod.invoke(null, context, requests) as? List<MathMetrics> ?: return
+
+    val placeholderCtor = placeholderClass.getConstructor(MathMetrics::class.java)
+
+    mathSpans.forEachIndexed { i, oldSpan ->
+      val metrics = results.getOrNull(i) ?: return@forEachIndexed
+
+      val start = getSpanStart(oldSpan)
+      val end = getSpanEnd(oldSpan)
+      val flags = getSpanFlags(oldSpan)
+
+      if (start != -1 && end != -1) {
+        removeSpan(oldSpan)
+        val newSpan = placeholderCtor.newInstance(metrics)
+        setSpan(newSpan, start, end, flags)
+      }
     }
+  } catch (_: ClassNotFoundException) {
+    // Expected if the module isn't linked; silent return
+  } catch (e: Exception) {
+    Log.e("MathSpan", "Failed to replace math spans", e)
   }
 }

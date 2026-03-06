@@ -17,10 +17,10 @@ import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
-import com.swmansion.enriched.markdown.views.MathContainerView
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -277,8 +277,19 @@ class EnrichedMarkdown
     private fun createMathView(
       segment: RenderSegment.Math,
       style: StyleConfig,
-    ) = MathContainerView(context, style).apply {
-      applyLatex(segment.latex)
+    ): android.view.View {
+      if (!FeatureFlags.isMathEnabled) return android.view.View(context)
+      return try {
+        val mathContainerClass = Class.forName("com.swmansion.enriched.markdown.views.MathContainerView")
+        val view =
+          mathContainerClass
+            .getConstructor(android.content.Context::class.java, StyleConfig::class.java)
+            .newInstance(context, style) as android.view.View
+        mathContainerClass.getMethod("applyLatex", String::class.java).invoke(view, segment.latex)
+        view
+      } catch (_: Exception) {
+        android.view.View(context)
+      }
     }
 
     private fun splitASTIntoSegments(root: MarkdownASTNode): List<Any> {

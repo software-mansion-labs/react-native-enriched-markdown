@@ -15,6 +15,7 @@ import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
+import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListTapUtils
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
 
@@ -104,6 +105,7 @@ class EnrichedMarkdownTextManager :
     val md4cFlags =
       Md4cFlags(
         underline = flags?.getBoolean("underline") ?: false,
+        latexMath = FeatureFlags.isMathEnabled && (flags?.getBoolean("latexMath") ?: true),
       )
     view?.setMd4cFlags(md4cFlags)
   }

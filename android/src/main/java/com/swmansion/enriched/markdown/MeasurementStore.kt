@@ -4,10 +4,10 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.text.LineBreaker
 import android.os.Build
+import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.Log
-import com.agog.mathdisplay.MTMathView
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.yoga.YogaMeasureMode
@@ -16,9 +16,11 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
-import com.swmansion.enriched.markdown.spans.MathMeasureHelper
 import com.swmansion.enriched.markdown.spans.MathMeasureRequest
+import com.swmansion.enriched.markdown.spans.MathMetrics
+import com.swmansion.enriched.markdown.spans.MathRenderMode
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.common.getMapOrNull
 import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
@@ -237,13 +239,18 @@ object MeasurementStore {
     // 1. Extract Props & Setup
     val markdown = props.getStringOrDefault("markdown", "")
     val styleMap = props.getMapOrNull("markdownStyle")
-    val md4cFlags = Md4cFlags(underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false))
+    val md4cFlags =
+      Md4cFlags(
+        underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false),
+        latexMath = FeatureFlags.isMathEnabled && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
+      )
 
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
     // 2. Render & Measure
     val spannable = tryRenderMarkdown(markdown, styleMap, context, md4cFlags, allowFontScaling, maxFontSizeMultiplier)
+    spannable?.replaceMathSpansWithPlaceholders(context)
     val textToMeasure = spannable ?: markdown
     val (size, _) = measureWithLayout(width, textToMeasure, measurePaint)
 
@@ -298,7 +305,11 @@ object MeasurementStore {
       props.getMapOrNull("markdownStyle")
         ?: return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
 
-    val md4cFlags = Md4cFlags(underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false))
+    val md4cFlags =
+      Md4cFlags(
+        underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false),
+        latexMath = FeatureFlags.isMathEnabled && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
+      )
     val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
     val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
@@ -311,7 +322,7 @@ object MeasurementStore {
       val style = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
       val segments = splitASTIntoSegments(ast)
 
-      // Pre-scan: batch all block-math measurements into a single main-thread post
+      val mathHeightByIndex = HashMap<Int, Float>()
       val mathSegmentIndices = mutableListOf<Int>()
       val mathRequests = mutableListOf<MathMeasureRequest>()
       for ((i, segment) in segments.withIndex()) {
@@ -321,17 +332,18 @@ object MeasurementStore {
             MathMeasureRequest(
               fontSize = style.mathStyle.fontSize,
               latex = segment.latex,
-              mode = MTMathView.MTMathViewMode.KMTMathViewModeDisplay,
+              mode = MathRenderMode.Display,
             ),
           )
         }
       }
-      val mathResults = MathMeasureHelper.measureOnMainThread(context, mathRequests)
-      val mathHeightByIndex = HashMap<Int, Float>(mathSegmentIndices.size)
-      for (i in mathSegmentIndices.indices) {
-        val metrics = mathResults[i]
-        mathHeightByIndex[mathSegmentIndices[i]] =
-          (metrics.ascent + metrics.descent).toInt() + (style.mathStyle.padding * 2)
+      if (mathRequests.isNotEmpty()) {
+        val mathResults = measureMathOnMainThread(context, mathRequests)
+        for (i in mathSegmentIndices.indices) {
+          val metrics = mathResults[i]
+          mathHeightByIndex[mathSegmentIndices[i]] =
+            (metrics.ascent + metrics.descent).toInt() + (style.mathStyle.padding * 2)
+        }
       }
 
       val widthPx = width.toInt().coerceAtLeast(1)
@@ -453,7 +465,7 @@ object MeasurementStore {
     md4cFlags: Md4cFlags,
     allowFontScaling: Boolean,
     maxFontSizeMultiplier: Float,
-  ): CharSequence? {
+  ): SpannableString? {
     if (styleMap == null) return null
 
     return try {
@@ -572,5 +584,34 @@ object MeasurementStore {
       )
 
     return size to layout
+  }
+
+  private fun measureMathOnMainThread(
+    context: Context,
+    requests: List<MathMeasureRequest>,
+  ): List<MathMetrics> {
+    if (!FeatureFlags.isMathEnabled || requests.isEmpty()) {
+      return requests.map { estimateMathFallback(it) }
+    }
+    return try {
+      val mathMeasureHelperClass = Class.forName("com.swmansion.enriched.markdown.spans.MathMeasureHelper")
+      val method = mathMeasureHelperClass.getMethod("measureOnMainThread", Context::class.java, List::class.java)
+      @Suppress("UNCHECKED_CAST")
+      method.invoke(null, context, requests) as List<MathMetrics>
+    } catch (_: Exception) {
+      requests.map { estimateMathFallback(it) }
+    }
+  }
+
+  private fun estimateMathFallback(request: MathMeasureRequest): MathMetrics {
+    val estimatedHeight = request.fontSize * 1.4f
+    return MathMetrics(
+      width =
+        (request.fontSize * request.latex.length * 0.5f)
+          .coerceIn(request.fontSize, request.fontSize * 20f)
+          .toInt(),
+      ascent = estimatedHeight * 0.7f,
+      descent = estimatedHeight * 0.3f,
+    )
   }
 }

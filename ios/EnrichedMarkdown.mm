@@ -2,8 +2,13 @@
 #import "AccessibilityInfo.h"
 #import "AttributedRenderer.h"
 #import "ENRMMarkdownParser.h"
-#import "ENRMMathContainerView.h"
 #import "EditMenuUtils.h"
+
+#import "ENRMFeatureFlags.h"
+
+#if ENRICHED_MARKDOWN_MATH
+#import "ENRMMathContainerView.h"
+#endif
 #import "EnrichedMarkdownInternalText.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
@@ -64,6 +69,7 @@ using namespace facebook::react;
 }
 @end
 
+#if ENRICHED_MARKDOWN_MATH
 @interface EMMathSegment : NSObject
 @property (nonatomic, strong) NSString *latex;
 + (instancetype)segmentWithLatex:(NSString *)latex;
@@ -77,6 +83,7 @@ using namespace facebook::react;
   return segment;
 }
 @end
+#endif
 
 @interface EMRenderedTextSegment : NSObject
 @property (nonatomic, strong) NSMutableAttributedString *attributedText;
@@ -192,10 +199,13 @@ using namespace facebook::react;
     } else if ([segment isKindOfClass:[TableContainerView class]]) {
       yOffset += _config.tableMarginTop;
       segmentHeight = [(TableContainerView *)segment measureHeight:width];
-    } else if ([segment isKindOfClass:[ENRMMathContainerView class]]) {
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if ([segment isKindOfClass:[ENRMMathContainerView class]]) {
       yOffset += _config.mathMarginTop;
       segmentHeight = [(ENRMMathContainerView *)segment measureHeight:width];
     }
+#endif
 
     if (applyFrames) {
       segment.frame = CGRectMake(0, yOffset, width, segmentHeight);
@@ -205,9 +215,12 @@ using namespace facebook::react;
 
     if ([segment isKindOfClass:[TableContainerView class]] && shouldAddBottomMargin) {
       yOffset += _config.tableMarginBottom;
-    } else if ([segment isKindOfClass:[ENRMMathContainerView class]] && shouldAddBottomMargin) {
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if ([segment isKindOfClass:[ENRMMathContainerView class]] && shouldAddBottomMargin) {
       yOffset += _config.mathMarginBottom;
     }
+#endif
   }];
 
   return yOffset;
@@ -258,14 +271,18 @@ using namespace facebook::react;
         [currentTextNodes removeAllObjects];
       }
       [segments addObject:[EMTableSegment segmentWithTableNode:child]];
-    } else if (child.type == MarkdownNodeTypeLatexMathDisplay) {
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if (child.type == MarkdownNodeTypeLatexMathDisplay) {
       if (currentTextNodes.count > 0) {
         [segments addObject:[EMTextSegment segmentWithNodes:[currentTextNodes copy]]];
         [currentTextNodes removeAllObjects];
       }
       NSString *latex = child.children.count > 0 ? child.children.firstObject.content : child.content;
       [segments addObject:[EMMathSegment segmentWithLatex:latex ?: @""]];
-    } else {
+    }
+#endif
+    else {
       [currentTextNodes addObject:child];
     }
   }
@@ -314,9 +331,12 @@ using namespace facebook::react;
         [renderedSegments addObject:rendered];
       } else if ([segment isKindOfClass:[EMTableSegment class]]) {
         [renderedSegments addObject:segment];
-      } else if ([segment isKindOfClass:[EMMathSegment class]]) {
+      }
+#if ENRICHED_MARKDOWN_MATH
+      else if ([segment isKindOfClass:[EMMathSegment class]]) {
         [renderedSegments addObject:segment];
       }
+#endif
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -360,12 +380,15 @@ using namespace facebook::react;
       TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
       [_segmentViews addObject:tableView];
       [self addSubview:tableView];
-    } else if ([segment isKindOfClass:[EMMathSegment class]]) {
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if ([segment isKindOfClass:[EMMathSegment class]]) {
       EMMathSegment *mathSegment = (EMMathSegment *)segment;
       ENRMMathContainerView *mathView = [self createMathViewForSegment:mathSegment];
       [_segmentViews addObject:mathView];
       [self addSubview:mathView];
     }
+#endif
   }
 }
 
@@ -386,12 +409,15 @@ using namespace facebook::react;
       TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
       [_segmentViews addObject:tableView];
       [self addSubview:tableView];
-    } else if ([segment isKindOfClass:[EMMathSegment class]]) {
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if ([segment isKindOfClass:[EMMathSegment class]]) {
       EMMathSegment *mathSegment = (EMMathSegment *)segment;
       ENRMMathContainerView *mathView = [self createMathViewForSegment:mathSegment];
       [_segmentViews addObject:mathView];
       [self addSubview:mathView];
     }
+#endif
   }
 
   if (needsHeightUpdate([self measureSize:self.bounds.size.width], self.bounds)) {
@@ -482,12 +508,14 @@ using namespace facebook::react;
   return tableView;
 }
 
+#if ENRICHED_MARKDOWN_MATH
 - (ENRMMathContainerView *)createMathViewForSegment:(EMMathSegment *)mathSegment
 {
   ENRMMathContainerView *mathView = [[ENRMMathContainerView alloc] initWithConfig:_config];
   [mathView applyLatex:mathSegment.latex];
   return mathView;
 }
+#endif
 
 - (void)layoutSubviews
 {
@@ -543,6 +571,10 @@ using namespace facebook::react;
   BOOL md4cFlagsChanged = NO;
   if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
     _md4cFlags.underline = newViewProps.md4cFlags.underline;
+    md4cFlagsChanged = YES;
+  }
+  if (newViewProps.md4cFlags.latexMath != oldViewProps.md4cFlags.latexMath) {
+    _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;
   }
 
@@ -642,9 +674,12 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
       if (elements) {
         [allElements addObjectsFromArray:elements];
       }
-    } else if ([segment isKindOfClass:[ENRMMathContainerView class]]) {
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if ([segment isKindOfClass:[ENRMMathContainerView class]]) {
       [allElements addObject:segment];
     }
+#endif
   }
   return allElements;
 }

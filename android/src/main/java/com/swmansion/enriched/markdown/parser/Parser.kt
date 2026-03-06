@@ -1,9 +1,11 @@
 package com.swmansion.enriched.markdown.parser
 
 import android.util.Log
+import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 
 data class Md4cFlags(
   val underline: Boolean = false,
+  val latexMath: Boolean = FeatureFlags.isMathEnabled,
 ) {
   companion object {
     val DEFAULT = Md4cFlags()

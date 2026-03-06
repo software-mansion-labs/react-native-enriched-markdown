@@ -12,6 +12,7 @@ import android.widget.HorizontalScrollView
 import com.agog.mathdisplay.MTMathView
 import com.swmansion.enriched.markdown.spans.MathMeasureHelper
 import com.swmansion.enriched.markdown.spans.MathMeasureRequest
+import com.swmansion.enriched.markdown.spans.MathRenderMode
 import com.swmansion.enriched.markdown.styles.MathStyle
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
@@ -104,7 +105,7 @@ class MathContainerView(
         MathMeasureRequest(
           fontSize = mathStyle.fontSize,
           latex = latex,
-          mode = MTMathView.MTMathViewMode.KMTMathViewModeDisplay,
+          mode = MathRenderMode.Display,
         )
       val metrics = MathMeasureHelper.measureOnMainThread(context, listOf(request)).first()
       return (metrics.ascent + metrics.descent).toInt() + (mathStyle.padding * 2)

@@ -28,6 +28,7 @@ We can help you build your next dream product –
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+- [LaTeX Math](docs/LATEX_MATH.md)
 - [Supported Markdown Elements](#supported-markdown-elements)
 - [Copy Options](#copy-options)
 - [Accessibility](#accessibility)
@@ -55,9 +56,11 @@ yarn add react-native-enriched-markdown
 
 > [!TIP]
 > To try the latest features before they land in a stable release, install the nightly build:
+>
 > ```sh
 > yarn add react-native-enriched-markdown@nightly
 > ```
+>
 > Nightly versions are published to npm automatically and may contain breaking changes.
 
 #### 2. Install iOS dependencies
@@ -91,6 +94,7 @@ npx expo prebuild
 > **iOS: Save to Camera Roll**
 >
 > If your Markdown content includes images and you want users to save them to their photo library, add the following to your `Info.plist`:
+>
 > ```xml
 > <key>NSPhotoLibraryAddUsageDescription</key>
 > <string>This app needs access to your photo library to save images.</string>
@@ -162,47 +166,13 @@ Task lists with interactive checkboxes are available when `flavor="github"` is s
 - [x] Another completed task
   `}
   onTaskListItemPress={({ index, checked, text }) => {
-    console.log(`Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`);
+    console.log(
+      `Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`
+    );
     // Update your state or data model here
   }}
 />
 ```
-
-### LaTeX Math
-
-LaTeX math rendering is supported for both block and inline equations:
-
-- **Block math (`$$...$$`)**: Rendered as a standalone display element. Requires `flavor="github"`.
-- **Inline math (`$...$`)**: Rendered within the text flow. Works with both `flavor="commonmark"` and `flavor="github"`.
-
-```tsx
-<EnrichedMarkdownText
-  flavor="github"
-  markdown={`
-The quadratic formula:
-
-$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$
-
-Einstein's mass-energy equivalence $E = mc^2$ is one of the most famous equations.
-  `}
-  markdownStyle={{
-    math: {
-      fontSize: 20,
-      color: '#1F2937',
-      backgroundColor: '#F3F4F6',
-      padding: 12,
-      textAlign: 'center',
-    },
-    inlineMath: {
-      color: '#1F2937',
-    },
-  }}
-/>
-```
-
-Block math equations are rendered as standalone display elements with spacing and an optional background. Inline math inherits the surrounding block's typography.
-
-> **Note:** LaTeX commands use backslashes (e.g. `\frac`, `\alpha`). In regular JS strings and template literals, backslashes are escape characters. Use `String.raw` or double backslashes (`\\frac`) to preserve them. Block math (`$$...$$`) must be on its own line to render as a display element.
 
 ### Link Handling
 
@@ -253,6 +223,7 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 `react-native-enriched-markdown` library is licensed under [The MIT License](./LICENSE).
 
 ---
+
 Built by [Software Mansion](https://swmansion.com/).
 
 [<img width="128" height="69" alt="Software Mansion Logo" src="https://github.com/user-attachments/assets/f0e18471-a7aa-4e80-86ac-87686a86fe56" />](https://swmansion.com/)

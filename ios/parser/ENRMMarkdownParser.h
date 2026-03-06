@@ -4,6 +4,7 @@
 @interface ENRMMd4cFlags : NSObject <NSCopying>
 
 @property (nonatomic, assign) BOOL underline;
+@property (nonatomic, assign) BOOL latexMath;
 
 + (instancetype)defaultFlags;
 

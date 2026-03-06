@@ -24,6 +24,11 @@ struct HashUtils {
   }
 };
 
+enum class MarkdownFlavor : uint8_t {
+  CommonMark = 0,
+  GitHub = 1,
+};
+
 struct MeasurementCacheKey {
   std::string markdown;
   CGFloat maxWidth;
@@ -31,15 +36,18 @@ struct MeasurementCacheKey {
   bool allowFontScaling;
   double maxFontSizeMultiplier;
   bool md4cFlagsUnderline;
+  bool md4cFlagsLatexMath;
   size_t styleFingerprint;
   CGFloat fontScale;
+  MarkdownFlavor flavor;
 
   bool operator==(const MeasurementCacheKey &other) const
   {
     return std::tie(markdown, maxWidth, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
-                    md4cFlagsUnderline, styleFingerprint, fontScale) ==
+                    md4cFlagsUnderline, md4cFlagsLatexMath, styleFingerprint, fontScale, flavor) ==
            std::tie(other.markdown, other.maxWidth, other.allowTrailingMargin, other.allowFontScaling,
-                    other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.styleFingerprint, other.fontScale);
+                    other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.md4cFlagsLatexMath,
+                    other.styleFingerprint, other.fontScale, other.flavor);
   }
 };
 
@@ -53,8 +61,10 @@ struct MeasurementCacheKeyHash {
     HashUtils::hash_one(h, key.allowFontScaling);
     HashUtils::hash_one(h, key.maxFontSizeMultiplier);
     HashUtils::hash_one(h, key.md4cFlagsUnderline);
+    HashUtils::hash_one(h, key.md4cFlagsLatexMath);
     HashUtils::hash_one(h, key.styleFingerprint);
     HashUtils::hash_one(h, key.fontScale);
+    HashUtils::hash_one(h, static_cast<uint8_t>(key.flavor));
     return h;
   }
 };
@@ -75,12 +85,19 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
 
   // Block Elements
   hashTextLayout(s.paragraph);
+  hashFields(s.paragraph.textAlign);
   hashTextLayout(s.h1);
+  hashFields(s.h1.textAlign);
   hashTextLayout(s.h2);
+  hashFields(s.h2.textAlign);
   hashTextLayout(s.h3);
+  hashFields(s.h3.textAlign);
   hashTextLayout(s.h4);
+  hashFields(s.h4.textAlign);
   hashTextLayout(s.h5);
+  hashFields(s.h5.textAlign);
   hashTextLayout(s.h6);
+  hashFields(s.h6.textAlign);
 
   hashTextLayout(s.blockquote);
   hashFields(s.blockquote.borderWidth, s.blockquote.gapWidth);
@@ -104,14 +121,15 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
   hashTextLayout(s.table);
   hashFields(s.table.headerFontFamily, s.table.cellPaddingHorizontal, s.table.cellPaddingVertical, s.table.borderWidth,
              s.table.borderRadius);
-  hashFields(s.math.fontSize, s.math.padding, s.math.marginTop, s.math.marginBottom);
+  hashFields(s.math.fontSize, s.math.padding, s.math.marginTop, s.math.marginBottom, s.math.textAlign);
   hashFields(s.taskList.checkboxSize, s.taskList.checkboxBorderRadius);
 
   return h;
 }
 
 template <typename PropsType>
-inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFloat maxWidth, CGFloat fontScale)
+inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFloat maxWidth, CGFloat fontScale,
+                                                    MarkdownFlavor flavor)
 {
   return MeasurementCacheKey{
       .markdown = props.markdown,
@@ -120,8 +138,10 @@ inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFl
       .allowFontScaling = props.allowFontScaling,
       .maxFontSizeMultiplier = props.maxFontSizeMultiplier,
       .md4cFlagsUnderline = props.md4cFlags.underline,
+      .md4cFlagsLatexMath = props.md4cFlags.latexMath,
       .styleFingerprint = computeStyleFingerprint(props.markdownStyle),
       .fontScale = fontScale,
+      .flavor = flavor,
   };
 }
 

@@ -8,24 +8,13 @@ import com.agog.mathdisplay.MTMathView
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-data class MathMeasureRequest(
-  val fontSize: Float,
-  val latex: String,
-  val mode: MTMathView.MTMathViewMode = MTMathView.MTMathViewMode.KMTMathViewModeText,
-)
-
-data class MathMetrics(
-  val width: Int,
-  val ascent: Float,
-  val descent: Float,
-)
-
 object MathMeasureHelper {
   private const val BASE_TIMEOUT_MS = 500L
   private const val PER_ITEM_TIMEOUT_MS = 50L
   private val mainHandler = Handler(Looper.getMainLooper())
   private var sharedMathView: MTMathView? = null
 
+  @JvmStatic
   fun measureOnMainThread(
     context: Context,
     requests: List<MathMeasureRequest>,
@@ -68,7 +57,11 @@ object MathMeasureHelper {
           sharedMathView = it
         }
       ).apply {
-        labelMode = request.mode
+        labelMode =
+          when (request.mode) {
+            MathRenderMode.Display -> MTMathView.MTMathViewMode.KMTMathViewModeDisplay
+            else -> MTMathView.MTMathViewMode.KMTMathViewModeText
+          }
         textAlignment = MTMathView.MTTextAlignment.KMTTextAlignmentLeft
         fontSize = request.fontSize
         latex = request.latex

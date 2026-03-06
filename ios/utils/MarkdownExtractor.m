@@ -1,7 +1,10 @@
 #import "MarkdownExtractor.h"
 #import "BlockquoteBorder.h"
+#import "ENRMFeatureFlags.h"
 #import "ENRMImageAttachment.h"
+#if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathInlineAttachment.h"
+#endif
 #import "LastElementUtils.h"
 #import "ListItemRenderer.h"
 #import "RuntimeKeys.h"
@@ -163,6 +166,7 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                           return;
                         }
 
+#if ENRICHED_MARKDOWN_MATH
                         if ([attachment isKindOfClass:[ENRMMathInlineAttachment class]]) {
                           ENRMMathInlineAttachment *math = (ENRMMathInlineAttachment *)attachment;
                           if (math.latex.length > 0) {
@@ -170,6 +174,7 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                           }
                           return;
                         }
+#endif
 
                         if ([text isEqualToString:@"\uFFFC"])
                           return;

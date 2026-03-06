@@ -1,8 +1,11 @@
 #import "HTMLGenerator.h"
 #import "BlockquoteBorder.h"
 #import "CodeBackground.h"
+#import "ENRMFeatureFlags.h"
 #import "ENRMImageAttachment.h"
+#if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathInlineAttachment.h"
+#endif
 #import "LastElementUtils.h"
 #import "ListItemRenderer.h"
 #import "ParagraphStyleUtils.h"
@@ -478,6 +481,7 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                                       @"margin: %.0fpx 0 %.0fpx 0;\"><p>",
                                       styles.thematicBreakHeight, styles.thematicBreakColor,
                                       styles.thematicBreakMarginTop, styles.thematicBreakMarginBottom];
+#if ENRICHED_MARKDOWN_MATH
                           } else if ([attachment isKindOfClass:[ENRMMathInlineAttachment class]]) {
                             ENRMMathInlineAttachment *math = (ENRMMathInlineAttachment *)attachment;
                             if (math.latex.length > 0) {
@@ -488,6 +492,7 @@ static void generateInlineHTML(NSMutableString *html, NSAttributedString *attrib
                                         styles.codeBackgroundColor, styles.codeColor, kCodePadding, kCodePadding * 2,
                                         kCodeBorderRadius, escapeHTML(math.latex)];
                             }
+#endif
                           }
                           return;
                         }

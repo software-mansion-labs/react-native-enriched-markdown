@@ -1,5 +1,11 @@
 #import "ENRMMathContainerView.h"
+#import "ENRMFeatureFlags.h"
+
+#if ENRICHED_MARKDOWN_MATH
 #import <IosMath/IosMath.h>
+#endif
+
+#if ENRICHED_MARKDOWN_MATH
 
 @interface ENRMMathContainerView () <UIContextMenuInteractionDelegate>
 @property (nonatomic, strong, readonly) MTMathUILabel *mathLabel;
@@ -128,3 +134,5 @@
 }
 
 @end
+
+#endif

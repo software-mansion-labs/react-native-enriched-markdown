@@ -18,6 +18,7 @@ import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.spans.MathMeasureRequest
 import com.swmansion.enriched.markdown.spans.MathMetrics
+import com.swmansion.enriched.markdown.spans.MathRenderMode
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
@@ -331,7 +332,7 @@ object MeasurementStore {
             MathMeasureRequest(
               fontSize = style.mathStyle.fontSize,
               latex = segment.latex,
-              mode = mathDisplayMode(),
+              mode = MathRenderMode.Display,
             ),
           )
         }
@@ -583,16 +584,6 @@ object MeasurementStore {
       )
 
     return size to layout
-  }
-
-  private fun mathDisplayMode(): Any? {
-    if (!FeatureFlags.isMathEnabled) return null
-    return try {
-      val mathMeasureHelperClass = Class.forName("com.swmansion.enriched.markdown.spans.MathMeasureHelper")
-      mathMeasureHelperClass.getMethod("displayMode").invoke(null)
-    } catch (_: Exception) {
-      null
-    }
   }
 
   private fun measureMathOnMainThread(

@@ -6,3 +6,10 @@
 -keep class com.swmansion.enriched.markdown.parser.MarkdownASTNode { *; }
 -keep class com.swmansion.enriched.markdown.parser.MarkdownASTNode$NodeType { *; }
 -keep class com.swmansion.enriched.markdown.parser.Md4cFlags { *; }
+
+# Reflection: Math classes loaded via Class.forName when enableMath=true.
+-keep class com.swmansion.enriched.markdown.spans.MathInlineSpan { *; }
+-keep class com.swmansion.enriched.markdown.spans.MathInlinePlaceholderSpan { *; }
+-keep class com.swmansion.enriched.markdown.spans.MathMeasureHelper { *; }
+-keep class com.swmansion.enriched.markdown.views.MathContainerView { *; }
+-keep class com.swmansion.enriched.markdown.renderer.MathInlineRenderer { *; }

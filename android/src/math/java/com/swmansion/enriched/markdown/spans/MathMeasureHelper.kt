@@ -15,12 +15,6 @@ object MathMeasureHelper {
   private var sharedMathView: MTMathView? = null
 
   @JvmStatic
-  fun textMode(): Any = MTMathView.MTMathViewMode.KMTMathViewModeText
-
-  @JvmStatic
-  fun displayMode(): Any = MTMathView.MTMathViewMode.KMTMathViewModeDisplay
-
-  @JvmStatic
   fun measureOnMainThread(
     context: Context,
     requests: List<MathMeasureRequest>,
@@ -63,8 +57,11 @@ object MathMeasureHelper {
           sharedMathView = it
         }
       ).apply {
-        labelMode = request.mode as? MTMathView.MTMathViewMode
-          ?: MTMathView.MTMathViewMode.KMTMathViewModeText
+        labelMode =
+          when (request.mode) {
+            MathRenderMode.Display -> MTMathView.MTMathViewMode.KMTMathViewModeDisplay
+            else -> MTMathView.MTMathViewMode.KMTMathViewModeText
+          }
         textAlignment = MTMathView.MTTextAlignment.KMTTextAlignmentLeft
         fontSize = request.fontSize
         latex = request.latex

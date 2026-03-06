@@ -604,14 +604,14 @@ object MeasurementStore {
   }
 
   private fun estimateMathFallback(request: MathMeasureRequest): MathMetrics {
-    val h = request.fontSize * 1.4f
+    val estimatedHeight = request.fontSize * 1.4f
     return MathMetrics(
       width =
         (request.fontSize * request.latex.length * 0.5f)
           .coerceIn(request.fontSize, request.fontSize * 20f)
           .toInt(),
-      ascent = h * 0.7f,
-      descent = h * 0.3f,
+      ascent = estimatedHeight * 0.7f,
+      descent = estimatedHeight * 0.3f,
     )
   }
 }

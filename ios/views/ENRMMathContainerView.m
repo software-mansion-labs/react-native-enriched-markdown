@@ -3,6 +3,7 @@
 
 @interface ENRMMathContainerView () <UIContextMenuInteractionDelegate>
 @property (nonatomic, strong, readonly) MTMathUILabel *mathLabel;
+@property (nonatomic, strong, readonly) UIScrollView *scrollView;
 @property (nonatomic, copy, readwrite) NSString *cachedLatex;
 @end
 
@@ -14,15 +15,22 @@
   if (self) {
     _config = config;
     _cachedLatex = @"";
+
+    _scrollView = [[UIScrollView alloc] init];
+    _scrollView.showsVerticalScrollIndicator = NO;
+    _scrollView.showsHorizontalScrollIndicator = YES;
+    _scrollView.bounces = YES;
+    _scrollView.alwaysBounceHorizontal = NO;
+    [self addSubview:_scrollView];
+
     _mathLabel = [[MTMathUILabel alloc] init];
     _mathLabel.labelMode = kMTMathUILabelModeDisplay;
+    [_scrollView addSubview:_mathLabel];
 
     self.isAccessibilityElement = YES;
 
     UIContextMenuInteraction *contextMenu = [[UIContextMenuInteraction alloc] initWithDelegate:self];
     [self addInteraction:contextMenu];
-
-    [self addSubview:_mathLabel];
   }
   return self;
 }
@@ -91,14 +99,22 @@
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth
 {
-  CGSize fittingSize = [_mathLabel sizeThatFits:CGSizeMake(maxWidth, CGFLOAT_MAX)];
-  return fittingSize.height;
+  CGSize intrinsicSize = [_mathLabel sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+  return intrinsicSize.height;
 }
 
 - (void)layoutSubviews
 {
   [super layoutSubviews];
-  _mathLabel.frame = self.bounds;
+
+  CGSize intrinsicSize = [_mathLabel sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+  CGFloat contentWidth = MAX(intrinsicSize.width, self.bounds.size.width);
+  CGFloat contentHeight = self.bounds.size.height;
+
+  _scrollView.frame = self.bounds;
+  _scrollView.contentSize = CGSizeMake(contentWidth, contentHeight);
+  _scrollView.scrollEnabled = (intrinsicSize.width > self.bounds.size.width);
+  _mathLabel.frame = CGRectMake(0, 0, contentWidth, contentHeight);
 }
 
 - (NSString *)accessibilityLabel

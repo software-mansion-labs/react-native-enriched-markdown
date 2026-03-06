@@ -5,8 +5,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
 import com.agog.mathdisplay.MTMathView
 import com.swmansion.enriched.markdown.spans.MathMeasureHelper
 import com.swmansion.enriched.markdown.spans.MathMeasureRequest
@@ -20,6 +22,7 @@ class MathContainerView(
   BlockSegmentView {
   private val mathStyle: MathStyle = styleConfig.mathStyle
   private val mathView = MTMathView(context)
+  private val scrollView = HorizontalScrollView(context)
   private var cachedLatex: String = ""
 
   override val segmentMarginTop: Int get() = mathStyle.marginTop.toInt()
@@ -33,9 +36,9 @@ class MathContainerView(
     }
 
   init {
-    val paddingPx = mathStyle.padding.toInt()
-    setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
     setBackgroundColor(mathStyle.backgroundColor)
+
+    val paddingPx = mathStyle.padding.toInt()
 
     mathView.apply {
       labelMode = MTMathView.MTMathViewMode.KMTMathViewModeDisplay
@@ -44,12 +47,25 @@ class MathContainerView(
       textAlignment = alignmentPair.first
     }
 
-    val lp =
-      LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+    val mathLp =
+      FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
         gravity = alignmentPair.second
       }
 
-    addView(mathView, lp)
+    val mathWrapper =
+      FrameLayout(context).apply {
+        setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
+      }
+    mathWrapper.addView(mathView, mathLp)
+
+    scrollView.apply {
+      isHorizontalScrollBarEnabled = true
+      overScrollMode = View.OVER_SCROLL_NEVER
+      isFillViewport = true
+      addView(mathWrapper, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+    }
+
+    addView(scrollView, LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
     setOnLongClickListener { view ->
       showContextMenu(view)

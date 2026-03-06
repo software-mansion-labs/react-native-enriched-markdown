@@ -47,7 +47,7 @@ class MathContainerView(
       textAlignment = alignmentPair.first
     }
 
-    val mathLp =
+    val mathLayoutParams =
       FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
         gravity = alignmentPair.second
       }
@@ -56,7 +56,7 @@ class MathContainerView(
       FrameLayout(context).apply {
         setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
       }
-    mathWrapper.addView(mathView, mathLp)
+    mathWrapper.addView(mathView, mathLayoutParams)
 
     scrollView.apply {
       isHorizontalScrollBarEnabled = true

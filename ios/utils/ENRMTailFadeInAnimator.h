@@ -3,7 +3,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ENRMStreamingFadeAnimator : NSObject
+@interface ENRMTailFadeInAnimator : NSObject
 
 - (instancetype)initWithTextView:(UITextView *)textView;
 

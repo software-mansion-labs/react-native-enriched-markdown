@@ -1,26 +1,22 @@
 package com.swmansion.enriched.markdown
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Layout
-import android.text.Spannable
-import android.text.Spanned
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
-import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.widget.AppCompatTextView
 import com.facebook.react.bridge.ReadableMap
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
-import com.swmansion.enriched.markdown.spans.FadeInSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
@@ -73,7 +69,7 @@ class EnrichedMarkdownText
 
     private var streamingAnimation: Boolean = false
     private var previousTextLength: Int = 0
-    private var fadeAnimator: ValueAnimator? = null
+    private var fadeAnimator: TailFadeInAnimator? = null
 
     init {
       setupAsMarkdownTextView(accessibilityHelper)
@@ -145,7 +141,8 @@ class EnrichedMarkdownText
       if (enabled) {
         previousTextLength = text?.length ?: 0
       } else {
-        cancelFadeAnimation()
+        fadeAnimator?.cancel()
+        fadeAnimator = null
         previousTextLength = 0
       }
     }
@@ -225,56 +222,11 @@ class EnrichedMarkdownText
       accessibilityHelper.invalidateAccessibilityItems()
 
       if (streamingAnimation) {
-        animateTailFadeIn(tailStart, styledText.length)
+        if (fadeAnimator == null) {
+          fadeAnimator = TailFadeInAnimator(this)
+        }
+        fadeAnimator?.animate(tailStart, styledText.length)
         previousTextLength = styledText.length
-      }
-    }
-
-    private fun animateTailFadeIn(
-      tailStart: Int,
-      tailEnd: Int,
-    ) {
-      cancelFadeAnimation()
-
-      if (tailEnd <= tailStart) {
-        previousTextLength = tailEnd
-        return
-      }
-
-      val spannable = text as? Spannable ?: return
-      val fadeSpan = FadeInSpan()
-      spannable.setSpan(fadeSpan, tailStart, tailEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-      fadeAnimator =
-        ValueAnimator.ofFloat(0f, 1f).apply {
-          duration = FADE_DURATION_MS
-          interpolator = DecelerateInterpolator()
-          addUpdateListener {
-            fadeSpan.alpha = it.animatedValue as Float
-            invalidate()
-          }
-          addListener(
-            object : android.animation.AnimatorListenerAdapter() {
-              override fun onAnimationEnd(animation: android.animation.Animator) {
-                (text as? Spannable)?.removeSpan(fadeSpan)
-              }
-            },
-          )
-          start()
-        }
-    }
-
-    private fun cancelFadeAnimation() {
-      fadeAnimator?.let { animator ->
-        animator.removeAllUpdateListeners()
-        animator.removeAllListeners()
-        val spannable = text as? Spannable
-        spannable?.getSpans(0, spannable.length, FadeInSpan::class.java)?.forEach {
-          it.alpha = 1f
-          spannable.removeSpan(it)
-        }
-        animator.cancel()
-        fadeAnimator = null
       }
     }
 
@@ -313,6 +265,5 @@ class EnrichedMarkdownText
 
     companion object {
       private const val TAG = "EnrichedMarkdownMeasure"
-      private const val FADE_DURATION_MS = 150L
     }
   }

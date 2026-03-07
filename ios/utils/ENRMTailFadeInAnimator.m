@@ -1,9 +1,9 @@
-#import "ENRMStreamingFadeAnimator.h"
+#import "ENRMTailFadeInAnimator.h"
 #import <QuartzCore/QuartzCore.h>
 
 static const NSTimeInterval kFadeDuration = 0.15;
 
-@implementation ENRMStreamingFadeAnimator {
+@implementation ENRMTailFadeInAnimator {
   __weak UITextView *_textView;
   CADisplayLink *_displayLink;
   CFTimeInterval _startTime;

@@ -4,7 +4,7 @@
 #import "CodeBlockBackground.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
-#import "ENRMStreamingFadeAnimator.h"
+#import "ENRMTailFadeInAnimator.h"
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
@@ -68,7 +68,7 @@ using namespace facebook::react;
   BOOL _streamingAnimation;
 
   NSUInteger _previousTextLength;
-  ENRMStreamingFadeAnimator *_fadeAnimator;
+  ENRMTailFadeInAnimator *_fadeAnimator;
 
   AccessibilityInfo *_accessibilityInfo;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
@@ -368,7 +368,7 @@ using namespace facebook::react;
 
   if (_streamingAnimation) {
     if (!_fadeAnimator) {
-      _fadeAnimator = [[ENRMStreamingFadeAnimator alloc] initWithTextView:_textView];
+      _fadeAnimator = [[ENRMTailFadeInAnimator alloc] initWithTextView:_textView];
     }
     [_fadeAnimator animateFrom:tailStart to:attributedText.length];
     _previousTextLength = attributedText.length;

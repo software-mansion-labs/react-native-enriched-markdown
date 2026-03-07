@@ -34,6 +34,7 @@
   CGFloat _totalTableWidth;
   CGFloat _totalTableHeight;
   CGFloat _borderWidth;
+  CGFloat _horizontalContentInset;
 
   NSString *_cachedMarkdown;
 }
@@ -44,6 +45,7 @@
   if (self) {
     _config = config;
     _borderWidth = config.tableBorderWidth;
+    _horizontalContentInset = config.tableCellPaddingHorizontal;
     _allowFontScaling = YES;
     _maxFontSizeMultiplier = 0;
     _enableLinkPreview = YES;
@@ -232,7 +234,7 @@
 
 - (void)renderGrid
 {
-  _gridContainer.frame = CGRectMake(0, 0, _totalTableWidth, _totalTableHeight);
+  _gridContainer.frame = CGRectMake(_horizontalContentInset, 0, _totalTableWidth, _totalTableHeight);
   _gridContainer.layer.cornerRadius = self.config.tableBorderRadius;
   _gridContainer.layer.masksToBounds = YES;
 
@@ -490,9 +492,14 @@
 {
   [super layoutSubviews];
   _scrollView.frame = self.bounds;
-  _scrollView.contentSize = CGSizeMake(MAX(_totalTableWidth, self.bounds.size.width), _totalTableHeight);
-  _scrollView.scrollEnabled = (_totalTableWidth > self.bounds.size.width);
-  _gridContainer.frame = CGRectMake(0, 0, _totalTableWidth, _totalTableHeight);
+
+  _horizontalContentInset = self.config.tableCellPaddingHorizontal;
+  CGFloat availableWidth = MAX(self.bounds.size.width - (_horizontalContentInset * 2), 0);
+  CGFloat contentWidth = MAX(_totalTableWidth + (_horizontalContentInset * 2), self.bounds.size.width);
+
+  _scrollView.contentSize = CGSizeMake(contentWidth, _totalTableHeight);
+  _scrollView.scrollEnabled = (_totalTableWidth > availableWidth);
+  _gridContainer.frame = CGRectMake(_horizontalContentInset, 0, _totalTableWidth, _totalTableHeight);
 }
 
 - (BOOL)isAccessibilityElement

@@ -128,9 +128,8 @@ class EnrichedMarkdownManager :
     view: EnrichedMarkdown?,
     streamingAnimation: Boolean,
   ) {
-    // Streaming animation is only supported with flavor="commonmark" (single TextView).
-    // The container-based github flavor tears down and recreates views on each update,
-    // so per-character fade-in is not feasible here.
+    // TODO: Add streaming animation support for github flavor.
+    // Currently only supported with flavor="commonmark" (single TextView).
   }
 
   override fun setPadding(

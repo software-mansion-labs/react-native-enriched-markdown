@@ -143,6 +143,14 @@ class EnrichedMarkdownTextManager :
     // Required by the codegen interface but is a no-op on Android.
   }
 
+  @ReactProp(name = "streamingAnimation", defaultBoolean = false)
+  override fun setStreamingAnimation(
+    view: EnrichedMarkdownText?,
+    streamingAnimation: Boolean,
+  ) {
+    view?.setStreamingAnimation(streamingAnimation)
+  }
+
   override fun setPadding(
     view: EnrichedMarkdownText,
     left: Int,

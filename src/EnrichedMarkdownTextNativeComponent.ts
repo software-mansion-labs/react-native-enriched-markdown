@@ -270,6 +270,12 @@ export interface NativeProps extends ViewProps {
    * @default false
    */
   allowTrailingMargin?: CodegenTypes.WithDefault<boolean, false>;
+  /**
+   * When true, newly appended content fades in during streaming updates.
+   * Only the tail (new characters beyond the previous content) is animated.
+   * @default false
+   */
+  streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
 }
 
 export default codegenNativeComponent<NativeProps>('EnrichedMarkdownText', {

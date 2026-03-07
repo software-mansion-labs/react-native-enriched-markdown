@@ -123,6 +123,16 @@ class EnrichedMarkdownManager :
     // No-op on Android — only used on iOS
   }
 
+  @ReactProp(name = "streamingAnimation", defaultBoolean = false)
+  override fun setStreamingAnimation(
+    view: EnrichedMarkdown?,
+    streamingAnimation: Boolean,
+  ) {
+    // Streaming animation is only supported with flavor="commonmark" (single TextView).
+    // The container-based github flavor tears down and recreates views on each update,
+    // so per-character fade-in is not feasible here.
+  }
+
   override fun setPadding(
     view: EnrichedMarkdown,
     left: Int,

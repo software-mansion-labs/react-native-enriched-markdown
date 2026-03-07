@@ -4,6 +4,7 @@
 #import "CodeBlockBackground.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
+#import "ENRMStreamingFadeAnimator.h"
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
@@ -64,6 +65,10 @@ using namespace facebook::react;
   CGFloat _lastElementMarginBottom;
   BOOL _allowTrailingMargin;
   BOOL _enableLinkPreview;
+  BOOL _streamingAnimation;
+
+  NSUInteger _previousTextLength;
+  ENRMStreamingFadeAnimator *_fadeAnimator;
 
   AccessibilityInfo *_accessibilityInfo;
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
@@ -332,12 +337,13 @@ using namespace facebook::react;
 
 - (void)applyRenderedText:(NSMutableAttributedString *)attributedText
 {
+  NSUInteger tailStart = _previousTextLength;
+
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {
     [layoutManager setValue:_config forKey:@"config"];
   }
 
-  // Attachments access the text view via associated object on the container
   objc_setAssociatedObject(_textView.textContainer, kTextViewKey, _textView, OBJC_ASSOCIATION_ASSIGN);
 
   _textView.attributedText = attributedText;
@@ -356,9 +362,16 @@ using namespace facebook::react;
 
   _accessibilityNeedsRebuild = YES;
 
-  // Next run loop — layout must settle before revealing content
   if (_textView.hidden) {
     dispatch_async(dispatch_get_main_queue(), ^{ self->_textView.hidden = NO; });
+  }
+
+  if (_streamingAnimation) {
+    if (!_fadeAnimator) {
+      _fadeAnimator = [[ENRMStreamingFadeAnimator alloc] initWithTextView:_textView];
+    }
+    [_fadeAnimator animateFrom:tailStart to:attributedText.length];
+    _previousTextLength = attributedText.length;
   }
 }
 
@@ -426,6 +439,17 @@ using namespace facebook::react;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
   _enableLinkPreview = newViewProps.enableLinkPreview;
+
+  if (newViewProps.streamingAnimation != oldViewProps.streamingAnimation) {
+    _streamingAnimation = newViewProps.streamingAnimation;
+    if (_streamingAnimation) {
+      _previousTextLength = _textView.attributedText.length;
+    } else {
+      [_fadeAnimator cancel];
+      _fadeAnimator = nil;
+      _previousTextLength = 0;
+    }
+  }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];

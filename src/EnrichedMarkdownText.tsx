@@ -298,6 +298,13 @@ export interface EnrichedMarkdownTextProps
    * @default 'commonmark'
    */
   flavor?: 'commonmark' | 'github';
+  /**
+   * When true, newly appended content fades in during streaming updates.
+   * Only the tail (new characters beyond the previous content) is animated.
+   * Recommended for LLM streaming use cases with `flavor="commonmark"`.
+   * @default false
+   */
+  streamingAnimation?: boolean;
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -319,6 +326,7 @@ export const EnrichedMarkdownText = ({
   maxFontSizeMultiplier,
   allowTrailingMargin = false,
   flavor = 'commonmark',
+  streamingAnimation = false,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -374,6 +382,7 @@ export const EnrichedMarkdownText = ({
     allowFontScaling,
     maxFontSizeMultiplier,
     allowTrailingMargin,
+    streamingAnimation,
     style: containerStyle,
     ...rest,
   };

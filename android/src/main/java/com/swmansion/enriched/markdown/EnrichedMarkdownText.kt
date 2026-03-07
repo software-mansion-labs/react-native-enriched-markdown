@@ -141,7 +141,7 @@ class EnrichedMarkdownText
       if (enabled) {
         previousTextLength = text?.length ?: 0
       } else {
-        fadeAnimator?.cancel()
+        fadeAnimator?.cancelAll()
         fadeAnimator = null
         previousTextLength = 0
       }

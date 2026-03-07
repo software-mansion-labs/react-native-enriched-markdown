@@ -74,10 +74,12 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
       (RCTInternalGenericWeakWrapper *)unwrapManagedObject(getStateData().getComponentViewRef());
   EnrichedMarkdownText *view = weakWrapper ? (EnrichedMarkdownText *)weakWrapper.object : nil;
 
+  NSString *currentMarkdown = typedProps.markdown.empty() ? nil : @(typedProps.markdown.c_str());
+
   __block CGSize size;
 
   void (^measureBlock)(void) = ^{
-    if (view) {
+    if (view && [view hasRenderedMarkdown:currentMarkdown]) {
       size = [view measureSize:maxWidth];
     } else {
       EnrichedMarkdownText *mockView = setupMockEnrichedMarkdownText_(maxWidth);

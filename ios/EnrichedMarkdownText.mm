@@ -47,6 +47,7 @@ using namespace facebook::react;
   UITextView *_textView;
   ENRMMarkdownParser *_parser;
   NSString *_cachedMarkdown;
+  NSString *_renderedMarkdown;
   StyleConfig *_config;
   ENRMMd4cFlags *_md4cFlags;
 
@@ -114,6 +115,11 @@ using namespace facebook::react;
   // Round to pixel boundaries to match React Native's <Text> measurement
   CGFloat scale = [UIScreen mainScreen].scale;
   return CGSizeMake(ceil(measuredWidth * scale) / scale, ceil(measuredHeight * scale) / scale);
+}
+
+- (BOOL)hasRenderedMarkdown:(NSString *)markdown
+{
+  return _renderedMarkdown != nil && [_renderedMarkdown isEqualToString:markdown];
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state
@@ -321,6 +327,7 @@ using namespace facebook::react;
   _accessibilityInfo = [AccessibilityInfo infoFromContext:context];
 
   _textView.attributedText = attributedText;
+  _renderedMarkdown = [_cachedMarkdown copy];
 }
 
 - (void)applyRenderedText:(NSMutableAttributedString *)attributedText
@@ -334,6 +341,7 @@ using namespace facebook::react;
   objc_setAssociatedObject(_textView.textContainer, kTextViewKey, _textView, OBJC_ASSOCIATION_ASSIGN);
 
   _textView.attributedText = attributedText;
+  _renderedMarkdown = [_cachedMarkdown copy];
 
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, attributedText.length)
                                         actualCharacterRange:NULL];

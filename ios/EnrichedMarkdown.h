@@ -11,6 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) StyleConfig *config;
 - (CGSize)measureSize:(CGFloat)maxWidth;
 - (void)renderMarkdownSynchronously:(NSString *)markdownString;
+- (BOOL)hasRenderedMarkdown:(NSString *)markdown;
 @end
 
 NS_ASSUME_NONNULL_END

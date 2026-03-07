@@ -30,6 +30,7 @@ We can help you build your next dream product –
 - [Usage](#usage)
 - [LaTeX Math](docs/LATEX_MATH.md)
 - [Supported Markdown Elements](#supported-markdown-elements)
+- [Image Caching](docs/IMAGE_CACHING.md)
 - [Copy Options](#copy-options)
 - [Accessibility](#accessibility)
 - [RTL Support](#rtl-support)

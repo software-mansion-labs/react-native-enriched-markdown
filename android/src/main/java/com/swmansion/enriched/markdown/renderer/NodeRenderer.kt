@@ -6,6 +6,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
+import java.lang.ref.WeakReference
 
 interface NodeRenderer {
   fun render(
@@ -30,8 +31,36 @@ class RendererFactory(
 
   val styleCache = SpanStyleCache(config.style)
 
+  private val activeImageSpans = HashMap<String, WeakReference<ImageSpan>>()
+
   fun resetForNewRender() {
     blockStyleContext.resetForNewRender()
+  }
+
+  fun getOrCreateImageSpan(
+    imageUrl: String,
+    isInline: Boolean,
+    altText: String,
+  ): ImageSpan {
+    val key = "${imageUrl}_$isInline"
+    val existing = activeImageSpans[key]?.get()
+    if (existing != null && existing.imageUrl == imageUrl) {
+      return existing
+    }
+    val span =
+      ImageSpan(
+        context = context,
+        imageUrl = imageUrl,
+        styleConfig = config.style,
+        isInline = isInline,
+        altText = altText,
+      )
+    activeImageSpans[key] = WeakReference(span)
+    return span
+  }
+
+  fun clearActiveImageSpans() {
+    activeImageSpans.clear()
   }
 
   private val textRenderer = TextRenderer()
@@ -54,7 +83,7 @@ class RendererFactory(
       put(MarkdownASTNode.NodeType.Strikethrough, StrikethroughRenderer(config))
       put(MarkdownASTNode.NodeType.Underline, UnderlineRenderer(config))
       put(MarkdownASTNode.NodeType.Code, CodeRenderer(config))
-      put(MarkdownASTNode.NodeType.Image, ImageRenderer(config, context))
+      put(MarkdownASTNode.NodeType.Image, ImageRenderer())
       put(MarkdownASTNode.NodeType.LineBreak, lineBreakRenderer)
       put(MarkdownASTNode.NodeType.ThematicBreak, ThematicBreakRenderer(config))
       if (FeatureFlags.isMathEnabled) {

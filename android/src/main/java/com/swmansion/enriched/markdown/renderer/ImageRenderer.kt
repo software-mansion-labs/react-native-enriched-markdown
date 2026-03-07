@@ -1,16 +1,11 @@
 package com.swmansion.enriched.markdown.renderer
 
-import android.content.Context
 import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
-import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.utils.text.extensions.isInlineImage
 import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
-class ImageRenderer(
-  private val config: RendererConfig,
-  private val context: Context,
-) : NodeRenderer {
+class ImageRenderer : NodeRenderer {
   override fun render(
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
@@ -30,10 +25,8 @@ class ImageRenderer(
     val altText = extractTextFromNode(node)
 
     val span =
-      ImageSpan(
-        context = context,
+      factory.getOrCreateImageSpan(
         imageUrl = imageUrl,
-        styleConfig = config.style,
         isInline = isInline,
         altText = altText,
       )
@@ -62,7 +55,7 @@ class ImageRenderer(
     node: MarkdownASTNode,
     buffer: StringBuilder,
   ) {
-    node.content?.let { buffer.append(it) }
+    node.content.let { buffer.append(it) }
     node.children.forEach { child -> appendChildText(child, buffer) }
   }
 }

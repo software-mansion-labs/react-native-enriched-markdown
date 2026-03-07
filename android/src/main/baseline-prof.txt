@@ -102,7 +102,7 @@ Lcom/swmansion/enriched/markdown/utils/common/layout/RTLUtilsKt;
 Lcom/swmansion/enriched/markdown/utils/common/serialization/MarkdownASTSerializer;
 
 # Utilities - Text
-Lcom/swmansion/enriched/markdown/utils/text/AsyncDrawable;
+Lcom/swmansion/enriched/markdown/utils/text/ImageDownloader;
 Lcom/swmansion/enriched/markdown/utils/text/conversion/HTMLGenerator;
 Lcom/swmansion/enriched/markdown/utils/text/conversion/MarkdownExtractor;
 Lcom/swmansion/enriched/markdown/utils/text/extensions/ParagraphUtilsKt;

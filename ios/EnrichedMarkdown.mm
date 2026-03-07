@@ -1,6 +1,7 @@
 #import "EnrichedMarkdown.h"
 #import "AccessibilityInfo.h"
 #import "AttributedRenderer.h"
+#import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
 #import "EditMenuUtils.h"
 
@@ -545,6 +546,10 @@ using namespace facebook::react;
   }
 
   stylePropChanged = applyMarkdownStyleToConfig(_config, newViewProps.markdownStyle, oldViewProps.markdownStyle);
+
+  if (stylePropChanged) {
+    [ENRMImageAttachment clearAttachmentRegistry];
+  }
 
   _selectable = newViewProps.selectable;
 

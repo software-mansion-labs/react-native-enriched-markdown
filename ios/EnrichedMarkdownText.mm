@@ -376,6 +376,10 @@ using namespace facebook::react;
 
   stylePropChanged = applyMarkdownStyleToConfig(_config, newViewProps.markdownStyle, oldViewProps.markdownStyle);
 
+  if (stylePropChanged) {
+    [ENRMImageAttachment clearAttachmentRegistry];
+  }
+
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {
     StyleConfig *currentConfig = [layoutManager valueForKey:@"config"];

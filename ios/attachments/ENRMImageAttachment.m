@@ -1,13 +1,26 @@
 #import "ENRMImageAttachment.h"
+#import "ENRMImageDownloader.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
-#import <React/RCTLog.h>
 #import <objc/runtime.h>
+
+#define CACHE_KEY_PROCESSED(url, w, h, r) [NSString stringWithFormat:@"%@_w%.1f_h%.1f_r%.1f", url, w, h, r]
+
+static inline NSUInteger ENRMImageByteCost(UIImage *image)
+{
+  CGImageRef cgImage = image.CGImage;
+  if (!cgImage)
+    return 0;
+  return CGImageGetBytesPerRow(cgImage) * CGImageGetHeight(cgImage);
+}
+
+static NSCache<NSString *, UIImage *> *_originalImageCache;
+static NSCache<NSString *, UIImage *> *_processedImageCache;
+static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
 
 @interface ENRMImageAttachment ()
 
-@property (nonatomic, readwrite) NSString *imageURL;
-@property (nonatomic, weak) StyleConfig *styleConfiguration;
+@property (nonatomic, copy) NSString *imageURL;
 @property (nonatomic, assign) BOOL isInline;
 @property (nonatomic, assign) CGFloat cachedHeight;
 @property (nonatomic, assign) CGFloat cachedBorderRadius;
@@ -15,18 +28,63 @@
 @property (nonatomic, weak) UITextView *textView;
 @property (nonatomic, strong) UIImage *originalImage;
 @property (nonatomic, strong) UIImage *loadedImage;
-@property (nonatomic, strong) NSURLSessionDataTask *loadingTask;
+@property (nonatomic, copy) NSString *lastProcessedKey;
 
 @end
 
 @implementation ENRMImageAttachment
+
++ (NSCache<NSString *, UIImage *> *)originalImageCache
+{
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    _originalImageCache = [[NSCache alloc] init];
+    _originalImageCache.countLimit = 50;
+    _originalImageCache.totalCostLimit = 1024 * 1024 * 20; // 20 MB
+  });
+  return _originalImageCache;
+}
+
++ (NSCache<NSString *, UIImage *> *)processedImageCache
+{
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    _processedImageCache = [[NSCache alloc] init];
+    _processedImageCache.countLimit = 100;
+    _processedImageCache.totalCostLimit = 1024 * 1024 * 30; // 30 MB
+  });
+  return _processedImageCache;
+}
+
++ (NSMapTable<NSString *, ENRMImageAttachment *> *)attachmentRegistry
+{
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{ _attachmentRegistry = [NSMapTable strongToWeakObjectsMapTable]; });
+  return _attachmentRegistry;
+}
+
++ (instancetype)attachmentForURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline
+{
+  NSString *key = [NSString stringWithFormat:@"%@_%d", imageURL, isInline];
+  ENRMImageAttachment *existing = [[self attachmentRegistry] objectForKey:key];
+  if (existing && existing.loadedImage) {
+    return existing;
+  }
+  ENRMImageAttachment *attachment = [[self alloc] initWithImageURL:imageURL config:config isInline:isInline];
+  [[self attachmentRegistry] setObject:attachment forKey:key];
+  return attachment;
+}
+
++ (void)clearAttachmentRegistry
+{
+  [[self attachmentRegistry] removeAllObjects];
+}
 
 - (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline
 {
   self = [super init];
   if (self) {
     _imageURL = imageURL;
-    _styleConfiguration = config;
     _isInline = isInline;
 
     _cachedHeight = isInline ? [config inlineImageSize] : [config imageHeight];
@@ -55,9 +113,6 @@
       appliedFont = [textStorage attribute:NSFontAttributeName atIndex:characterIndex effectiveRange:NULL];
     }
 
-    // Determine the vertical alignment:
-    // Center against the font's Capital Height if available,
-    // otherwise center within the line fragment.
     CGFloat verticalOffset;
     if (appliedFont) {
       verticalOffset = (appliedFont.capHeight - height) / 2.0;
@@ -78,15 +133,8 @@
   self.textContainer = textContainer;
 
   if (self.originalImage && imageBounds.size.width > 0) {
-    CGFloat currentWidth = imageBounds.size.width;
-
-    BOOL isFirstLoad = (self.loadedImage == nil);
-    BOOL hasWidthChanged = !self.isInline && self.loadedImage && fabs(self.loadedImage.size.width - currentWidth) > 1.0;
-
-    if (isFirstLoad || hasWidthChanged) {
-      self.bounds = imageBounds;
-      [self processAndApplyImage:self.originalImage withTargetWidth:currentWidth];
-    }
+    self.bounds = imageBounds;
+    [self processAndApplyImage:self.originalImage withTargetWidth:imageBounds.size.width];
   }
 
   return self.loadedImage ?: self.image;
@@ -94,16 +142,14 @@
 
 - (void)handleLoadedImage:(UIImage *)image
 {
-  if (!image) {
+  if (!image)
     return;
-  }
 
   self.originalImage = image;
   CGFloat targetWidth = self.isInline ? self.cachedHeight : self.bounds.size.width;
 
-  // If bounds width isn't known yet (image loaded before layout), defer scaling
-  // until imageForBounds: provides the real width via the text system.
-  if (!self.isInline && targetWidth <= self.cachedHeight) {
+  // Defer processing if we don't have valid bounds yet (common for non-inline block images)
+  if (!self.isInline && targetWidth <= 0) {
     return;
   }
 
@@ -112,12 +158,27 @@
 
 - (void)processAndApplyImage:(UIImage *)image withTargetWidth:(CGFloat)targetWidth
 {
-  if (targetWidth <= 0) {
+  if (targetWidth <= 0)
+    return;
+
+  NSString *processedKey = CACHE_KEY_PROCESSED(self.imageURL, targetWidth, self.cachedHeight, self.cachedBorderRadius);
+
+  if ([processedKey isEqualToString:self.lastProcessedKey])
+    return;
+  self.lastProcessedKey = processedKey;
+
+  UIImage *cachedProcessed = [[ENRMImageAttachment processedImageCache] objectForKey:processedKey];
+
+  if (cachedProcessed) {
+    self.loadedImage = cachedProcessed;
+    if (self.isInline)
+      self.image = cachedProcessed;
+    [self refreshDisplay];
     return;
   }
 
   __weak typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
     __strong typeof(weakSelf) strongSelf = weakSelf;
     if (!strongSelf)
       return;
@@ -127,16 +188,20 @@
                                                      height:strongSelf.cachedHeight
                                                borderRadius:strongSelf.cachedBorderRadius];
 
+    if (processedImage) {
+      [[ENRMImageAttachment processedImageCache] setObject:processedImage
+                                                    forKey:processedKey
+                                                      cost:ENRMImageByteCost(processedImage)];
+    }
+
     dispatch_async(dispatch_get_main_queue(), ^{
       strongSelf.loadedImage = processedImage;
-
       if (strongSelf.isInline) {
         strongSelf.image = processedImage;
         strongSelf.bounds = CGRectMake(0, 0, strongSelf.cachedHeight, strongSelf.cachedHeight);
       } else {
-        strongSelf.image = image;
+        strongSelf.image = image; // Keep original for layout references
       }
-
       [strongSelf refreshDisplay];
     });
   });
@@ -149,10 +214,12 @@
 {
   CGFloat sourceWidth = image.size.width;
   CGFloat sourceHeight = image.size.height;
+  if (sourceWidth <= 0 || sourceHeight <= 0)
+    return nil;
 
   CGFloat drawingWidth, drawingHeight;
 
-  if (!self.isInline && sourceWidth > 0 && sourceHeight > 0) {
+  if (!self.isInline) {
     CGFloat aspectRatioScale = targetWidth / sourceWidth;
     drawingWidth = targetWidth;
     drawingHeight = sourceHeight * aspectRatioScale;
@@ -161,12 +228,14 @@
     drawingHeight = targetHeight;
   }
 
-  CGFloat xOffset = (targetWidth - drawingWidth) / 2.0;
-  CGFloat yOffset = (targetHeight - drawingHeight) / 2.0;
-  CGRect drawingRect = CGRectMake(xOffset, yOffset, drawingWidth, drawingHeight);
+  CGRect drawingRect =
+      CGRectMake((targetWidth - drawingWidth) / 2.0, (targetHeight - drawingHeight) / 2.0, drawingWidth, drawingHeight);
+
+  UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
+  format.opaque = NO;
 
   UIGraphicsImageRenderer *renderer =
-      [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(targetWidth, targetHeight)];
+      [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(targetWidth, targetHeight) format:format];
 
   return [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
     if (radius > 0) {
@@ -178,35 +247,37 @@
   }];
 }
 
+- (void)startDownloadingImage
+{
+  if (self.imageURL.length == 0)
+    return;
+
+  __weak typeof(self) weakSelf = self;
+  [[ENRMImageDownloader shared] downloadURL:self.imageURL
+                                 completion:^(UIImage *image) { [weakSelf handleLoadedImage:image]; }];
+}
+
 - (void)refreshDisplay
 {
   UITextView *textView = [self fetchAssociatedTextView];
-  if (!textView) {
+  if (!textView)
     return;
-  }
 
-  NSRange attachmentRange = [self findAttachmentRangeInText:textView.attributedText];
-  if (attachmentRange.location == NSNotFound) {
-    return;
-  }
-
-  [textView.layoutManager invalidateDisplayForCharacterRange:attachmentRange];
-  if (!self.isInline) {
-    [textView.layoutManager invalidateLayoutForCharacterRange:attachmentRange actualCharacterRange:NULL];
+  NSRange range = [self findAttachmentRangeInText:textView.attributedText];
+  if (range.location != NSNotFound) {
+    [textView.layoutManager invalidateDisplayForCharacterRange:range];
+    if (!self.isInline) {
+      [textView.layoutManager invalidateLayoutForCharacterRange:range actualCharacterRange:NULL];
+    }
   }
 }
 
 - (UITextView *)fetchAssociatedTextView
 {
-  if (self.textView) {
+  if (self.textView)
     return self.textView;
-  }
-
-  if (!self.textContainer) {
+  if (!self.textContainer)
     return nil;
-  }
-
-  // Look up the text view via the associated object key stored on the container
   self.textView = objc_getAssociatedObject(self.textContainer, kTextViewKey);
   return self.textView;
 }
@@ -215,41 +286,14 @@
 {
   CGFloat size = self.cachedHeight;
   self.bounds = CGRectMake(0, 0, size, size);
-
-  UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(size, size)];
-  self.image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *context){
-      // Generates an empty transparent placeholder
-  }];
-}
-
-- (void)startDownloadingImage
-{
-  if (self.imageURL.length == 0) {
-    return;
-  }
-
-  NSURL *url = [NSURL URLWithString:self.imageURL];
-  if (!url) {
-    return;
-  }
-
-  __weak typeof(self) weakSelf = self;
-  self.loadingTask = [[NSURLSession sharedSession]
-        dataTaskWithURL:url
-      completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        if (data && !error) {
-          UIImage *downloadedImage = [UIImage imageWithData:data];
-          dispatch_async(dispatch_get_main_queue(), ^{ [weakSelf handleLoadedImage:downloadedImage]; });
-        }
-      }];
-
-  [self.loadingTask resume];
+  UIGraphicsBeginImageContext(CGSizeMake(1, 1));
+  self.image = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
 }
 
 - (NSRange)findAttachmentRangeInText:(NSAttributedString *)attributedString
 {
   __block NSRange foundRange = NSMakeRange(NSNotFound, 0);
-
   [attributedString enumerateAttribute:NSAttachmentAttributeName
                                inRange:NSMakeRange(0, attributedString.length)
                                options:0
@@ -259,13 +303,7 @@
                                 *stop = YES;
                               }
                             }];
-
   return foundRange;
-}
-
-- (void)dealloc
-{
-  [_loadingTask cancel];
 }
 
 @end

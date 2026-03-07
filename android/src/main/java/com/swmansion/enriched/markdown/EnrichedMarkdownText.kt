@@ -231,6 +231,10 @@ class EnrichedMarkdownText
       checkboxTouchHelper.onCheckboxTap = callback
     }
 
+    fun clearActiveImageSpans() {
+      renderer.clearActiveImageSpans()
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
       if (checkboxTouchHelper.onTouchEvent(event)) return true
       return super.onTouchEvent(event)

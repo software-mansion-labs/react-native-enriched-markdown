@@ -30,9 +30,7 @@ static const unichar kZeroWidthSpace = 0x200B;
   }
 
   BOOL isInline = [self isInlineImageInOutput:output];
-  ENRMImageAttachment *attachment = [[ENRMImageAttachment alloc] initWithImageURL:imageURL
-                                                                           config:_config
-                                                                         isInline:isInline];
+  ENRMImageAttachment *attachment = [ENRMImageAttachment attachmentForURL:imageURL config:_config isInline:isInline];
 
   NSUInteger startIndex = output.length;
 

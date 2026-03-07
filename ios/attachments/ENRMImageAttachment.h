@@ -16,7 +16,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) NSString *imageURL;
 @property (nonatomic, readonly) BOOL isInline;
 
-- (instancetype)initWithImageURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline;
++ (instancetype)attachmentForURL:(NSString *)imageURL config:(StyleConfig *)config isInline:(BOOL)isInline;
+
++ (void)clearAttachmentRegistry;
+
++ (NSCache<NSString *, UIImage *> *)originalImageCache;
++ (NSCache<NSString *, UIImage *> *)processedImageCache;
 
 @end
 

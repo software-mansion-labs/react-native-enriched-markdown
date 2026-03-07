@@ -3,6 +3,8 @@ export const sampleMarkdown = `
 
 Forests cover approximately **31% of the Earth's land surface**, providing habitat for countless species and playing a vital role in our planet's health. These magnificent ecosystems have existed for over *300 million years*, evolving alongside the creatures that call them home.
 
+Forests cover approximately **31% of the Earth's land surface**, providing habitat for countless species and playing a vital role in our planet's health. These magnificent ecosystems have existed for over *300 million years*, evolving alongside the creatures that call them home.
+
 ![Misty forest at sunrise](https://images.unsplash.com/photo-1448375240586-882707db888b?w=800)
 
 ## Why Forests Matter
@@ -332,6 +334,14 @@ The UN Decade on Ecosystem Restoration aims to restore **350 million hectares** 
 - Corridor connections between forests
 
 ![New forest growth](https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800)
+
+---
+
+## High-Resolution Image Test
+
+The image below is loaded at full resolution (4000+ pixels wide) to test downsampling. Without downsampling, this single image would consume ~48 MB of memory during decode. With Phase 3 downsampling, it decodes at screen-width resolution instead.
+
+![High-res forest aerial view](https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=4000)
 
 ---
 

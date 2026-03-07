@@ -119,6 +119,7 @@ using namespace facebook::react;
   StyleConfig *_config;
   ENRMMd4cFlags *_md4cFlags;
   NSString *_cachedMarkdown;
+  NSString *_renderedMarkdown;
   NSMutableArray<UIView *> *_segmentViews;
 
   dispatch_queue_t _renderQueue;
@@ -236,6 +237,11 @@ using namespace facebook::react;
   // Round to pixel boundaries to match React Native's <Text> measurement
   CGFloat scale = [UIScreen mainScreen].scale;
   return CGSizeMake(maxWidth, ceil(totalHeight * scale) / scale);
+}
+
+- (BOOL)hasRenderedMarkdown:(NSString *)markdown
+{
+  return _renderedMarkdown != nil && [_renderedMarkdown isEqualToString:markdown];
 }
 
 - (void)updateState:(const facebook::react::State::Shared &)state
@@ -357,6 +363,7 @@ using namespace facebook::react;
 
   _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
+  _renderedMarkdown = [markdownString copy];
 
   MarkdownASTNode *ast = [_parser parseMarkdown:markdownString flags:_md4cFlags];
   if (!ast) {
@@ -394,6 +401,8 @@ using namespace facebook::react;
 
 - (void)applyRenderedSegments:(NSArray *)renderedSegments
 {
+  _renderedMarkdown = [_cachedMarkdown copy];
+
   for (UIView *view in _segmentViews) {
     [view removeFromSuperview];
   }

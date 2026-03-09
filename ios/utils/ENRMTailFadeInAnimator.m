@@ -48,7 +48,8 @@ typedef struct {
 
   _startTime = CACurrentMediaTime();
   _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(step:)];
-  _displayLink.preferredFramesPerSecond = 60;
+  // 0 tells the system to use the display's maximum frame rate — 60 Hz on standard displays and 120 Hz on ProMotion ones
+  _displayLink.preferredFramesPerSecond = 0;
   [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 }
 

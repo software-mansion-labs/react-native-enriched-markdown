@@ -9,6 +9,7 @@ import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
+import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
 import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
 import com.swmansion.enriched.markdown.views.BlockSegmentView
 
@@ -54,7 +55,11 @@ class EnrichedMarkdownInternalText
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
       if (checkboxTouchHelper.onTouchEvent(event)) return true
-      return super.onTouchEvent(event)
+      val result = super.onTouchEvent(event)
+      if (event.action == MotionEvent.ACTION_DOWN) {
+        cancelJSTouchForLinkTap(event)
+      }
+      return result
     }
 
     fun setJustificationMode(needsJustify: Boolean) {

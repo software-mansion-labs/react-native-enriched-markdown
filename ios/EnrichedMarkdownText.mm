@@ -468,6 +468,18 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
   return EnrichedMarkdownText.class;
 }
 
+- (facebook::react::SharedTouchEventEmitter)touchEventEmitterAtPoint:(CGPoint)point
+{
+  if (_textView) {
+    CGPoint textViewPoint = [self convertPoint:point toView:_textView];
+    if (isPointOnInteractiveElement(_textView, textViewPoint)) {
+      return nil;
+    }
+  }
+
+  return [super touchEventEmitterAtPoint:point];
+}
+
 - (void)textTapped:(UITapGestureRecognizer *)recognizer
 {
   UITextView *textView = (UITextView *)recognizer.view;

@@ -26,3 +26,20 @@ NSString *_Nullable linkURLAtRange(UITextView *textView, NSRange characterRange)
   }
   return [textView.attributedText attribute:@"linkURL" atIndex:characterRange.location effectiveRange:NULL];
 }
+
+BOOL isPointOnInteractiveElement(UITextView *textView, CGPoint point)
+{
+  NSLayoutManager *layoutManager = textView.layoutManager;
+  CGPoint adjusted = CGPointMake(point.x - textView.textContainerInset.left, point.y - textView.textContainerInset.top);
+
+  NSUInteger charIndex = [layoutManager characterIndexForPoint:adjusted
+                                               inTextContainer:textView.textContainer
+                      fractionOfDistanceBetweenInsertionPoints:NULL];
+
+  if (charIndex >= textView.textStorage.length) {
+    return NO;
+  }
+
+  NSDictionary *attrs = [textView.attributedText attributesAtIndex:charIndex effectiveRange:NULL];
+  return attrs[@"linkURL"] != nil || [attrs[@"taskItem"] boolValue];
+}

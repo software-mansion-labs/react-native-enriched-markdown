@@ -610,6 +610,25 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   return EnrichedMarkdown.class;
 }
 
+- (facebook::react::SharedTouchEventEmitter)touchEventEmitterAtPoint:(CGPoint)point
+{
+  for (UIView *segment in _segmentViews) {
+    if (![segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      continue;
+    }
+    EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
+    CGPoint segmentPoint = [self convertPoint:point toView:textSegment.textView];
+    if ([textSegment.textView pointInside:segmentPoint withEvent:nil]) {
+      if (isPointOnInteractiveElement(textSegment.textView, segmentPoint)) {
+        return nil;
+      }
+      break;
+    }
+  }
+
+  return [super touchEventEmitterAtPoint:point];
+}
+
 - (void)textTapped:(UITapGestureRecognizer *)recognizer
 {
   UITextView *textView = (UITextView *)recognizer.view;

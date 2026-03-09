@@ -22,6 +22,9 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
   private var startX = 0f
   private var startY = 0f
 
+  var isLinkTouchActive: Boolean = false
+    private set
+
   override fun onTouchEvent(
     widget: TextView,
     buffer: Spannable,
@@ -32,32 +35,30 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
         startX = event.x
         startY = event.y
 
-        // Identify if a LinkSpan exists at the touch coordinates
-        findLinkSpan(widget, buffer, event)?.let { span ->
-          scheduleLongPress(widget, span)
-        }
+        val span = findLinkSpan(widget, buffer, event)
+        isLinkTouchActive = span != null
+        span?.let { scheduleLongPress(widget, it) }
       }
 
       MotionEvent.ACTION_MOVE -> {
         val config = ViewConfiguration.get(widget.context)
-        // Cancel if the finger moves beyond the standard system touch slop
         if (abs(event.x - startX) > config.scaledTouchSlop ||
           abs(event.y - startY) > config.scaledTouchSlop
         ) {
           cancelLongPress()
+          isLinkTouchActive = false
         }
       }
 
       MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
         cancelLongPress()
-        // Clear text selection to prevent the "stuck" highlight look
+        isLinkTouchActive = false
         if (widget.hasSelection()) {
           Selection.removeSelection(buffer)
         }
       }
     }
 
-    // Let the parent LinkMovementMethod handle the standard click logic
     val result = super.onTouchEvent(widget, buffer, event)
 
     // LinkMovementMethod sets a Selection highlight around the link on ACTION_DOWN,

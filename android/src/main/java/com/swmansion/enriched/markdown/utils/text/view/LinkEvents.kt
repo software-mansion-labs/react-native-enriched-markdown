@@ -1,8 +1,11 @@
 package com.swmansion.enriched.markdown.utils.text.view
 
+import android.view.MotionEvent
 import android.view.View
+import android.widget.TextView
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.NativeGestureUtil
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 
@@ -18,4 +21,15 @@ fun View.emitLinkLongPressEvent(url: String) {
   val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
   val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
   dispatcher?.dispatchEvent(LinkLongPressEvent(surfaceId, id, url))
+}
+
+/**
+ * Cancels the JS touch for an active link tap, preventing parent
+ * Pressable/TouchableOpacity from firing onPress for the same tap.
+ */
+fun TextView.cancelJSTouchForLinkTap(event: MotionEvent) {
+  val currentMovementMethod = movementMethod
+  if (currentMovementMethod is LinkLongPressMovementMethod && currentMovementMethod.isLinkTouchActive) {
+    NativeGestureUtil.notifyNativeGestureStarted(this, event)
+  }
 }

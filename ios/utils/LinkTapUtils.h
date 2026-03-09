@@ -14,6 +14,9 @@ NSString *_Nullable linkURLAtTapLocation(UITextView *textView, UITapGestureRecog
 /// Returns the link URL at the given character range, or nil if none found.
 NSString *_Nullable linkURLAtRange(UITextView *textView, NSRange characterRange);
 
+/// Returns YES if the point (in textView coordinates) is on a link or task list checkbox.
+BOOL isPointOnInteractiveElement(UITextView *textView, CGPoint point);
+
 #ifdef __cplusplus
 }
 #endif

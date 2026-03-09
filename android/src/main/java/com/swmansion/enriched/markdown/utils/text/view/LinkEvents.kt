@@ -33,3 +33,11 @@ fun TextView.cancelJSTouchForLinkTap(event: MotionEvent) {
     NativeGestureUtil.notifyNativeGestureStarted(this, event)
   }
 }
+
+/**
+ * Cancels the JS touch unconditionally, preventing parent
+ * Pressable/TouchableOpacity from firing onPress for the same gesture.
+ */
+fun View.cancelJSTouch(event: MotionEvent) {
+  NativeGestureUtil.notifyNativeGestureStarted(this, event)
+}

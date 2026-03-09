@@ -41,5 +41,5 @@ BOOL isPointOnInteractiveElement(UITextView *textView, CGPoint point)
   }
 
   NSDictionary *attrs = [textView.attributedText attributesAtIndex:charIndex effectiveRange:NULL];
-  return attrs[@"linkURL"] != nil || [attrs[@"taskItem"] boolValue];
+  return attrs[@"linkURL"] != nil || [attrs[@"TaskItem"] boolValue];
 }

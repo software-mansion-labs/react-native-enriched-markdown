@@ -1,7 +1,8 @@
-import { type ConfigPlugin, withDangerousMod } from '@expo/config-plugins';
-
+import configPlugins, { type ConfigPlugin } from '@expo/config-plugins';
 import fs from 'fs';
 import path from 'path';
+
+const { withDangerousMod } = configPlugins;
 
 const IOS_MATH_OPTION = "ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0'";
 

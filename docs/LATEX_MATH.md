@@ -70,3 +70,26 @@ enrichedMarkdown.enableMath=false
 ```
 
 This excludes `AndroidMath` from the build. Rebuild the app after changing this property.
+
+### 4. Continuous native code (Expo)
+
+If you are using Expo, you can use the built-in config plugin to disable LaTeX math rendering on both platforms at once.
+
+Add the following to your `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "react-native-enriched-markdown",
+        {
+          "enableMath": false
+        }
+      ]
+    ]
+  }
+}
+```
+
+This will automatically apply both the [iOS](#2-remove-the-native-ios-dependency) and [Android](#3-remove-the-native-android-dependency) native changes listed above during `npx expo prebuild`.

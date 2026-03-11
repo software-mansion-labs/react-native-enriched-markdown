@@ -100,11 +100,12 @@
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
+    "@expo/config-plugins": ">=50.0.0",
     "react": "*",
     "react-native": "*"
   },
   "peerDependenciesMeta": {
-    "expo": {
+    "@expo/config-plugins": {
       "optional": true
     }
   },

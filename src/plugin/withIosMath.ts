@@ -10,6 +10,9 @@ export const withIosMath: ConfigPlugin<{ enableMath?: boolean }> = (
   config,
   { enableMath = true }
 ) => {
+  if (enableMath) {
+    return config;
+  }
   return withDangerousMod(config, [
     'ios',
     async (modConfig) => {
@@ -24,9 +27,7 @@ export const withIosMath: ConfigPlugin<{ enableMath?: boolean }> = (
         (line) => !line.includes('ENRICHED_MARKDOWN_ENABLE_MATH')
       );
 
-      if (enableMath === false) {
-        filteredLines.unshift(IOS_MATH_OPTION);
-      }
+      filteredLines.unshift(IOS_MATH_OPTION);
 
       fs.writeFileSync(file, filteredLines.join('\n'));
 

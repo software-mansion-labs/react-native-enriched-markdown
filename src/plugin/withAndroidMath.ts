@@ -6,18 +6,20 @@ export const withAndroidMath: ConfigPlugin<{ enableMath?: boolean }> = (
   config,
   { enableMath = true }
 ) => {
+  if (enableMath) {
+    return config;
+  }
   return withGradleProperties(config, (gradleConfig) => {
     gradleConfig.modResults = gradleConfig.modResults.filter(
-      (prop: any) => prop.key !== 'enrichedMarkdown.enableMath'
+      (prop) =>
+        prop.type !== 'property' || prop.key !== 'enrichedMarkdown.enableMath'
     );
 
-    if (enableMath === false) {
-      gradleConfig.modResults.push({
-        type: 'property',
-        key: 'enrichedMarkdown.enableMath',
-        value: 'false',
-      });
-    }
+    gradleConfig.modResults.push({
+      type: 'property',
+      key: 'enrichedMarkdown.enableMath',
+      value: 'false',
+    });
 
     return gradleConfig;
   });

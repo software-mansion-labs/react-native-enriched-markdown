@@ -497,9 +497,12 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
-  if (newStyle.link.underline != oldStyle.link.underline) {
-    [config setLinkUnderline:newStyle.link.underline];
-    changed = YES;
+  {
+    BOOL newUnderline = newStyle.link.underline ? YES : NO;
+    if (newStyle.link.underline != oldStyle.link.underline || [config linkUnderline] != newUnderline) {
+      [config setLinkUnderline:newUnderline];
+      changed = YES;
+    }
   }
 
   // ── Strong ─────────────────────────────────────────────────────────────────

@@ -395,16 +395,43 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
 
   impl_->flushText();
 
-  // md4c emits $$...$$ as an inline span inside a Paragraph — promote to block-level
-  // so the segment splitter treats it as a standalone math segment.
+  // md4c wraps certain block-level constructs as inline spans inside a Paragraph.
+  // When they appear on consecutive lines without a blank separator, md4c merges
+  // them into a single Paragraph with LineBreak / whitespace Text nodes between them.
+  // Detect and unwrap these, promoting each block node to a top-level sibling.
+  // Example: consecutive $$...$$ (LatexMathDisplay) on adjacent lines.
   if (impl_->root) {
+    auto shouldPromote = [](const MarkdownASTNode &n) { return n.type == NodeType::LatexMathDisplay; };
+    auto isSeparator = [](const MarkdownASTNode &n) {
+      return n.type == NodeType::LineBreak ||
+             (n.type == NodeType::Text && n.content.find_first_not_of(" \t\n\r") == std::string::npos);
+    };
+
     auto &children = impl_->root->children;
-    for (size_t i = 0; i < children.size(); ++i) {
-      auto &child = children[i];
-      if (child->type == NodeType::Paragraph && child->children.size() == 1 &&
-          child->children[0]->type == NodeType::LatexMathDisplay) {
-        children[i] = child->children[0];
+    for (size_t i = 0; i < children.size();) {
+      auto &para = children[i];
+      if (para->type != NodeType::Paragraph || para->children.empty()) {
+        ++i;
+        continue;
       }
+
+      std::vector<std::shared_ptr<MarkdownASTNode>> promoted;
+      for (auto &pc : para->children) {
+        if (shouldPromote(*pc))
+          promoted.push_back(pc);
+        else if (!isSeparator(*pc)) {
+          promoted.clear();
+          break;
+        }
+      }
+
+      if (promoted.empty()) {
+        ++i;
+        continue;
+      }
+      auto pos = children.erase(children.begin() + static_cast<ptrdiff_t>(i));
+      children.insert(pos, promoted.begin(), promoted.end());
+      i += promoted.size();
     }
   }
 

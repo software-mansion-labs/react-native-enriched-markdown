@@ -395,6 +395,11 @@ using namespace facebook::react;
     return;
   }
 
+  for (UIView *view in _segmentViews) {
+    [view removeFromSuperview];
+  }
+  [_segmentViews removeAllObjects];
+
   _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
   _renderedMarkdown = [markdownString copy];

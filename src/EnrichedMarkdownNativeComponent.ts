@@ -277,7 +277,7 @@ export interface NativeProps extends ViewProps {
    */
   streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
   /**
-   * When true, markdown is parsed and rendered synchronously on the main thread,
+   * **iOS only.** When true, markdown is parsed and rendered synchronously on the main thread,
    * ensuring accurate layout on the first frame. This prevents height measurement
    * race conditions in containers that rely on initial layout (e.g. bottom sheets).
    *
@@ -285,7 +285,11 @@ export interface NativeProps extends ViewProps {
    * appended incrementally (e.g. LLM output with streamingAnimation enabled),
    * as synchronous rendering would block the main thread on each update.
    *
+   * On Android this prop is ignored — rendering is always asynchronous and
+   * measurement is handled natively without a mock-view pass.
+   *
    * @default true
+   * @platform ios
    */
   synchronousRendering?: CodegenTypes.WithDefault<boolean, true>;
 }

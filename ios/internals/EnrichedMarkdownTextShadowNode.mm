@@ -53,7 +53,9 @@ id EnrichedMarkdownTextShadowNode::setupMockEnrichedMarkdownText_(CGFloat width)
 Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutContext,
                                                     const LayoutConstraints &layoutConstraints) const
 {
+  CGFloat minWidth = layoutConstraints.minimumSize.width;
   CGFloat maxWidth = layoutConstraints.maximumSize.width;
+  CGFloat minHeight = layoutConstraints.minimumSize.height;
   CGFloat maxHeight = layoutConstraints.maximumSize.height;
 
   const auto &typedProps = *std::static_pointer_cast<const EnrichedMarkdownTextProps>(this->getProps());
@@ -66,7 +68,7 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
     auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::CommonMark);
     CachedSize cached;
     if (MeasurementCache::shared().get(cacheKey, cached)) {
-      return {cached.width, std::min(cached.height, (CGFloat)maxHeight)};
+      return {std::max(cached.width, (CGFloat)minWidth), std::max(std::min(cached.height, (CGFloat)maxHeight), (CGFloat)minHeight)};
     }
   }
 
@@ -98,7 +100,9 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
     MeasurementCache::shared().set(cacheKey, {size.width, size.height});
   }
 
-  return {size.width, MIN(size.height, maxHeight)};
+  Float resultWidth = std::max(std::min((Float)size.width, (Float)maxWidth), (Float)minWidth);
+  Float resultHeight = std::max(std::min((Float)size.height, (Float)maxHeight), (Float)minHeight);
+  return {resultWidth, resultHeight};
 }
 
 } // namespace facebook::react

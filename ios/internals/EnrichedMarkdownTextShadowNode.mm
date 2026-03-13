@@ -66,7 +66,13 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
     auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::CommonMark);
     CachedSize cached;
     if (MeasurementCache::shared().get(cacheKey, cached)) {
-      return {cached.width, std::min(cached.height, (CGFloat)maxHeight)};
+      Float cachedWidth = std::max(cached.width, layoutConstraints.minimumSize.width);
+      cachedWidth = std::min(cachedWidth, layoutConstraints.maximumSize.width);
+      Float cachedHeight = std::max(cached.height, layoutConstraints.minimumSize.height);
+      if (std::isfinite(layoutConstraints.maximumSize.height)) {
+        cachedHeight = std::min(cachedHeight, layoutConstraints.maximumSize.height);
+      }
+      return {cachedWidth, cachedHeight};
     }
   }
 
@@ -98,7 +104,15 @@ Size EnrichedMarkdownTextShadowNode::measureContent(const LayoutContext &layoutC
     MeasurementCache::shared().set(cacheKey, {size.width, size.height});
   }
 
-  return {size.width, MIN(size.height, maxHeight)};
+  Float clampedWidth = size.width;
+  Float clampedHeight = size.height;
+  clampedWidth = std::max(clampedWidth, layoutConstraints.minimumSize.width);
+  clampedWidth = std::min(clampedWidth, layoutConstraints.maximumSize.width);
+  clampedHeight = std::max(clampedHeight, layoutConstraints.minimumSize.height);
+  if (std::isfinite(layoutConstraints.maximumSize.height)) {
+    clampedHeight = std::min(clampedHeight, layoutConstraints.maximumSize.height);
+  }
+  return {clampedWidth, clampedHeight};
 }
 
 } // namespace facebook::react

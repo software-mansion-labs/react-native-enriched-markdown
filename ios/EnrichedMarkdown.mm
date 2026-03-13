@@ -605,6 +605,31 @@ using namespace facebook::react;
   [super updateProps:props oldProps:oldProps];
 }
 
+- (void)didMoveToWindow
+{
+  [super didMoveToWindow];
+
+  if (self.window && _renderedMarkdown != nil) {
+    for (UIView *segment in _segmentViews) {
+      if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+        EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
+        UITextView *textView = textSegment.textView;
+        textView.contentOffset = CGPointZero;
+        if (textView.attributedText.length > 0) {
+          [textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, textView.attributedText.length)
+                                               actualCharacterRange:NULL];
+          textView.textContainer.size = CGSizeMake(textView.bounds.size.width, CGFLOAT_MAX);
+          [textView setNeedsLayout];
+          [textView layoutIfNeeded];
+          [textView setNeedsDisplay];
+        }
+      }
+    }
+
+    [self requestHeightUpdate];
+  }
+}
+
 Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 {
   return EnrichedMarkdown.class;

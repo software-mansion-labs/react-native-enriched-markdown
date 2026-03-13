@@ -305,6 +305,18 @@ export interface EnrichedMarkdownTextProps
    * @default false
    */
   streamingAnimation?: boolean;
+  /**
+   * When true, markdown is parsed and rendered synchronously on the main thread,
+   * ensuring accurate layout on the first frame. This prevents height measurement
+   * race conditions in containers that rely on initial layout (e.g. bottom sheets).
+   *
+   * Set to false for streaming/progressive rendering use cases where content is
+   * appended incrementally (e.g. LLM output with streamingAnimation enabled),
+   * as synchronous rendering would block the main thread on each update.
+   *
+   * @default true
+   */
+  synchronousRendering?: boolean;
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -327,6 +339,7 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   flavor = 'commonmark',
   streamingAnimation = false,
+  synchronousRendering = true,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -383,6 +396,7 @@ export const EnrichedMarkdownText = ({
     maxFontSizeMultiplier,
     allowTrailingMargin,
     streamingAnimation,
+    synchronousRendering,
     style: containerStyle,
     ...rest,
   };

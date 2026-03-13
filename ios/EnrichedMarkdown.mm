@@ -136,6 +136,7 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _selectable;
   BOOL _enableLinkPreview;
+  BOOL _synchronousRendering;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -356,6 +357,38 @@ using namespace facebook::react;
   });
 }
 
+- (NSArray *)parseAndRenderSegments:(NSString *)markdownString
+{
+  MarkdownASTNode *ast = [_parser parseMarkdown:markdownString flags:_md4cFlags];
+  if (!ast) {
+    return nil;
+  }
+
+  NSArray *segments = [self splitASTIntoSegments:ast];
+  NSMutableArray *renderedSegments = [NSMutableArray array];
+
+  for (id segment in segments) {
+    if ([segment isKindOfClass:[EMTextSegment class]]) {
+      EMRenderedTextSegment *rendered = [self renderTextSegment:(EMTextSegment *)segment
+                                                         config:_config
+                                            allowTrailingMargin:_allowTrailingMargin
+                                               allowFontScaling:_fontScaleObserver.allowFontScaling
+                                          maxFontSizeMultiplier:_maxFontSizeMultiplier];
+      [renderedSegments addObject:rendered];
+    } else if ([segment isKindOfClass:[EMTableSegment class]]) {
+      [renderedSegments addObject:segment];
+    }
+#if ENRICHED_MARKDOWN_MATH
+    else if ([segment isKindOfClass:[EMMathSegment class]]) {
+      [renderedSegments addObject:segment];
+    }
+#endif
+  }
+
+  return renderedSegments;
+}
+
+/// Synchronous rendering for mock view measurement (no UI updates needed).
 - (void)renderMarkdownSynchronously:(NSString *)markdownString
 {
   if (!markdownString || markdownString.length == 0) {
@@ -366,38 +399,43 @@ using namespace facebook::react;
   _cachedMarkdown = [markdownString copy];
   _renderedMarkdown = [markdownString copy];
 
-  MarkdownASTNode *ast = [_parser parseMarkdown:markdownString flags:_md4cFlags];
-  if (!ast) {
+  NSArray *renderedSegments = [self parseAndRenderSegments:markdownString];
+  if (!renderedSegments) {
     return;
   }
 
-  NSArray *segments = [self splitASTIntoSegments:ast];
-
-  for (id segment in segments) {
-    if ([segment isKindOfClass:[EMTextSegment class]]) {
-      EMRenderedTextSegment *rendered = [self renderTextSegment:(EMTextSegment *)segment
-                                                         config:_config
-                                            allowTrailingMargin:_allowTrailingMargin
-                                               allowFontScaling:_fontScaleObserver.allowFontScaling
-                                          maxFontSizeMultiplier:_maxFontSizeMultiplier];
-      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:rendered];
+  for (id segment in renderedSegments) {
+    if ([segment isKindOfClass:[EMRenderedTextSegment class]]) {
+      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment];
       [_segmentViews addObject:view];
       [self addSubview:view];
     } else if ([segment isKindOfClass:[EMTableSegment class]]) {
-      EMTableSegment *tableSegment = (EMTableSegment *)segment;
-      TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
+      TableContainerView *tableView = [self createTableViewForSegment:(EMTableSegment *)segment];
       [_segmentViews addObject:tableView];
       [self addSubview:tableView];
     }
 #if ENRICHED_MARKDOWN_MATH
     else if ([segment isKindOfClass:[EMMathSegment class]]) {
-      EMMathSegment *mathSegment = (EMMathSegment *)segment;
-      ENRMMathContainerView *mathView = [self createMathViewForSegment:mathSegment];
+      ENRMMathContainerView *mathView = [self createMathViewForSegment:(EMMathSegment *)segment];
       [_segmentViews addObject:mathView];
       [self addSubview:mathView];
     }
 #endif
   }
+}
+
+/// Synchronous rendering triggered by the synchronousRendering prop.
+- (void)renderMarkdownContentSynchronously:(NSString *)markdownString
+{
+  _cachedMarkdown = [markdownString copy];
+  ++_currentRenderId;
+
+  NSArray *renderedSegments = [self parseAndRenderSegments:markdownString];
+  if (!renderedSegments) {
+    return;
+  }
+
+  [self applyRenderedSegments:renderedSegments];
 }
 
 - (void)applyRenderedSegments:(NSArray *)renderedSegments
@@ -596,10 +634,15 @@ using namespace facebook::react;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
   _enableLinkPreview = newViewProps.enableLinkPreview;
+  _synchronousRendering = newViewProps.synchronousRendering;
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
-    [self renderMarkdownContent:markdownString];
+    if (_synchronousRendering) {
+      [self renderMarkdownContentSynchronously:markdownString];
+    } else {
+      [self renderMarkdownContent:markdownString];
+    }
   }
 
   [super updateProps:props oldProps:oldProps];

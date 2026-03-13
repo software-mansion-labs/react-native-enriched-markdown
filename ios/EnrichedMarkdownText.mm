@@ -66,6 +66,7 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _enableLinkPreview;
   BOOL _streamingAnimation;
+  BOOL _synchronousRendering;
 
   NSUInteger _previousTextLength;
   ENRMTailFadeInAnimator *_fadeAnimator;
@@ -302,19 +303,11 @@ using namespace facebook::react;
   });
 }
 
-// Synchronous rendering for mock view measurement (no UI updates needed)
-- (void)renderMarkdownSynchronously:(NSString *)markdownString
+- (NSMutableAttributedString *)parseAndRenderMarkdown:(NSString *)markdownString
 {
-  if (!markdownString || markdownString.length == 0) {
-    return;
-  }
-
-  _blockAsyncRender = YES;
-  _cachedMarkdown = [markdownString copy];
-
   MarkdownASTNode *ast = [_parser parseMarkdown:markdownString flags:_md4cFlags];
   if (!ast) {
-    return;
+    return nil;
   }
 
   AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:_config];
@@ -331,8 +324,40 @@ using namespace facebook::react;
 
   _accessibilityInfo = [AccessibilityInfo infoFromContext:context];
 
+  return attributedText;
+}
+
+/// Synchronous rendering for mock view measurement (no UI updates needed).
+- (void)renderMarkdownSynchronously:(NSString *)markdownString
+{
+  if (!markdownString || markdownString.length == 0) {
+    return;
+  }
+
+  _blockAsyncRender = YES;
+  _cachedMarkdown = [markdownString copy];
+
+  NSMutableAttributedString *attributedText = [self parseAndRenderMarkdown:markdownString];
+  if (!attributedText) {
+    return;
+  }
+
   _textView.attributedText = attributedText;
   _renderedMarkdown = [_cachedMarkdown copy];
+}
+
+/// Synchronous rendering triggered by the synchronousRendering prop.
+- (void)renderMarkdownContentSynchronously:(NSString *)markdownString
+{
+  _cachedMarkdown = [markdownString copy];
+  ++_currentRenderId;
+
+  NSMutableAttributedString *attributedText = [self parseAndRenderMarkdown:markdownString];
+  if (!attributedText) {
+    return;
+  }
+
+  [self applyRenderedText:attributedText];
 }
 
 - (void)applyRenderedText:(NSMutableAttributedString *)attributedText
@@ -455,9 +480,15 @@ using namespace facebook::react;
     }
   }
 
+  _synchronousRendering = newViewProps.synchronousRendering;
+
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
-    [self renderMarkdownContent:markdownString];
+    if (_synchronousRendering) {
+      [self renderMarkdownContentSynchronously:markdownString];
+    } else {
+      [self renderMarkdownContent:markdownString];
+    }
   }
 
   [super updateProps:props oldProps:oldProps];

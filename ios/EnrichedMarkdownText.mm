@@ -463,6 +463,29 @@ using namespace facebook::react;
   [super updateProps:props oldProps:oldProps];
 }
 
+- (void)didMoveToWindow
+{
+  [super didMoveToWindow];
+
+  if (self.window && _renderedMarkdown != nil) {
+    _textView.hidden = NO;
+    _textView.contentOffset = CGPointZero;
+
+    NSAttributedString *text = _textView.attributedText;
+    if (text.length > 0) {
+      [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, text.length) actualCharacterRange:NULL];
+    }
+
+    _textView.frame = self.bounds;
+    _textView.textContainer.size = CGSizeMake(self.bounds.size.width, CGFLOAT_MAX);
+    [_textView setNeedsLayout];
+    [_textView layoutIfNeeded];
+    [_textView setNeedsDisplay];
+
+    [self requestHeightUpdate];
+  }
+}
+
 Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 {
   return EnrichedMarkdownText.class;

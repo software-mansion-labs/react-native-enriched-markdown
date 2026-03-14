@@ -136,7 +136,6 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _selectable;
   BOOL _enableLinkPreview;
-  BOOL _synchronousRendering;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -429,20 +428,6 @@ using namespace facebook::react;
   }
 }
 
-/// Synchronous rendering triggered by the synchronousRendering prop.
-- (void)renderMarkdownContentSynchronously:(NSString *)markdownString
-{
-  _cachedMarkdown = [markdownString copy];
-  ++_currentRenderId;
-
-  NSArray *renderedSegments = [self parseAndRenderSegments:markdownString];
-  if (!renderedSegments) {
-    return;
-  }
-
-  [self applyRenderedSegments:renderedSegments];
-}
-
 - (void)applyRenderedSegments:(NSArray *)renderedSegments
 {
   _renderedMarkdown = [_cachedMarkdown copy];
@@ -473,11 +458,17 @@ using namespace facebook::react;
 #endif
   }
 
-  if (needsHeightUpdate([self measureSize:self.bounds.size.width], self.bounds)) {
-    [self requestHeightUpdate];
-  }
+  // When bounds width is zero (recycled view not yet laid out), skip
+  // measurement — didMoveToWindow will handle it once the view has real
+  // bounds. Measuring with width=0 produces a bogus single-line measurement
+  // that corrupts the height sent to Yoga.
+  if (self.bounds.size.width > 0) {
+    [self setNeedsLayout];
 
-  [self setNeedsLayout];
+    if (needsHeightUpdate([self measureSize:self.bounds.size.width], self.bounds)) {
+      [self requestHeightUpdate];
+    }
+  }
 }
 
 - (EMRenderedTextSegment *)renderTextSegment:(EMTextSegment *)textSegment
@@ -639,15 +630,10 @@ using namespace facebook::react;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
   _enableLinkPreview = newViewProps.enableLinkPreview;
-  _synchronousRendering = newViewProps.synchronousRendering;
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
-    if (_synchronousRendering) {
-      [self renderMarkdownContentSynchronously:markdownString];
-    } else {
-      [self renderMarkdownContent:markdownString];
-    }
+    [self renderMarkdownContent:markdownString];
   }
 
   [super updateProps:props oldProps:oldProps];
@@ -663,18 +649,25 @@ using namespace facebook::react;
         EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
         UITextView *textView = textSegment.textView;
         textView.contentOffset = CGPointZero;
+
+        textView.frame = textSegment.bounds;
+        textView.textContainer.size = CGSizeMake(textView.bounds.size.width, CGFLOAT_MAX);
+
         if (textView.attributedText.length > 0) {
           [textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, textView.attributedText.length)
                                                actualCharacterRange:NULL];
-          textView.textContainer.size = CGSizeMake(textView.bounds.size.width, CGFLOAT_MAX);
-          [textView setNeedsLayout];
-          [textView layoutIfNeeded];
-          [textView setNeedsDisplay];
+          [textView.layoutManager ensureLayoutForTextContainer:textView.textContainer];
         }
+
+        [textView layoutIfNeeded];
+        [textView setNeedsDisplay];
       }
     }
 
-    [self requestHeightUpdate];
+    CGSize measured = [self measureSize:self.bounds.size.width];
+    if (needsHeightUpdate(measured, self.bounds)) {
+      [self requestHeightUpdate];
+    }
   }
 }
 

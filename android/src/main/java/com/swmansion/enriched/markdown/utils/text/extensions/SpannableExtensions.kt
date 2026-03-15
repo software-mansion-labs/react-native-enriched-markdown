@@ -16,7 +16,7 @@ fun SpannableStringBuilder.isInlineImage(): Boolean {
 
 /** Swaps MathInlineSpans for MathInlinePlaceholderSpans safe for background-thread measurement. */
 fun SpannableString.replaceMathSpansWithPlaceholders(context: Context) {
-  if (!FeatureFlags.isMathEnabled) return
+  if (!FeatureFlags.IS_MATH_ENABLED) return
 
   try {
     val spanClass = Class.forName("com.swmansion.enriched.markdown.spans.MathInlineSpan")

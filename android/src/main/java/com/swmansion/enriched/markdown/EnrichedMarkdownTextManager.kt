@@ -106,7 +106,7 @@ class EnrichedMarkdownTextManager :
     val md4cFlags =
       Md4cFlags(
         underline = flags?.getBoolean("underline") ?: false,
-        latexMath = FeatureFlags.isMathEnabled && (flags?.getBoolean("latexMath") ?: true),
+        latexMath = FeatureFlags.IS_MATH_ENABLED && (flags?.getBoolean("latexMath") ?: true),
       )
     view?.setMd4cFlags(md4cFlags)
   }

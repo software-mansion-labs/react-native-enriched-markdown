@@ -242,7 +242,7 @@ object MeasurementStore {
     val md4cFlags =
       Md4cFlags(
         underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false),
-        latexMath = FeatureFlags.isMathEnabled && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
+        latexMath = FeatureFlags.IS_MATH_ENABLED && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
       )
 
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
@@ -308,7 +308,7 @@ object MeasurementStore {
     val md4cFlags =
       Md4cFlags(
         underline = props.getMapOrNull("md4cFlags").getBooleanOrDefault("underline", false),
-        latexMath = FeatureFlags.isMathEnabled && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
+        latexMath = FeatureFlags.IS_MATH_ENABLED && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
       )
     val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
     val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
@@ -590,7 +590,7 @@ object MeasurementStore {
     context: Context,
     requests: List<MathMeasureRequest>,
   ): List<MathMetrics> {
-    if (!FeatureFlags.isMathEnabled || requests.isEmpty()) {
+    if (!FeatureFlags.IS_MATH_ENABLED || requests.isEmpty()) {
       return requests.map { estimateMathFallback(it) }
     }
     return try {

@@ -278,7 +278,7 @@ class EnrichedMarkdown
       segment: RenderSegment.Math,
       style: StyleConfig,
     ): android.view.View {
-      if (!FeatureFlags.isMathEnabled) return android.view.View(context)
+      if (!FeatureFlags.IS_MATH_ENABLED) return android.view.View(context)
       return try {
         val mathContainerClass = Class.forName("com.swmansion.enriched.markdown.views.MathContainerView")
         val view =

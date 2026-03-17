@@ -2,7 +2,9 @@ const path = require('path');
 const pkg = require('../package.json');
 
 module.exports = {
-  reactNativePath: path.dirname(require.resolve('react-native-macos/package.json')),
+  reactNativePath: path.dirname(
+    require.resolve('react-native-macos/package.json')
+  ),
   project: {
     macos: {
       automaticPodsInstallation: true,

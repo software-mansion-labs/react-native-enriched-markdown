@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Alert, Linking, View } from 'react-native';
+import { StyleSheet, ScrollView, Alert, Linking } from 'react-native';
 import {
   EnrichedMarkdownText,
   type LinkPressEvent,
@@ -39,7 +39,6 @@ export default function App() {
           onLinkPress={handleLinkPress}
           markdownStyle={markdownStyle}
         />
-        <View style={{ height: 100, backgroundColor: 'red' }} />
       </ScrollView>
     </SafeAreaView>
   );

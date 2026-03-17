@@ -15,6 +15,20 @@
 #define ENRMTapRecognizer UITapGestureRecognizer
 #endif
 
+/// Creates a graphics image renderer for the given size.
+/// On iOS, explicitly sets opaque=NO to ensure transparent rendering.
+/// On macOS, RCTUIGraphicsImageRenderer handles transparency by default.
+static inline RCTUIGraphicsImageRenderer *ImageRendererForSize(CGSize size)
+{
+#if TARGET_OS_OSX
+  return [[RCTUIGraphicsImageRenderer alloc] initWithSize:size];
+#else
+  RCTUIGraphicsImageRendererFormat *format = [RCTUIGraphicsImageRendererFormat preferredFormat];
+  format.opaque = NO;
+  return [[RCTUIGraphicsImageRenderer alloc] initWithSize:size format:format];
+#endif
+}
+
 /// Cross-platform line segment: NSBezierPath uses lineToPoint: instead of addLineToPoint:.
 static inline void BezierPathAddLine(UIBezierPath *path, CGPoint point)
 {

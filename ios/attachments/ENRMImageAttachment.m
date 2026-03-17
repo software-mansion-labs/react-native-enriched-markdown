@@ -1,4 +1,5 @@
 #import "ENRMImageAttachment.h"
+#import "ENRMUIKit.h"
 #import "ENRMImageDownloader.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
@@ -231,15 +232,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   CGRect drawingRect =
       CGRectMake((targetWidth - drawingWidth) / 2.0, (targetHeight - drawingHeight) / 2.0, drawingWidth, drawingHeight);
 
-#if TARGET_OS_OSX
-  RCTUIGraphicsImageRenderer *renderer =
-      [[RCTUIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(targetWidth, targetHeight)];
-#else
-  RCTUIGraphicsImageRendererFormat *format = [RCTUIGraphicsImageRendererFormat preferredFormat];
-  format.opaque = NO;
-  RCTUIGraphicsImageRenderer *renderer =
-      [[RCTUIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(targetWidth, targetHeight) format:format];
-#endif
+  RCTUIGraphicsImageRenderer *renderer = ImageRendererForSize(CGSizeMake(targetWidth, targetHeight));
 
   return [renderer imageWithActions:^(RCTUIGraphicsImageRendererContext *context) {
     if (radius > 0) {

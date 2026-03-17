@@ -1,5 +1,6 @@
 #import "EnrichedMarkdownInternalText.h"
 #import "AccessibilityInfo.h"
+#import "ENRMContextMenuTextView+macOS.h"
 #import "LastElementUtils.h"
 #import "MarkdownAccessibilityElementBuilder.h"
 #import "RenderContext.h"
@@ -36,10 +37,11 @@
 
 - (void)setupTextView
 {
-  _textView = [[ENRMPlatformTextView alloc] init];
 #if TARGET_OS_OSX
+  _textView = [[ENRMContextMenuTextView alloc] init];
   _textView.string = @"";
 #else
+  _textView = [[ENRMPlatformTextView alloc] init];
   _textView.text = @"";
 #endif
   _textView.font = [UIFont systemFontOfSize:16.0];
@@ -192,5 +194,12 @@
   [self rebuildAccessibilityElementsIfNeeded];
   return _accessibilityElements;
 }
+
+#if TARGET_OS_OSX
+- (void)setContextMenuProvider:(ENRMContextMenuProvider)provider
+{
+  ((ENRMContextMenuTextView *)_textView).contextMenuProvider = provider;
+}
+#endif
 
 @end

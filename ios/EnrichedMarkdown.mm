@@ -521,7 +521,19 @@ using namespace facebook::react;
 
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [view.textView addGestureRecognizer:tapRecognizer];
-#if !TARGET_OS_OSX
+
+#if TARGET_OS_OSX
+  __weak EnrichedMarkdown *weakSelf = self;
+  [view setContextMenuProvider:^NSMenu *_Nullable(NSMenu *baseMenu, NSTextView *textView) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf) {
+      return baseMenu;
+    }
+    NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.textStorage, textView.selectedRange);
+    return buildEditMenuForSelection(textView.textStorage, textView.selectedRange, segmentMarkdown, strongSelf->_config,
+                                     @[ baseMenu ]);
+  }];
+#else
   view.textView.delegate = self;
 #endif
 

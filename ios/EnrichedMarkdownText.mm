@@ -2,6 +2,7 @@
 #import "AccessibilityInfo.h"
 #import "AttributedRenderer.h"
 #import "CodeBlockBackground.h"
+#import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
 #import "ENRMTailFadeInAnimator.h"
@@ -213,13 +214,31 @@ using namespace facebook::react;
 
 - (void)setupTextView
 {
+#if TARGET_OS_OSX
+  _textView = [[ENRMContextMenuTextView alloc] init];
+#else
   _textView = [[ENRMPlatformTextView alloc] init];
+#endif
   _textView.text = @"";
   _textView.font = [UIFont systemFontOfSize:16.0];
   _textView.backgroundColor = [RCTUIColor clearColor];
   _textView.textColor = [RCTUIColor blackColor];
   _textView.editable = NO;
   _textView.delegate = self;
+
+#if TARGET_OS_OSX
+  __weak EnrichedMarkdownText *weakSelf = self;
+  ((ENRMContextMenuTextView *)_textView).contextMenuProvider =
+      ^NSMenu *_Nullable(NSMenu *baseMenu, NSTextView *textView)
+  {
+    EnrichedMarkdownText *strongSelf = weakSelf;
+    if (!strongSelf) {
+      return baseMenu;
+    }
+    return buildEditMenuForSelection(textView.textStorage, textView.selectedRange, strongSelf->_cachedMarkdown,
+                                     strongSelf->_config, @[ baseMenu ]);
+  };
+#endif
   _textView.scrollEnabled = NO;
 #if !TARGET_OS_OSX
   _textView.showsVerticalScrollIndicator = NO;

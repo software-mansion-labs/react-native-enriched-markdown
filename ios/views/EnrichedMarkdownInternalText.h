@@ -1,4 +1,5 @@
 #pragma once
+#import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMUIKit.h"
 #import "LinkTapUtils.h"
 #import "StyleConfig.h"
@@ -25,6 +26,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL allowTrailingMargin;
 
 @property (nonatomic, assign) CGFloat lastElementMarginBottom;
+
+#if TARGET_OS_OSX
+- (void)setContextMenuProvider:(ENRMContextMenuProvider)provider;
+#endif
 
 @end
 

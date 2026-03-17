@@ -565,6 +565,12 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
     if (eventEmitter) {
       eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
     }
+    return;
+  }
+
+  // Tapping on non-interactive area: dismiss any active text selection
+  if (textView.selectedTextRange != nil) {
+    textView.selectedTextRange = nil;
   }
 }
 

@@ -6,18 +6,15 @@
 
 #if TARGET_OS_OSX
 #import <React/RCTUITextView.h>
-/// Platform text view: RCTUITextView on macOS, UITextView on iOS.
 #define ENRMPlatformTextView RCTUITextView
-/// Platform tap recognizer: NSClickGestureRecognizer on macOS, UITapGestureRecognizer on iOS.
 #define ENRMTapRecognizer NSClickGestureRecognizer
 #else
 #define ENRMPlatformTextView UITextView
 #define ENRMTapRecognizer UITapGestureRecognizer
 #endif
 
-/// Creates a graphics image renderer for the given size.
-/// On iOS, explicitly sets opaque=NO to ensure transparent rendering.
-/// On macOS, RCTUIGraphicsImageRenderer handles transparency by default.
+/// On iOS, explicitly sets opaque=NO — without it the renderer produces an opaque backing,
+/// breaking transparent backgrounds. macOS handles transparency by default.
 static inline RCTUIGraphicsImageRenderer *ImageRendererForSize(CGSize size)
 {
 #if TARGET_OS_OSX
@@ -29,7 +26,6 @@ static inline RCTUIGraphicsImageRenderer *ImageRendererForSize(CGSize size)
 #endif
 }
 
-/// Sets round line cap and join styles on a bezier path.
 /// NSBezierPath uses NS-prefixed enum values; UIBezierPath uses kCG-prefixed constants.
 static inline void BezierPathSetRoundStyle(UIBezierPath *path)
 {

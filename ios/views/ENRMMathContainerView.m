@@ -5,6 +5,9 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "PasteboardUtils.h"
 #import <IosMath/IosMath.h>
+#if TARGET_OS_OSX
+#import "ENRMMenuAction.h"
+#endif
 #endif
 
 #if ENRICHED_MARKDOWN_MATH
@@ -73,7 +76,7 @@
   _mathLabel.contentInsets = UIEdgeInsetsMake(padding, padding, padding, padding);
 #endif
 
-  self.backgroundColor = config.mathBackgroundColor ?: [RCTUIColor clearColor];
+  self.backgroundColor = config.mathBackgroundColor;
 
   [self setNeedsLayout];
 }
@@ -107,28 +110,9 @@
 - (NSMenu *)menuForEvent:(NSEvent *)event
 {
   NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
-
-  NSMenuItem *copyItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy", nil)
-                                                    action:@selector(copyLatexToPasteboardAction:)
-                                             keyEquivalent:@""];
-  [menu addItem:copyItem];
-
-  NSMenuItem *copyMarkdownItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy as Markdown", nil)
-                                                            action:@selector(copyMarkdownToPasteboardAction:)
-                                                     keyEquivalent:@""];
-  [menu addItem:copyMarkdownItem];
-
+  [menu addItem:ENRMCreateMenuItem(NSLocalizedString(@"Copy", nil), ^{ [self copyLatexToPasteboard]; })];
+  [menu addItem:ENRMCreateMenuItem(NSLocalizedString(@"Copy as Markdown", nil), ^{ [self copyMarkdownToPasteboard]; })];
   return menu;
-}
-
-- (void)copyLatexToPasteboardAction:(id)sender
-{
-  [self copyLatexToPasteboard];
-}
-
-- (void)copyMarkdownToPasteboardAction:(id)sender
-{
-  [self copyMarkdownToPasteboard];
 }
 #endif
 

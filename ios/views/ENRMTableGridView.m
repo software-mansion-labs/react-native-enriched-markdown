@@ -1,4 +1,5 @@
 #import "ENRMTableGridView.h"
+#import "ENRMMenuAction.h"
 
 #if TARGET_OS_OSX
 
@@ -43,19 +44,7 @@
 
 - (NSMenu *)menuForEvent:(NSEvent *)event
 {
-  NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
-
-  NSMenuItem *copyItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy", nil)
-                                                    action:@selector(copyTableToPasteboardAction:)
-                                             keyEquivalent:@""];
-  [menu addItem:copyItem];
-
-  NSMenuItem *copyMarkdownItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy as Markdown", nil)
-                                                            action:@selector(copyMarkdownToPasteboardAction:)
-                                                     keyEquivalent:@""];
-  [menu addItem:copyMarkdownItem];
-
-  return menu;
+  return _menuProvider ? _menuProvider() : [super menuForEvent:event];
 }
 
 - (void)drawRect:(NSRect)dirtyRect

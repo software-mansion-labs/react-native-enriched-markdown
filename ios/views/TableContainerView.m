@@ -10,6 +10,7 @@
 #import "StyleConfig.h"
 #include <TargetConditionals.h>
 #if TARGET_OS_OSX
+#import "ENRMMenuAction.h"
 #import "ENRMTableGridView.h"
 #endif
 
@@ -76,7 +77,20 @@
   // On macOS, use ENRMTableGridView as the NSScrollView documentView so that the
   // coordinate system is managed correctly and the entire table is drawn in
   // a single drawRect: pass (no subview / layer compositing issues).
-  _gridContainer = [[ENRMTableGridView alloc] initWithFrame:CGRectZero];
+  ENRMTableGridView *gridView = [[ENRMTableGridView alloc] initWithFrame:CGRectZero];
+  __weak TableContainerView *weakSelf = self;
+  gridView.menuProvider = ^NSMenu *
+  {
+    TableContainerView *strongSelf = weakSelf;
+    if (!strongSelf)
+      return nil;
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+    [menu addItem:ENRMCreateMenuItem(NSLocalizedString(@"Copy", nil), ^{ [strongSelf copyTableToPasteboard]; })];
+    [menu addItem:ENRMCreateMenuItem(NSLocalizedString(@"Copy as Markdown", nil),
+                                     ^{ [strongSelf copyMarkdownToPasteboard]; })];
+    return menu;
+  };
+  _gridContainer = gridView;
   [(NSScrollView *)_scrollView setDocumentView:_gridContainer];
 #else
   _gridContainer = [[RCTUIView alloc] init];
@@ -440,18 +454,6 @@
                    }];
 }
 #endif // !TARGET_OS_OSX
-
-#if TARGET_OS_OSX
-- (void)copyMarkdownToPasteboardAction:(id)sender
-{
-  [self copyMarkdownToPasteboard];
-}
-
-- (void)copyTableToPasteboardAction:(id)sender
-{
-  [self copyTableToPasteboard];
-}
-#endif
 
 - (void)copyMarkdownToPasteboard
 {

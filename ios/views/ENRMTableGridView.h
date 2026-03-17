@@ -18,6 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 /// frequently fail to composite correctly.
 @interface ENRMTableGridView : NSView
 
+@property (nonatomic, copy, nullable) NSMenu *_Nullable (^menuProvider)(void);
+
 - (void)updateWithRows:(NSArray<ENRMMacOSTableRowData *> *)rows
              columnWidths:(NSArray<NSNumber *> *)columnWidths
                rowHeights:(NSArray<NSNumber *> *)rowHeights

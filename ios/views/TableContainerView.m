@@ -469,7 +469,7 @@
     return;
 
   NSMutableDictionary *items = [NSMutableDictionary dictionary];
-  items[@"public.utf8-plain-text"] = plainText;
+  items[NSPasteboardTypeString] = plainText;
 
   if (_cachedMarkdown.length > 0) {
     items[@"net.daringfireball.markdown"] = _cachedMarkdown;
@@ -479,12 +479,9 @@
   if (html.length > 0) {
     NSData *htmlData = [html dataUsingEncoding:NSUTF8StringEncoding];
     if (htmlData)
-      items[@"public.html"] = htmlData;
+      items[NSPasteboardTypeHTML] = htmlData;
   }
 
-  // TODO: Replace raw UTI strings "public.utf8-plain-text" and "public.html" with typed
-  // NSPasteboardType constants (NSPasteboardTypeString, NSPasteboardTypeHTML).
-  // "net.daringfireball.markdown" has no system constant and must remain a raw string.
   copyItemsToPasteboard(items);
 }
 

@@ -15,11 +15,7 @@ extern "C" {
  */
 void copyStringToPasteboard(NSString *string);
 
-/**
- * Copies a dictionary of { UTI → NSString | NSData } items to the platform pasteboard.
- * On macOS, NSString values use setString:forType: and NSData values use setData:forType:.
- * On iOS, the whole dictionary is passed to UIPasteboard setItems:.
- */
+/// Copies a { UTI → NSString | NSData } dictionary to the platform pasteboard.
 void copyItemsToPasteboard(NSDictionary<NSString *, id> *items);
 
 /**

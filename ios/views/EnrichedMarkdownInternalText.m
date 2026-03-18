@@ -53,6 +53,8 @@
   _textView.showsVerticalScrollIndicator = NO;
   _textView.showsHorizontalScrollIndicator = NO;
   _textView.textContainerInset = UIEdgeInsetsZero;
+#else
+  _textView.textContainerInsets = UIEdgeInsetsZero;
 #endif
   _textView.textContainer.lineFragmentPadding = 0;
   _textView.linkTextAttributes = @{};
@@ -112,14 +114,19 @@
     return 0;
   }
 
+#if TARGET_OS_OSX
+  _textView.textContainer.widthTracksTextView = NO;
+#endif
   _textView.textContainer.size = CGSizeMake(maxWidth, CGFLOAT_MAX);
   [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
   CGRect usedRect = [_textView.layoutManager usedRectForTextContainer:_textView.textContainer];
+  CGRect extraFragment = _textView.layoutManager.extraLineFragmentRect;
+#if TARGET_OS_OSX
+  _textView.textContainer.widthTracksTextView = YES;
+#endif
 
   CGFloat measuredHeight = usedRect.size.height;
 
-  // Remove extra line fragment height (same as EnrichedMarkdownText)
-  CGRect extraFragment = _textView.layoutManager.extraLineFragmentRect;
   if (!CGRectIsEmpty(extraFragment)) {
     measuredHeight -= extraFragment.size.height;
   }

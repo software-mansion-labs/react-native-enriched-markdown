@@ -1855,7 +1855,7 @@ PODS:
     - React-utils (= 0.84.1)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.84.1)
-  - ReactNativeEnrichedMarkdown (0.4.0):
+  - ReactNativeEnrichedMarkdown (0.4.1):
     - hermes-engine
     - iosMath (~> 0.9)
     - RCTRequired
@@ -2117,6 +2117,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: e97c19a5a442429d1988f182a1940fb08df514da
+  hermes-engine: 1a5ecbccce52fab9a017e3a18fd6fc89166d0873
   hermes-engine: 1a5ecbccce52fab9a017e3a18fd6fc89166d0873
   iosMath: f7a6cbadf9d836d2149c2a84c435b1effc244cba
   RCTDeprecation: af44b104091a34482596cd9bd7e8d90c4e9b4bd7

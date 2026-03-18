@@ -35,9 +35,12 @@
     _mathLabel.labelMode = kMTMathUILabelModeDisplay;
 
 #if TARGET_OS_OSX
-    // On macOS, skip the scroll view entirely — NSScrollView/documentView interactions
-    // with the React Native layout system cause incorrect positioning and skipped layout
-    // passes. Block math doesn't need horizontal scrolling, so the label is a direct subview.
+    // MTMathUILabel sets layer.geometryFlipped=YES for CoreText, but React Native
+    // macOS uses isFlipped=YES views. The combination causes rendering artifacts
+    // for sibling views. Disable the layer flip — MTMathUILabel's drawRect uses
+    // CoreText which respects the CGContext transform, and the label's isFlipped=NO
+    // combined with the parent's isFlipped=YES provides the correct coordinate system.
+    _mathLabel.layer.geometryFlipped = NO;
     [self addSubview:_mathLabel];
 #else
     _scrollView = [[RCTUIScrollView alloc] init];
@@ -159,12 +162,6 @@
 
 #if TARGET_OS_OSX
   _mathLabel.frame = CGRectMake(0, 0, contentWidth, contentHeight);
-  // Do NOT call [_mathLabel layout] synchronously here — it propagates AppKit's
-  // layout pass upward through ancestor views and interrupts React Native Fabric's
-  // commit, causing all subsequent segments to be dropped.
-  // setNeedsLayout: defers layout to the next AppKit pass; AppKit guarantees
-  // layout runs before drawRect:, so _displayList will be set before rendering.
-  [_mathLabel setNeedsLayout:YES];
   [_mathLabel setNeedsDisplay:YES];
 #else
   _scrollView.frame = self.bounds;
@@ -173,6 +170,14 @@
   _mathLabel.frame = CGRectMake(0, 0, contentWidth, contentHeight);
 #endif
 }
+
+#if TARGET_OS_OSX
+- (void)layout
+{
+  [super layout];
+  [self layoutSubviews];
+}
+#endif
 
 - (NSString *)accessibilityLabel
 {

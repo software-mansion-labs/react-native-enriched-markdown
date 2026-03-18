@@ -211,7 +211,17 @@ using namespace facebook::react;
 #endif
 
     if (applyFrames) {
-      segment.frame = CGRectMake(0, yOffset, width, segmentHeight);
+      CGRect segmentFrame = CGRectMake(0, yOffset, width, segmentHeight);
+      segment.frame = segmentFrame;
+#if TARGET_OS_OSX
+      if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+        EnrichedMarkdownInternalText *textSeg = (EnrichedMarkdownInternalText *)segment;
+        textSeg.textView.frame = segment.bounds;
+        textSeg.textView.textContainer.size = CGSizeMake(width, CGFLOAT_MAX);
+        [textSeg.textView.layoutManager ensureLayoutForTextContainer:textSeg.textView.textContainer];
+        [textSeg.textView setNeedsDisplay:YES];
+      }
+#endif
     }
 
     yOffset += segmentHeight;
@@ -283,10 +293,9 @@ using namespace facebook::react;
 #if ENRICHED_MARKDOWN_MATH
     else if (child.type == MarkdownNodeTypeLatexMathDisplay) {
 #if TARGET_OS_OSX
-      // TODO: Enable block math on macOS once the AppKit / React Native Fabric layout
-      // interference is resolved (ENRMMathContainerView.layoutSubviews triggers an
-      // AppKit layout propagation that causes all content above the math block to become
-      // invisible). Inline math ($...$) is fully supported on macOS.
+      // Block math on macOS is disabled — adding ENRMMathContainerView (which hosts
+      // MTMathUILabel) as a segment causes all preceding text segments to become
+      // invisible. The root cause is under investigation. Inline math ($...$) works.
 #else
       if (currentTextNodes.count > 0) {
         [segments addObject:[EMTextSegment segmentWithNodes:[currentTextNodes copy]]];
@@ -707,6 +716,22 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 
   return [super touchEventEmitterAtPoint:point];
 }
+
+#if TARGET_OS_OSX
+- (void)mouseDown:(NSEvent *)event
+{
+  for (RCTUIView *segment in _segmentViews) {
+    if (![segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      continue;
+    }
+    ENRMPlatformTextView *tv = ((EnrichedMarkdownInternalText *)segment).textView;
+    if (tv.selectedRange.length > 0) {
+      tv.selectedRange = NSMakeRange(0, 0);
+    }
+  }
+  [super mouseDown:event];
+}
+#endif
 
 - (void)textTapped:(ENRMTapRecognizer *)recognizer
 {

@@ -48,13 +48,14 @@
   _textView.backgroundColor = [RCTUIColor clearColor];
   _textView.textColor = [RCTUIColor blackColor];
   _textView.editable = NO;
-#if !TARGET_OS_OSX
   _textView.scrollEnabled = NO;
+#if !TARGET_OS_OSX
   _textView.showsVerticalScrollIndicator = NO;
   _textView.showsHorizontalScrollIndicator = NO;
   _textView.textContainerInset = UIEdgeInsetsZero;
 #else
   _textView.textContainerInsets = UIEdgeInsetsZero;
+  _textView.drawsBackground = NO;
 #endif
   _textView.textContainer.lineFragmentPadding = 0;
   _textView.linkTextAttributes = @{};
@@ -150,6 +151,14 @@
   [super layoutSubviews];
   _textView.frame = self.bounds;
 }
+
+#if TARGET_OS_OSX
+- (void)layout
+{
+  [super layout];
+  _textView.frame = self.bounds;
+}
+#endif
 
 #pragma mark - Accessibility
 

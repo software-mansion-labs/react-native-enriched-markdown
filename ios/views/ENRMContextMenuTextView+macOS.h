@@ -6,9 +6,9 @@
 
 typedef NSMenu *_Nullable (^ENRMContextMenuProvider)(NSMenu *baseMenu, NSTextView *textView);
 
-/// macOS-only ENRMPlatformTextView subclass that intercepts menuForEvent: via a block.
-/// Follows the same object_setClass pattern used by TextViewLayoutManager.
-@interface ENRMContextMenuTextView : ENRMPlatformTextView
+/// macOS-only ENRMPlatformTextView subclass that manages context menus
+/// and text deselection across sibling text views.
+@interface ENRMContextMenuTextView : ENRMPlatformTextView <NSMenuDelegate>
 
 @property (nonatomic, copy, nullable) ENRMContextMenuProvider contextMenuProvider;
 

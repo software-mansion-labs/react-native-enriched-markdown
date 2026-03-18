@@ -475,14 +475,11 @@ using namespace facebook::react;
 #endif
   }
 
-  // When bounds width is zero (recycled view not yet laid out), skip
-  // measurement — didMoveToWindow will handle it once the view has real
-  // bounds. Measuring with width=0 produces a bogus single-line measurement
-  // that corrupts the height sent to Yoga.
   if (self.bounds.size.width > 0) {
     [self setNeedsLayout];
 
-    if (needsHeightUpdate([self measureSize:self.bounds.size.width], self.bounds)) {
+    CGSize measured = [self measureSize:self.bounds.size.width];
+    if (needsHeightUpdate(measured, self.bounds)) {
       [self requestHeightUpdate];
     }
   }

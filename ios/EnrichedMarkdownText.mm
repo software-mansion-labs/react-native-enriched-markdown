@@ -239,12 +239,11 @@ using namespace facebook::react;
   _textView.textContainerInset = UIEdgeInsetsZero;
 #else
   _textView.textContainerInsets = UIEdgeInsetsZero;
+  _textView.drawsBackground = NO;
 #endif
   _textView.textContainer.lineFragmentPadding = 0;
-  // Disable UITextView's default link styling - we handle it directly in attributed strings
   _textView.linkTextAttributes = @{};
   _textView.selectable = YES;
-  // Prevent flash before content is rendered
   _textView.hidden = YES;
 #if !TARGET_OS_OSX
   // We provide custom accessibility elements with proper traits
@@ -426,9 +425,7 @@ using namespace facebook::react;
 #endif
 
     CGSize measured = [self measureSize:self.bounds.size.width];
-    BOOL needsUpdate = needsHeightUpdate(measured, self.bounds);
-
-    if (needsUpdate) {
+    if (needsHeightUpdate(measured, self.bounds)) {
       [self requestHeightUpdate];
     }
   }

@@ -5,6 +5,11 @@
 
 @implementation ENRMContextMenuTextView
 
+- (NSScrollView *)enclosingScrollView
+{
+  return nil;
+}
+
 - (void)deselectAllInContainer
 {
   NSView *container = self.superview.superview;

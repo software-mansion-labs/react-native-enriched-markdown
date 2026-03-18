@@ -53,7 +53,6 @@ Size EnrichedMarkdownShadowNode::measureContent(const LayoutContext &layoutConte
                                                 const LayoutConstraints &layoutConstraints) const
 {
   CGFloat maxWidth = layoutConstraints.maximumSize.width;
-  CGFloat maxHeight = layoutConstraints.maximumSize.height;
 
   const auto &typedProps = *std::static_pointer_cast<const EnrichedMarkdownProps>(this->getProps());
 

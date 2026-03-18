@@ -190,3 +190,18 @@ static inline void ENRMRefreshTextViewAfterWindowAttach(ENRMPlatformTextView *te
   }
   ENRMSetNeedsDisplay(textView);
 }
+
+/// Cross-platform text deselection: UITextView uses selectedTextRange (nullable);
+/// NSTextView uses selectedRange (length-based).
+static inline void ENRMClearSelection(ENRMPlatformTextView *textView)
+{
+#if !TARGET_OS_OSX
+  if (textView.selectedTextRange != nil) {
+    textView.selectedTextRange = nil;
+  }
+#else
+  if (textView.selectedRange.length > 0) {
+    textView.selectedRange = NSMakeRange(0, 0);
+  }
+#endif
+}

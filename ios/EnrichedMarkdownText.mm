@@ -552,7 +552,10 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
     if (eventEmitter) {
       eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
     }
+    return;
   }
+
+  ENRMClearSelection(textView);
 }
 
 #pragma mark - UITextViewDelegate (Link Interaction)
@@ -588,7 +591,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 {
   return buildEditMenuForSelection(textView.attributedText, range, _cachedMarkdown, _config, suggestedActions);
 }
-#endif // !TARGET_OS_OSX
+#endif
 
 #pragma mark - Accessibility (VoiceOver Navigation)
 

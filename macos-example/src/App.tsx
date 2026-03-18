@@ -1,4 +1,10 @@
-import { StyleSheet, ScrollView, View, Text, Linking } from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  View,
+  Text,
+  Linking,
+} from 'react-native-macos';
 import {
   EnrichedMarkdownText,
   type LinkPressEvent,
@@ -40,14 +46,10 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     height: '100%',
-    // flex: 1,
     backgroundColor: '#ffffff',
   },
   scrollView: {
     height: '100%',
-    borderWidth: 1,
-    borderColor: 'red',
-    // flex: 1,
   },
   content: {
     paddingHorizontal: 24,

@@ -757,7 +757,10 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     if (eventEmitter) {
       eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
     }
+    return;
   }
+
+  ENRMClearSelection(textView);
 }
 
 #if !TARGET_OS_OSX

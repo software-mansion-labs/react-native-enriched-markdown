@@ -111,4 +111,4 @@ UIMenu *buildEditMenuForSelection(NSAttributedString *attributedText, NSRange ra
   return [UIMenu menuWithChildren:result];
 }
 
-#endif // !TARGET_OS_OSX
+#endif

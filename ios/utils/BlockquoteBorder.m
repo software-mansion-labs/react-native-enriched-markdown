@@ -1,7 +1,6 @@
 #import "BlockquoteBorder.h"
 #import "StyleConfig.h"
 #import <React/RCTI18nUtil.h>
-#include <TargetConditionals.h>
 
 // Attribute constants for identifying blockquote segments in text storage
 NSString *const BlockquoteDepthAttributeName = @"BlockquoteDepth";

@@ -1,10 +1,6 @@
 import { Platform } from 'react-native';
 import type { MarkdownStyle } from 'react-native-enriched-markdown';
 
-// macOS uses system fonts — custom fonts (Montserrat, CourierPrime) are not
-// bundled in this example. On iOS/Android the example/src version uses them.
-const isApple = Platform.OS === 'macos' || Platform.OS === 'ios';
-
 export const customMarkdownStyle: MarkdownStyle = {
   paragraph: {
     fontSize: 15,
@@ -116,7 +112,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     marginBottom: 14,
   },
   codeBlock: {
-    fontFamily: isApple ? 'Menlo' : 'monospace',
+    fontFamily: 'Menlo',
     fontSize: 13,
     color: '#f3f4f6',
     backgroundColor: '#1f2937',
@@ -133,7 +129,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     marginBottom: 14,
   },
   code: {
-    fontFamily: isApple ? 'Menlo' : 'monospace',
+    fontFamily: 'Menlo',
     color: '#7c3aed',
     backgroundColor: '#f5f3ff',
     borderColor: '#ddd6fe',
@@ -163,7 +159,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     marginBottom: 20,
   },
   table: {
-    fontFamily: isApple ? 'Menlo' : 'monospace',
+    fontFamily: 'Menlo',
     fontSize: 13,
     color: '#1f2937',
     lineHeight: Platform.select({

@@ -70,10 +70,10 @@ static void extractFontTraits(NSDictionary *attrs, BOOL *isBold, BOOL *isItalic,
     UIFontDescriptorSymbolicTraits traits = font.fontDescriptor.symbolicTraits;
     *isBold = (traits & UIFontDescriptorTraitBold) != 0;
     *isItalic = (traits & UIFontDescriptorTraitItalic) != 0;
-#if TARGET_OS_OSX
-    *isMonospace = (traits & NSFontDescriptorTraitMonoSpace) != 0;
-#else
+#if !TARGET_OS_OSX
     *isMonospace = (traits & UIFontDescriptorTraitMonoSpace) != 0;
+#else
+    *isMonospace = (traits & NSFontDescriptorTraitMonoSpace) != 0;
 #endif
   }
 }

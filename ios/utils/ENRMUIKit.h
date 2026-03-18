@@ -3,13 +3,7 @@
 #include <TargetConditionals.h>
 
 // RCTUIKit.h is react-native-macos only. On iOS we import UIKit and define the aliases ourselves.
-#if TARGET_OS_OSX
-#import <React/RCTTextUIKit.h>
-#import <React/RCTUIKit.h>
-#import <React/RCTUITextView.h>
-#define ENRMPlatformTextView RCTUITextView
-#define ENRMTapRecognizer NSClickGestureRecognizer
-#else
+#if !TARGET_OS_OSX
 #import <UIKit/UIKit.h>
 #define RCTUIColor UIColor
 #define RCTUIImage UIImage
@@ -34,40 +28,46 @@ static inline CGFloat UIFontLineHeight(UIFont *font)
 {
   return font.lineHeight;
 }
+#else
+#import <React/RCTTextUIKit.h>
+#import <React/RCTUIKit.h>
+#import <React/RCTUITextView.h>
+#define ENRMPlatformTextView RCTUITextView
+#define ENRMTapRecognizer NSClickGestureRecognizer
 #endif
 
 /// On iOS, explicitly sets opaque=NO — without it the renderer produces an opaque backing,
 /// breaking transparent backgrounds. macOS handles transparency by default.
 static inline RCTUIGraphicsImageRenderer *ImageRendererForSize(CGSize size)
 {
-#if TARGET_OS_OSX
-  return [[RCTUIGraphicsImageRenderer alloc] initWithSize:size];
-#else
+#if !TARGET_OS_OSX
   RCTUIGraphicsImageRendererFormat *format = [RCTUIGraphicsImageRendererFormat preferredFormat];
   format.opaque = NO;
   return [[RCTUIGraphicsImageRenderer alloc] initWithSize:size format:format];
+#else
+  return [[RCTUIGraphicsImageRenderer alloc] initWithSize:size];
 #endif
 }
 
 /// NSBezierPath uses NS-prefixed enum values; UIBezierPath uses kCG-prefixed constants.
 static inline void BezierPathSetRoundStyle(UIBezierPath *path)
 {
-#if TARGET_OS_OSX
-  path.lineCapStyle = NSLineCapStyleRound;
-  path.lineJoinStyle = NSLineJoinStyleRound;
-#else
+#if !TARGET_OS_OSX
   path.lineCapStyle = kCGLineCapRound;
   path.lineJoinStyle = kCGLineJoinRound;
+#else
+  path.lineCapStyle = NSLineCapStyleRound;
+  path.lineJoinStyle = NSLineJoinStyleRound;
 #endif
 }
 
 /// Cross-platform line segment: NSBezierPath uses lineToPoint: instead of addLineToPoint:.
 static inline void BezierPathAddLine(UIBezierPath *path, CGPoint point)
 {
-#if TARGET_OS_OSX
-  [path lineToPoint:point];
-#else
+#if !TARGET_OS_OSX
   [path addLineToPoint:point];
+#else
+  [path lineToPoint:point];
 #endif
 }
 
@@ -75,14 +75,14 @@ static inline void BezierPathAddLine(UIBezierPath *path, CGPoint point)
 /// with a cubic Bezier using the standard quadratic-to-cubic conversion.
 static inline void BezierPathAddQuadCurve(UIBezierPath *path, CGPoint end, CGPoint control)
 {
-#if TARGET_OS_OSX
+#if !TARGET_OS_OSX
+  [path addQuadCurveToPoint:end controlPoint:control];
+#else
   CGPoint start = [path currentPoint];
   [path curveToPoint:end
        controlPoint1:CGPointMake(start.x + 2.0 / 3.0 * (control.x - start.x),
                                  start.y + 2.0 / 3.0 * (control.y - start.y))
        controlPoint2:CGPointMake(end.x + 2.0 / 3.0 * (control.x - end.x), end.y + 2.0 / 3.0 * (control.y - end.y))];
-#else
-  [path addQuadCurveToPoint:end controlPoint:control];
 #endif
 }
 
@@ -90,10 +90,10 @@ static inline void BezierPathAddQuadCurve(UIBezierPath *path, CGPoint end, CGPoi
 /// UITextView exposes it via attributedText.
 static inline NSAttributedString *ENRMGetAttributedText(ENRMPlatformTextView *textView)
 {
-#if TARGET_OS_OSX
-  return textView.textStorage;
-#else
+#if !TARGET_OS_OSX
   return textView.attributedText;
+#else
+  return textView.textStorage;
 #endif
 }
 
@@ -101,10 +101,10 @@ static inline NSAttributedString *ENRMGetAttributedText(ENRMPlatformTextView *te
 /// UITextView uses the attributedText property setter.
 static inline void ENRMSetAttributedText(ENRMPlatformTextView *textView, NSAttributedString *text)
 {
-#if TARGET_OS_OSX
-  [textView.textStorage setAttributedString:text];
-#else
+#if !TARGET_OS_OSX
   textView.attributedText = text;
+#else
+  [textView.textStorage setAttributedString:text];
 #endif
 }
 
@@ -162,14 +162,14 @@ static inline ENRMTextLayoutResult ENRMMeasureTextLayout(ENRMPlatformTextView *t
 /// Cross-platform display refresh: UIView requires layoutIfNeeded before setNeedsDisplay
 /// to flush pending layout before the redraw; NSView takes a BOOL argument.
 /// Implemented as a macro to avoid Objective-C++ implicit pointer conversion issues in .mm files.
-#if TARGET_OS_OSX
-#define ENRMSetNeedsDisplay(view) [(view) setNeedsDisplay:YES]
-#else
+#if !TARGET_OS_OSX
 #define ENRMSetNeedsDisplay(view)                                                                                      \
   do {                                                                                                                 \
     [(view) layoutIfNeeded];                                                                                           \
     [(view) setNeedsDisplay];                                                                                          \
   } while (0)
+#else
+#define ENRMSetNeedsDisplay(view) [(view) setNeedsDisplay:YES]
 #endif
 
 /// Refreshes a text view's layout and display after it is attached to a window.

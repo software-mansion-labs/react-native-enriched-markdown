@@ -73,10 +73,10 @@ static inline NSUInteger ENRMImageByteCost(RCTUIImage *image)
 
   [[_session dataTaskWithURL:nsURL
            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-#if TARGET_OS_OSX
-             RCTUIImage *image = (data && !error) ? [[RCTUIImage alloc] initWithData:data] : nil;
+#if !TARGET_OS_OSX
+             RCTUIImage *image = (data && !error) ? [RCTUIImage imageWithData:data] : nil;
 #else
-        RCTUIImage *image = (data && !error) ? [RCTUIImage imageWithData:data] : nil;
+        RCTUIImage *image = (data && !error) ? [[RCTUIImage alloc] initWithData:data] : nil;
 #endif
 
              if (image) {

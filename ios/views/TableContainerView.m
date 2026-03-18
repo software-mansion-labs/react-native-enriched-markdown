@@ -25,11 +25,11 @@
 @implementation TableCellData
 @end
 
-#if TARGET_OS_OSX
-@interface TableContainerView ()
+#if !TARGET_OS_OSX
+@interface TableContainerView () <UITextViewDelegate, UIContextMenuInteractionDelegate>
 @end
 #else
-@interface TableContainerView () <UITextViewDelegate, UIContextMenuInteractionDelegate>
+@interface TableContainerView ()
 @end
 #endif
 
@@ -264,10 +264,10 @@
 
 - (void)renderGrid
 {
-#if TARGET_OS_OSX
-  [self renderGridMacOS];
-#else
+#if !TARGET_OS_OSX
   [self renderGridIOS];
+#else
+  [self renderGridMacOS];
 #endif
 }
 
@@ -585,16 +585,16 @@
 {
   [super layoutSubviews];
   _scrollView.frame = self.bounds;
-#if TARGET_OS_OSX
+#if !TARGET_OS_OSX
+  _scrollView.contentSize = CGSizeMake(MAX(_totalTableWidth, self.bounds.size.width), _totalTableHeight);
+  _scrollView.scrollEnabled = (_totalTableWidth > self.bounds.size.width);
+  _gridContainer.frame = CGRectMake(0, 0, _totalTableWidth, _totalTableHeight);
+#else
   // For NSScrollView+documentView, the scrollable content area is determined by
   // the documentView's frame. No contentSize property to set.
   if (_totalTableWidth > 0 && _totalTableHeight > 0) {
     _gridContainer.frame = CGRectMake(0, 0, _totalTableWidth, _totalTableHeight);
   }
-#else
-  _scrollView.contentSize = CGSizeMake(MAX(_totalTableWidth, self.bounds.size.width), _totalTableHeight);
-  _scrollView.scrollEnabled = (_totalTableWidth > self.bounds.size.width);
-  _gridContainer.frame = CGRectMake(0, 0, _totalTableWidth, _totalTableHeight);
 #endif
 }
 
@@ -622,13 +622,7 @@
     }
 
     if (cellTexts.count > 0) {
-#if TARGET_OS_OSX
-      // TODO: Implement macOS VoiceOver support for table rows using NSAccessibility.
-      // ENRMTableGridView draws the entire table in a single drawRect: pass, so AppKit
-      // cannot discover cells automatically. Needs accessibilityRole, accessibilityChildren
-      // (NSAccessibilityRowRole per row, NSAccessibilityCellRole per cell), and
-      // accessibilityLabel populated from plainText on ENRMTableGridView.
-#else
+#if !TARGET_OS_OSX
       UIAccessibilityElement *element = [[UIAccessibilityElement alloc] initWithAccessibilityContainer:self];
       element.accessibilityLabel = [NSString
           stringWithFormat:@"Row %lu: %@", (unsigned long)(rowIndex + 1), [cellTexts componentsJoinedByString:@", "]];
@@ -636,6 +630,12 @@
       element.accessibilityTraits =
           row.firstObject.isHeader ? UIAccessibilityTraitHeader : UIAccessibilityTraitStaticText;
       [elements addObject:element];
+#else
+      // TODO: Implement macOS VoiceOver support for table rows using NSAccessibility.
+      // ENRMTableGridView draws the entire table in a single drawRect: pass, so AppKit
+      // cannot discover cells automatically. Needs accessibilityRole, accessibilityChildren
+      // (NSAccessibilityRowRole per row, NSAccessibilityCellRole per cell), and
+      // accessibilityLabel populated from plainText on ENRMTableGridView.
 #endif
     }
     yOffset += rowHeight;

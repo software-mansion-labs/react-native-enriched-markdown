@@ -58,18 +58,20 @@ static void addHTMLData(NSMutableDictionary *items, NSAttributedString *attribut
 
 void copyStringToPasteboard(NSString *string)
 {
-#if TARGET_OS_OSX
+#if !TARGET_OS_OSX
+  [[UIPasteboard generalPasteboard] setString:string];
+#else
   NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
   [pasteboard clearContents];
   [pasteboard setString:string forType:kUTIPlainText];
-#else
-  [[UIPasteboard generalPasteboard] setString:string];
 #endif
 }
 
 void copyItemsToPasteboard(NSDictionary<NSString *, id> *items)
 {
-#if TARGET_OS_OSX
+#if !TARGET_OS_OSX
+  [[UIPasteboard generalPasteboard] setItems:@[ items ]];
+#else
   NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
   [pasteboard clearContents];
   for (NSString *type in items) {
@@ -80,8 +82,6 @@ void copyItemsToPasteboard(NSDictionary<NSString *, id> *items)
       [pasteboard setData:value forType:type];
     }
   }
-#else
-  [[UIPasteboard generalPasteboard] setItems:@[ items ]];
 #endif
 }
 

@@ -34,15 +34,7 @@
     _mathLabel = [[MTMathUILabel alloc] init];
     _mathLabel.labelMode = kMTMathUILabelModeDisplay;
 
-#if TARGET_OS_OSX
-    // MTMathUILabel sets layer.geometryFlipped=YES for CoreText, but React Native
-    // macOS uses isFlipped=YES views. The combination causes rendering artifacts
-    // for sibling views. Disable the layer flip — MTMathUILabel's drawRect uses
-    // CoreText which respects the CGContext transform, and the label's isFlipped=NO
-    // combined with the parent's isFlipped=YES provides the correct coordinate system.
-    _mathLabel.layer.geometryFlipped = NO;
-    [self addSubview:_mathLabel];
-#else
+#if !TARGET_OS_OSX
     _scrollView = [[RCTUIScrollView alloc] init];
     _scrollView.showsVerticalScrollIndicator = NO;
     _scrollView.showsHorizontalScrollIndicator = YES;
@@ -56,6 +48,14 @@
 
     UIContextMenuInteraction *contextMenu = [[UIContextMenuInteraction alloc] initWithDelegate:self];
     [self addInteraction:contextMenu];
+#else
+    // MTMathUILabel sets layer.geometryFlipped=YES for CoreText, but React Native
+    // macOS uses isFlipped=YES views. The combination causes rendering artifacts
+    // for sibling views. Disable the layer flip — MTMathUILabel's drawRect uses
+    // CoreText which respects the CGContext transform, and the label's isFlipped=NO
+    // combined with the parent's isFlipped=YES provides the correct coordinate system.
+    _mathLabel.layer.geometryFlipped = NO;
+    [self addSubview:_mathLabel];
 #endif
   }
   return self;
@@ -73,10 +73,10 @@
   _mathLabel.textAlignment = [self mapAlignment:config.mathTextAlign];
 
   CGFloat padding = config.mathPadding;
-#if TARGET_OS_OSX
-  _mathLabel.contentInsets = NSEdgeInsetsMake(padding, padding, padding, padding);
-#else
+#if !TARGET_OS_OSX
   _mathLabel.contentInsets = UIEdgeInsetsMake(padding, padding, padding, padding);
+#else
+  _mathLabel.contentInsets = NSEdgeInsetsMake(padding, padding, padding, padding);
 #endif
 
   self.backgroundColor = config.mathBackgroundColor;
@@ -140,10 +140,10 @@
 
 - (CGSize)mathLabelIntrinsicSize
 {
-#if TARGET_OS_OSX
-  return _mathLabel.intrinsicContentSize;
-#else
+#if !TARGET_OS_OSX
   return [_mathLabel sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+#else
+  return _mathLabel.intrinsicContentSize;
 #endif
 }
 
@@ -160,14 +160,14 @@
   CGFloat contentWidth = MAX(intrinsicSize.width, self.bounds.size.width);
   CGFloat contentHeight = self.bounds.size.height;
 
-#if TARGET_OS_OSX
-  _mathLabel.frame = CGRectMake(0, 0, contentWidth, contentHeight);
-  [_mathLabel setNeedsDisplay:YES];
-#else
+#if !TARGET_OS_OSX
   _scrollView.frame = self.bounds;
   _scrollView.contentSize = CGSizeMake(contentWidth, contentHeight);
   _scrollView.scrollEnabled = (intrinsicSize.width > self.bounds.size.width);
   _mathLabel.frame = CGRectMake(0, 0, contentWidth, contentHeight);
+#else
+  _mathLabel.frame = CGRectMake(0, 0, contentWidth, contentHeight);
+  [_mathLabel setNeedsDisplay:YES];
 #endif
 }
 

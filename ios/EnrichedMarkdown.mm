@@ -292,18 +292,18 @@ using namespace facebook::react;
     }
 #if ENRICHED_MARKDOWN_MATH
     else if (child.type == MarkdownNodeTypeLatexMathDisplay) {
-#if TARGET_OS_OSX
-      // TODO: Fix block math rendering on macOS. Adding ENRMMathContainerView (which
-      // hosts MTMathUILabel) as a segment causes all preceding text segments to become
-      // invisible. Likely related to MTMathUILabel.layer.geometryFlipped interacting
-      // with NSTextView's coordinate system. Inline math ($...$) works.
-#else
+#if !TARGET_OS_OSX
       if (currentTextNodes.count > 0) {
         [segments addObject:[EMTextSegment segmentWithNodes:[currentTextNodes copy]]];
         [currentTextNodes removeAllObjects];
       }
       NSString *latex = child.children.count > 0 ? child.children.firstObject.content : child.content;
       [segments addObject:[EMMathSegment segmentWithLatex:latex ?: @""]];
+#else
+      // TODO: Fix block math rendering on macOS. Adding ENRMMathContainerView (which
+      // hosts MTMathUILabel) as a segment causes all preceding text segments to become
+      // invisible. Likely related to MTMathUILabel.layer.geometryFlipped interacting
+      // with NSTextView's coordinate system. Inline math ($...$) works.
 #endif
     }
 #endif
@@ -525,7 +525,9 @@ using namespace facebook::react;
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [view.textView addGestureRecognizer:tapRecognizer];
 
-#if TARGET_OS_OSX
+#if !TARGET_OS_OSX
+  view.textView.delegate = self;
+#else
   __weak EnrichedMarkdown *weakSelf = self;
   [view setContextMenuProvider:^NSMenu *_Nullable(NSMenu *baseMenu, NSTextView *textView) {
     EnrichedMarkdown *strongSelf = weakSelf;
@@ -536,8 +538,6 @@ using namespace facebook::react;
     return buildEditMenuForSelection(textView.textStorage, textView.selectedRange, segmentMarkdown, strongSelf->_config,
                                      @[ baseMenu ]);
   }];
-#else
-  view.textView.delegate = self;
 #endif
 
   return view;
@@ -699,10 +699,10 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     }
     EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
     CGPoint segmentPoint = [self convertPoint:point toView:textSegment.textView];
-#if TARGET_OS_OSX
-    BOOL isInsideView = CGRectContainsPoint(textSegment.textView.bounds, segmentPoint);
-#else
+#if !TARGET_OS_OSX
     BOOL isInsideView = [textSegment.textView pointInside:segmentPoint withEvent:nil];
+#else
+    BOOL isInsideView = CGRectContainsPoint(textSegment.textView.bounds, segmentPoint);
 #endif
     if (isInsideView) {
       if (isPointOnInteractiveElement(textSegment.textView, segmentPoint)) {

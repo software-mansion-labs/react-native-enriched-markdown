@@ -73,10 +73,10 @@ using namespace facebook::react;
   ENRMTailFadeInAnimator *_fadeAnimator;
 
   AccessibilityInfo *_accessibilityInfo;
-#if TARGET_OS_OSX
-  NSMutableArray *_accessibilityElements;
-#else
+#if !TARGET_OS_OSX
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
+#else
+  NSMutableArray *_accessibilityElements;
 #endif
   BOOL _accessibilityNeedsRebuild;
 }
@@ -186,12 +186,12 @@ using namespace facebook::react;
 
 - (void)setupTextView
 {
-#if TARGET_OS_OSX
-  _textView = [[ENRMContextMenuTextView alloc] init];
-  _textView.string = @"";
-#else
+#if !TARGET_OS_OSX
   _textView = [[ENRMPlatformTextView alloc] init];
   _textView.text = @"";
+#else
+  _textView = [[ENRMContextMenuTextView alloc] init];
+  _textView.string = @"";
 #endif
   ENRMConfigureMarkdownTextView(_textView);
   _textView.delegate = self;

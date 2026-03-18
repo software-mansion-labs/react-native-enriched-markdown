@@ -11,16 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface MarkdownAccessibilityElementBuilder : NSObject
 
-#if TARGET_OS_OSX
-+ (NSMutableArray *)buildElementsForTextView:(id)textView info:(AccessibilityInfo *)info container:(id)container;
-+ (NSArray *)filterHeadingElements:(NSArray *)elements;
-+ (NSArray *)filterLinkElements:(NSArray *)elements;
-+ (NSArray *)filterImageElements:(NSArray *)elements;
-+ (id _Nullable)createHeadingRotorWithElements:(NSArray *)elements;
-+ (id _Nullable)createLinkRotorWithElements:(NSArray *)elements;
-+ (id _Nullable)createImageRotorWithElements:(NSArray *)elements;
-+ (NSArray *)buildRotorsFromElements:(NSArray *)elements;
-#else
+#if !TARGET_OS_OSX
 /**
  * Builds UIAccessibilityElement objects from markdown content for VoiceOver.
  */
@@ -34,6 +25,15 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIAccessibilityCustomRotor *)createLinkRotorWithElements:(NSArray<UIAccessibilityElement *> *)elements;
 + (UIAccessibilityCustomRotor *)createImageRotorWithElements:(NSArray<UIAccessibilityElement *> *)elements;
 + (NSArray<UIAccessibilityCustomRotor *> *)buildRotorsFromElements:(NSArray<UIAccessibilityElement *> *)elements;
+#else
++ (NSMutableArray *)buildElementsForTextView:(id)textView info:(AccessibilityInfo *)info container:(id)container;
++ (NSArray *)filterHeadingElements:(NSArray *)elements;
++ (NSArray *)filterLinkElements:(NSArray *)elements;
++ (NSArray *)filterImageElements:(NSArray *)elements;
++ (id _Nullable)createHeadingRotorWithElements:(NSArray *)elements;
++ (id _Nullable)createLinkRotorWithElements:(NSArray *)elements;
++ (id _Nullable)createImageRotorWithElements:(NSArray *)elements;
++ (NSArray *)buildRotorsFromElements:(NSArray *)elements;
 #endif
 
 @end

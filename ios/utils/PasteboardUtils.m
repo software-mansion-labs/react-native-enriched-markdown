@@ -37,7 +37,6 @@ static void addRTFDData(NSMutableDictionary *items, NSAttributedString *attribut
   if (wrapper && !error) {
     NSData *data = [wrapper serializedRepresentation];
     if (data) {
-      items[kUTIRTFD] = data;
       items[kUTIFlatRTFD] = data;
     }
   }

@@ -55,7 +55,7 @@ jobs:
         with:
           package-name: 'react-native-enriched-markdown'
           package-json-path: 'package.json'
-          install-dependencies-command: 'yarn install --immutable'
+          install-dependencies-command: 'yarn install'
           release-type: ${{ inputs.release-type }}
           version: ${{ inputs.version }}
           dry-run: ${{ inputs.dry-run }}
@@ -66,6 +66,6 @@ jobs:
         with:
           package-name: 'react-native-enriched-markdown'
           package-json-path: 'package.json'
-          install-dependencies-command: 'yarn install --immutable'
+          install-dependencies-command: 'yarn install'
           release-type: 'nightly'
           dry-run: false

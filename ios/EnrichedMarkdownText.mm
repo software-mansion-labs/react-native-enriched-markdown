@@ -48,6 +48,9 @@ using namespace facebook::react;
 
 @implementation EnrichedMarkdownText {
   ENRMPlatformTextView *_textView;
+#if TARGET_OS_OSX
+  NSScrollView *_scrollContainer;
+#endif
   ENRMMarkdownParser *_parser;
   NSString *_cachedMarkdown;
   NSString *_renderedMarkdown;
@@ -214,7 +217,21 @@ using namespace facebook::react;
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [_textView addGestureRecognizer:tapRecognizer];
 
+#if TARGET_OS_OSX
+  // Wrap text view in NSScrollView for native macOS scrolling.
+  // Fabric's layout system doesn't re-measure after YGNodeMarkDirty on macOS,
+  // so the component stays viewport-sized. The NSScrollView handles overflow.
+  _scrollContainer = [[NSScrollView alloc] initWithFrame:self.bounds];
+  _scrollContainer.hasVerticalScroller = YES;
+  _scrollContainer.hasHorizontalScroller = NO;
+  _scrollContainer.drawsBackground = NO;
+  _scrollContainer.backgroundColor = [NSColor clearColor];
+  _scrollContainer.contentView.drawsBackground = NO;
+  _scrollContainer.documentView = _textView;
+  self.contentView = _scrollContainer;
+#else
   self.contentView = _textView;
+#endif
 }
 
 - (void)didAddSubview:(RCTUIView *)subview

@@ -116,6 +116,17 @@ using namespace facebook::react;
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
 @end
 
+#if TARGET_OS_OSX
+@interface ENRMFlippedView : RCTUIView
+@end
+@implementation ENRMFlippedView
+- (BOOL)isFlipped
+{
+  return YES;
+}
+@end
+#endif
+
 @implementation EnrichedMarkdown {
   ENRMMarkdownParser *_parser;
   StyleConfig *_config;
@@ -137,6 +148,10 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _selectable;
   BOOL _enableLinkPreview;
+#if TARGET_OS_OSX
+  NSScrollView *_macScrollContainer;
+  ENRMFlippedView *_macDocumentView;
+#endif
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -163,6 +178,22 @@ using namespace facebook::react;
     _selectable = YES;
     _enableLinkPreview = YES;
 
+#if TARGET_OS_OSX
+    _macScrollContainer = [[NSScrollView alloc] initWithFrame:self.bounds];
+    _macScrollContainer.hasVerticalScroller = YES;
+    _macScrollContainer.hasHorizontalScroller = NO;
+    _macScrollContainer.drawsBackground = NO;
+    _macScrollContainer.backgroundColor = [NSColor clearColor];
+    _macScrollContainer.contentView.drawsBackground = NO;
+    _macScrollContainer.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+
+    _macDocumentView = [[ENRMFlippedView alloc] initWithFrame:self.bounds];
+    _macDocumentView.autoresizesSubviews = NO;
+    _macScrollContainer.documentView = _macDocumentView;
+
+    [self addSubview:_macScrollContainer];
+#endif
+
     _fontScaleObserver = [[FontScaleObserver alloc] init];
     __weak EnrichedMarkdown *weakSelf = self;
     _fontScaleObserver.onChange = ^{
@@ -178,6 +209,15 @@ using namespace facebook::react;
     };
   }
   return self;
+}
+
+- (RCTUIView *)segmentContainer
+{
+#if TARGET_OS_OSX
+  return _macDocumentView;
+#else
+  return self;
+#endif
 }
 
 - (CGFloat)computeSegmentLayoutForWidth:(CGFloat)width applyFrames:(BOOL)applyFrames
@@ -430,17 +470,17 @@ using namespace facebook::react;
     if ([segment isKindOfClass:[EMRenderedTextSegment class]]) {
       EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment];
       [_segmentViews addObject:view];
-      [self addSubview:view];
+      [[self segmentContainer] addSubview:view];
     } else if ([segment isKindOfClass:[EMTableSegment class]]) {
       TableContainerView *tableView = [self createTableViewForSegment:(EMTableSegment *)segment];
       [_segmentViews addObject:tableView];
-      [self addSubview:tableView];
+      [[self segmentContainer] addSubview:tableView];
     }
 #if ENRICHED_MARKDOWN_MATH
     else if ([segment isKindOfClass:[EMMathSegment class]]) {
       ENRMMathContainerView *mathView = [self createMathViewForSegment:(EMMathSegment *)segment];
       [_segmentViews addObject:mathView];
-      [self addSubview:mathView];
+      [[self segmentContainer] addSubview:mathView];
     }
 #endif
   }
@@ -459,19 +499,19 @@ using namespace facebook::react;
     if ([segment isKindOfClass:[EMRenderedTextSegment class]]) {
       EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment];
       [_segmentViews addObject:view];
-      [self addSubview:view];
+      [[self segmentContainer] addSubview:view];
     } else if ([segment isKindOfClass:[EMTableSegment class]]) {
       EMTableSegment *tableSegment = (EMTableSegment *)segment;
       TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
       [_segmentViews addObject:tableView];
-      [self addSubview:tableView];
+      [[self segmentContainer] addSubview:tableView];
     }
 #if ENRICHED_MARKDOWN_MATH
     else if ([segment isKindOfClass:[EMMathSegment class]]) {
       EMMathSegment *mathSegment = (EMMathSegment *)segment;
       ENRMMathContainerView *mathView = [self createMathViewForSegment:mathSegment];
       [_segmentViews addObject:mathView];
-      [self addSubview:mathView];
+      [[self segmentContainer] addSubview:mathView];
     }
 #endif
   }
@@ -592,7 +632,19 @@ using namespace facebook::react;
 - (void)layoutSubviews
 {
   [super layoutSubviews];
+#if TARGET_OS_OSX
+  // Ensure scroll container is on top (Fabric's _containerView may cover it)
+  [_macScrollContainer removeFromSuperview];
+  [self addSubview:_macScrollContainer];
+  _macScrollContainer.frame = self.bounds;
+  CGFloat width = _macScrollContainer.contentSize.width;
+  if (width <= 0)
+    width = self.bounds.size.width;
+  CGFloat totalHeight = [self computeSegmentLayoutForWidth:width applyFrames:YES];
+  _macDocumentView.frame = NSMakeRect(0, 0, width, MAX(totalHeight, self.bounds.size.height));
+#else
   [self computeSegmentLayoutForWidth:self.bounds.size.width applyFrames:YES];
+#endif
 }
 
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps

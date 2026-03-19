@@ -9,7 +9,7 @@
 - 📐 CommonMark standard compliant
 - 📊 GitHub Flavored Markdown (GFM)
 - 🧮 LaTeX math rendering (block `$$...$$` with `flavor="github"`, inline `$...$` in all flavors)
-- 🔀 [Markdown streaming](docs/MARKDOWN_STREAMING.md) support (via [react-native-streamdown](https://github.com/software-mansion-labs/react-native-streamdown))
+- 🔀 [Markdown Streaming](docs/MARKDOWN_STREAMING.md) support (via [react-native-streamdown](https://github.com/software-mansion-labs/react-native-streamdown))
 - 🎨 Fully customizable styles for all elements
 - 📱 iOS, Android, and macOS support
 - 🏛 Supports only the New Architecture (Fabric)

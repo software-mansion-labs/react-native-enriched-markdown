@@ -1,18 +1,10 @@
-#import "ENRMMathInlineAttachment.h"
-#import "ENRMFeatureFlags.h"
-
-#if ENRICHED_MARKDOWN_MATH
-#import <IosMath/IosMath.h>
-#endif
+#import "ENRMMathInlineAttachmentShared.h"
 
 #if ENRICHED_MARKDOWN_MATH
 
-@implementation ENRMMathInlineAttachment {
-  CGSize _cachedSize;
-  CGFloat _mathAscent;
-  CGFloat _mathDescent;
-  MTMathListDisplay *_displayList;
-}
+@implementation ENRMMathInlineAttachment
+
+#if !TARGET_OS_OSX
 
 - (void)prepareIfNeeded
 {
@@ -77,6 +69,8 @@
     CGContextRestoreGState(ctx);
   }];
 }
+
+#endif
 
 @end
 

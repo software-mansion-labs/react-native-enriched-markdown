@@ -17,7 +17,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   BOOL _allowFontScaling;
   CGFloat _maxFontSizeMultiplier;
   // Primary font properties
-  UIColor *_primaryColor;
+  RCTUIColor *_primaryColor;
   NSNumber *_primaryFontSize;
   NSString *_primaryFontWeight;
   NSString *_primaryFontFamily;
@@ -27,7 +27,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _paragraphFontSize;
   NSString *_paragraphFontFamily;
   NSString *_paragraphFontWeight;
-  UIColor *_paragraphColor;
+  RCTUIColor *_paragraphColor;
   CGFloat _paragraphMarginTop;
   CGFloat _paragraphMarginBottom;
   CGFloat _paragraphLineHeight;
@@ -38,7 +38,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _h1FontSize;
   NSString *_h1FontFamily;
   NSString *_h1FontWeight;
-  UIColor *_h1Color;
+  RCTUIColor *_h1Color;
   CGFloat _h1MarginTop;
   CGFloat _h1MarginBottom;
   CGFloat _h1LineHeight;
@@ -49,7 +49,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _h2FontSize;
   NSString *_h2FontFamily;
   NSString *_h2FontWeight;
-  UIColor *_h2Color;
+  RCTUIColor *_h2Color;
   CGFloat _h2MarginTop;
   CGFloat _h2MarginBottom;
   CGFloat _h2LineHeight;
@@ -60,7 +60,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _h3FontSize;
   NSString *_h3FontFamily;
   NSString *_h3FontWeight;
-  UIColor *_h3Color;
+  RCTUIColor *_h3Color;
   CGFloat _h3MarginTop;
   CGFloat _h3MarginBottom;
   CGFloat _h3LineHeight;
@@ -71,7 +71,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _h4FontSize;
   NSString *_h4FontFamily;
   NSString *_h4FontWeight;
-  UIColor *_h4Color;
+  RCTUIColor *_h4Color;
   CGFloat _h4MarginTop;
   CGFloat _h4MarginBottom;
   CGFloat _h4LineHeight;
@@ -82,7 +82,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _h5FontSize;
   NSString *_h5FontFamily;
   NSString *_h5FontWeight;
-  UIColor *_h5Color;
+  RCTUIColor *_h5Color;
   CGFloat _h5MarginTop;
   CGFloat _h5MarginBottom;
   CGFloat _h5LineHeight;
@@ -93,7 +93,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _h6FontSize;
   NSString *_h6FontFamily;
   NSString *_h6FontWeight;
-  UIColor *_h6Color;
+  RCTUIColor *_h6Color;
   CGFloat _h6MarginTop;
   CGFloat _h6MarginBottom;
   CGFloat _h6LineHeight;
@@ -102,26 +102,26 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   BOOL _h6FontNeedsRecreation;
   // Link properties
   NSString *_linkFontFamily;
-  UIColor *_linkColor;
+  RCTUIColor *_linkColor;
   BOOL _linkUnderline;
   // Strong properties
   NSString *_strongFontFamily;
   NSString *_strongFontWeight;
-  UIColor *_strongColor;
+  RCTUIColor *_strongColor;
   // Emphasis properties
   NSString *_emphasisFontFamily;
   NSString *_emphasisFontStyle;
-  UIColor *_emphasisColor;
+  RCTUIColor *_emphasisColor;
   // Strikethrough properties
-  UIColor *_strikethroughColor;
+  RCTUIColor *_strikethroughColor;
   // Underline properties
-  UIColor *_underlineColor;
+  RCTUIColor *_underlineColor;
   // Code properties
   NSString *_codeFontFamily;
   CGFloat _codeFontSize;
-  UIColor *_codeColor;
-  UIColor *_codeBackgroundColor;
-  UIColor *_codeBorderColor;
+  RCTUIColor *_codeColor;
+  RCTUIColor *_codeBackgroundColor;
+  RCTUIColor *_codeBorderColor;
   // Image properties
   CGFloat _imageHeight;
   CGFloat _imageBorderRadius;
@@ -133,25 +133,25 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _blockquoteFontSize;
   NSString *_blockquoteFontFamily;
   NSString *_blockquoteFontWeight;
-  UIColor *_blockquoteColor;
+  RCTUIColor *_blockquoteColor;
   CGFloat _blockquoteMarginTop;
   CGFloat _blockquoteMarginBottom;
   CGFloat _blockquoteLineHeight;
-  UIColor *_blockquoteBorderColor;
+  RCTUIColor *_blockquoteBorderColor;
   CGFloat _blockquoteBorderWidth;
   CGFloat _blockquoteGapWidth;
-  UIColor *_blockquoteBackgroundColor;
+  RCTUIColor *_blockquoteBackgroundColor;
   // List style properties (combined for both ordered and unordered lists)
   CGFloat _listStyleFontSize;
   NSString *_listStyleFontFamily;
   NSString *_listStyleFontWeight;
-  UIColor *_listStyleColor;
+  RCTUIColor *_listStyleColor;
   CGFloat _listStyleMarginTop;
   CGFloat _listStyleMarginBottom;
   CGFloat _listStyleLineHeight;
-  UIColor *_listStyleBulletColor;
+  RCTUIColor *_listStyleBulletColor;
   CGFloat _listStyleBulletSize;
-  UIColor *_listStyleMarkerColor;
+  RCTUIColor *_listStyleMarkerColor;
   NSString *_listStyleMarkerFontWeight;
   CGFloat _listStyleGapWidth;
   CGFloat _listStyleMarginLeft;
@@ -163,12 +163,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _codeBlockFontSize;
   NSString *_codeBlockFontFamily;
   NSString *_codeBlockFontWeight;
-  UIColor *_codeBlockColor;
+  RCTUIColor *_codeBlockColor;
   CGFloat _codeBlockMarginTop;
   CGFloat _codeBlockMarginBottom;
   CGFloat _codeBlockLineHeight;
-  UIColor *_codeBlockBackgroundColor;
-  UIColor *_codeBlockBorderColor;
+  RCTUIColor *_codeBlockBackgroundColor;
+  RCTUIColor *_codeBlockBorderColor;
   CGFloat _codeBlockBorderRadius;
   CGFloat _codeBlockBorderWidth;
   CGFloat _codeBlockPadding;
@@ -177,7 +177,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   UIFont *_blockquoteFont;
   BOOL _blockquoteFontNeedsRecreation;
   // Thematic break properties
-  UIColor *_thematicBreakColor;
+  RCTUIColor *_thematicBreakColor;
   CGFloat _thematicBreakHeight;
   CGFloat _thematicBreakMarginTop;
   CGFloat _thematicBreakMarginBottom;
@@ -185,7 +185,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _tableFontSize;
   NSString *_tableFontFamily;
   NSString *_tableFontWeight;
-  UIColor *_tableColor;
+  RCTUIColor *_tableColor;
   CGFloat _tableMarginTop;
   CGFloat _tableMarginBottom;
   CGFloat _tableLineHeight;
@@ -194,33 +194,33 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   NSString *_tableHeaderFontFamily;
   UIFont *_tableHeaderFont;
   BOOL _tableHeaderFontNeedsRecreation;
-  UIColor *_tableHeaderBackgroundColor;
-  UIColor *_tableHeaderTextColor;
-  UIColor *_tableRowEvenBackgroundColor;
-  UIColor *_tableRowOddBackgroundColor;
-  UIColor *_tableBorderColor;
+  RCTUIColor *_tableHeaderBackgroundColor;
+  RCTUIColor *_tableHeaderTextColor;
+  RCTUIColor *_tableRowEvenBackgroundColor;
+  RCTUIColor *_tableRowOddBackgroundColor;
+  RCTUIColor *_tableBorderColor;
   CGFloat _tableBorderWidth;
   CGFloat _tableBorderRadius;
   CGFloat _tableCellPaddingHorizontal;
   CGFloat _tableCellPaddingVertical;
   // Task list checkbox
-  UIColor *_taskListCheckedColor;
-  UIColor *_taskListBorderColor;
+  RCTUIColor *_taskListCheckedColor;
+  RCTUIColor *_taskListBorderColor;
   CGFloat _taskListCheckboxSize;
   CGFloat _taskListCheckboxBorderRadius;
-  UIColor *_taskListCheckmarkColor;
-  UIColor *_taskListCheckedTextColor;
+  RCTUIColor *_taskListCheckmarkColor;
+  RCTUIColor *_taskListCheckedTextColor;
   BOOL _taskListCheckedStrikethrough;
   // Math properties
   CGFloat _mathFontSize;
-  UIColor *_mathColor;
-  UIColor *_mathBackgroundColor;
+  RCTUIColor *_mathColor;
+  RCTUIColor *_mathBackgroundColor;
   CGFloat _mathPadding;
   CGFloat _mathMarginTop;
   CGFloat _mathMarginBottom;
   NSString *_mathTextAlign;
   // Inline Math properties
-  UIColor *_inlineMathColor;
+  RCTUIColor *_inlineMathColor;
 }
 
 - (instancetype)init
@@ -490,12 +490,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   return copy;
 }
 
-- (UIColor *)primaryColor
+- (RCTUIColor *)primaryColor
 {
-  return _primaryColor != nullptr ? _primaryColor : [UIColor blackColor];
+  return _primaryColor != nullptr ? _primaryColor : [RCTUIColor blackColor];
 }
 
-- (void)setPrimaryColor:(UIColor *)newValue
+- (void)setPrimaryColor:(RCTUIColor *)newValue
 {
   _primaryColor = newValue;
 }
@@ -582,12 +582,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _paragraphFontNeedsRecreation = YES;
 }
 
-- (UIColor *)paragraphColor
+- (RCTUIColor *)paragraphColor
 {
   return _paragraphColor;
 }
 
-- (void)setParagraphColor:(UIColor *)newValue
+- (void)setParagraphColor:(RCTUIColor *)newValue
 {
   _paragraphColor = newValue;
 }
@@ -683,12 +683,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h1FontNeedsRecreation = YES;
 }
 
-- (UIColor *)h1Color
+- (RCTUIColor *)h1Color
 {
   return _h1Color;
 }
 
-- (void)setH1Color:(UIColor *)newValue
+- (void)setH1Color:(RCTUIColor *)newValue
 {
   _h1Color = newValue;
 }
@@ -784,12 +784,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h2FontNeedsRecreation = YES;
 }
 
-- (UIColor *)h2Color
+- (RCTUIColor *)h2Color
 {
   return _h2Color;
 }
 
-- (void)setH2Color:(UIColor *)newValue
+- (void)setH2Color:(RCTUIColor *)newValue
 {
   _h2Color = newValue;
 }
@@ -885,12 +885,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h3FontNeedsRecreation = YES;
 }
 
-- (UIColor *)h3Color
+- (RCTUIColor *)h3Color
 {
   return _h3Color;
 }
 
-- (void)setH3Color:(UIColor *)newValue
+- (void)setH3Color:(RCTUIColor *)newValue
 {
   _h3Color = newValue;
 }
@@ -986,12 +986,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h4FontNeedsRecreation = YES;
 }
 
-- (UIColor *)h4Color
+- (RCTUIColor *)h4Color
 {
   return _h4Color;
 }
 
-- (void)setH4Color:(UIColor *)newValue
+- (void)setH4Color:(RCTUIColor *)newValue
 {
   _h4Color = newValue;
 }
@@ -1087,12 +1087,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h5FontNeedsRecreation = YES;
 }
 
-- (UIColor *)h5Color
+- (RCTUIColor *)h5Color
 {
   return _h5Color;
 }
 
-- (void)setH5Color:(UIColor *)newValue
+- (void)setH5Color:(RCTUIColor *)newValue
 {
   _h5Color = newValue;
 }
@@ -1188,12 +1188,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _h6FontNeedsRecreation = YES;
 }
 
-- (UIColor *)h6Color
+- (RCTUIColor *)h6Color
 {
   return _h6Color;
 }
 
-- (void)setH6Color:(UIColor *)newValue
+- (void)setH6Color:(RCTUIColor *)newValue
 {
   _h6Color = newValue;
 }
@@ -1266,12 +1266,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _linkFontFamily = newValue;
 }
 
-- (UIColor *)linkColor
+- (RCTUIColor *)linkColor
 {
   return _linkColor;
 }
 
-- (void)setLinkColor:(UIColor *)newValue
+- (void)setLinkColor:(RCTUIColor *)newValue
 {
   _linkColor = newValue;
 }
@@ -1306,12 +1306,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _strongFontWeight = newValue;
 }
 
-- (UIColor *)strongColor
+- (RCTUIColor *)strongColor
 {
   return _strongColor;
 }
 
-- (void)setStrongColor:(UIColor *)newValue
+- (void)setStrongColor:(RCTUIColor *)newValue
 {
   _strongColor = newValue;
 }
@@ -1336,32 +1336,32 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _emphasisFontStyle = newValue;
 }
 
-- (UIColor *)emphasisColor
+- (RCTUIColor *)emphasisColor
 {
   return _emphasisColor;
 }
 
-- (void)setEmphasisColor:(UIColor *)newValue
+- (void)setEmphasisColor:(RCTUIColor *)newValue
 {
   _emphasisColor = newValue;
 }
 
-- (UIColor *)strikethroughColor
+- (RCTUIColor *)strikethroughColor
 {
   return _strikethroughColor;
 }
 
-- (void)setStrikethroughColor:(UIColor *)newValue
+- (void)setStrikethroughColor:(RCTUIColor *)newValue
 {
   _strikethroughColor = newValue;
 }
 
-- (UIColor *)underlineColor
+- (RCTUIColor *)underlineColor
 {
   return _underlineColor;
 }
 
-- (void)setUnderlineColor:(UIColor *)newValue
+- (void)setUnderlineColor:(RCTUIColor *)newValue
 {
   _underlineColor = newValue;
 }
@@ -1386,32 +1386,32 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _codeFontSize = newValue;
 }
 
-- (UIColor *)codeColor
+- (RCTUIColor *)codeColor
 {
   return _codeColor;
 }
 
-- (void)setCodeColor:(UIColor *)newValue
+- (void)setCodeColor:(RCTUIColor *)newValue
 {
   _codeColor = newValue;
 }
 
-- (UIColor *)codeBackgroundColor
+- (RCTUIColor *)codeBackgroundColor
 {
   return _codeBackgroundColor;
 }
 
-- (void)setCodeBackgroundColor:(UIColor *)newValue
+- (void)setCodeBackgroundColor:(RCTUIColor *)newValue
 {
   _codeBackgroundColor = newValue;
 }
 
-- (UIColor *)codeBorderColor
+- (RCTUIColor *)codeBorderColor
 {
   return _codeBorderColor;
 }
 
-- (void)setCodeBorderColor:(UIColor *)newValue
+- (void)setCodeBorderColor:(RCTUIColor *)newValue
 {
   _codeBorderColor = newValue;
 }
@@ -1500,12 +1500,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _blockquoteFontNeedsRecreation = YES;
 }
 
-- (UIColor *)blockquoteColor
+- (RCTUIColor *)blockquoteColor
 {
   return _blockquoteColor;
 }
 
-- (void)setBlockquoteColor:(UIColor *)newValue
+- (void)setBlockquoteColor:(RCTUIColor *)newValue
 {
   _blockquoteColor = newValue;
 }
@@ -1558,12 +1558,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   return _blockquoteFont;
 }
 
-- (UIColor *)blockquoteBorderColor
+- (RCTUIColor *)blockquoteBorderColor
 {
   return _blockquoteBorderColor;
 }
 
-- (void)setBlockquoteBorderColor:(UIColor *)newValue
+- (void)setBlockquoteBorderColor:(RCTUIColor *)newValue
 {
   _blockquoteBorderColor = newValue;
 }
@@ -1588,12 +1588,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _blockquoteGapWidth = newValue;
 }
 
-- (UIColor *)blockquoteBackgroundColor
+- (RCTUIColor *)blockquoteBackgroundColor
 {
   return _blockquoteBackgroundColor;
 }
 
-- (void)setBlockquoteBackgroundColor:(UIColor *)newValue
+- (void)setBlockquoteBackgroundColor:(RCTUIColor *)newValue
 {
   _blockquoteBackgroundColor = newValue;
 }
@@ -1634,12 +1634,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _listStyleFontNeedsRecreation = YES;
 }
 
-- (UIColor *)listStyleColor
+- (RCTUIColor *)listStyleColor
 {
   return _listStyleColor;
 }
 
-- (void)setListStyleColor:(UIColor *)newValue
+- (void)setListStyleColor:(RCTUIColor *)newValue
 {
   _listStyleColor = newValue;
 }
@@ -1677,12 +1677,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _listStyleLineHeight = newValue;
 }
 
-- (UIColor *)listStyleBulletColor
+- (RCTUIColor *)listStyleBulletColor
 {
   return _listStyleBulletColor;
 }
 
-- (void)setListStyleBulletColor:(UIColor *)newValue
+- (void)setListStyleBulletColor:(RCTUIColor *)newValue
 {
   _listStyleBulletColor = newValue;
 }
@@ -1697,12 +1697,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _listStyleBulletSize = newValue;
 }
 
-- (UIColor *)listStyleMarkerColor
+- (RCTUIColor *)listStyleMarkerColor
 {
   return _listStyleMarkerColor;
 }
 
-- (void)setListStyleMarkerColor:(UIColor *)newValue
+- (void)setListStyleMarkerColor:(RCTUIColor *)newValue
 {
   _listStyleMarkerColor = newValue;
 }
@@ -1823,12 +1823,12 @@ static const CGFloat kDefaultMinGap = 4.0;
   _codeBlockFontNeedsRecreation = YES;
 }
 
-- (UIColor *)codeBlockColor
+- (RCTUIColor *)codeBlockColor
 {
   return _codeBlockColor;
 }
 
-- (void)setCodeBlockColor:(UIColor *)newValue
+- (void)setCodeBlockColor:(RCTUIColor *)newValue
 {
   _codeBlockColor = newValue;
 }
@@ -1866,22 +1866,22 @@ static const CGFloat kDefaultMinGap = 4.0;
   _codeBlockLineHeight = newValue;
 }
 
-- (UIColor *)codeBlockBackgroundColor
+- (RCTUIColor *)codeBlockBackgroundColor
 {
   return _codeBlockBackgroundColor;
 }
 
-- (void)setCodeBlockBackgroundColor:(UIColor *)newValue
+- (void)setCodeBlockBackgroundColor:(RCTUIColor *)newValue
 {
   _codeBlockBackgroundColor = newValue;
 }
 
-- (UIColor *)codeBlockBorderColor
+- (RCTUIColor *)codeBlockBorderColor
 {
   return _codeBlockBorderColor;
 }
 
-- (void)setCodeBlockBorderColor:(UIColor *)newValue
+- (void)setCodeBlockBorderColor:(RCTUIColor *)newValue
 {
   _codeBlockBorderColor = newValue;
 }
@@ -1932,12 +1932,12 @@ static const CGFloat kDefaultMinGap = 4.0;
 }
 
 // Thematic break properties
-- (UIColor *)thematicBreakColor
+- (RCTUIColor *)thematicBreakColor
 {
   return _thematicBreakColor;
 }
 
-- (void)setThematicBreakColor:(UIColor *)newValue
+- (void)setThematicBreakColor:(RCTUIColor *)newValue
 {
   _thematicBreakColor = newValue;
 }
@@ -2008,12 +2008,12 @@ static const CGFloat kDefaultMinGap = 4.0;
   _tableFontNeedsRecreation = YES;
 }
 
-- (UIColor *)tableColor
+- (RCTUIColor *)tableColor
 {
   return _tableColor;
 }
 
-- (void)setTableColor:(UIColor *)newValue
+- (void)setTableColor:(RCTUIColor *)newValue
 {
   _tableColor = newValue;
 }
@@ -2093,52 +2093,52 @@ static const CGFloat kDefaultMinGap = 4.0;
   return _tableHeaderFont;
 }
 
-- (UIColor *)tableHeaderBackgroundColor
+- (RCTUIColor *)tableHeaderBackgroundColor
 {
   return _tableHeaderBackgroundColor;
 }
 
-- (void)setTableHeaderBackgroundColor:(UIColor *)newValue
+- (void)setTableHeaderBackgroundColor:(RCTUIColor *)newValue
 {
   _tableHeaderBackgroundColor = newValue;
 }
 
-- (UIColor *)tableHeaderTextColor
+- (RCTUIColor *)tableHeaderTextColor
 {
   return _tableHeaderTextColor;
 }
 
-- (void)setTableHeaderTextColor:(UIColor *)newValue
+- (void)setTableHeaderTextColor:(RCTUIColor *)newValue
 {
   _tableHeaderTextColor = newValue;
 }
 
-- (UIColor *)tableRowEvenBackgroundColor
+- (RCTUIColor *)tableRowEvenBackgroundColor
 {
   return _tableRowEvenBackgroundColor;
 }
 
-- (void)setTableRowEvenBackgroundColor:(UIColor *)newValue
+- (void)setTableRowEvenBackgroundColor:(RCTUIColor *)newValue
 {
   _tableRowEvenBackgroundColor = newValue;
 }
 
-- (UIColor *)tableRowOddBackgroundColor
+- (RCTUIColor *)tableRowOddBackgroundColor
 {
   return _tableRowOddBackgroundColor;
 }
 
-- (void)setTableRowOddBackgroundColor:(UIColor *)newValue
+- (void)setTableRowOddBackgroundColor:(RCTUIColor *)newValue
 {
   _tableRowOddBackgroundColor = newValue;
 }
 
-- (UIColor *)tableBorderColor
+- (RCTUIColor *)tableBorderColor
 {
   return _tableBorderColor;
 }
 
-- (void)setTableBorderColor:(UIColor *)newValue
+- (void)setTableBorderColor:(RCTUIColor *)newValue
 {
   _tableBorderColor = newValue;
 }
@@ -2185,22 +2185,22 @@ static const CGFloat kDefaultMinGap = 4.0;
 
 // Task list
 
-- (UIColor *)taskListCheckedColor
+- (RCTUIColor *)taskListCheckedColor
 {
   return _taskListCheckedColor;
 }
 
-- (void)setTaskListCheckedColor:(UIColor *)newValue
+- (void)setTaskListCheckedColor:(RCTUIColor *)newValue
 {
   _taskListCheckedColor = newValue;
 }
 
-- (UIColor *)taskListBorderColor
+- (RCTUIColor *)taskListBorderColor
 {
   return _taskListBorderColor;
 }
 
-- (void)setTaskListBorderColor:(UIColor *)newValue
+- (void)setTaskListBorderColor:(RCTUIColor *)newValue
 {
   _taskListBorderColor = newValue;
 }
@@ -2225,22 +2225,22 @@ static const CGFloat kDefaultMinGap = 4.0;
   _taskListCheckboxBorderRadius = newValue;
 }
 
-- (UIColor *)taskListCheckmarkColor
+- (RCTUIColor *)taskListCheckmarkColor
 {
   return _taskListCheckmarkColor;
 }
 
-- (void)setTaskListCheckmarkColor:(UIColor *)newValue
+- (void)setTaskListCheckmarkColor:(RCTUIColor *)newValue
 {
   _taskListCheckmarkColor = newValue;
 }
 
-- (UIColor *)taskListCheckedTextColor
+- (RCTUIColor *)taskListCheckedTextColor
 {
   return _taskListCheckedTextColor;
 }
 
-- (void)setTaskListCheckedTextColor:(UIColor *)newValue
+- (void)setTaskListCheckedTextColor:(RCTUIColor *)newValue
 {
   _taskListCheckedTextColor = newValue;
 }
@@ -2267,22 +2267,22 @@ static const CGFloat kDefaultMinGap = 4.0;
   _mathFontSize = newValue;
 }
 
-- (UIColor *)mathColor
+- (RCTUIColor *)mathColor
 {
   return _mathColor;
 }
 
-- (void)setMathColor:(UIColor *)newValue
+- (void)setMathColor:(RCTUIColor *)newValue
 {
   _mathColor = newValue;
 }
 
-- (UIColor *)mathBackgroundColor
+- (RCTUIColor *)mathBackgroundColor
 {
   return _mathBackgroundColor;
 }
 
-- (void)setMathBackgroundColor:(UIColor *)newValue
+- (void)setMathBackgroundColor:(RCTUIColor *)newValue
 {
   _mathBackgroundColor = newValue;
 }
@@ -2329,12 +2329,12 @@ static const CGFloat kDefaultMinGap = 4.0;
 
 // ── Inline Math ─────────────────────────────────────────────────────────────
 
-- (UIColor *)inlineMathColor
+- (RCTUIColor *)inlineMathColor
 {
   return _inlineMathColor;
 }
 
-- (void)setInlineMathColor:(UIColor *)newValue
+- (void)setInlineMathColor:(RCTUIColor *)newValue
 {
   _inlineMathColor = newValue;
 }

@@ -1,14 +1,26 @@
 #pragma once
+#import "ENRMUIKit.h"
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 @class StyleConfig;
+
+static NSString *const kUTIPlainText = @"public.utf8-plain-text";
+static NSString *const kUTIHTML = @"public.html";
+static NSString *const kUTIMarkdown = @"net.daringfireball.markdown";
 
 NS_ASSUME_NONNULL_BEGIN
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Copies a plain string to the platform pasteboard.
+ */
+void copyStringToPasteboard(NSString *string);
+
+/// Copies a { UTI → NSString | NSData } dictionary to the platform pasteboard.
+void copyItemsToPasteboard(NSDictionary<NSString *, id> *items);
 
 /**
  * Copies attributed string to pasteboard with multiple representations

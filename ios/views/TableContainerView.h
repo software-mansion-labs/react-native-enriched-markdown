@@ -1,6 +1,6 @@
 #pragma once
+#import "ENRMUIKit.h"
 #import "StyleConfig.h"
-#import <UIKit/UIKit.h>
 
 @class MarkdownASTNode;
 
@@ -8,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^TableLinkPressBlock)(NSString *url);
 
-@interface TableContainerView : UIView
+@interface TableContainerView : RCTUIView
 
 - (instancetype)initWithConfig:(StyleConfig *)config;
 

@@ -1,12 +1,13 @@
 #import "ENRMImageAttachment.h"
 #import "ENRMImageDownloader.h"
+#import "ENRMUIKit.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import <objc/runtime.h>
 
 #define CACHE_KEY_PROCESSED(url, w, h, r) [NSString stringWithFormat:@"%@_w%.1f_h%.1f_r%.1f", url, w, h, r]
 
-static inline NSUInteger ENRMImageByteCost(UIImage *image)
+static inline NSUInteger ENRMImageByteCost(RCTUIImage *image)
 {
   CGImageRef cgImage = image.CGImage;
   if (!cgImage)
@@ -14,8 +15,8 @@ static inline NSUInteger ENRMImageByteCost(UIImage *image)
   return CGImageGetBytesPerRow(cgImage) * CGImageGetHeight(cgImage);
 }
 
-static NSCache<NSString *, UIImage *> *_originalImageCache;
-static NSCache<NSString *, UIImage *> *_processedImageCache;
+static NSCache<NSString *, RCTUIImage *> *_originalImageCache;
+static NSCache<NSString *, RCTUIImage *> *_processedImageCache;
 static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
 
 @interface ENRMImageAttachment ()
@@ -25,16 +26,16 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
 @property (nonatomic, assign) CGFloat cachedHeight;
 @property (nonatomic, assign) CGFloat cachedBorderRadius;
 @property (nonatomic, weak) NSTextContainer *textContainer;
-@property (nonatomic, weak) UITextView *textView;
-@property (nonatomic, strong) UIImage *originalImage;
-@property (nonatomic, strong) UIImage *loadedImage;
+@property (nonatomic, weak) ENRMPlatformTextView *textView;
+@property (nonatomic, strong) RCTUIImage *originalImage;
+@property (nonatomic, strong) RCTUIImage *loadedImage;
 @property (nonatomic, copy) NSString *lastProcessedKey;
 
 @end
 
 @implementation ENRMImageAttachment
 
-+ (NSCache<NSString *, UIImage *> *)originalImageCache
++ (NSCache<NSString *, RCTUIImage *> *)originalImageCache
 {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
@@ -45,7 +46,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   return _originalImageCache;
 }
 
-+ (NSCache<NSString *, UIImage *> *)processedImageCache
++ (NSCache<NSString *, RCTUIImage *> *)processedImageCache
 {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
@@ -126,9 +127,9 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   return CGRectMake(0, 0, width, height);
 }
 
-- (UIImage *)imageForBounds:(CGRect)imageBounds
-              textContainer:(NSTextContainer *)textContainer
-             characterIndex:(NSUInteger)characterIndex
+- (RCTUIImage *)imageForBounds:(CGRect)imageBounds
+                 textContainer:(NSTextContainer *)textContainer
+                characterIndex:(NSUInteger)characterIndex
 {
   self.textContainer = textContainer;
 
@@ -140,7 +141,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   return self.loadedImage ?: self.image;
 }
 
-- (void)handleLoadedImage:(UIImage *)image
+- (void)handleLoadedImage:(RCTUIImage *)image
 {
   if (!image)
     return;
@@ -156,7 +157,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   [self processAndApplyImage:image withTargetWidth:targetWidth];
 }
 
-- (void)processAndApplyImage:(UIImage *)image withTargetWidth:(CGFloat)targetWidth
+- (void)processAndApplyImage:(RCTUIImage *)image withTargetWidth:(CGFloat)targetWidth
 {
   if (targetWidth <= 0)
     return;
@@ -167,7 +168,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
     return;
   self.lastProcessedKey = processedKey;
 
-  UIImage *cachedProcessed = [[ENRMImageAttachment processedImageCache] objectForKey:processedKey];
+  RCTUIImage *cachedProcessed = [[ENRMImageAttachment processedImageCache] objectForKey:processedKey];
 
   if (cachedProcessed) {
     self.loadedImage = cachedProcessed;
@@ -183,10 +184,10 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
     if (!strongSelf)
       return;
 
-    UIImage *processedImage = [strongSelf createScaledImage:image
-                                                    toWidth:targetWidth
-                                                     height:strongSelf.cachedHeight
-                                               borderRadius:strongSelf.cachedBorderRadius];
+    RCTUIImage *processedImage = [strongSelf createScaledImage:image
+                                                       toWidth:targetWidth
+                                                        height:strongSelf.cachedHeight
+                                                  borderRadius:strongSelf.cachedBorderRadius];
 
     if (processedImage) {
       [[ENRMImageAttachment processedImageCache] setObject:processedImage
@@ -207,10 +208,10 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   });
 }
 
-- (UIImage *)createScaledImage:(UIImage *)image
-                       toWidth:(CGFloat)targetWidth
-                        height:(CGFloat)targetHeight
-                  borderRadius:(CGFloat)radius
+- (RCTUIImage *)createScaledImage:(RCTUIImage *)image
+                          toWidth:(CGFloat)targetWidth
+                           height:(CGFloat)targetHeight
+                     borderRadius:(CGFloat)radius
 {
   CGFloat sourceWidth = image.size.width;
   CGFloat sourceHeight = image.size.height;
@@ -231,16 +232,12 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   CGRect drawingRect =
       CGRectMake((targetWidth - drawingWidth) / 2.0, (targetHeight - drawingHeight) / 2.0, drawingWidth, drawingHeight);
 
-  UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
-  format.opaque = NO;
+  RCTUIGraphicsImageRenderer *renderer = ImageRendererForSize(CGSizeMake(targetWidth, targetHeight));
 
-  UIGraphicsImageRenderer *renderer =
-      [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(targetWidth, targetHeight) format:format];
-
-  return [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
+  return [renderer imageWithActions:^(RCTUIGraphicsImageRendererContext *context) {
     if (radius > 0) {
       CGRect clippingRect = CGRectIntersection(CGRectMake(0, 0, targetWidth, targetHeight), drawingRect);
-      UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:clippingRect cornerRadius:radius];
+      UIBezierPath *path = UIBezierPathWithRoundedRect(clippingRect, radius);
       [path addClip];
     }
     [image drawInRect:drawingRect];
@@ -254,7 +251,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
 
   __weak typeof(self) weakSelf = self;
   [[ENRMImageDownloader shared] downloadURL:self.imageURL
-                                 completion:^(UIImage *image) { [weakSelf handleLoadedImage:image]; }];
+                                 completion:^(RCTUIImage *image) { [weakSelf handleLoadedImage:image]; }];
 }
 
 - (void)refreshDisplay
@@ -263,7 +260,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   if (!textView)
     return;
 
-  NSRange range = [self findAttachmentRangeInText:textView.attributedText];
+  NSRange range = [self findAttachmentRangeInText:textView.textStorage];
   if (range.location != NSNotFound) {
     [textView.layoutManager invalidateDisplayForCharacterRange:range];
     if (!self.isInline) {
@@ -272,7 +269,7 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
   }
 }
 
-- (UITextView *)fetchAssociatedTextView
+- (ENRMPlatformTextView *)fetchAssociatedTextView
 {
   if (self.textView)
     return self.textView;
@@ -286,9 +283,8 @@ static NSMapTable<NSString *, ENRMImageAttachment *> *_attachmentRegistry;
 {
   CGFloat size = self.cachedHeight;
   self.bounds = CGRectMake(0, 0, size, size);
-  UIGraphicsBeginImageContext(CGSizeMake(1, 1));
-  self.image = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
+  RCTUIGraphicsImageRenderer *renderer = [[RCTUIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(1, 1)];
+  self.image = [renderer imageWithActions:^(RCTUIGraphicsImageRendererContext *ctx){}];
 }
 
 - (NSRange)findAttachmentRangeInText:(NSAttributedString *)attributedString

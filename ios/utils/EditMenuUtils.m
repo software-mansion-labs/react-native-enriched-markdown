@@ -1,19 +1,19 @@
 #import "EditMenuUtils.h"
 #import "PasteboardUtils.h"
 #import "StyleConfig.h"
-#import <UIKit/UIPasteboard.h>
+#include <TargetConditionals.h>
+
+#if !TARGET_OS_OSX
 
 static NSString *const kMenuIdentifierStandardEdit = @"com.apple.menu.standard-edit";
 static NSString *const kActionIdentifierCopy = @"com.swmansion.enriched.markdown.copy";
 static NSString *const kActionIdentifierCopyMarkdown = @"com.swmansion.enriched.markdown.copyMarkdown";
 static NSString *const kActionIdentifierCopyImageURL = @"com.swmansion.enriched.markdown.copyImageURL";
 
-#pragma mark - Action Creators
-
 static UIAction *createCopyAction(NSAttributedString *selectedText, NSString *markdown, StyleConfig *styleConfig)
 {
   return [UIAction actionWithTitle:@"Copy"
-                             image:[UIImage systemImageNamed:@"doc.on.doc"]
+                             image:[RCTUIImage systemImageNamed:@"doc.on.doc"]
                         identifier:kActionIdentifierCopy
                            handler:^(__kindof UIAction *action) {
                              copyAttributedStringToPasteboard(selectedText, markdown, styleConfig);
@@ -25,11 +25,10 @@ static UIAction *_Nullable createCopyMarkdownAction(NSString *markdown)
   if (markdown.length == 0)
     return nil;
 
-  return [UIAction
-      actionWithTitle:@"Copy as Markdown"
-                image:[UIImage systemImageNamed:@"doc.text"]
-           identifier:kActionIdentifierCopyMarkdown
-              handler:^(__kindof UIAction *action) { [[UIPasteboard generalPasteboard] setString:markdown]; }];
+  return [UIAction actionWithTitle:@"Copy as Markdown"
+                             image:[RCTUIImage systemImageNamed:@"doc.text"]
+                        identifier:kActionIdentifierCopyMarkdown
+                           handler:^(__kindof UIAction *action) { copyStringToPasteboard(markdown); }];
 }
 
 static UIAction *_Nullable createCopyImageURLAction(NSArray<NSString *> *imageURLs)
@@ -42,14 +41,11 @@ static UIAction *_Nullable createCopyImageURLAction(NSArray<NSString *> *imageUR
                         ? @"Copy Image URL"
                         : [NSString stringWithFormat:@"Copy %lu Image URLs", (unsigned long)imageURLs.count];
 
-  return [UIAction
-      actionWithTitle:title
-                image:[UIImage systemImageNamed:@"link"]
-           identifier:kActionIdentifierCopyImageURL
-              handler:^(__kindof UIAction *action) { [[UIPasteboard generalPasteboard] setString:urlsToCopy]; }];
+  return [UIAction actionWithTitle:title
+                             image:[RCTUIImage systemImageNamed:@"link"]
+                        identifier:kActionIdentifierCopyImageURL
+                           handler:^(__kindof UIAction *action) { copyStringToPasteboard(urlsToCopy); }];
 }
-
-#pragma mark - Menu Building Helpers
 
 static UIMenu *createEnhancedStandardEditMenu(UIMenu *originalMenu, UIAction *copyAction)
 {
@@ -73,8 +69,6 @@ static void insertOptionalAction(NSMutableArray<UIMenuElement *> *array, UIActio
     [array insertObject:action atIndex:index];
   }
 }
-
-#pragma mark - Public API
 
 UIMenu *buildEditMenuForSelection(NSAttributedString *attributedText, NSRange range, NSString *_Nullable cachedMarkdown,
                                   StyleConfig *styleConfig, NSArray<UIMenuElement *> *suggestedActions)
@@ -116,3 +110,5 @@ UIMenu *buildEditMenuForSelection(NSAttributedString *attributedText, NSRange ra
 
   return [UIMenu menuWithChildren:result];
 }
+
+#endif

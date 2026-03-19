@@ -34,6 +34,7 @@ export default function App() {
         contentContainerStyle={styles.content}
       >
         <EnrichedMarkdownText
+          flavor="github"
           markdown={sampleMarkdown}
           onLinkPress={handleLinkPress}
           markdownStyle={markdownStyle}

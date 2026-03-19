@@ -25,7 +25,7 @@
   [self ensureStartingNewline:output];
 
   ThematicBreakAttachment *attachment = [[ThematicBreakAttachment alloc] init];
-  attachment.lineColor = _config.thematicBreakColor ?: [UIColor separatorColor];
+  attachment.lineColor = _config.thematicBreakColor ?: [RCTUIColor separatorColor];
   attachment.lineHeight = _config.thematicBreakHeight > 0 ? _config.thematicBreakHeight : 1.0;
   attachment.marginTop = _config.thematicBreakMarginTop;
   attachment.marginBottom = _config.thematicBreakMarginBottom;

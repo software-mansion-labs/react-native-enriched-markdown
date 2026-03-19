@@ -1,6 +1,6 @@
+#import "ENRMUIKit.h"
 #import "StyleConfig.h"
 #import <React/RCTViewComponentView.h>
-#import <UIKit/UIKit.h>
 
 #ifndef EnrichedMarkdownTextNativeComponent_h
 #define EnrichedMarkdownTextNativeComponent_h

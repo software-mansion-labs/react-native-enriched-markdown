@@ -10,13 +10,13 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => min_ios_version_supported }
+  s.platforms    = { :ios => min_ios_version_supported, :osx => '14.0' }
   s.source       = { :git => "https://github.com/software-mansion-labs/react-native-enriched-markdown.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,cpp}", "cpp/md4c/*.{c,h}", "cpp/parser/*.{hpp,cpp}"
   s.private_header_files = "ios/**/*.h"
 
-  # To disable LaTeX math (iosMath), add ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0' to your Podfile.
+  # To disable LaTeX math rendering (iosMath, supported on iOS and macOS), add ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0' to your Podfile.
   enable_math = ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] != '0'
 
   preprocessor_defs = '$(inherited) MD4C_USE_UTF8=1'

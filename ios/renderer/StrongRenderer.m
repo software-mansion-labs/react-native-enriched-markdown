@@ -32,8 +32,8 @@
     return;
 
   BlockStyle *blockStyle = [context getBlockStyle];
-  UIColor *configStrongColor = [_config strongColor];
-  UIColor *calculatedColor =
+  RCTUIColor *configStrongColor = [_config strongColor];
+  RCTUIColor *calculatedColor =
       configStrongColor ? [RenderContext calculateStrongColor:configStrongColor blockColor:blockStyle.color] : nil;
   NSString *strongFontFamily = [_config strongFontFamily];
   NSString *strongFontWeight = [_config strongFontWeight];

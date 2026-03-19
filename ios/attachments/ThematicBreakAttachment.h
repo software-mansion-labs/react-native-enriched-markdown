@@ -1,11 +1,11 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "ENRMUIKit.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ThematicBreakAttachment : NSTextAttachment
 
-@property (nonatomic, strong) UIColor *lineColor;
+@property (nonatomic, strong) RCTUIColor *lineColor;
 @property (nonatomic, assign) CGFloat lineHeight;
 @property (nonatomic, assign) CGFloat marginTop;
 @property (nonatomic, assign) CGFloat marginBottom;

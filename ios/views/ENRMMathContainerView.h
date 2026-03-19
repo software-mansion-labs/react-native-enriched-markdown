@@ -1,10 +1,10 @@
 #pragma once
+#import "ENRMUIKit.h"
 #import "StyleConfig.h"
-#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ENRMMathContainerView : UIView
+@interface ENRMMathContainerView : RCTUIView
 
 - (instancetype)initWithConfig:(StyleConfig *)config;
 

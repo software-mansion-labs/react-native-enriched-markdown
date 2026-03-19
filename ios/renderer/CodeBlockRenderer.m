@@ -53,7 +53,7 @@
   NSRange contentRange = NSMakeRange(contentStart, contentEnd - contentStart);
 
   UIFont *codeFont = [_config codeBlockFont];
-  UIColor *codeColor = [_config codeBlockColor];
+  RCTUIColor *codeColor = [_config codeBlockColor];
   if (codeColor) {
     [output addAttributes:@{NSFontAttributeName : codeFont, NSForegroundColorAttributeName : codeColor}
                     range:contentRange];

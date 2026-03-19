@@ -38,6 +38,12 @@
   attachment.fontSize = currentFont ? currentFont.pointSize : [_config paragraphFontSize];
   attachment.mathTextColor = [_config inlineMathColor];
 
+#if TARGET_OS_OSX
+  // On macOS, NSLayoutManager uses self.image/self.bounds rather than calling
+  // imageForBounds:textContainer:characterIndex:, so we pre-render eagerly.
+  [attachment renderForMacOS];
+#endif
+
   NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
   [output appendAttributedString:attachmentString];
 }

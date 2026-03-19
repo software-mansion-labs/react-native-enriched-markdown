@@ -1,5 +1,5 @@
+#import "ENRMUIKit.h"
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 typedef NS_ENUM(NSInteger, BlockType) {
   BlockTypeNone,
@@ -17,7 +17,7 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 @property (nonatomic, assign) CGFloat fontSize;
 @property (nonatomic, strong) NSString *fontFamily;
 @property (nonatomic, strong) NSString *fontWeight;
-@property (nonatomic, strong) UIColor *color;
+@property (nonatomic, strong) RCTUIColor *color;
 @property (nonatomic, strong) UIFont *cachedFont;
 @property (nonatomic, strong) NSDictionary *cachedTextAttributes;
 @end
@@ -65,14 +65,17 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
              fontSize:(CGFloat)fontSize
            fontFamily:(NSString *)fontFamily
            fontWeight:(NSString *)fontWeight
-                color:(UIColor *)color;
+                color:(RCTUIColor *)color;
 - (void)setBlockStyle:(BlockType)type
              fontSize:(CGFloat)fontSize
            fontFamily:(NSString *)fontFamily
            fontWeight:(NSString *)fontWeight
-                color:(UIColor *)color
+                color:(RCTUIColor *)color
          headingLevel:(NSInteger)headingLevel;
-- (void)setBlockStyle:(BlockType)type font:(UIFont *)font color:(UIColor *)color headingLevel:(NSInteger)headingLevel;
+- (void)setBlockStyle:(BlockType)type
+                 font:(UIFont *)font
+                color:(RCTUIColor *)color
+         headingLevel:(NSInteger)headingLevel;
 - (BlockStyle *)getBlockStyle;
 - (NSDictionary *)getTextAttributes;
 - (void)clearBlockStyle;
@@ -88,7 +91,7 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
  * Calculates the color that strong would use based on the configured strong color and block style.
  * Uses strongColor if explicitly set (different from block color), otherwise uses block color.
  */
-+ (UIColor *)calculateStrongColor:(UIColor *)configStrongColor blockColor:(UIColor *)blockColor;
++ (RCTUIColor *)calculateStrongColor:(RCTUIColor *)configStrongColor blockColor:(RCTUIColor *)blockColor;
 
 /**
  * Calculates the range for content rendered between start and current output length.
@@ -103,7 +106,7 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 + (BOOL)applyFontAndColorAttributes:(NSMutableAttributedString *)output
                               range:(NSRange)range
                                font:(UIFont *)font
-                              color:(UIColor *)color
+                              color:(RCTUIColor *)color
                  existingAttributes:(NSDictionary *)existingAttributes
                shouldPreserveColors:(BOOL)shouldPreserveColors;
 @end

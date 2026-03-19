@@ -1,24 +1,28 @@
 #import "ENRMTailFadeInAnimator.h"
+#import "LinkTapUtils.h"
 #import <QuartzCore/QuartzCore.h>
+#include <TargetConditionals.h>
 
 static const NSTimeInterval kFadeDuration = 0.20;
 
 typedef struct {
   NSRange range;
-  __unsafe_unretained UIColor *color;
+  __unsafe_unretained RCTUIColor *color;
 } ENRMColorEntry;
 
 @implementation ENRMTailFadeInAnimator {
-  __weak UITextView *_textView;
+  __weak ENRMPlatformTextView *_textView;
+#if !TARGET_OS_OSX
   CADisplayLink *_displayLink;
+#endif
   CFTimeInterval _startTime;
 
-  NSArray<UIColor *> *_retainedColors;
+  NSArray<RCTUIColor *> *_retainedColors;
   ENRMColorEntry *_colorEntries;
   NSUInteger _entriesCount;
 }
 
-- (instancetype)initWithTextView:(UITextView *)textView
+- (instancetype)initWithTextView:(ENRMPlatformTextView *)textView
 {
   self = [super init];
   if (self) {
@@ -30,7 +34,9 @@ typedef struct {
 - (void)dealloc
 {
   [self cleanupEntries];
+#if !TARGET_OS_OSX
   [_displayLink invalidate];
+#endif
 }
 
 - (void)animateFrom:(NSUInteger)tailStart to:(NSUInteger)tailEnd
@@ -46,13 +52,23 @@ typedef struct {
   [self snapshotColorsInRange:range storage:storage];
   [self updateAlpha:0.0];
 
+#if !TARGET_OS_OSX
   _startTime = CACurrentMediaTime();
   _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(step:)];
   // 0 tells the system to use the display's maximum frame rate — 60 Hz on standard displays and 120 Hz on ProMotion ones
   _displayLink.preferredFramesPerSecond = 0;
   [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+#else
+  // TODO: Implement the tail fade-in animation on macOS.
+  // CADisplayLink doesn't exist on macOS; the equivalent is CVDisplayLink (Core Video)
+  // or an NSTimer driven at the display refresh rate. The iOS step:/eased-progress
+  // logic below can be reused directly once a display-sync callback is wired up.
+  [self updateAlpha:1.0];
+  [self cleanupEntries];
+#endif
 }
 
+#if !TARGET_OS_OSX
 - (void)step:(CADisplayLink *)link
 {
   CFTimeInterval elapsed = CACurrentMediaTime() - _startTime;
@@ -66,6 +82,7 @@ typedef struct {
     [self cancel];
   }
 }
+#endif
 
 - (void)updateAlpha:(CGFloat)alpha
 {
@@ -77,7 +94,7 @@ typedef struct {
   for (NSUInteger i = 0; i < _entriesCount; i++) {
     ENRMColorEntry entry = _colorEntries[i];
     if (NSMaxRange(entry.range) <= storage.length) {
-      UIColor *fadedColor = [entry.color colorWithAlphaComponent:alpha];
+      RCTUIColor *fadedColor = [entry.color colorWithAlphaComponent:alpha];
       [storage addAttribute:NSForegroundColorAttributeName value:fadedColor range:entry.range];
     }
   }
@@ -88,13 +105,13 @@ typedef struct {
 {
   [self cleanupEntries];
 
-  NSMutableArray<UIColor *> *colors = [NSMutableArray array];
+  NSMutableArray<RCTUIColor *> *colors = [NSMutableArray array];
   NSMutableArray<NSValue *> *ranges = [NSMutableArray array];
   [storage enumerateAttribute:NSForegroundColorAttributeName
                       inRange:range
                       options:0
-                   usingBlock:^(UIColor *color, NSRange subRange, BOOL *stop) {
-                     [colors addObject:color ?: [UIColor labelColor]];
+                   usingBlock:^(RCTUIColor *color, NSRange subRange, BOOL *stop) {
+                     [colors addObject:color ?: [RCTUIColor labelColor]];
                      [ranges addObject:[NSValue valueWithRange:subRange]];
                    }];
 
@@ -110,8 +127,10 @@ typedef struct {
 
 - (void)cancel
 {
+#if !TARGET_OS_OSX
   [_displayLink invalidate];
   _displayLink = nil;
+#endif
 
   if (_entriesCount > 0) {
     [self updateAlpha:1.0];

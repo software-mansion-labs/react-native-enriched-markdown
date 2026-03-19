@@ -35,6 +35,7 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-enriched-markdown-example",
+    "macos-example": "yarn workspace react-native-enriched-markdown-macos-example",
     "android:build:release": "cd example && npx react-native build-android --mode=release",
     "android:test:release": "cd example && yarn android --mode release",
     "test": "jest",
@@ -48,7 +49,7 @@
     "lint-clang:fix": "yarn lint-clang:ios:fix && yarn lint-clang:android:fix",
     "lint-kotlin": "cd example/android && ./gradlew :react-native-enriched-markdown:ktlintCheck",
     "lint-kotlin:fix": "cd example/android && ./gradlew :react-native-enriched-markdown:ktlintFormat",
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
+    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build macos-example/macos/build lib",
     "prepare": "bob build",
     "release": "release-it --only-version"
   },
@@ -110,13 +111,15 @@
     }
   },
   "workspaces": [
-    "example"
+    "example",
+    "macos-example"
   ],
   "packageManager": "yarn@4.11.0",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
+      "<rootDir>/macos-example/node_modules",
       "<rootDir>/lib/"
     ]
   },

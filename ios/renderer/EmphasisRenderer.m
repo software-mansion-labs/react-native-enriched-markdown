@@ -33,15 +33,15 @@
     return;
 
   BlockStyle *blockStyle = [context getBlockStyle];
-  UIColor *configEmphasisColor = [_config emphasisColor];
+  RCTUIColor *configEmphasisColor = [_config emphasisColor];
   NSString *emphasisFontFamily = [_config emphasisFontFamily];
   NSString *emphasisFontStyle = [_config emphasisFontStyle];
   BOOL useNormalStyle = [emphasisFontStyle isEqualToString:@"normal"];
 
   // Cache the Strong color calculation to efficiently detect nested Strong nodes
-  UIColor *strongColorToPreserve = [_config strongColor] ? [RenderContext calculateStrongColor:[_config strongColor]
-                                                                                    blockColor:blockStyle.color]
-                                                         : nil;
+  RCTUIColor *strongColorToPreserve = [_config strongColor] ? [RenderContext calculateStrongColor:[_config strongColor]
+                                                                                       blockColor:blockStyle.color]
+                                                            : nil;
 
   [output enumerateAttributesInRange:range
                              options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
@@ -69,7 +69,7 @@
 
                             // 2. Color Optimization: Handle nesting and avoid redundant updates
                             if (configEmphasisColor) {
-                              UIColor *currentColor = attrs[NSForegroundColorAttributeName];
+                              RCTUIColor *currentColor = attrs[NSForegroundColorAttributeName];
                               BOOL isLink = attrs[NSLinkAttributeName] != nil;
 
                               // Verify if the current color belongs to a Strong parent

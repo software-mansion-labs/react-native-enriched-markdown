@@ -1,4 +1,5 @@
 #import "CodeBackground.h"
+#import "ENRMUIKit.h"
 #import "RenderContext.h"
 
 NSString *const CodeAttributeName = @"Code";
@@ -24,7 +25,7 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
                        textContainer:(NSTextContainer *)textContainer
                              atPoint:(CGPoint)origin
 {
-  UIColor *backgroundColor = _config.codeBackgroundColor;
+  RCTUIColor *backgroundColor = _config.codeBackgroundColor;
   if (!backgroundColor)
     return;
 
@@ -55,8 +56,8 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
                      layoutManager:(NSLayoutManager *)layoutManager
                      textContainer:(NSTextContainer *)textContainer
                            atPoint:(CGPoint)origin
-                   backgroundColor:(UIColor *)backgroundColor
-                       borderColor:(UIColor *)borderColor
+                   backgroundColor:(RCTUIColor *)backgroundColor
+                       borderColor:(RCTUIColor *)borderColor
 {
   NSRange glyphRange = [layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
   if (glyphRange.location == NSNotFound || glyphRange.length == 0)
@@ -110,8 +111,8 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
 #pragma mark - Drawing Logic
 
 - (void)drawBackgroundAndBorders:(CGRect)rect
-                 backgroundColor:(UIColor *)backgroundColor
-                     borderColor:(UIColor *)borderColor
+                 backgroundColor:(RCTUIColor *)backgroundColor
+                     borderColor:(RCTUIColor *)borderColor
                          isFirst:(BOOL)isFirst
                           isLast:(BOOL)isLast
 {
@@ -124,14 +125,14 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
     UIBezierPath *strokePath =
         (isFirst && isLast) ? path : [self openBorderPathForRect:rect isFirst:isFirst isLast:isLast];
     strokePath.lineWidth = kCodeBackgroundBorderWidth;
-    strokePath.lineCapStyle = kCGLineCapRound;
-    strokePath.lineJoinStyle = kCGLineJoinRound;
+    BezierPathSetRoundStyle(strokePath);
     [strokePath stroke];
   }
 }
 
 - (UIBezierPath *)pathForRect:(CGRect)rect isFirst:(BOOL)isFirst isLast:(BOOL)isLast
 {
+#if !TARGET_OS_OSX
   UIRectCorner corners = 0;
   if (isFirst)
     corners |= (UIRectCornerTopLeft | UIRectCornerBottomLeft);
@@ -141,6 +142,11 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
   return [UIBezierPath bezierPathWithRoundedRect:rect
                                byRoundingCorners:corners
                                      cornerRadii:CGSizeMake(kCodeBackgroundCornerRadius, kCodeBackgroundCornerRadius)];
+#else
+  // NSBezierPath doesn't support per-corner rounding — use uniform corner radius
+  CGFloat cornerRadius = (isFirst || isLast) ? kCodeBackgroundCornerRadius : 0;
+  return UIBezierPathWithRoundedRect(rect, cornerRadius);
+#endif
 }
 
 - (UIBezierPath *)openBorderPathForRect:(CGRect)rect isFirst:(BOOL)isFirst isLast:(BOOL)isLast
@@ -152,27 +158,27 @@ static const CGFloat kCodeBackgroundBorderWidth = 0.5;
 
   if (isFirst) {
     [path moveToPoint:CGPointMake(CGRectGetMaxX(rect), insetRect.origin.y)];
-    [path addLineToPoint:CGPointMake(insetRect.origin.x + r, insetRect.origin.y)];
-    [path addQuadCurveToPoint:CGPointMake(insetRect.origin.x, insetRect.origin.y + r)
-                 controlPoint:CGPointMake(insetRect.origin.x, insetRect.origin.y)];
-    [path addLineToPoint:CGPointMake(insetRect.origin.x, CGRectGetMaxY(insetRect) - r)];
-    [path addQuadCurveToPoint:CGPointMake(insetRect.origin.x + r, CGRectGetMaxY(insetRect))
-                 controlPoint:CGPointMake(insetRect.origin.x, CGRectGetMaxY(insetRect))];
-    [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(insetRect))];
+    BezierPathAddLine(path, CGPointMake(insetRect.origin.x + r, insetRect.origin.y));
+    BezierPathAddQuadCurve(path, CGPointMake(insetRect.origin.x, insetRect.origin.y + r),
+                           CGPointMake(insetRect.origin.x, insetRect.origin.y));
+    BezierPathAddLine(path, CGPointMake(insetRect.origin.x, CGRectGetMaxY(insetRect) - r));
+    BezierPathAddQuadCurve(path, CGPointMake(insetRect.origin.x + r, CGRectGetMaxY(insetRect)),
+                           CGPointMake(insetRect.origin.x, CGRectGetMaxY(insetRect)));
+    BezierPathAddLine(path, CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(insetRect)));
   } else if (isLast) {
     [path moveToPoint:CGPointMake(rect.origin.x, insetRect.origin.y)];
-    [path addLineToPoint:CGPointMake(CGRectGetMaxX(insetRect) - r, insetRect.origin.y)];
-    [path addQuadCurveToPoint:CGPointMake(CGRectGetMaxX(insetRect), insetRect.origin.y + r)
-                 controlPoint:CGPointMake(CGRectGetMaxX(insetRect), insetRect.origin.y)];
-    [path addLineToPoint:CGPointMake(CGRectGetMaxX(insetRect), CGRectGetMaxY(insetRect) - r)];
-    [path addQuadCurveToPoint:CGPointMake(CGRectGetMaxX(insetRect) - r, CGRectGetMaxY(insetRect))
-                 controlPoint:CGPointMake(CGRectGetMaxX(insetRect), CGRectGetMaxY(insetRect))];
-    [path addLineToPoint:CGPointMake(rect.origin.x, CGRectGetMaxY(insetRect))];
+    BezierPathAddLine(path, CGPointMake(CGRectGetMaxX(insetRect) - r, insetRect.origin.y));
+    BezierPathAddQuadCurve(path, CGPointMake(CGRectGetMaxX(insetRect), insetRect.origin.y + r),
+                           CGPointMake(CGRectGetMaxX(insetRect), insetRect.origin.y));
+    BezierPathAddLine(path, CGPointMake(CGRectGetMaxX(insetRect), CGRectGetMaxY(insetRect) - r));
+    BezierPathAddQuadCurve(path, CGPointMake(CGRectGetMaxX(insetRect) - r, CGRectGetMaxY(insetRect)),
+                           CGPointMake(CGRectGetMaxX(insetRect), CGRectGetMaxY(insetRect)));
+    BezierPathAddLine(path, CGPointMake(rect.origin.x, CGRectGetMaxY(insetRect)));
   } else {
     [path moveToPoint:CGPointMake(rect.origin.x, insetRect.origin.y)];
-    [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), insetRect.origin.y)];
+    BezierPathAddLine(path, CGPointMake(CGRectGetMaxX(rect), insetRect.origin.y));
     [path moveToPoint:CGPointMake(rect.origin.x, CGRectGetMaxY(insetRect))];
-    [path addLineToPoint:CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(insetRect))];
+    BezierPathAddLine(path, CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(insetRect)));
   }
   return path;
 }

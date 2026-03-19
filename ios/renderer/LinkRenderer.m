@@ -35,7 +35,7 @@
 
   // 2. Extract configuration
   NSString *url = node.attributes[@"url"] ?: @"";
-  UIColor *linkColor = [_config linkColor];
+  RCTUIColor *linkColor = [_config linkColor];
   NSNumber *underlineStyle = @([_config linkUnderline] ? NSUnderlineStyleSingle : NSUnderlineStyleNone);
   NSString *linkFontFamily = [_config linkFontFamily];
 

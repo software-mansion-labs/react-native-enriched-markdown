@@ -2,6 +2,7 @@
 #include "MD4CParser.hpp"
 #import "MarkdownASTNode.h"
 #include "MarkdownASTNode.hpp"
+#import <React/RCTLog.h>
 
 // Convert C++ AST node to Objective-C AST node
 static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownASTNode> cppNode)
@@ -126,7 +127,7 @@ MarkdownASTNode *parseMarkdownWithCppParser(NSString *markdown, ENRMMd4cFlags *f
   // Convert NSString to std::string
   const char *utf8String = [markdown UTF8String];
   if (!utf8String) {
-    NSLog(@"MarkdownParserBridge: Failed to convert markdown to UTF-8");
+    RCTLogError(@"MarkdownParserBridge: Failed to convert markdown to UTF-8");
     return [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];
   }
 

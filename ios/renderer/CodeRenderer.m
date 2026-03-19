@@ -1,5 +1,6 @@
 #import "CodeRenderer.h"
 #import "CodeBackground.h"
+#import "ENRMUIKit.h"
 #import "FontUtils.h"
 #import "MarkdownASTNode.h"
 #import "RenderContext.h"
@@ -27,7 +28,7 @@
 
   BlockStyle *blockStyle = [context getBlockStyle];
 
-  UIColor *codeColor = _config.codeColor;
+  RCTUIColor *codeColor = _config.codeColor;
 
   UIFont *blockFont = cachedFontFromBlockStyle(blockStyle, context);
 
@@ -67,7 +68,7 @@
     codeAttributes[CodeAttributeName] = @YES;
 
     // Store block line height directly for CodeBackground to use
-    codeAttributes[@"BlockLineHeight"] = @(blockFont.lineHeight);
+    codeAttributes[@"BlockLineHeight"] = @(UIFontLineHeight(blockFont));
 
     [output setAttributes:codeAttributes range:range];
   }

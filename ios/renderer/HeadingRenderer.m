@@ -9,7 +9,7 @@
 // Lightweight struct to hold style data without object overhead
 typedef struct {
   __unsafe_unretained UIFont *font;
-  __unsafe_unretained UIColor *color;
+  __unsafe_unretained RCTUIColor *color;
   CGFloat marginTop;
   CGFloat marginBottom;
   CGFloat lineHeight;

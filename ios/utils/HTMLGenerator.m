@@ -147,7 +147,7 @@ typedef struct {
 
 #pragma mark - Color Conversion
 
-static NSString *colorToCSS(UIColor *color)
+static NSString *colorToCSS(RCTUIColor *color)
 {
   if (!color)
     return @"inherit";

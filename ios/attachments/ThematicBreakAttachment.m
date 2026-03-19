@@ -11,13 +11,13 @@
   return CGRectMake(0, 0, CGRectGetWidth(lineFrag), totalHeight);
 }
 
-- (UIImage *)imageForBounds:(CGRect)imageBounds
-              textContainer:(NSTextContainer *)textContainer
-             characterIndex:(NSUInteger)charIndex
+- (RCTUIImage *)imageForBounds:(CGRect)imageBounds
+                 textContainer:(NSTextContainer *)textContainer
+                characterIndex:(NSUInteger)charIndex
 {
-  UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:imageBounds.size];
+  RCTUIGraphicsImageRenderer *renderer = [[RCTUIGraphicsImageRenderer alloc] initWithSize:imageBounds.size];
 
-  return [renderer imageWithActions:^(UIGraphicsImageRendererContext *_Nonnull rendererContext) {
+  return [renderer imageWithActions:^(RCTUIGraphicsImageRendererContext *_Nonnull rendererContext) {
     CGContextRef ctx = rendererContext.CGContext;
 
     CGFloat lineY = self.marginTop + (self.lineHeight / 2.0);

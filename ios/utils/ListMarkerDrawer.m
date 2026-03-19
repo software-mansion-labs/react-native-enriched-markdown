@@ -1,4 +1,5 @@
 #import "ListMarkerDrawer.h"
+#import "ENRMUIKit.h"
 #import "ListItemRenderer.h"
 #import "RenderContext.h"
 #import "StyleConfig.h"
@@ -97,7 +98,7 @@ extern NSString *const TaskCheckedAttribute;
 
   [self
       executeDrawing:^(CGContextRef ctx) {
-        UIBezierPath *borderPath = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius];
+        UIBezierPath *borderPath = UIBezierPathWithRoundedRect(rect, radius);
 
         if (checked) {
           [[_config taskListCheckedColor] setFill];
@@ -107,7 +108,7 @@ extern NSString *const TaskCheckedAttribute;
         } else {
           CGFloat lineWidth = MAX(1.0, size * 0.09);
           CGRect insetRect = CGRectInset(rect, lineWidth / 2.0, lineWidth / 2.0);
-          UIBezierPath *insetPath = [UIBezierPath bezierPathWithRoundedRect:insetRect cornerRadius:radius];
+          UIBezierPath *insetPath = UIBezierPathWithRoundedRect(insetRect, radius);
           insetPath.lineWidth = lineWidth;
           [[_config taskListBorderColor] setStroke];
           [insetPath stroke];
@@ -127,13 +128,11 @@ extern NSString *const TaskCheckedAttribute;
 
   [checkmark moveToPoint:CGPointMake(rect.origin.x + inset, verticalMid)];
 
-  [checkmark addLineToPoint:CGPointMake(CGRectGetMidX(rect) - horizontalMidOffset, CGRectGetMaxY(rect) - inset)];
-
-  [checkmark addLineToPoint:CGPointMake(CGRectGetMaxX(rect) - inset, rect.origin.y + inset)];
+  BezierPathAddLine(checkmark, CGPointMake(CGRectGetMidX(rect) - horizontalMidOffset, CGRectGetMaxY(rect) - inset));
+  BezierPathAddLine(checkmark, CGPointMake(CGRectGetMaxX(rect) - inset, rect.origin.y + inset));
 
   checkmark.lineWidth = MAX(1.5, size * 0.12);
-  checkmark.lineCapStyle = kCGLineCapRound;
-  checkmark.lineJoinStyle = kCGLineJoinRound;
+  BezierPathSetRoundStyle(checkmark);
 
   [[_config taskListCheckmarkColor] setStroke];
   [checkmark stroke];
@@ -143,7 +142,7 @@ extern NSString *const TaskCheckedAttribute;
 {
   [self
       executeDrawing:^(CGContextRef ctx) {
-        [[_config listStyleBulletColor] ?: [UIColor blackColor] setFill];
+        [[_config listStyleBulletColor] setFill];
         CGFloat size = [_config listStyleBulletSize];
         CGContextFillEllipseInRect(ctx, CGRectMake(x - size / 2.0, y - size / 2.0, size, size));
       }
@@ -164,10 +163,7 @@ extern NSString *const TaskCheckedAttribute;
                          : [NSString stringWithFormat:@"%ld.", (long)num.integerValue];
   UIFont *font = [_config listMarkerFont] ?: [self defaultFont];
 
-  NSDictionary *mAttrs = @{
-    NSFontAttributeName : font,
-    NSForegroundColorAttributeName : [_config listStyleMarkerColor] ?: [UIColor blackColor]
-  };
+  NSDictionary *mAttrs = @{NSFontAttributeName : font, NSForegroundColorAttributeName : [_config listStyleMarkerColor]};
   CGSize size = [text sizeWithAttributes:mAttrs];
   CGFloat drawX = isRTL ? boundaryX : boundaryX - size.width;
 

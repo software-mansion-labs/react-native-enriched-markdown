@@ -1,10 +1,11 @@
 #import "ENRMImageDownloader.h"
 #import "ENRMImageAttachment.h"
+#include <TargetConditionals.h>
 
 static const NSUInteger kDiskCacheMemoryCapacity = 10 * 1024 * 1024;
 static const NSUInteger kDiskCacheDiskCapacity = 100 * 1024 * 1024;
 
-static inline NSUInteger ENRMImageByteCost(UIImage *image)
+static inline NSUInteger ENRMImageByteCost(RCTUIImage *image)
 {
   CGImageRef cgImage = image.CGImage;
   if (!cgImage)
@@ -49,7 +50,7 @@ static inline NSUInteger ENRMImageByteCost(UIImage *image)
     return;
   }
 
-  UIImage *cached = [[ENRMImageAttachment originalImageCache] objectForKey:url];
+  RCTUIImage *cached = [[ENRMImageAttachment originalImageCache] objectForKey:url];
   if (cached) {
     completion(cached);
     return;
@@ -72,7 +73,11 @@ static inline NSUInteger ENRMImageByteCost(UIImage *image)
 
   [[_session dataTaskWithURL:nsURL
            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-             UIImage *image = (data && !error) ? [UIImage imageWithData:data] : nil;
+#if !TARGET_OS_OSX
+             RCTUIImage *image = (data && !error) ? [RCTUIImage imageWithData:data] : nil;
+#else
+        RCTUIImage *image = (data && !error) ? [[RCTUIImage alloc] initWithData:data] : nil;
+#endif
 
              if (image) {
                [[ENRMImageAttachment originalImageCache] setObject:image forKey:url cost:ENRMImageByteCost(image)];
@@ -82,7 +87,7 @@ static inline NSUInteger ENRMImageByteCost(UIImage *image)
            }] resume];
 }
 
-- (void)dispatchCallbacksForURL:(NSString *)url image:(UIImage *_Nullable)image
+- (void)dispatchCallbacksForURL:(NSString *)url image:(RCTUIImage *_Nullable)image
 {
   NSArray<ENRMImageDownloadCompletion> *callbacks;
   @synchronized(_inFlightRequests) {

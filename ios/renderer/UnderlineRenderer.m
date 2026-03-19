@@ -31,7 +31,7 @@
 
   [output addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:range];
 
-  UIColor *underlineColor = [_config underlineColor];
+  RCTUIColor *underlineColor = [_config underlineColor];
 
   [output addAttribute:NSUnderlineColorAttributeName value:underlineColor range:range];
 }

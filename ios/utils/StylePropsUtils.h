@@ -1,4 +1,5 @@
 #pragma once
+#import "ENRMUIKit.h"
 
 /**
  * StylePropsHelper.h
@@ -47,7 +48,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.paragraph.color != oldStyle.paragraph.color) {
     if (newStyle.paragraph.color) {
-      UIColor *paragraphColor = RCTUIColorFromSharedColor(newStyle.paragraph.color);
+      RCTUIColor *paragraphColor = RCTUIColorFromSharedColor(newStyle.paragraph.color);
       [config setParagraphColor:paragraphColor];
     } else {
       [config setParagraphColor:nullptr];
@@ -104,7 +105,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.h1.color != oldStyle.h1.color) {
     if (newStyle.h1.color) {
-      UIColor *h1Color = RCTUIColorFromSharedColor(newStyle.h1.color);
+      RCTUIColor *h1Color = RCTUIColorFromSharedColor(newStyle.h1.color);
       [config setH1Color:h1Color];
     } else {
       [config setH1Color:nullptr];
@@ -161,7 +162,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.h2.color != oldStyle.h2.color) {
     if (newStyle.h2.color) {
-      UIColor *h2Color = RCTUIColorFromSharedColor(newStyle.h2.color);
+      RCTUIColor *h2Color = RCTUIColorFromSharedColor(newStyle.h2.color);
       [config setH2Color:h2Color];
     } else {
       [config setH2Color:nullptr];
@@ -218,7 +219,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.h3.color != oldStyle.h3.color) {
     if (newStyle.h3.color) {
-      UIColor *h3Color = RCTUIColorFromSharedColor(newStyle.h3.color);
+      RCTUIColor *h3Color = RCTUIColorFromSharedColor(newStyle.h3.color);
       [config setH3Color:h3Color];
     } else {
       [config setH3Color:nullptr];
@@ -275,7 +276,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.h4.color != oldStyle.h4.color) {
     if (newStyle.h4.color) {
-      UIColor *h4Color = RCTUIColorFromSharedColor(newStyle.h4.color);
+      RCTUIColor *h4Color = RCTUIColorFromSharedColor(newStyle.h4.color);
       [config setH4Color:h4Color];
     } else {
       [config setH4Color:nullptr];
@@ -332,7 +333,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.h5.color != oldStyle.h5.color) {
     if (newStyle.h5.color) {
-      UIColor *h5Color = RCTUIColorFromSharedColor(newStyle.h5.color);
+      RCTUIColor *h5Color = RCTUIColorFromSharedColor(newStyle.h5.color);
       [config setH5Color:h5Color];
     } else {
       [config setH5Color:nullptr];
@@ -389,7 +390,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.h6.color != oldStyle.h6.color) {
     if (newStyle.h6.color) {
-      UIColor *h6Color = RCTUIColorFromSharedColor(newStyle.h6.color);
+      RCTUIColor *h6Color = RCTUIColorFromSharedColor(newStyle.h6.color);
       [config setH6Color:h6Color];
     } else {
       [config setH6Color:nullptr];
@@ -437,7 +438,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.blockquote.color != oldStyle.blockquote.color) {
-    UIColor *blockquoteColor = RCTUIColorFromSharedColor(newStyle.blockquote.color);
+    RCTUIColor *blockquoteColor = RCTUIColorFromSharedColor(newStyle.blockquote.color);
     [config setBlockquoteColor:blockquoteColor];
     changed = YES;
   }
@@ -458,7 +459,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.blockquote.borderColor != oldStyle.blockquote.borderColor) {
-    UIColor *blockquoteBorderColor = RCTUIColorFromSharedColor(newStyle.blockquote.borderColor);
+    RCTUIColor *blockquoteBorderColor = RCTUIColorFromSharedColor(newStyle.blockquote.borderColor);
     [config setBlockquoteBorderColor:blockquoteBorderColor];
     changed = YES;
   }
@@ -474,7 +475,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.blockquote.backgroundColor != oldStyle.blockquote.backgroundColor) {
-    UIColor *blockquoteBackgroundColor = RCTUIColorFromSharedColor(newStyle.blockquote.backgroundColor);
+    RCTUIColor *blockquoteBackgroundColor = RCTUIColorFromSharedColor(newStyle.blockquote.backgroundColor);
     [config setBlockquoteBackgroundColor:blockquoteBackgroundColor];
     changed = YES;
   }
@@ -492,7 +493,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.link.color != oldStyle.link.color) {
-    UIColor *linkColor = RCTUIColorFromSharedColor(newStyle.link.color);
+    RCTUIColor *linkColor = RCTUIColorFromSharedColor(newStyle.link.color);
     [config setLinkColor:linkColor];
     changed = YES;
   }
@@ -529,7 +530,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.strong.color != oldStyle.strong.color) {
     if (newStyle.strong.color) {
-      UIColor *strongColor = RCTUIColorFromSharedColor(newStyle.strong.color);
+      RCTUIColor *strongColor = RCTUIColorFromSharedColor(newStyle.strong.color);
       [config setStrongColor:strongColor];
     } else {
       [config setStrongColor:nullptr];
@@ -561,7 +562,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.em.color != oldStyle.em.color) {
     if (newStyle.em.color) {
-      UIColor *emphasisColor = RCTUIColorFromSharedColor(newStyle.em.color);
+      RCTUIColor *emphasisColor = RCTUIColorFromSharedColor(newStyle.em.color);
       [config setEmphasisColor:emphasisColor];
     } else {
       [config setEmphasisColor:nullptr];
@@ -572,7 +573,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   // ── Strikethrough ──────────────────────────────────────────────────────────
 
   if (newStyle.strikethrough.color != oldStyle.strikethrough.color) {
-    UIColor *strikethroughColor = RCTUIColorFromSharedColor(newStyle.strikethrough.color);
+    RCTUIColor *strikethroughColor = RCTUIColorFromSharedColor(newStyle.strikethrough.color);
     [config setStrikethroughColor:strikethroughColor];
     changed = YES;
   }
@@ -580,7 +581,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   // ── Underline ──────────────────────────────────────────────────────────────
 
   if (newStyle.underline.color != oldStyle.underline.color) {
-    UIColor *underlineColor = RCTUIColorFromSharedColor(newStyle.underline.color);
+    RCTUIColor *underlineColor = RCTUIColorFromSharedColor(newStyle.underline.color);
     [config setUnderlineColor:underlineColor];
     changed = YES;
   }
@@ -604,7 +605,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.code.color != oldStyle.code.color) {
     if (newStyle.code.color) {
-      UIColor *codeColor = RCTUIColorFromSharedColor(newStyle.code.color);
+      RCTUIColor *codeColor = RCTUIColorFromSharedColor(newStyle.code.color);
       [config setCodeColor:codeColor];
     } else {
       [config setCodeColor:nullptr];
@@ -614,7 +615,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.code.backgroundColor != oldStyle.code.backgroundColor) {
     if (newStyle.code.backgroundColor) {
-      UIColor *codeBackgroundColor = RCTUIColorFromSharedColor(newStyle.code.backgroundColor);
+      RCTUIColor *codeBackgroundColor = RCTUIColorFromSharedColor(newStyle.code.backgroundColor);
       [config setCodeBackgroundColor:codeBackgroundColor];
     } else {
       [config setCodeBackgroundColor:nullptr];
@@ -624,7 +625,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.code.borderColor != oldStyle.code.borderColor) {
     if (newStyle.code.borderColor) {
-      UIColor *codeBorderColor = RCTUIColorFromSharedColor(newStyle.code.borderColor);
+      RCTUIColor *codeBorderColor = RCTUIColorFromSharedColor(newStyle.code.borderColor);
       [config setCodeBorderColor:codeBorderColor];
     } else {
       [config setCodeBorderColor:nullptr];
@@ -681,7 +682,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.list.color != oldStyle.list.color) {
-    UIColor *listColor = RCTUIColorFromSharedColor(newStyle.list.color);
+    RCTUIColor *listColor = RCTUIColorFromSharedColor(newStyle.list.color);
     [config setListStyleColor:listColor];
     changed = YES;
   }
@@ -702,7 +703,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.list.bulletColor != oldStyle.list.bulletColor) {
-    UIColor *bulletColor = RCTUIColorFromSharedColor(newStyle.list.bulletColor);
+    RCTUIColor *bulletColor = RCTUIColorFromSharedColor(newStyle.list.bulletColor);
     [config setListStyleBulletColor:bulletColor];
     changed = YES;
   }
@@ -713,7 +714,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.list.markerColor != oldStyle.list.markerColor) {
-    UIColor *markerColor = RCTUIColorFromSharedColor(newStyle.list.markerColor);
+    RCTUIColor *markerColor = RCTUIColorFromSharedColor(newStyle.list.markerColor);
     [config setListStyleMarkerColor:markerColor];
     changed = YES;
   }
@@ -754,7 +755,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.codeBlock.color != oldStyle.codeBlock.color) {
-    UIColor *codeBlockColor = RCTUIColorFromSharedColor(newStyle.codeBlock.color);
+    RCTUIColor *codeBlockColor = RCTUIColorFromSharedColor(newStyle.codeBlock.color);
     [config setCodeBlockColor:codeBlockColor];
     changed = YES;
   }
@@ -775,13 +776,13 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.codeBlock.backgroundColor != oldStyle.codeBlock.backgroundColor) {
-    UIColor *codeBlockBackgroundColor = RCTUIColorFromSharedColor(newStyle.codeBlock.backgroundColor);
+    RCTUIColor *codeBlockBackgroundColor = RCTUIColorFromSharedColor(newStyle.codeBlock.backgroundColor);
     [config setCodeBlockBackgroundColor:codeBlockBackgroundColor];
     changed = YES;
   }
 
   if (newStyle.codeBlock.borderColor != oldStyle.codeBlock.borderColor) {
-    UIColor *codeBlockBorderColor = RCTUIColorFromSharedColor(newStyle.codeBlock.borderColor);
+    RCTUIColor *codeBlockBorderColor = RCTUIColorFromSharedColor(newStyle.codeBlock.borderColor);
     [config setCodeBlockBorderColor:codeBlockBorderColor];
     changed = YES;
   }
@@ -804,7 +805,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   // ── Thematic Break ─────────────────────────────────────────────────────────
 
   if (newStyle.thematicBreak.color != oldStyle.thematicBreak.color) {
-    UIColor *thematicBreakColor = RCTUIColorFromSharedColor(newStyle.thematicBreak.color);
+    RCTUIColor *thematicBreakColor = RCTUIColorFromSharedColor(newStyle.thematicBreak.color);
     [config setThematicBreakColor:thematicBreakColor];
     changed = YES;
   }
@@ -853,7 +854,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.table.color != oldStyle.table.color) {
     if (newStyle.table.color) {
-      UIColor *color = RCTUIColorFromSharedColor(newStyle.table.color);
+      RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.table.color);
       [config setTableColor:color];
     } else {
       [config setTableColor:nullptr];
@@ -887,31 +888,31 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.table.headerBackgroundColor != oldStyle.table.headerBackgroundColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.table.headerBackgroundColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.table.headerBackgroundColor);
     [config setTableHeaderBackgroundColor:color];
     changed = YES;
   }
 
   if (newStyle.table.headerTextColor != oldStyle.table.headerTextColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.table.headerTextColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.table.headerTextColor);
     [config setTableHeaderTextColor:color];
     changed = YES;
   }
 
   if (newStyle.table.rowEvenBackgroundColor != oldStyle.table.rowEvenBackgroundColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.table.rowEvenBackgroundColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.table.rowEvenBackgroundColor);
     [config setTableRowEvenBackgroundColor:color];
     changed = YES;
   }
 
   if (newStyle.table.rowOddBackgroundColor != oldStyle.table.rowOddBackgroundColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.table.rowOddBackgroundColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.table.rowOddBackgroundColor);
     [config setTableRowOddBackgroundColor:color];
     changed = YES;
   }
 
   if (newStyle.table.borderColor != oldStyle.table.borderColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.table.borderColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.table.borderColor);
     [config setTableBorderColor:color];
     changed = YES;
   }
@@ -939,13 +940,13 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   // ── Task List ───────────────────────────────────────────────────────────────
 
   if (newStyle.taskList.checkedColor != oldStyle.taskList.checkedColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkedColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkedColor);
     [config setTaskListCheckedColor:color];
     changed = YES;
   }
 
   if (newStyle.taskList.borderColor != oldStyle.taskList.borderColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.borderColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.borderColor);
     [config setTaskListBorderColor:color];
     changed = YES;
   }
@@ -961,14 +962,14 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
   }
 
   if (newStyle.taskList.checkmarkColor != oldStyle.taskList.checkmarkColor) {
-    UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkmarkColor);
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkmarkColor);
     [config setTaskListCheckmarkColor:color];
     changed = YES;
   }
 
   if (newStyle.taskList.checkedTextColor != oldStyle.taskList.checkedTextColor) {
     if (newStyle.taskList.checkedTextColor) {
-      UIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkedTextColor);
+      RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.taskList.checkedTextColor);
       [config setTaskListCheckedTextColor:color];
     } else {
       [config setTaskListCheckedTextColor:nullptr];
@@ -990,7 +991,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.math.color != oldStyle.math.color) {
     if (newStyle.math.color) {
-      UIColor *color = RCTUIColorFromSharedColor(newStyle.math.color);
+      RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.math.color);
       [config setMathColor:color];
     } else {
       [config setMathColor:nullptr];
@@ -1000,7 +1001,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.math.backgroundColor != oldStyle.math.backgroundColor) {
     if (newStyle.math.backgroundColor) {
-      UIColor *color = RCTUIColorFromSharedColor(newStyle.math.backgroundColor);
+      RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.math.backgroundColor);
       [config setMathBackgroundColor:color];
     } else {
       [config setMathBackgroundColor:nullptr];
@@ -1032,7 +1033,7 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.inlineMath.color != oldStyle.inlineMath.color) {
     if (newStyle.inlineMath.color) {
-      UIColor *color = RCTUIColorFromSharedColor(newStyle.inlineMath.color);
+      RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.inlineMath.color);
       [config setInlineMathColor:color];
     } else {
       [config setInlineMathColor:nullptr];

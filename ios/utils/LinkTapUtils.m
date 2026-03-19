@@ -1,6 +1,6 @@
 #import "LinkTapUtils.h"
 
-NSString *_Nullable linkURLAtTapLocation(UITextView *textView, UITapGestureRecognizer *recognizer)
+NSString *_Nullable linkURLAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer)
 {
   NSLayoutManager *layoutManager = textView.layoutManager;
   CGPoint location = [recognizer locationInView:textView];
@@ -11,23 +11,25 @@ NSString *_Nullable linkURLAtTapLocation(UITextView *textView, UITapGestureRecog
                                                     inTextContainer:textView.textContainer
                            fractionOfDistanceBetweenInsertionPoints:NULL];
 
-  if (characterIndex < textView.textStorage.length) {
+  NSAttributedString *attrText = ENRMGetAttributedText(textView);
+  if (characterIndex < attrText.length) {
     NSRange range;
-    return [textView.attributedText attribute:@"linkURL" atIndex:characterIndex effectiveRange:&range];
+    return [attrText attribute:@"linkURL" atIndex:characterIndex effectiveRange:&range];
   }
 
   return nil;
 }
 
-NSString *_Nullable linkURLAtRange(UITextView *textView, NSRange characterRange)
+NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange characterRange)
 {
-  if (characterRange.location >= textView.attributedText.length) {
+  NSAttributedString *attrText = ENRMGetAttributedText(textView);
+  if (characterRange.location >= attrText.length) {
     return nil;
   }
-  return [textView.attributedText attribute:@"linkURL" atIndex:characterRange.location effectiveRange:NULL];
+  return [attrText attribute:@"linkURL" atIndex:characterRange.location effectiveRange:NULL];
 }
 
-BOOL isPointOnInteractiveElement(UITextView *textView, CGPoint point)
+BOOL isPointOnInteractiveElement(ENRMPlatformTextView *textView, CGPoint point)
 {
   NSLayoutManager *layoutManager = textView.layoutManager;
   CGPoint adjusted = CGPointMake(point.x - textView.textContainerInset.left, point.y - textView.textContainerInset.top);
@@ -36,10 +38,11 @@ BOOL isPointOnInteractiveElement(UITextView *textView, CGPoint point)
                                                inTextContainer:textView.textContainer
                       fractionOfDistanceBetweenInsertionPoints:NULL];
 
-  if (charIndex >= textView.textStorage.length) {
+  NSAttributedString *attrText = ENRMGetAttributedText(textView);
+  if (charIndex >= attrText.length) {
     return NO;
   }
 
-  NSDictionary *attrs = [textView.attributedText attributesAtIndex:charIndex effectiveRange:NULL];
+  NSDictionary *attrs = [attrText attributesAtIndex:charIndex effectiveRange:NULL];
   return attrs[@"linkURL"] != nil || [attrs[@"TaskItem"] boolValue];
 }

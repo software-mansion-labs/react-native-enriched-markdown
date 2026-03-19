@@ -36,7 +36,7 @@ static void collectLineStartsInRange(NSString *string, NSRange range, void (^han
 
 #pragma mark - Inline Code Processing
 
-static void processCodes(NSMutableAttributedString *text, UIColor *bgColor)
+static void processCodes(NSMutableAttributedString *text, RCTUIColor *bgColor)
 {
   if (!bgColor)
     return;
@@ -54,7 +54,7 @@ static void processCodes(NSMutableAttributedString *text, UIColor *bgColor)
 
 #pragma mark - Code Block Processing
 
-static void processCodeBlocks(NSMutableAttributedString *text, UIColor *bgColor)
+static void processCodeBlocks(NSMutableAttributedString *text, RCTUIColor *bgColor)
 {
   if (!bgColor)
     return;
@@ -92,7 +92,7 @@ static void processCodeBlocks(NSMutableAttributedString *text, UIColor *bgColor)
 
 #pragma mark - Blockquote Processing
 
-static void processBlockquotes(NSMutableAttributedString *text, UIColor *bgColor)
+static void processBlockquotes(NSMutableAttributedString *text, RCTUIColor *bgColor)
 {
   NSString *string = text.string;
 
@@ -283,9 +283,9 @@ NSAttributedString *prepareAttributedStringForRTFExport(NSAttributedString *attr
 
   NSMutableAttributedString *prepared = [attributedString mutableCopy];
 
-  UIColor *codeBgColor = [styleConfig codeBackgroundColor];
-  UIColor *codeBlockBgColor = [styleConfig codeBlockBackgroundColor];
-  UIColor *blockquoteBgColor = [styleConfig blockquoteBackgroundColor];
+  RCTUIColor *codeBgColor = [styleConfig codeBackgroundColor];
+  RCTUIColor *codeBlockBgColor = [styleConfig codeBlockBackgroundColor];
+  RCTUIColor *blockquoteBgColor = [styleConfig blockquoteBackgroundColor];
 
   processThematicBreaks(prepared);
   processCodes(prepared, codeBgColor);

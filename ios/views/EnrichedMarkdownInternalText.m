@@ -1,16 +1,24 @@
 #import "EnrichedMarkdownInternalText.h"
 #import "AccessibilityInfo.h"
+#import "ENRMContextMenuTextView+macOS.h"
+#import "ENRMUIKit.h"
 #import "LastElementUtils.h"
 #import "MarkdownAccessibilityElementBuilder.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import "TextViewLayoutManager.h"
+#import <React/RCTUtils.h>
+#include <TargetConditionals.h>
 #import <objc/runtime.h>
 
 @implementation EnrichedMarkdownInternalText {
-  UITextView *_textView;
+  ENRMPlatformTextView *_textView;
+#if !TARGET_OS_OSX
   NSMutableArray<UIAccessibilityElement *> *_accessibilityElements;
+#else
+  NSMutableArray *_accessibilityElements;
+#endif
   BOOL _accessibilityNeedsRebuild;
 }
 
@@ -29,20 +37,14 @@
 
 - (void)setupTextView
 {
-  _textView = [[UITextView alloc] init];
+#if !TARGET_OS_OSX
+  _textView = [[ENRMPlatformTextView alloc] init];
   _textView.text = @"";
-  _textView.font = [UIFont systemFontOfSize:16.0];
-  _textView.backgroundColor = [UIColor clearColor];
-  _textView.textColor = [UIColor blackColor];
-  _textView.editable = NO;
-  _textView.scrollEnabled = NO;
-  _textView.showsVerticalScrollIndicator = NO;
-  _textView.showsHorizontalScrollIndicator = NO;
-  _textView.textContainerInset = UIEdgeInsetsZero;
-  _textView.textContainer.lineFragmentPadding = 0;
-  _textView.linkTextAttributes = @{};
-  _textView.selectable = YES;
-  _textView.accessibilityElementsHidden = YES;
+#else
+  _textView = [[ENRMContextMenuTextView alloc] init];
+  _textView.string = @"";
+#endif
+  ENRMConfigureMarkdownTextView(_textView);
 
   [self addSubview:_textView];
 
@@ -72,33 +74,31 @@
 
   objc_setAssociatedObject(_textView.textContainer, kTextViewKey, _textView, OBJC_ASSOCIATION_ASSIGN);
 
-  _textView.attributedText = text;
+  ENRMSetAttributedText(_textView, text);
 
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, text.length) actualCharacterRange:NULL];
 
+#if !TARGET_OS_OSX
   [_textView setNeedsLayout];
-  [_textView setNeedsDisplay];
+#endif
+  ENRMSetNeedsDisplay(_textView);
 
   _accessibilityNeedsRebuild = (_accessibilityInfo != nil);
 }
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth
 {
-  NSAttributedString *text = _textView.attributedText;
+  NSAttributedString *text = ENRMGetAttributedText(_textView);
   if (text.length == 0) {
     return 0;
   }
 
-  _textView.textContainer.size = CGSizeMake(maxWidth, CGFLOAT_MAX);
-  [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
-  CGRect usedRect = [_textView.layoutManager usedRectForTextContainer:_textView.textContainer];
+  ENRMTextLayoutResult layout = ENRMMeasureTextLayout(_textView, maxWidth);
 
-  CGFloat measuredHeight = usedRect.size.height;
+  CGFloat measuredHeight = layout.usedRect.size.height;
 
-  // Remove extra line fragment height (same as EnrichedMarkdownText)
-  CGRect extraFragment = _textView.layoutManager.extraLineFragmentRect;
-  if (!CGRectIsEmpty(extraFragment)) {
-    measuredHeight -= extraFragment.size.height;
+  if (!CGRectIsEmpty(layout.extraLineFragmentRect)) {
+    measuredHeight -= layout.extraLineFragmentRect.size.height;
   }
 
   // Code block bottom padding compensation (same as EnrichedMarkdownText)
@@ -111,7 +111,7 @@
   }
 
   // Round to pixel boundaries to match React Native's <Text> measurement
-  CGFloat scale = [UIScreen mainScreen].scale;
+  CGFloat scale = RCTScreenScale();
   return ceil(measuredHeight * scale) / scale;
 }
 
@@ -129,9 +129,11 @@
     return;
   }
   _accessibilityNeedsRebuild = NO;
+#if !TARGET_OS_OSX
   _accessibilityElements = [MarkdownAccessibilityElementBuilder buildElementsForTextView:_textView
                                                                                     info:_accessibilityInfo
                                                                                container:self];
+#endif
 }
 
 - (BOOL)isAccessibilityElement
@@ -165,5 +167,12 @@
   [self rebuildAccessibilityElementsIfNeeded];
   return _accessibilityElements;
 }
+
+#if TARGET_OS_OSX
+- (void)setContextMenuProvider:(ENRMContextMenuProvider)provider
+{
+  ((ENRMContextMenuTextView *)_textView).contextMenuProvider = provider;
+}
+#endif
 
 @end

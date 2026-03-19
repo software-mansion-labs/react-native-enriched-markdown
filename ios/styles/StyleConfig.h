@@ -1,5 +1,5 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "ENRMUIKit.h"
 
 @interface StyleConfig : NSObject <NSCopying>
 - (instancetype)init;
@@ -8,8 +8,8 @@
 - (CGFloat)maxFontSizeMultiplier;
 - (void)setMaxFontSizeMultiplier:(CGFloat)newValue;
 // Primary font properties
-- (UIColor *)primaryColor;
-- (void)setPrimaryColor:(UIColor *)newValue;
+- (RCTUIColor *)primaryColor;
+- (void)setPrimaryColor:(RCTUIColor *)newValue;
 - (NSNumber *)primaryFontSize;
 - (void)setPrimaryFontSize:(NSNumber *)newValue;
 - (NSString *)primaryFontWeight;
@@ -24,8 +24,8 @@
 - (void)setParagraphFontFamily:(NSString *)newValue;
 - (NSString *)paragraphFontWeight;
 - (void)setParagraphFontWeight:(NSString *)newValue;
-- (UIColor *)paragraphColor;
-- (void)setParagraphColor:(UIColor *)newValue;
+- (RCTUIColor *)paragraphColor;
+- (void)setParagraphColor:(RCTUIColor *)newValue;
 - (CGFloat)paragraphMarginTop;
 - (void)setParagraphMarginTop:(CGFloat)newValue;
 - (CGFloat)paragraphMarginBottom;
@@ -42,8 +42,8 @@
 - (void)setH1FontFamily:(NSString *)newValue;
 - (NSString *)h1FontWeight;
 - (void)setH1FontWeight:(NSString *)newValue;
-- (UIColor *)h1Color;
-- (void)setH1Color:(UIColor *)newValue;
+- (RCTUIColor *)h1Color;
+- (void)setH1Color:(RCTUIColor *)newValue;
 - (CGFloat)h1MarginTop;
 - (void)setH1MarginTop:(CGFloat)newValue;
 - (CGFloat)h1MarginBottom;
@@ -60,8 +60,8 @@
 - (void)setH2FontFamily:(NSString *)newValue;
 - (NSString *)h2FontWeight;
 - (void)setH2FontWeight:(NSString *)newValue;
-- (UIColor *)h2Color;
-- (void)setH2Color:(UIColor *)newValue;
+- (RCTUIColor *)h2Color;
+- (void)setH2Color:(RCTUIColor *)newValue;
 - (CGFloat)h2MarginTop;
 - (void)setH2MarginTop:(CGFloat)newValue;
 - (CGFloat)h2MarginBottom;
@@ -78,8 +78,8 @@
 - (void)setH3FontFamily:(NSString *)newValue;
 - (NSString *)h3FontWeight;
 - (void)setH3FontWeight:(NSString *)newValue;
-- (UIColor *)h3Color;
-- (void)setH3Color:(UIColor *)newValue;
+- (RCTUIColor *)h3Color;
+- (void)setH3Color:(RCTUIColor *)newValue;
 - (CGFloat)h3MarginTop;
 - (void)setH3MarginTop:(CGFloat)newValue;
 - (CGFloat)h3MarginBottom;
@@ -96,8 +96,8 @@
 - (void)setH4FontFamily:(NSString *)newValue;
 - (NSString *)h4FontWeight;
 - (void)setH4FontWeight:(NSString *)newValue;
-- (UIColor *)h4Color;
-- (void)setH4Color:(UIColor *)newValue;
+- (RCTUIColor *)h4Color;
+- (void)setH4Color:(RCTUIColor *)newValue;
 - (CGFloat)h4MarginTop;
 - (void)setH4MarginTop:(CGFloat)newValue;
 - (CGFloat)h4MarginBottom;
@@ -114,8 +114,8 @@
 - (void)setH5FontFamily:(NSString *)newValue;
 - (NSString *)h5FontWeight;
 - (void)setH5FontWeight:(NSString *)newValue;
-- (UIColor *)h5Color;
-- (void)setH5Color:(UIColor *)newValue;
+- (RCTUIColor *)h5Color;
+- (void)setH5Color:(RCTUIColor *)newValue;
 - (CGFloat)h5MarginTop;
 - (void)setH5MarginTop:(CGFloat)newValue;
 - (CGFloat)h5MarginBottom;
@@ -132,8 +132,8 @@
 - (void)setH6FontFamily:(NSString *)newValue;
 - (NSString *)h6FontWeight;
 - (void)setH6FontWeight:(NSString *)newValue;
-- (UIColor *)h6Color;
-- (void)setH6Color:(UIColor *)newValue;
+- (RCTUIColor *)h6Color;
+- (void)setH6Color:(RCTUIColor *)newValue;
 - (CGFloat)h6MarginTop;
 - (void)setH6MarginTop:(CGFloat)newValue;
 - (CGFloat)h6MarginBottom;
@@ -146,8 +146,8 @@
 // Link properties
 - (NSString *)linkFontFamily;
 - (void)setLinkFontFamily:(NSString *)newValue;
-- (UIColor *)linkColor;
-- (void)setLinkColor:(UIColor *)newValue;
+- (RCTUIColor *)linkColor;
+- (void)setLinkColor:(RCTUIColor *)newValue;
 - (BOOL)linkUnderline;
 - (void)setLinkUnderline:(BOOL)newValue;
 // Strong properties
@@ -155,32 +155,32 @@
 - (void)setStrongFontFamily:(NSString *)newValue;
 - (NSString *)strongFontWeight;
 - (void)setStrongFontWeight:(NSString *)newValue;
-- (UIColor *)strongColor;
-- (void)setStrongColor:(UIColor *)newValue;
+- (RCTUIColor *)strongColor;
+- (void)setStrongColor:(RCTUIColor *)newValue;
 // Emphasis properties
 - (NSString *)emphasisFontFamily;
 - (void)setEmphasisFontFamily:(NSString *)newValue;
 - (NSString *)emphasisFontStyle;
 - (void)setEmphasisFontStyle:(NSString *)newValue;
-- (UIColor *)emphasisColor;
-- (void)setEmphasisColor:(UIColor *)newValue;
+- (RCTUIColor *)emphasisColor;
+- (void)setEmphasisColor:(RCTUIColor *)newValue;
 // Strikethrough properties
-- (UIColor *)strikethroughColor;
-- (void)setStrikethroughColor:(UIColor *)newValue;
+- (RCTUIColor *)strikethroughColor;
+- (void)setStrikethroughColor:(RCTUIColor *)newValue;
 // Underline properties
-- (UIColor *)underlineColor;
-- (void)setUnderlineColor:(UIColor *)newValue;
+- (RCTUIColor *)underlineColor;
+- (void)setUnderlineColor:(RCTUIColor *)newValue;
 // Code properties
 - (NSString *)codeFontFamily;
 - (void)setCodeFontFamily:(NSString *)newValue;
 - (CGFloat)codeFontSize;
 - (void)setCodeFontSize:(CGFloat)newValue;
-- (UIColor *)codeColor;
-- (void)setCodeColor:(UIColor *)newValue;
-- (UIColor *)codeBackgroundColor;
-- (void)setCodeBackgroundColor:(UIColor *)newValue;
-- (UIColor *)codeBorderColor;
-- (void)setCodeBorderColor:(UIColor *)newValue;
+- (RCTUIColor *)codeColor;
+- (void)setCodeColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)codeBackgroundColor;
+- (void)setCodeBackgroundColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)codeBorderColor;
+- (void)setCodeBorderColor:(RCTUIColor *)newValue;
 // Image properties
 - (CGFloat)imageHeight;
 - (void)setImageHeight:(CGFloat)newValue;
@@ -200,8 +200,8 @@
 - (void)setBlockquoteFontFamily:(NSString *)newValue;
 - (NSString *)blockquoteFontWeight;
 - (void)setBlockquoteFontWeight:(NSString *)newValue;
-- (UIColor *)blockquoteColor;
-- (void)setBlockquoteColor:(UIColor *)newValue;
+- (RCTUIColor *)blockquoteColor;
+- (void)setBlockquoteColor:(RCTUIColor *)newValue;
 - (CGFloat)blockquoteMarginTop;
 - (void)setBlockquoteMarginTop:(CGFloat)newValue;
 - (CGFloat)blockquoteMarginBottom;
@@ -209,14 +209,14 @@
 - (CGFloat)blockquoteLineHeight;
 - (void)setBlockquoteLineHeight:(CGFloat)newValue;
 - (UIFont *)blockquoteFont;
-- (UIColor *)blockquoteBorderColor;
-- (void)setBlockquoteBorderColor:(UIColor *)newValue;
+- (RCTUIColor *)blockquoteBorderColor;
+- (void)setBlockquoteBorderColor:(RCTUIColor *)newValue;
 - (CGFloat)blockquoteBorderWidth;
 - (void)setBlockquoteBorderWidth:(CGFloat)newValue;
 - (CGFloat)blockquoteGapWidth;
 - (void)setBlockquoteGapWidth:(CGFloat)newValue;
-- (UIColor *)blockquoteBackgroundColor;
-- (void)setBlockquoteBackgroundColor:(UIColor *)newValue;
+- (RCTUIColor *)blockquoteBackgroundColor;
+- (void)setBlockquoteBackgroundColor:(RCTUIColor *)newValue;
 // List style properties (combined for both ordered and unordered lists)
 - (CGFloat)listStyleFontSize;
 - (void)setListStyleFontSize:(CGFloat)newValue;
@@ -224,20 +224,20 @@
 - (void)setListStyleFontFamily:(NSString *)newValue;
 - (NSString *)listStyleFontWeight;
 - (void)setListStyleFontWeight:(NSString *)newValue;
-- (UIColor *)listStyleColor;
-- (void)setListStyleColor:(UIColor *)newValue;
+- (RCTUIColor *)listStyleColor;
+- (void)setListStyleColor:(RCTUIColor *)newValue;
 - (CGFloat)listStyleMarginTop;
 - (void)setListStyleMarginTop:(CGFloat)newValue;
 - (CGFloat)listStyleMarginBottom;
 - (void)setListStyleMarginBottom:(CGFloat)newValue;
 - (CGFloat)listStyleLineHeight;
 - (void)setListStyleLineHeight:(CGFloat)newValue;
-- (UIColor *)listStyleBulletColor;
-- (void)setListStyleBulletColor:(UIColor *)newValue;
+- (RCTUIColor *)listStyleBulletColor;
+- (void)setListStyleBulletColor:(RCTUIColor *)newValue;
 - (CGFloat)listStyleBulletSize;
 - (void)setListStyleBulletSize:(CGFloat)newValue;
-- (UIColor *)listStyleMarkerColor;
-- (void)setListStyleMarkerColor:(UIColor *)newValue;
+- (RCTUIColor *)listStyleMarkerColor;
+- (void)setListStyleMarkerColor:(RCTUIColor *)newValue;
 - (NSString *)listStyleMarkerFontWeight;
 - (void)setListStyleMarkerFontWeight:(NSString *)newValue;
 - (CGFloat)listStyleGapWidth;
@@ -256,18 +256,18 @@
 - (void)setCodeBlockFontFamily:(NSString *)newValue;
 - (NSString *)codeBlockFontWeight;
 - (void)setCodeBlockFontWeight:(NSString *)newValue;
-- (UIColor *)codeBlockColor;
-- (void)setCodeBlockColor:(UIColor *)newValue;
+- (RCTUIColor *)codeBlockColor;
+- (void)setCodeBlockColor:(RCTUIColor *)newValue;
 - (CGFloat)codeBlockMarginTop;
 - (void)setCodeBlockMarginTop:(CGFloat)newValue;
 - (CGFloat)codeBlockMarginBottom;
 - (void)setCodeBlockMarginBottom:(CGFloat)newValue;
 - (CGFloat)codeBlockLineHeight;
 - (void)setCodeBlockLineHeight:(CGFloat)newValue;
-- (UIColor *)codeBlockBackgroundColor;
-- (void)setCodeBlockBackgroundColor:(UIColor *)newValue;
-- (UIColor *)codeBlockBorderColor;
-- (void)setCodeBlockBorderColor:(UIColor *)newValue;
+- (RCTUIColor *)codeBlockBackgroundColor;
+- (void)setCodeBlockBackgroundColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)codeBlockBorderColor;
+- (void)setCodeBlockBorderColor:(RCTUIColor *)newValue;
 - (CGFloat)codeBlockBorderRadius;
 - (void)setCodeBlockBorderRadius:(CGFloat)newValue;
 - (CGFloat)codeBlockBorderWidth;
@@ -276,8 +276,8 @@
 - (void)setCodeBlockPadding:(CGFloat)newValue;
 - (UIFont *)codeBlockFont;
 // Thematic break properties
-- (UIColor *)thematicBreakColor;
-- (void)setThematicBreakColor:(UIColor *)newValue;
+- (RCTUIColor *)thematicBreakColor;
+- (void)setThematicBreakColor:(RCTUIColor *)newValue;
 - (CGFloat)thematicBreakHeight;
 - (void)setThematicBreakHeight:(CGFloat)newValue;
 - (CGFloat)thematicBreakMarginTop;
@@ -291,8 +291,8 @@
 - (void)setTableFontFamily:(NSString *)newValue;
 - (NSString *)tableFontWeight;
 - (void)setTableFontWeight:(NSString *)newValue;
-- (UIColor *)tableColor;
-- (void)setTableColor:(UIColor *)newValue;
+- (RCTUIColor *)tableColor;
+- (void)setTableColor:(RCTUIColor *)newValue;
 - (CGFloat)tableMarginTop;
 - (void)setTableMarginTop:(CGFloat)newValue;
 - (CGFloat)tableMarginBottom;
@@ -303,16 +303,16 @@
 - (NSString *)tableHeaderFontFamily;
 - (void)setTableHeaderFontFamily:(NSString *)newValue;
 - (UIFont *)tableHeaderFont;
-- (UIColor *)tableHeaderBackgroundColor;
-- (void)setTableHeaderBackgroundColor:(UIColor *)newValue;
-- (UIColor *)tableHeaderTextColor;
-- (void)setTableHeaderTextColor:(UIColor *)newValue;
-- (UIColor *)tableRowEvenBackgroundColor;
-- (void)setTableRowEvenBackgroundColor:(UIColor *)newValue;
-- (UIColor *)tableRowOddBackgroundColor;
-- (void)setTableRowOddBackgroundColor:(UIColor *)newValue;
-- (UIColor *)tableBorderColor;
-- (void)setTableBorderColor:(UIColor *)newValue;
+- (RCTUIColor *)tableHeaderBackgroundColor;
+- (void)setTableHeaderBackgroundColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)tableHeaderTextColor;
+- (void)setTableHeaderTextColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)tableRowEvenBackgroundColor;
+- (void)setTableRowEvenBackgroundColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)tableRowOddBackgroundColor;
+- (void)setTableRowOddBackgroundColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)tableBorderColor;
+- (void)setTableBorderColor:(RCTUIColor *)newValue;
 - (CGFloat)tableBorderWidth;
 - (void)setTableBorderWidth:(CGFloat)newValue;
 - (CGFloat)tableBorderRadius;
@@ -322,27 +322,27 @@
 - (CGFloat)tableCellPaddingVertical;
 - (void)setTableCellPaddingVertical:(CGFloat)newValue;
 // Task list checkbox properties
-- (UIColor *)taskListCheckedColor;
-- (void)setTaskListCheckedColor:(UIColor *)newValue;
-- (UIColor *)taskListBorderColor;
-- (void)setTaskListBorderColor:(UIColor *)newValue;
+- (RCTUIColor *)taskListCheckedColor;
+- (void)setTaskListCheckedColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)taskListBorderColor;
+- (void)setTaskListBorderColor:(RCTUIColor *)newValue;
 - (CGFloat)taskListCheckboxSize;
 - (void)setTaskListCheckboxSize:(CGFloat)newValue;
 - (CGFloat)taskListCheckboxBorderRadius;
 - (void)setTaskListCheckboxBorderRadius:(CGFloat)newValue;
-- (UIColor *)taskListCheckmarkColor;
-- (void)setTaskListCheckmarkColor:(UIColor *)newValue;
-- (UIColor *)taskListCheckedTextColor;
-- (void)setTaskListCheckedTextColor:(UIColor *)newValue;
+- (RCTUIColor *)taskListCheckmarkColor;
+- (void)setTaskListCheckmarkColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)taskListCheckedTextColor;
+- (void)setTaskListCheckedTextColor:(RCTUIColor *)newValue;
 - (BOOL)taskListCheckedStrikethrough;
 - (void)setTaskListCheckedStrikethrough:(BOOL)newValue;
 // Math properties
 - (CGFloat)mathFontSize;
 - (void)setMathFontSize:(CGFloat)newValue;
-- (UIColor *)mathColor;
-- (void)setMathColor:(UIColor *)newValue;
-- (UIColor *)mathBackgroundColor;
-- (void)setMathBackgroundColor:(UIColor *)newValue;
+- (RCTUIColor *)mathColor;
+- (void)setMathColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)mathBackgroundColor;
+- (void)setMathBackgroundColor:(RCTUIColor *)newValue;
 - (CGFloat)mathPadding;
 - (void)setMathPadding:(CGFloat)newValue;
 - (CGFloat)mathMarginTop;
@@ -353,7 +353,7 @@
 - (void)setMathTextAlign:(NSString *)newValue;
 
 // Inline Math properties
-- (UIColor *)inlineMathColor;
-- (void)setInlineMathColor:(UIColor *)newValue;
+- (RCTUIColor *)inlineMathColor;
+- (void)setInlineMathColor:(RCTUIColor *)newValue;
 
 @end

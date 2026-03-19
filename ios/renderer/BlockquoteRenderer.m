@@ -109,7 +109,7 @@ static NSString *const kNestedInfoRangeKey = @"range";
                            range:(NSRange)blockquoteRange
                            depth:(NSInteger)currentDepth
                     levelSpacing:(CGFloat)levelSpacing
-                 backgroundColor:(UIColor *)backgroundColor
+                 backgroundColor:(RCTUIColor *)backgroundColor
                       lineHeight:(CGFloat)lineHeight
 {
   NSMutableParagraphStyle *paragraphStyle = getOrCreateParagraphStyle(output, blockquoteRange.location);

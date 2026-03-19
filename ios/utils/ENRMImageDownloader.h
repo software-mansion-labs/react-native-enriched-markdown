@@ -1,9 +1,9 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "ENRMUIKit.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void (^ENRMImageDownloadCompletion)(UIImage *_Nullable image);
+typedef void (^ENRMImageDownloadCompletion)(RCTUIImage *_Nullable image);
 
 @interface ENRMImageDownloader : NSObject
 

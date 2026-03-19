@@ -33,7 +33,7 @@
   [output addAttribute:NSStrikethroughStyleAttributeName value:@(NSUnderlineStyleSingle) range:range];
 
   // Apply strikethrough line color (not text color)
-  UIColor *strikethroughColor = [_config strikethroughColor];
+  RCTUIColor *strikethroughColor = [_config strikethroughColor];
   [output addAttribute:NSStrikethroughColorAttributeName value:strikethroughColor range:range];
 }
 

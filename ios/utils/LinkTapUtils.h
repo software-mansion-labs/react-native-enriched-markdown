@@ -1,6 +1,6 @@
 #pragma once
 
-#import <UIKit/UIKit.h>
+#import "ENRMUIKit.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -9,13 +9,13 @@ extern "C" {
 #endif
 
 /// Returns the link URL at the tap location, or nil if no link was tapped.
-NSString *_Nullable linkURLAtTapLocation(UITextView *textView, UITapGestureRecognizer *recognizer);
+NSString *_Nullable linkURLAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer);
 
 /// Returns the link URL at the given character range, or nil if none found.
-NSString *_Nullable linkURLAtRange(UITextView *textView, NSRange characterRange);
+NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange characterRange);
 
 /// Returns YES if the point (in textView coordinates) is on a link or task list checkbox.
-BOOL isPointOnInteractiveElement(UITextView *textView, CGPoint point);
+BOOL isPointOnInteractiveElement(ENRMPlatformTextView *textView, CGPoint point);
 
 #ifdef __cplusplus
 }

@@ -209,17 +209,16 @@ export interface Md4cFlags {
   latexMath?: boolean;
 }
 
-export interface EnrichedMarkdownTextProps
-  extends Omit<
-    NativeProps,
-    | 'markdownStyle'
-    | 'style'
-    | 'onLinkPress'
-    | 'onLinkLongPress'
-    | 'onTaskListItemPress'
-    | 'md4cFlags'
-    | 'enableLinkPreview'
-  > {
+export interface EnrichedMarkdownTextProps extends Omit<
+  NativeProps,
+  | 'markdownStyle'
+  | 'style'
+  | 'onLinkPress'
+  | 'onLinkLongPress'
+  | 'onTaskListItemPress'
+  | 'md4cFlags'
+  | 'enableLinkPreview'
+> {
   /**
    * Style configuration for markdown elements
    */
@@ -312,6 +311,36 @@ const defaultMd4cFlags: Md4cFlags = {
   latexMath: true,
 };
 
+const ADMONITION_PATTERN =
+  /^(>\s*)\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/gm;
+
+const ADMONITION_LABELS: Record<string, string> = {
+  NOTE: 'Note',
+  TIP: 'Tip',
+  IMPORTANT: 'Important',
+  WARNING: 'Warning',
+  CAUTION: 'Caution',
+};
+
+/**
+ * Convert GitHub-style admonitions into labelled blockquotes.
+ * The native renderer detects the label and applies per-type styling
+ * (coloured border, background, and SF Symbol icon on Apple platforms).
+ *
+ * Input:  `> [!NOTE]\n> Content`
+ * Output: `> **Note**\n>\n> Content`
+ */
+function preprocessAdmonitions(md: string): string {
+  return md.replace(
+    ADMONITION_PATTERN,
+    (_match, prefix: string, type: string) => {
+      const label = ADMONITION_LABELS[type];
+      if (!label) return _match;
+      return `${prefix}**${label}**\n${prefix}`;
+    }
+  );
+}
+
 export const EnrichedMarkdownText = ({
   markdown,
   markdownStyle = {},
@@ -370,8 +399,14 @@ export const EnrichedMarkdownText = ({
     [onTaskListItemPress]
   );
 
+  // Preprocess GitHub admonitions into labelled blockquotes for native rendering
+  const processedMarkdown = useMemo(
+    () => (flavor === 'github' ? preprocessAdmonitions(markdown) : markdown),
+    [markdown, flavor]
+  );
+
   const sharedProps = {
-    markdown,
+    markdown: processedMarkdown,
     markdownStyle: normalizedStyle,
     onLinkPress: handleLinkPress,
     onLinkLongPress: handleLinkLongPress,

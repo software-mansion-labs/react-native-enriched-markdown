@@ -63,33 +63,30 @@ The macOS port handles GFM-style `#fragment` anchor links natively. When a user 
 
 ### GitHub admonitions / callouts
 
-GitHub-flavoured callouts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) are not natively supported by the md4c parser. To render them as styled blockquotes, preprocess the markdown before passing it to the component:
+GitHub-flavoured callouts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) are handled automatically when using `flavor="github"`. The library preprocesses the `[!TYPE]` syntax and renders each callout with:
+
+- **Coloured left border and background** matching GitHub's Primer design system, auto-detecting light/dark mode
+- **SF Symbol icons** on macOS and iOS (`info.circle`, `lightbulb`, `exclamationmark.bubble`, `exclamationmark.triangle`, `exclamationmark.octagon`), rendered as native text attachments
+- **Unicode character fallback** on Android and other platforms (`ⓘ`, `✱`, `❗`, `⚠`, `⯃`)
+
+No preprocessing is needed in the consuming app — just pass raw GFM markdown:
 
 ```tsx
-function preprocessAdmonitions(md: string): string {
-  const ADMONITION_MAP: Record<string, { emoji: string; label: string }> = {
-    NOTE:      { emoji: 'ℹ️', label: 'Note' },
-    TIP:       { emoji: '💡', label: 'Tip' },
-    IMPORTANT: { emoji: '❗', label: 'Important' },
-    WARNING:   { emoji: '⚠️', label: 'Warning' },
-    CAUTION:   { emoji: '🟠', label: 'Caution' },
-  };
-
-  return md.replace(
-    /^(> *)\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*\n/gm,
-    (_, prefix, type) => {
-      const { emoji, label } = ADMONITION_MAP[type];
-      return `${prefix}${emoji}  **${label}**\n${prefix}\n`;
-    },
-  );
-}
-
-// Usage
 <EnrichedMarkdownText
-  markdown={preprocessAdmonitions(content)}
+  markdown={content}
   flavor="github"
 />
 ```
+
+The five supported types and their colours:
+
+| Type | Light border | Dark border | SF Symbol |
+|------|-------------|------------|-----------|
+| Note | `#0969DA` | `#4493F8` | `info.circle` |
+| Tip | `#1A7F37` | `#3FB950` | `lightbulb` |
+| Important | `#8250DF` | `#A371F7` | `exclamationmark.bubble` |
+| Warning | `#9A6700` | `#D29922` | `exclamationmark.triangle` |
+| Caution | `#CF222E` | `#F85149` | `exclamationmark.octagon` |
 
 ### Scroll container
 
@@ -120,7 +117,6 @@ These will be addressed in upcoming releases:
 - **Tail fade-in animation** falls back to instant reveal (no `CADisplayLink` on macOS)
 - **VoiceOver** accessibility is stubbed (pending `NSAccessibility` implementation)
 - **Font scale observation** does not respond to system font size changes
-- **GitHub callouts** require JS preprocessing (see above)
 
 ## Example app
 

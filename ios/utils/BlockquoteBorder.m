@@ -5,6 +5,7 @@
 // Attribute constants for identifying blockquote segments in text storage
 NSString *const BlockquoteDepthAttributeName = @"BlockquoteDepth";
 NSString *const BlockquoteBackgroundColorAttributeName = @"BlockquoteBackgroundColor";
+NSString *const BlockquoteBorderColorAttributeName = @"BlockquoteBorderColor";
 
 @implementation BlockquoteBorder {
   StyleConfig *_config;
@@ -79,17 +80,29 @@ NSString *const BlockquoteBackgroundColorAttributeName = @"BlockquoteBackgroundC
                                                      CGRectMake(origin.x, baseY, containerWidth, rect.size.height));
                                  }
 
-                                 // 2. Aggregate vertical borders into the batch path
+                                 // 2. Aggregate vertical borders — use per-range color if set
+                                 RCTUIColor *lineBorderColor = attrs[BlockquoteBorderColorAttributeName] ?: borderColor;
                                  for (NSInteger level = 0; level <= depth; level++) {
                                    CGFloat borderX =
                                        isRTL ? origin.x + containerWidth - borderWidth - (levelSpacing * level)
                                              : origin.x + (levelSpacing * level);
                                    CGRect borderRect = CGRectMake(borderX, baseY, borderWidth, rect.size.height);
-                                   UIBezierPathAppendPath(borderPath, [UIBezierPath bezierPathWithRect:borderRect]);
+
+                                   if (lineBorderColor != borderColor) {
+                                     // Per-range color: draw immediately (can't batch different colors)
+                                     [lineBorderColor setFill];
+#if TARGET_OS_OSX
+                                     NSRectFill(borderRect);
+#else
+            UIRectFill(borderRect);
+#endif
+                                   } else {
+                                     UIBezierPathAppendPath(borderPath, [UIBezierPath bezierPathWithRect:borderRect]);
+                                   }
                                  }
                                }];
 
-  // 3. Perform a single batch fill for all borders
+  // 3. Perform a single batch fill for default-colored borders
   if (!borderPath.isEmpty) {
     [borderColor setFill];
     [borderPath fill];

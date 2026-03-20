@@ -1,5 +1,7 @@
 <img src="https://github.com/user-attachments/assets/27d269ca-4004-423f-b90a-745edadd7307" alt="react-native-enriched-markdown by Software Mansion" width="100%">
 
+> **Experimental fork** — This is a personal development fork of [`react-native-enriched-markdown`](https://github.com/software-mansion-labs/react-native-enriched-markdown) by Software Mansion. It is **not** a replacement or alternative library. Features developed here (GFM anchor scrolling, admonition styling, etc.) are intended to be contributed back upstream once stabilised. For production use, please use the [official library](https://github.com/software-mansion-labs/react-native-enriched-markdown).
+
 # react-native-enriched-markdown
 
 `react-native-enriched-markdown` is a powerful React Native library that renders Markdown content as native text:

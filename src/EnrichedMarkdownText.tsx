@@ -304,6 +304,20 @@ export interface EnrichedMarkdownTextProps extends Omit<
    * @default false
    */
   streamingAnimation?: boolean;
+  /**
+   * Custom display labels for GitHub admonition callouts.
+   * Override the default English labels for localisation or branding.
+   * Only applies when `flavor="github"`.
+   *
+   * @example
+   * // Spanish labels
+   * admonitionLabels={{ NOTE: 'Nota', TIP: 'Consejo', WARNING: 'Advertencia' }}
+   *
+   * @default { NOTE: 'Note', TIP: 'Tip', IMPORTANT: 'Important', WARNING: 'Warning', CAUTION: 'Caution' }
+   */
+  admonitionLabels?: Partial<
+    Record<'NOTE' | 'TIP' | 'IMPORTANT' | 'WARNING' | 'CAUTION', string>
+  >;
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -314,7 +328,7 @@ const defaultMd4cFlags: Md4cFlags = {
 const ADMONITION_PATTERN =
   /^(>\s*)\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/gm;
 
-const ADMONITION_LABELS: Record<string, string> = {
+const DEFAULT_ADMONITION_LABELS: Record<string, string> = {
   NOTE: 'Note',
   TIP: 'Tip',
   IMPORTANT: 'Important',
@@ -322,23 +336,52 @@ const ADMONITION_LABELS: Record<string, string> = {
   CAUTION: 'Caution',
 };
 
+/** Maps type keyword to ENRMAdmonitionType enum value (1–5). */
+const ADMONITION_TYPE_INDEX: Record<string, number> = {
+  NOTE: 1,
+  TIP: 2,
+  IMPORTANT: 3,
+  WARNING: 4,
+  CAUTION: 5,
+};
+
 /**
  * Convert GitHub-style admonitions into labelled blockquotes.
- * The native renderer detects the label and applies per-type styling
- * (coloured border, background, and SF Symbol icon on Apple platforms).
+ * Embeds a zero-width-space type marker (\u200B + digit + \u200B) before the
+ * display label so native detection works regardless of the label's language.
  *
  * Input:  `> [!NOTE]\n> Content`
- * Output: `> **Note**\n>\n> Content`
+ * Output: `> **[ZWS]1[ZWS]Note**\n>\n> Content`  (ZWS = U+200B zero-width space)
  */
-function preprocessAdmonitions(md: string): string {
+function preprocessAdmonitions(
+  md: string,
+  labels: Record<string, string>
+): string {
   return md.replace(
     ADMONITION_PATTERN,
     (_match, prefix: string, type: string) => {
-      const label = ADMONITION_LABELS[type];
-      if (!label) return _match;
-      return `${prefix}**${label}**\n${prefix}`;
+      const label = labels[type] ?? DEFAULT_ADMONITION_LABELS[type];
+      const typeIndex = ADMONITION_TYPE_INDEX[type];
+      if (!label || !typeIndex) return _match;
+      // Leading digit (1-5) acts as a type marker for native detection,
+      // which strips it after reading the type.
+      return `${prefix}**${typeIndex}${label}**\n${prefix}`;
     }
   );
+}
+
+/** Strip HTML comments (<!-- ... -->) that md4c renders as plain text. */
+const HTML_COMMENT_PATTERN = /<!--[\s\S]*?-->/g;
+
+function stripHtmlComments(md: string): string {
+  return md.replace(HTML_COMMENT_PATTERN, '');
+}
+
+/**
+ * Apply all GFM preprocessing steps: strip HTML comments and convert admonitions.
+ */
+function preprocessGfm(md: string, labels: Record<string, string>): string {
+  return preprocessAdmonitions(stripHtmlComments(md), labels);
 }
 
 export const EnrichedMarkdownText = ({
@@ -356,6 +399,7 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   flavor = 'commonmark',
   streamingAnimation = false,
+  admonitionLabels,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -399,10 +443,18 @@ export const EnrichedMarkdownText = ({
     [onTaskListItemPress]
   );
 
-  // Preprocess GitHub admonitions into labelled blockquotes for native rendering
+  const mergedAdmonitionLabels = useMemo(
+    () => ({ ...DEFAULT_ADMONITION_LABELS, ...admonitionLabels }),
+    [admonitionLabels]
+  );
+
+  // Preprocess GFM: strip HTML comments and convert admonitions
   const processedMarkdown = useMemo(
-    () => (flavor === 'github' ? preprocessAdmonitions(markdown) : markdown),
-    [markdown, flavor]
+    () =>
+      flavor === 'github'
+        ? preprocessGfm(markdown, mergedAdmonitionLabels)
+        : markdown,
+    [markdown, flavor, mergedAdmonitionLabels]
   );
 
   const sharedProps = {

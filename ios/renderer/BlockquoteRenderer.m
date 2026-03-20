@@ -21,8 +21,10 @@ typedef NS_ENUM(NSInteger, ENRMAdmonitionType) {
 };
 
 /// Detect admonition type from the first line of a blockquote's rendered text.
-/// Matches patterns like "ℹ️ Note", "💡 Tip", etc. produced by the JS preprocessor.
-static ENRMAdmonitionType detectAdmonitionType(NSAttributedString *output, NSUInteger start, NSUInteger end)
+/// The JS preprocessor emits a leading digit (1–5) before the display label
+/// (e.g. "1Note", "2Tip") so detection works regardless of label language.
+/// Falls back to English keyword matching for unpreprocessed content.
+static ENRMAdmonitionType detectAdmonitionType(NSMutableAttributedString *output, NSUInteger start, NSUInteger end)
 {
   if (end <= start)
     return ENRMAdmonitionTypeNone;
@@ -34,9 +36,23 @@ static ENRMAdmonitionType detectAdmonitionType(NSAttributedString *output, NSUIn
   if (!firstLine)
     return ENRMAdmonitionTypeNone;
 
-  // Match against known admonition labels (case-insensitive, allows emoji prefix)
   NSString *trimmed = [firstLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-  // Strip leading emoji/non-letter characters to get to the label
+
+  // Primary detection: leading digit 1–5 as type marker (emitted by JS preprocessor)
+  if (trimmed.length >= 2) {
+    unichar firstChar = [trimmed characterAtIndex:0];
+    if (firstChar >= '1' && firstChar <= '5') {
+      // Strip the single digit character from the attributed string
+      NSString *fullText = [[output attributedSubstringFromRange:NSMakeRange(start, searchEnd - start)] string];
+      NSRange digitRange = [fullText rangeOfString:[NSString stringWithCharacters:&firstChar length:1]];
+      if (digitRange.location != NSNotFound) {
+        [output deleteCharactersInRange:NSMakeRange(start + digitRange.location, 1)];
+      }
+      return (ENRMAdmonitionType)(firstChar - '0');
+    }
+  }
+
+  // Fallback: match English keywords (for unpreprocessed markdown or backwards compatibility)
   static NSDictionary<NSString *, NSNumber *> *labelMap = nil;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
@@ -286,10 +302,15 @@ static NSAttributedString *createAdmonitionIcon(ENRMAdmonitionType type, RCTUICo
   // Detect admonition type and override colors / insert icon if matched
   RCTUIColor *backgroundColor = [_config blockquoteBackgroundColor];
   RCTUIColor *admonitionBorderColor = nil;
-  NSUInteger insertedLength = 0;
+  NSInteger lengthDelta = 0; // tracks net chars added (icon) or removed (digit marker)
 
   if (currentDepth == 0) {
+    NSUInteger lengthBefore = output.length;
     ENRMAdmonitionType admonitionType = detectAdmonitionType(output, contentStart, end);
+    // detectAdmonitionType may strip digit marker char from output
+    NSInteger markerStripped = (NSInteger)lengthBefore - (NSInteger)output.length;
+    lengthDelta -= markerStripped;
+
     if (admonitionType != ENRMAdmonitionTypeNone) {
       BOOL isDark = isCurrentAppearanceDark();
       RCTUIColor *typeBorder = nil;
@@ -305,14 +326,14 @@ static NSAttributedString *createAdmonitionIcon(ENRMAdmonitionType type, RCTUICo
         NSAttributedString *icon = createAdmonitionIcon(admonitionType, typeBorder, [_config blockquoteFontSize]);
         if (icon) {
           [output insertAttributedString:icon atIndex:contentStart];
-          insertedLength = icon.length;
+          lengthDelta += icon.length;
         }
       }
     }
   }
 
-  // Adjust range for any inserted icon characters
-  NSRange blockquoteRangeAdjusted = NSMakeRange(contentStart, (end - start) + insertedLength);
+  // Adjust range for inserted icon and stripped marker characters
+  NSRange blockquoteRangeAdjusted = NSMakeRange(contentStart, (end - start) + lengthDelta);
 
   // Collect nested blockquote info AFTER icon insertion so ranges are correct
   NSArray<NSDictionary *> *nestedInfo = [self collectNestedBlockquotes:output

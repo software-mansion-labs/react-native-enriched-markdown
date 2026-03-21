@@ -224,7 +224,7 @@ static void parseEnrmFragment(NSString *url, NSString **outCleanURL, CGFloat *ou
         // else: keep at configured inlineImageSize (matches GitHub behaviour)
       } else {
         // Block: container width will be used; derive height from aspect ratio
-        CGFloat containerWidth = self.bounds.size.width > 0 ? self.bounds.size.width : image.size.width;
+        CGFloat containerWidth = self.textContainer.size.width > 0 ? self.textContainer.size.width : image.size.width;
         // If image is narrower than container, use natural size instead of stretching
         if (image.size.width < containerWidth) {
           self.explicitWidth = image.size.width;

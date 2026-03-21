@@ -39,8 +39,8 @@
   NSNumber *underlineStyle = @([_config linkUnderline] ? NSUnderlineStyleSingle : NSUnderlineStyleNone);
   NSString *linkFontFamily = [_config linkFontFamily];
 
-  // 3. Apply core link functionality (non-destructive)
-  [output addAttribute:NSLinkAttributeName value:url range:range];
+  // 3. NSLinkAttributeName is applied later in RenderContext.applyLinkAttributesToString:
+  //    alongside the custom "linkURL" attribute, so cursor rects align precisely.
 
   // 4. Optimize visual attributes via enumeration to avoid redundant updates
   [output enumerateAttributesInRange:range

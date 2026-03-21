@@ -113,6 +113,7 @@
     if (NSMaxRange(range) > length)
       continue;
     [attributedString addAttribute:@"linkURL" value:self.linkURLs[i] range:range];
+    [attributedString addAttribute:NSLinkAttributeName value:self.linkURLs[i] range:range];
   }
 }
 

@@ -6,10 +6,6 @@
 {
   return ENRMInputStyleTypeLink;
 }
-- (BOOL)isParagraphStyle
-{
-  return NO;
-}
 
 - (ENRMStyleMergingConfig *)mergingConfig
 {

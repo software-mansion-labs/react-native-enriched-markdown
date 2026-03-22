@@ -23,9 +23,6 @@ interface MarkdownInputStyleInternal {
     color: ColorValue;
     underline: boolean;
   };
-  syntax: {
-    color: ColorValue;
-  };
 }
 
 interface TargetedEvent {
@@ -104,7 +101,7 @@ export interface NativeProps extends ViewProps {
    */
   selectionColor?: ColorValue;
   /**
-   * Inline format style overrides (link color, syntax color).
+   * Inline format style overrides.
    * Always provided with complete defaults via normalizeMarkdownInputStyle.
    */
   markdownStyle: MarkdownInputStyleInternal;

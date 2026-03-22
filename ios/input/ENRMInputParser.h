@@ -13,7 +13,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ENRMInputParser : NSObject
 
-- (NSArray<ENRMInputStyledRange *> *)parse:(NSString *)markdown;
 - (ENRMParseResult *)parseToPlainTextAndRanges:(NSString *)markdown;
 
 @end

@@ -9,7 +9,6 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol ENRMStyleHandler <NSObject>
 
 @property (nonatomic, readonly) ENRMInputStyleType styleType;
-@property (nonatomic, readonly) BOOL isParagraphStyle;
 @property (nonatomic, readonly) ENRMStyleMergingConfig *mergingConfig;
 
 /// Collect font traits that this style contributes (e.g. bold, italic).

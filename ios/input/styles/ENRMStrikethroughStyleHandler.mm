@@ -6,10 +6,6 @@
 {
   return ENRMInputStyleTypeStrikethrough;
 }
-- (BOOL)isParagraphStyle
-{
-  return NO;
-}
 
 - (ENRMStyleMergingConfig *)mergingConfig
 {

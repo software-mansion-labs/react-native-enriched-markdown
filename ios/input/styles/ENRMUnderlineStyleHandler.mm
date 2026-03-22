@@ -6,10 +6,6 @@
 {
   return ENRMInputStyleTypeUnderline;
 }
-- (BOOL)isParagraphStyle
-{
-  return NO;
-}
 
 - (ENRMStyleMergingConfig *)mergingConfig
 {

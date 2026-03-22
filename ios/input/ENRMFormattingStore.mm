@@ -18,7 +18,6 @@ static void removeIndexesInReverse(NSMutableArray *array, NSMutableIndexSet *ind
 }
 
 typedef NS_ENUM(NSInteger, EditOverlap) {
-  EditOverlapNone,
   EditOverlapBeforeEdit,
   EditOverlapAfterEdit,
   EditOverlapFullyDeleted,
@@ -40,9 +39,7 @@ static EditOverlap classifyOverlap(NSUInteger rangeStart, NSUInteger rangeEnd, N
     return EditOverlapDeletedInside;
   if (rangeStart < editLocation && rangeEnd <= deleteEnd)
     return EditOverlapClippedEnd;
-  if (rangeStart >= editLocation && rangeStart < deleteEnd && rangeEnd > deleteEnd)
-    return EditOverlapClippedStart;
-  return EditOverlapNone;
+  return EditOverlapClippedStart;
 }
 
 @implementation ENRMFormattingStore {
@@ -241,9 +238,6 @@ static EditOverlap classifyOverlap(NSUInteger rangeStart, NSUInteger rangeEnd, N
           }
           break;
         }
-
-        case EditOverlapNone:
-          break;
       }
     } else {
       if (rangeStart > editLocation) {

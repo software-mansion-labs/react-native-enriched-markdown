@@ -91,10 +91,5 @@ BOOL applyInputStyleProps(ENRMInputFormatterStyle *style, const InputProps &newP
     changed = YES;
   }
 
-  if (newProps.markdownStyle.syntax.color != oldProps.markdownStyle.syntax.color) {
-    style.syntaxColor = RCTUIColorFromSharedColor(newProps.markdownStyle.syntax.color);
-    changed = YES;
-  }
-
   return changed;
 }

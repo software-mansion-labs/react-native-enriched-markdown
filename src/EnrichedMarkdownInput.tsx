@@ -32,9 +32,6 @@ export interface MarkdownInputStyle {
     color?: string;
     underline?: boolean;
   };
-  syntax?: {
-    color?: string;
-  };
 }
 
 export interface StyleState {

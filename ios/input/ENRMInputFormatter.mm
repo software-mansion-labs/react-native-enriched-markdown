@@ -30,7 +30,6 @@
   copy.italicColor = _italicColor;
   copy.linkColor = _linkColor;
   copy.linkUnderline = _linkUnderline;
-  copy.syntaxColor = _syntaxColor;
   return copy;
 }
 
@@ -67,21 +66,6 @@
   UIFont *derived = descriptor ? [UIFont fontWithDescriptor:descriptor size:0] : _baseFont;
   _fontCache[key] = derived;
   return derived;
-}
-
-- (UIFont *)boldFont
-{
-  return [self fontForTraits:UIFontDescriptorTraitBold];
-}
-
-- (UIFont *)italicFont
-{
-  return [self fontForTraits:UIFontDescriptorTraitItalic];
-}
-
-- (UIFont *)boldItalicFont
-{
-  return [self fontForTraits:UIFontDescriptorTraitBold | UIFontDescriptorTraitItalic];
 }
 
 @end

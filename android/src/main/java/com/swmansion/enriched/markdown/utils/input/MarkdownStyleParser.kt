@@ -8,14 +8,12 @@ object MarkdownStyleParser {
     val strongMap = map.getMap("strong")
     val emMap = map.getMap("em")
     val linkMap = map.getMap("link")
-    val syntaxMap = map.getMap("syntax")
 
     return InputFormatterStyle(
       boldColor = if (strongMap?.hasKey("color") == true) strongMap.getInt("color") else null,
       italicColor = if (emMap?.hasKey("color") == true) emMap.getInt("color") else null,
       linkColor = linkMap!!.getInt("color"),
       linkUnderline = linkMap.getBoolean("underline"),
-      syntaxColor = syntaxMap!!.getInt("color"),
     )
   }
 }

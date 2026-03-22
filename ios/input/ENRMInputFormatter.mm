@@ -16,11 +16,6 @@
   if (self = [super init]) {
     _baseFont = [UIFont systemFontOfSize:16.0];
     _baseTextColor = [RCTUIColor labelColor];
-    _boldColor = nil;
-    _italicColor = nil;
-    _linkColor = [RCTUIColor systemBlueColor];
-    _linkUnderline = YES;
-    _syntaxColor = [RCTUIColor systemGrayColor];
     _fontCache = [NSMutableDictionary dictionary];
   }
   return self;

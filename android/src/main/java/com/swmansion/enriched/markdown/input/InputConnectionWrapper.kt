@@ -4,13 +4,6 @@ import android.view.KeyEvent
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputConnectionWrapper as AndroidInputConnectionWrapper
 
-/**
- * Wraps the default InputConnection to properly handle IME composition
- * (CJK keyboards, SwiftKey, etc.) and prevent composing text from being
- * processed as final edits by the TextWatcher.
- *
- * Based on React Native's ReactEditTextInputConnectionWrapper.
- */
 class InputConnectionWrapper(
   target: InputConnection,
   private val editText: EnrichedMarkdownInputView,

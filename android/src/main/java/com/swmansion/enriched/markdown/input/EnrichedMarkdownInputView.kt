@@ -102,8 +102,6 @@ class EnrichedMarkdownInputView(
       }
   }
 
-  // region Lifecycle overrides
-
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     runAsATransaction { super.setTextIsSelectable(true) }
@@ -124,10 +122,6 @@ class EnrichedMarkdownInputView(
   // override the deferred relayout causes a visible flicker of styled spans.
   // See: ReactEditText in React Native core.
   override fun isLayoutRequested(): Boolean = false
-
-  // endregion
-
-  // region Scroll touch interception
 
   override fun onTouchEvent(ev: MotionEvent): Boolean {
     when (ev.action) {
@@ -153,8 +147,6 @@ class EnrichedMarkdownInputView(
   override fun canScrollVertically(direction: Int): Boolean = scrollEnabled && super.canScrollVertically(direction)
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled && super.canScrollHorizontally(direction)
-
-  // endregion
 
   fun attachTextWatcher(editable: Editable) {
     if (textWatcher != null) {

@@ -11,7 +11,7 @@ class MarkdownTextWatcher(
   private var insertedLength = 0
 
   override fun beforeTextChanged(
-    s: CharSequence,
+    text: CharSequence,
     start: Int,
     count: Int,
     after: Int,
@@ -24,7 +24,7 @@ class MarkdownTextWatcher(
   }
 
   override fun onTextChanged(
-    s: CharSequence,
+    text: CharSequence,
     start: Int,
     before: Int,
     count: Int,

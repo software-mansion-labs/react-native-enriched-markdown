@@ -20,11 +20,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, nullable) RCTUIColor *italicColor;
 
 /// Link
-@property (nonatomic, strong) RCTUIColor *linkColor;
+@property (nonatomic, strong, nullable) RCTUIColor *linkColor;
 @property (nonatomic, assign) BOOL linkUnderline;
 
 /// Syntax highlight color (for future use with markdown syntax tokens)
-@property (nonatomic, strong) RCTUIColor *syntaxColor;
+@property (nonatomic, strong, nullable) RCTUIColor *syntaxColor;
 
 - (UIFont *)fontForTraits:(UIFontDescriptorSymbolicTraits)traits;
 - (void)invalidateFontCache;

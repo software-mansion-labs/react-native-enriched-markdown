@@ -82,9 +82,7 @@ BOOL applyInputStyleProps(ENRMInputFormatterStyle *style, const InputProps &newP
   }
 
   if (newProps.markdownStyle.link.color != oldProps.markdownStyle.link.color) {
-    if (isColorMeaningful(newProps.markdownStyle.link.color)) {
-      style.linkColor = RCTUIColorFromSharedColor(newProps.markdownStyle.link.color);
-    }
+    style.linkColor = RCTUIColorFromSharedColor(newProps.markdownStyle.link.color);
     changed = YES;
   }
 
@@ -94,9 +92,7 @@ BOOL applyInputStyleProps(ENRMInputFormatterStyle *style, const InputProps &newP
   }
 
   if (newProps.markdownStyle.syntax.color != oldProps.markdownStyle.syntax.color) {
-    if (isColorMeaningful(newProps.markdownStyle.syntax.color)) {
-      style.syntaxColor = RCTUIColorFromSharedColor(newProps.markdownStyle.syntax.color);
-    }
+    style.syntaxColor = RCTUIColorFromSharedColor(newProps.markdownStyle.syntax.color);
     changed = YES;
   }
 

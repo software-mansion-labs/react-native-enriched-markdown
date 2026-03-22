@@ -18,9 +18,7 @@ import com.swmansion.enriched.markdown.input.styles.UnderlineStyleHandler
  */
 interface MarkdownSpan
 
-class InputFormatter(
-  private val style: InputFormatterStyle = InputFormatterStyle(),
-) {
+class InputFormatter {
   val handlers: Map<StyleType, StyleHandler> =
     mapOf(
       StyleType.BOLD to BoldStyleHandler(),
@@ -30,23 +28,11 @@ class InputFormatter(
       StyleType.LINK to LinkStyleHandler(),
     )
 
-  private val allSpanClasses: Set<Class<out CharacterStyle>> =
-    handlers.values.flatMap { it.spanClasses() }.toSet()
+  private var style: InputFormatterStyle? = null
 
   fun updateStyle(newStyle: InputFormatterStyle): Boolean {
-    if (style.boldColor == newStyle.boldColor &&
-      style.italicColor == newStyle.italicColor &&
-      style.linkColor == newStyle.linkColor &&
-      style.linkUnderline == newStyle.linkUnderline &&
-      style.syntaxColor == newStyle.syntaxColor
-    ) {
-      return false
-    }
-    style.boldColor = newStyle.boldColor
-    style.italicColor = newStyle.italicColor
-    style.linkColor = newStyle.linkColor
-    style.linkUnderline = newStyle.linkUnderline
-    style.syntaxColor = newStyle.syntaxColor
+    if (newStyle == style) return false
+    style = newStyle
     return true
   }
 
@@ -54,6 +40,8 @@ class InputFormatter(
     spannable: Spannable,
     ranges: List<FormattingRange>,
   ) {
+    val currentStyle = style ?: return
+
     val existingSpans =
       spannable
         .getSpans(0, spannable.length, CharacterStyle::class.java)
@@ -63,7 +51,7 @@ class InputFormatter(
     for (range in ranges) {
       if (range.start >= range.end || range.start < 0 || range.end > spannable.length) continue
       val handler = handlers[range.type] ?: continue
-      val spans = handler.createSpans(range, style)
+      val spans = handler.createSpans(range, currentStyle)
       for (span in spans) {
         desired.add(SpanDescriptor(range.start, range.end, span::class.java))
       }
@@ -96,7 +84,7 @@ class InputFormatter(
             h.spanClasses().any { it == desc.spanClass }
           } ?: continue
         val dummyRange = FormattingRange(handler.styleType, desc.start, desc.end)
-        val newSpans = handler.createSpans(dummyRange, style)
+        val newSpans = handler.createSpans(dummyRange, currentStyle)
         val matchingSpan = newSpans.firstOrNull { it::class.java == desc.spanClass }
         if (matchingSpan != null) {
           spannable.setSpan(

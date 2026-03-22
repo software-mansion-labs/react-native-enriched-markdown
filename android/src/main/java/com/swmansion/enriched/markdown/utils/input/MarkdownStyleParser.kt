@@ -5,39 +5,17 @@ import com.swmansion.enriched.markdown.input.model.InputFormatterStyle
 
 object MarkdownStyleParser {
   fun parse(map: ReadableMap): InputFormatterStyle {
-    val style = InputFormatterStyle()
+    val strongMap = map.getMap("strong")
+    val emMap = map.getMap("em")
+    val linkMap = map.getMap("link")
+    val syntaxMap = map.getMap("syntax")
 
-    if (map.hasKey("strong")) {
-      val strongMap = map.getMap("strong")
-      if (strongMap?.hasKey("color") == true) {
-        style.boldColor = strongMap.getInt("color")
-      }
-    }
-
-    if (map.hasKey("em")) {
-      val emMap = map.getMap("em")
-      if (emMap?.hasKey("color") == true) {
-        style.italicColor = emMap.getInt("color")
-      }
-    }
-
-    if (map.hasKey("link")) {
-      val linkMap = map.getMap("link")
-      if (linkMap?.hasKey("color") == true) {
-        style.linkColor = linkMap.getInt("color")
-      }
-      if (linkMap?.hasKey("underline") == true) {
-        style.linkUnderline = linkMap.getBoolean("underline")
-      }
-    }
-
-    if (map.hasKey("syntax")) {
-      val syntaxMap = map.getMap("syntax")
-      if (syntaxMap?.hasKey("color") == true) {
-        style.syntaxColor = syntaxMap.getInt("color")
-      }
-    }
-
-    return style
+    return InputFormatterStyle(
+      boldColor = if (strongMap?.hasKey("color") == true) strongMap.getInt("color") else null,
+      italicColor = if (emMap?.hasKey("color") == true) emMap.getInt("color") else null,
+      linkColor = linkMap!!.getInt("color"),
+      linkUnderline = linkMap.getBoolean("underline"),
+      syntaxColor = syntaxMap!!.getInt("color"),
+    )
   }
 }

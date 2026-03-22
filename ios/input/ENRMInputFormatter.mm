@@ -70,7 +70,9 @@
 
 @end
 
-@implementation ENRMInputFormatter
+@implementation ENRMInputFormatter {
+  NSDictionary<NSNumber *, id<ENRMStyleHandler>> *_styleHandlers;
+}
 
 - (instancetype)init
 {
@@ -89,6 +91,11 @@
     _styleHandlers = [map copy];
   }
   return self;
+}
+
+- (nullable id<ENRMStyleHandler>)handlerForStyleType:(ENRMInputStyleType)type
+{
+  return _styleHandlers[@(type)];
 }
 
 - (void)applyFormattingRanges:(NSArray<ENRMFormattingRange *> *)ranges

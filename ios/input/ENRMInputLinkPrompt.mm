@@ -3,11 +3,11 @@
 // TODO: Wrap all user-facing strings with NSLocalizedString for localization support.
 void ENRMShowLinkPrompt(RCTUIView *sourceView, NSString *existingURL, void (^completion)(NSString *url))
 {
-#if !TARGET_OS_OSX
   BOOL isEditing = existingURL.length > 0;
   NSString *title = isEditing ? @"Edit Link" : @"Add Link";
   NSString *buttonTitle = isEditing ? @"Update" : @"Add";
 
+#if !TARGET_OS_OSX
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                  message:nil
                                                           preferredStyle:UIAlertControllerStyleAlert];
@@ -37,10 +37,6 @@ void ENRMShowLinkPrompt(RCTUIView *sourceView, NSString *existingURL, void (^com
   }
   [presenter presentViewController:alert animated:YES completion:nil];
 #else
-  BOOL isEditing = existingURL.length > 0;
-  NSString *title = isEditing ? @"Edit Link" : @"Add Link";
-  NSString *buttonTitle = isEditing ? @"Update" : @"Add";
-
   NSAlert *alert = [[NSAlert alloc] init];
   alert.messageText = title;
   alert.informativeText = @"Enter the URL for the link.";

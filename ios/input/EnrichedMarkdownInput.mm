@@ -32,6 +32,7 @@ using namespace facebook::react;
 - (void)setupTextView;
 - (void)applyFormatting;
 - (void)toggleInlineStyle:(ENRMInputStyleType)styleType;
+- (void)resetBaseTypingAttributes;
 @end
 
 @implementation EnrichedMarkdownInput {
@@ -245,10 +246,7 @@ using namespace facebook::react;
   if (styleChanged) {
     _placeholderLabel.font = _formatterStyle.baseFont;
 
-    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
-    attrs[NSFontAttributeName] = _formatterStyle.baseFont;
-    attrs[NSForegroundColorAttributeName] = _formatterStyle.baseTextColor;
-    _textView.typingAttributes = attrs;
+    [self resetBaseTypingAttributes];
 
     if (_formattingStore.allRanges.count > 0) {
       [self applyFormatting];
@@ -318,10 +316,7 @@ using namespace facebook::react;
   if (previousTraitCollection.preferredContentSizeCategory != self.traitCollection.preferredContentSizeCategory) {
     [_formatterStyle invalidateFontCache];
 
-    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
-    attrs[NSFontAttributeName] = _formatterStyle.baseFont;
-    attrs[NSForegroundColorAttributeName] = _formatterStyle.baseTextColor;
-    _textView.typingAttributes = attrs;
+    [self resetBaseTypingAttributes];
 
     _placeholderLabel.font = _formatterStyle.baseFont;
 
@@ -401,6 +396,14 @@ using namespace facebook::react;
 
 #pragma mark - Formatting
 
+- (void)resetBaseTypingAttributes
+{
+  _textView.typingAttributes = @{
+    NSFontAttributeName : _formatterStyle.baseFont,
+    NSForegroundColorAttributeName : _formatterStyle.baseTextColor,
+  };
+}
+
 - (void)applyFormatting
 {
   if (_isApplyingFormatting) {
@@ -476,7 +479,7 @@ using namespace facebook::react;
 
 - (void)toggleInlineStyle:(ENRMInputStyleType)styleType
 {
-  id<ENRMStyleHandler> handler = _formatter.styleHandlers[@(styleType)];
+  id<ENRMStyleHandler> handler = [_formatter handlerForStyleType:styleType];
   if (!handler) {
     return;
   }
@@ -810,10 +813,7 @@ using namespace facebook::react;
 
 #if !TARGET_OS_OSX
   if (newLength == 0) {
-    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
-    attrs[NSFontAttributeName] = _formatterStyle.baseFont;
-    attrs[NSForegroundColorAttributeName] = _formatterStyle.baseTextColor;
-    _textView.typingAttributes = attrs;
+    [self resetBaseTypingAttributes];
   }
 #endif
 

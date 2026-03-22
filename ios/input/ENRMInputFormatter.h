@@ -30,7 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ENRMInputFormatter : NSObject
 
-@property (nonatomic, strong, readonly) NSDictionary<NSNumber *, id<ENRMStyleHandler>> *styleHandlers;
+- (nullable id<ENRMStyleHandler>)handlerForStyleType:(ENRMInputStyleType)type;
 
 - (void)applyFormattingRanges:(NSArray<ENRMFormattingRange *> *)ranges
                    toTextView:(ENRMPlatformTextView *)textView

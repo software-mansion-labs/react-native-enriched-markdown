@@ -6,10 +6,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EnrichedMarkdownInput : RCTViewComponentView {
-@public
-  BOOL blockEmitting;
-}
+@interface EnrichedMarkdownInput : RCTViewComponentView
+@property (nonatomic, assign) BOOL blockEmitting;
 - (CGSize)measureSize:(CGFloat)maxWidth;
 - (nullable NSString *)markdownForSelectedRange;
 - (void)pasteMarkdown:(NSString *)markdown;

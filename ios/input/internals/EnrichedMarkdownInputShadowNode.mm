@@ -36,7 +36,7 @@ id EnrichedMarkdownInputShadowNode::setupMockInputView_(CGFloat width) const
 {
   EnrichedMarkdownInput *mockView = [[EnrichedMarkdownInput alloc] initWithFrame:CGRectMake(20000, 20000, width, 1000)];
 
-  mockView->blockEmitting = YES;
+  mockView.blockEmitting = YES;
 
   const auto props = this->getProps();
   [mockView updateProps:props oldProps:nullptr];

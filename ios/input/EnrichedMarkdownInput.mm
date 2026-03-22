@@ -79,7 +79,7 @@ using namespace facebook::react;
     _props = defaultProps;
 
     self.backgroundColor = [RCTUIColor clearColor];
-    blockEmitting = NO;
+    _blockEmitting = NO;
     _heightUpdateCounter = 0;
     _formatter = [[ENRMInputFormatter alloc] init];
     _formatterStyle = [[ENRMInputFormatterStyle alloc] init];
@@ -337,7 +337,7 @@ using namespace facebook::react;
   ENRMInputParser *parser = [[ENRMInputParser alloc] init];
   ENRMParseResult *parsed = [parser parseToPlainTextAndRanges:markdown];
 
-  blockEmitting = YES;
+  _blockEmitting = YES;
 
   _isApplyingFormatting = YES;
   ENRMSetPlainText(_textView, parsed.plainText);
@@ -348,7 +348,7 @@ using namespace facebook::react;
   [self applyFormatting];
   [self updatePlaceholderVisibility];
 
-  blockEmitting = NO;
+  _blockEmitting = NO;
 }
 
 - (void)pasteMarkdown:(NSString *)markdown
@@ -660,7 +660,7 @@ using namespace facebook::react;
 
 - (std::shared_ptr<EnrichedMarkdownInputEventEmitter const>)getEventEmitter
 {
-  if (_eventEmitter == nullptr || blockEmitting) {
+  if (_eventEmitter == nullptr || _blockEmitting) {
     return nullptr;
   }
   return std::static_pointer_cast<EnrichedMarkdownInputEventEmitter const>(_eventEmitter);

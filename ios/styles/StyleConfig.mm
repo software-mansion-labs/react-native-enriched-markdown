@@ -1463,7 +1463,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   return _imageResponsive;
 }
 
-- (void)setImageNaturalSize:(BOOL)newValue
+- (void)setImageResponsive:(BOOL)newValue
 {
   _imageResponsive = newValue;
 }

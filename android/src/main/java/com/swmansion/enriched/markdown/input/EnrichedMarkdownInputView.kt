@@ -1,0 +1,453 @@
+package com.swmansion.enriched.markdown.input
+
+import android.content.Context
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
+import android.graphics.Color
+import android.os.Build
+import android.text.Editable
+import android.text.InputType
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View.OnFocusChangeListener
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.widget.AppCompatEditText
+import com.facebook.react.common.ReactConstants
+import com.facebook.react.uimanager.BackgroundStyleApplicator
+import com.facebook.react.uimanager.PixelUtil
+import com.facebook.react.uimanager.StateWrapper
+import com.facebook.react.views.text.ReactTypefaceUtils
+import com.swmansion.enriched.markdown.input.model.FormattingRange
+import com.swmansion.enriched.markdown.input.model.StyleType
+import com.swmansion.enriched.markdown.utils.input.AutoCapitalizeUtils
+import kotlin.math.ceil
+
+class EnrichedMarkdownInputView(
+  context: Context,
+) : AppCompatEditText(context) {
+  private var isComponentReady = false
+
+  val formattingStore = FormattingStore()
+  val formatter = InputFormatter()
+  val pendingStyles = mutableSetOf<StyleType>()
+  val pendingStyleRemovals = mutableSetOf<StyleType>()
+
+  var isDuringTransaction = false
+    private set
+
+  var blockEmitting = false
+
+  private var isTextChanging = false
+  var isProcessingTextChange = false
+    private set
+  private var didTextChangeRecently = false
+  private var lastProcessedText: String = ""
+  private var preEditSelectionStart = 0
+  private var preEditSelectionEnd = 0
+
+  var emitMarkdown = false
+  var autoFocusRequested = false
+  var stateWrapper: StateWrapper? = null
+  val layoutManager = InputLayoutManager(this)
+
+  private var typefaceDirty = false
+  private var fontFamilyValue: String? = null
+  private var fontWeightValue: Int = ReactConstants.UNSET
+
+  val contextMenu = InputContextMenu(this)
+  val eventEmitter = InputEventEmitter(this)
+
+  private var textWatcher: MarkdownTextWatcher? = null
+  private var inputMethodManager: InputMethodManager? = null
+  private var detectScrollMovement = false
+  var scrollEnabled: Boolean = true
+
+  init {
+    prepareComponent()
+    isComponentReady = true
+  }
+
+  private fun prepareComponent() {
+    isSingleLine = false
+    isHorizontalScrollBarEnabled = false
+    isVerticalScrollBarEnabled = true
+    inputType = InputType.TYPE_CLASS_TEXT or
+      InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+      InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or
+      InputType.TYPE_TEXT_FLAG_AUTO_CORRECT
+    gravity = Gravity.TOP or Gravity.START
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      breakStrategy = android.graphics.text.LineBreaker.BREAK_STRATEGY_HIGH_QUALITY
+    }
+
+    setEditableFactory(MarkdownEditableFactory(this))
+    setPadding(0, 0, 0, 0)
+    background = null
+    BackgroundStyleApplicator.setBackgroundColor(this, Color.TRANSPARENT)
+    contextMenu.install()
+
+    inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+
+    onFocusChangeListener =
+      OnFocusChangeListener { _, hasFocus ->
+        if (hasFocus) {
+          eventEmitter.emitFocus()
+        } else {
+          eventEmitter.emitBlur()
+        }
+      }
+  }
+
+  // region Lifecycle overrides
+
+  override fun onAttachedToWindow() {
+    super.onAttachedToWindow()
+    runAsATransaction { super.setTextIsSelectable(true) }
+  }
+
+  override fun clearFocus() {
+    super.clearFocus()
+    inputMethodManager?.hideSoftInputFromWindow(windowToken, 0)
+  }
+
+  override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? {
+    val base = super.onCreateInputConnection(outAttrs) ?: return null
+    return InputConnectionWrapper(base, this)
+  }
+
+  // Prevents TextView from deferring its internal layout when a Fabric
+  // state-update (height change) triggers requestLayout(). Without this
+  // override the deferred relayout causes a visible flicker of styled spans.
+  // See: ReactEditText in React Native core.
+  override fun isLayoutRequested(): Boolean = false
+
+  // endregion
+
+  // region Scroll touch interception
+
+  override fun onTouchEvent(ev: MotionEvent): Boolean {
+    when (ev.action) {
+      MotionEvent.ACTION_DOWN -> {
+        detectScrollMovement = true
+        parent?.requestDisallowInterceptTouchEvent(true)
+      }
+
+      MotionEvent.ACTION_MOVE -> {
+        if (detectScrollMovement) {
+          if (!canScrollVertically(-1) && !canScrollVertically(1) &&
+            !canScrollHorizontally(-1) && !canScrollHorizontally(1)
+          ) {
+            parent?.requestDisallowInterceptTouchEvent(false)
+          }
+          detectScrollMovement = false
+        }
+      }
+    }
+    return super.onTouchEvent(ev)
+  }
+
+  override fun canScrollVertically(direction: Int): Boolean = scrollEnabled && super.canScrollVertically(direction)
+
+  override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled && super.canScrollHorizontally(direction)
+
+  // endregion
+
+  fun attachTextWatcher(editable: Editable) {
+    if (textWatcher != null) {
+      editable.removeSpan(textWatcher)
+    }
+    textWatcher = MarkdownTextWatcher(this)
+    addTextChangedListener(textWatcher)
+  }
+
+  fun runAsATransaction(block: () -> Unit) {
+    try {
+      isDuringTransaction = true
+      block()
+    } finally {
+      isDuringTransaction = false
+    }
+  }
+
+  fun onBeforeTextChanged(
+    start: Int,
+    count: Int,
+    after: Int,
+  ) {
+    if (isProcessingTextChange) return
+    isTextChanging = true
+    preEditSelectionStart = selectionStart
+    preEditSelectionEnd = selectionEnd
+  }
+
+  fun onAfterTextChanged(
+    editStart: Int,
+    deletedLength: Int,
+    insertedLength: Int,
+  ) {
+    if (isProcessingTextChange) return
+
+    val currentText = text?.toString() ?: ""
+    if (currentText == lastProcessedText) return
+
+    isProcessingTextChange = true
+    try {
+      formattingStore.adjustForEdit(editStart, deletedLength, insertedLength)
+      applyPendingStyles(editStart, insertedLength)
+      applyFormatting()
+      forceScrollToSelection()
+      eventEmitter.emitChangeText()
+      if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+      isTextChanging = false
+      didTextChangeRecently = true
+      lastProcessedText = currentText
+    } finally {
+      isProcessingTextChange = false
+    }
+  }
+
+  override fun onSelectionChanged(
+    selStart: Int,
+    selEnd: Int,
+  ) {
+    super.onSelectionChanged(selStart, selEnd)
+    if (!isComponentReady || isDuringTransaction) return
+
+    if (isTextChanging) {
+      // Selection moved during text change — ignore.
+    } else if (didTextChangeRecently) {
+      didTextChangeRecently = false
+    } else {
+      pendingStyles.clear()
+      pendingStyleRemovals.clear()
+    }
+
+    eventEmitter.emitSelection(selStart, selEnd)
+    eventEmitter.emitState()
+  }
+
+  private fun applyPendingStyles(
+    editStart: Int,
+    insertedLength: Int,
+  ) {
+    if (insertedLength == 0) return
+    if (pendingStyles.isEmpty() && pendingStyleRemovals.isEmpty()) return
+
+    val editLocation =
+      if (preEditSelectionStart != preEditSelectionEnd) {
+        preEditSelectionStart
+      } else {
+        editStart
+      }
+    val rangeStart = editLocation
+    val rangeEnd = editLocation + insertedLength
+
+    for (style in pendingStyles) {
+      formattingStore.addRange(FormattingRange(style, rangeStart, rangeEnd))
+    }
+
+    for (style in pendingStyleRemovals) {
+      formattingStore.removeType(style, rangeStart, rangeEnd)
+    }
+  }
+
+  fun applyFormatting() {
+    val editable = text ?: return
+    formatter.applyFormatting(editable, formattingStore.allRanges)
+  }
+
+  private fun forceScrollToSelection() {
+    val textLayout = layout ?: return
+    val cursorOffset = selectionStart
+    if (cursorOffset <= 0) return
+
+    val selectedLineIndex = textLayout.getLineForOffset(cursorOffset)
+    val selectedLineTop = textLayout.getLineTop(selectedLineIndex)
+    val selectedLineBottom = textLayout.getLineBottom(selectedLineIndex)
+    val visibleTextHeight = height - paddingTop - paddingBottom
+    if (visibleTextHeight <= 0) return
+
+    val visibleTop = scrollY
+    val visibleBottom = scrollY + visibleTextHeight
+    var targetScrollY = scrollY
+
+    if (selectedLineTop < visibleTop) {
+      targetScrollY = selectedLineTop
+    } else if (selectedLineBottom > visibleBottom) {
+      targetScrollY = selectedLineBottom - visibleTextHeight
+    }
+
+    val maxScrollY = (textLayout.height - visibleTextHeight).coerceAtLeast(0)
+    targetScrollY = targetScrollY.coerceIn(0, maxScrollY)
+    scrollTo(scrollX, targetScrollY)
+  }
+
+  fun toggleInlineStyle(styleType: StyleType) {
+    val handler = formatter.handlers[styleType] ?: return
+    val mergingConfig = handler.mergingConfig
+
+    val selStart = selectionStart
+    val selEnd = selectionEnd
+
+    // Check blocking rules: if any blocking style is active, refuse to toggle on.
+    if (mergingConfig.blockingStyles.isNotEmpty()) {
+      val isCurrentlyActive = formattingStore.isStyleActive(styleType, selStart)
+      if (!isCurrentlyActive) {
+        for (blocker in mergingConfig.blockingStyles) {
+          if (formattingStore.isStyleActive(blocker, selStart)) {
+            return
+          }
+        }
+      }
+    }
+
+    if (selStart == selEnd) {
+      if (pendingStyleRemovals.contains(styleType)) {
+        pendingStyleRemovals.remove(styleType)
+        pendingStyles.add(styleType)
+      } else if (pendingStyles.contains(styleType)) {
+        pendingStyles.remove(styleType)
+        pendingStyleRemovals.add(styleType)
+      } else if (formattingStore.isStyleActive(styleType, selStart)) {
+        pendingStyleRemovals.add(styleType)
+      } else {
+        pendingStyles.add(styleType)
+      }
+      eventEmitter.emitState()
+    } else {
+      val isActive = formattingStore.isStyleActive(styleType, selStart)
+      if (isActive) {
+        formattingStore.removeType(styleType, selStart, selEnd)
+      } else {
+        // Remove conflicting styles from the range before applying.
+        for (conflict in mergingConfig.conflictingStyles) {
+          formattingStore.removeType(conflict, selStart, selEnd)
+        }
+        formattingStore.addRange(FormattingRange(styleType, selStart, selEnd))
+      }
+      applyFormatting()
+      forceScrollToSelection()
+      if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+      eventEmitter.emitState()
+    }
+  }
+
+  fun setLinkForSelection(url: String) {
+    val selStart = selectionStart
+    val selEnd = selectionEnd
+    if (selStart == selEnd) return
+
+    formattingStore.addRange(FormattingRange(StyleType.LINK, selStart, selEnd, url))
+    applyFormatting()
+    forceScrollToSelection()
+    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+    eventEmitter.emitState()
+  }
+
+  fun removeLinkAtCursor() {
+    val pos = selectionStart
+    val linkRange = formattingStore.rangeOfType(StyleType.LINK, pos) ?: return
+    formattingStore.removeRange(linkRange)
+    applyFormatting()
+    forceScrollToSelection()
+    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+    eventEmitter.emitState()
+  }
+
+  fun setValueFromJS(markdown: String) {
+    val parsed = InputParser.parseToPlainTextAndRanges(markdown)
+    blockEmitting = true
+    runAsATransaction {
+      formattingStore.clearAll()
+      formattingStore.setRanges(parsed.formattingRanges)
+      setText(parsed.plainText)
+      setSelection(text?.length ?: 0)
+    }
+    applyFormatting()
+    forceScrollToSelection()
+    layoutManager.invalidateLayout()
+    lastProcessedText = text?.toString() ?: ""
+    blockEmitting = false
+  }
+
+  override fun setBackgroundColor(color: Int) {
+    BackgroundStyleApplicator.setBackgroundColor(this, color)
+  }
+
+  fun setFontSizeFromProps(size: Float) {
+    if (size <= 0f) return
+    val sizePx = ceil(PixelUtil.toPixelFromSP(size))
+    setTextSize(TypedValue.COMPLEX_UNIT_PX, sizePx)
+    layoutManager.invalidateLayout()
+  }
+
+  fun setColorFromProps(colorInt: Int?) {
+    setTextColor(colorInt ?: Color.BLACK)
+  }
+
+  fun setCursorColorFromProps(colorInt: Int?) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      val cursorDrawable = textCursorDrawable ?: return
+      if (colorInt != null) {
+        cursorDrawable.colorFilter = BlendModeColorFilter(colorInt, BlendMode.SRC_IN)
+      } else {
+        cursorDrawable.clearColorFilter()
+      }
+      textCursorDrawable = cursorDrawable
+    }
+  }
+
+  fun setFontFamily(family: String?) {
+    if (family != fontFamilyValue) {
+      fontFamilyValue = family
+      typefaceDirty = true
+    }
+  }
+
+  fun setFontWeight(weight: String?) {
+    val parsed = ReactTypefaceUtils.parseFontWeight(weight)
+    if (parsed != fontWeightValue) {
+      fontWeightValue = parsed
+      typefaceDirty = true
+    }
+  }
+
+  private fun updateTypeface() {
+    if (!typefaceDirty) return
+    typefaceDirty = false
+
+    val newTypeface =
+      ReactTypefaceUtils.applyStyles(
+        typeface,
+        ReactConstants.UNSET,
+        fontWeightValue,
+        fontFamilyValue,
+        context.assets,
+      )
+    typeface = newTypeface
+    paint.typeface = newTypeface
+    layoutManager.invalidateLayout()
+  }
+
+  fun setAutoCapitalize(flagName: String?) {
+    AutoCapitalizeUtils.apply(this, flagName)
+  }
+
+  fun requestFocusProgrammatically() {
+    requestFocus()
+    inputMethodManager?.showSoftInput(this, 0)
+    setSelection(selectionStart.coerceAtLeast(0))
+  }
+
+  fun afterUpdateTransaction() {
+    updateTypeface()
+    if (autoFocusRequested) {
+      autoFocusRequested = false
+      requestFocusProgrammatically()
+    }
+  }
+}

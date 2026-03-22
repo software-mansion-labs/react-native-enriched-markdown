@@ -1,0 +1,104 @@
+#pragma once
+
+#import "ENRMInputFormatter.h"
+#import "ENRMUIKit.h"
+#import "FontUtils.h"
+#import <React/RCTConversions.h>
+
+#if !TARGET_OS_OSX
+static inline UITextAutocapitalizationType ENRMAutocapitalizationTypeFromString(NSString *value)
+{
+  if ([value isEqualToString:@"none"])
+    return UITextAutocapitalizationTypeNone;
+  if ([value isEqualToString:@"words"])
+    return UITextAutocapitalizationTypeWords;
+  if ([value isEqualToString:@"characters"])
+    return UITextAutocapitalizationTypeAllCharacters;
+  return UITextAutocapitalizationTypeSentences;
+}
+#endif
+
+template <typename InputProps>
+BOOL applyInputStyleProps(ENRMInputFormatterStyle *style, const InputProps &newProps, const InputProps &oldProps)
+{
+  BOOL changed = NO;
+
+  if (newProps.fontSize != oldProps.fontSize) {
+    CGFloat fontSize = newProps.fontSize > 0 ? newProps.fontSize : 16.0;
+    style.baseFont = [style.baseFont fontWithSize:fontSize];
+    changed = YES;
+  }
+
+  if (newProps.fontWeight != oldProps.fontWeight) {
+    CGFloat fontSize = style.baseFont.pointSize;
+    if (!newProps.fontWeight.empty()) {
+      NSString *weightString = [NSString stringWithUTF8String:newProps.fontWeight.c_str()];
+      UIFontWeight weight = ENRMFontWeightFromString(weightString);
+      style.baseFont = [UIFont systemFontOfSize:fontSize weight:weight];
+    } else {
+      style.baseFont = [UIFont systemFontOfSize:fontSize];
+    }
+    changed = YES;
+  }
+
+  if (newProps.fontFamily != oldProps.fontFamily) {
+    if (!newProps.fontFamily.empty()) {
+      NSString *familyName = [NSString stringWithUTF8String:newProps.fontFamily.c_str()];
+      UIFont *customFont = [UIFont fontWithName:familyName size:style.baseFont.pointSize];
+      if (customFont) {
+        style.baseFont = customFont;
+      }
+    } else {
+      style.baseFont = [UIFont systemFontOfSize:style.baseFont.pointSize];
+    }
+    changed = YES;
+  }
+
+  if (newProps.color != oldProps.color) {
+    if (isColorMeaningful(newProps.color)) {
+      style.baseTextColor = RCTUIColorFromSharedColor(newProps.color);
+    } else {
+      style.baseTextColor = [RCTUIColor labelColor];
+    }
+    changed = YES;
+  }
+
+  if (newProps.markdownStyle.strong.color != oldProps.markdownStyle.strong.color) {
+    if (isColorMeaningful(newProps.markdownStyle.strong.color)) {
+      style.boldColor = RCTUIColorFromSharedColor(newProps.markdownStyle.strong.color);
+    } else {
+      style.boldColor = nil;
+    }
+    changed = YES;
+  }
+
+  if (newProps.markdownStyle.em.color != oldProps.markdownStyle.em.color) {
+    if (isColorMeaningful(newProps.markdownStyle.em.color)) {
+      style.italicColor = RCTUIColorFromSharedColor(newProps.markdownStyle.em.color);
+    } else {
+      style.italicColor = nil;
+    }
+    changed = YES;
+  }
+
+  if (newProps.markdownStyle.link.color != oldProps.markdownStyle.link.color) {
+    if (isColorMeaningful(newProps.markdownStyle.link.color)) {
+      style.linkColor = RCTUIColorFromSharedColor(newProps.markdownStyle.link.color);
+    }
+    changed = YES;
+  }
+
+  if (newProps.markdownStyle.link.underline != oldProps.markdownStyle.link.underline) {
+    style.linkUnderline = newProps.markdownStyle.link.underline;
+    changed = YES;
+  }
+
+  if (newProps.markdownStyle.syntax.color != oldProps.markdownStyle.syntax.color) {
+    if (isColorMeaningful(newProps.markdownStyle.syntax.color)) {
+      style.syntaxColor = RCTUIColorFromSharedColor(newProps.markdownStyle.syntax.color);
+    }
+    changed = YES;
+  }
+
+  return changed;
+}

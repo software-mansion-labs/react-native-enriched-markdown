@@ -26,7 +26,7 @@ Pod::Spec.new do |s|
   end
 
   s.pod_target_xcconfig = {
-    'HEADER_SEARCH_PATHS' => '"$(PODS_TARGET_SRCROOT)/cpp/md4c" "$(PODS_TARGET_SRCROOT)/cpp/parser" "$(PODS_TARGET_SRCROOT)/ios/internals"',
+    'HEADER_SEARCH_PATHS' => '"$(PODS_TARGET_SRCROOT)/cpp/md4c" "$(PODS_TARGET_SRCROOT)/cpp/parser" "$(PODS_TARGET_SRCROOT)/ios/internals" "$(PODS_TARGET_SRCROOT)/ios/input/internals"',
     'GCC_PREPROCESSOR_DEFINITIONS' => preprocessor_defs,
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17'
   }

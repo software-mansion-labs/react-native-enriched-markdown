@@ -18,6 +18,11 @@ extern UIFont *cachedFontFromBlockStyle(BlockStyle *blockStyle, RenderContext *c
  *  @param maxFontSizeMultiplier Values >= 1.0 cap the result, < 1.0 means no cap. */
 extern CGFloat RCTFontSizeMultiplierWithMax(CGFloat maxFontSizeMultiplier);
 
+/** Converts a CSS-style font weight string to a UIFontWeight constant.
+ *  Supports: "bold"/"700", "semibold"/"600", "medium"/"500", "light"/"300".
+ *  Returns UIFontWeightRegular for unrecognised or nil input. */
+extern UIFontWeight ENRMFontWeightFromString(NSString *_Nullable weightString);
+
 #ifdef __cplusplus
 }
 #endif

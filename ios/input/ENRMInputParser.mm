@@ -5,7 +5,16 @@
 #include <string>
 #include <vector>
 
+@interface ENRMParseResult ()
+@property (nonatomic, strong, readwrite) NSString *plainText;
+@property (nonatomic, strong, readwrite) NSArray<ENRMFormattingRange *> *formattingRanges;
+@end
+
 @implementation ENRMParseResult
+@end
+
+@interface ENRMInputParser ()
+- (NSArray<ENRMInputStyledRange *> *)parse:(NSString *)markdown;
 @end
 
 namespace {

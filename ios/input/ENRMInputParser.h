@@ -7,8 +7,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ENRMParseResult : NSObject
-@property (nonatomic, strong) NSString *plainText;
-@property (nonatomic, strong) NSArray<ENRMFormattingRange *> *formattingRanges;
+@property (nonatomic, strong, readonly) NSString *plainText;
+@property (nonatomic, strong, readonly) NSArray<ENRMFormattingRange *> *formattingRanges;
 @end
 
 @interface ENRMInputParser : NSObject

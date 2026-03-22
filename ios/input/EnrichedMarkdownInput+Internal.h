@@ -12,8 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)toggleStrikethrough;
 - (void)showLinkPrompt;
 
-- (nullable NSString *)markdownForSelectedRange;
-
 @end
 
 NS_ASSUME_NONNULL_END

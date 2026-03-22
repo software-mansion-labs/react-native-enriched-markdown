@@ -25,7 +25,7 @@ object InputParser {
     val plainText = StringBuilder()
     val ranges = mutableListOf<FormattingRange>()
 
-    walkNode(ast, plainText, ranges, emptyList())
+    walkNode(ast, plainText, ranges, ArrayDeque())
 
     return ParseResult(plainText.toString(), ranges)
   }
@@ -34,17 +34,14 @@ object InputParser {
     node: MarkdownASTNode,
     plainText: StringBuilder,
     ranges: MutableList<FormattingRange>,
-    activeStyles: List<ActiveStyle>,
+    activeStyles: ArrayDeque<ActiveStyle>,
   ) {
     val styleType = nodeTypeToStyleType(node.type)
 
-    val newActiveStyles =
-      if (styleType != null) {
-        val url = if (styleType == StyleType.LINK) node.getAttribute("href") else null
-        activeStyles + ActiveStyle(styleType, plainText.length, url)
-      } else {
-        activeStyles
-      }
+    if (styleType != null) {
+      val url = if (styleType == StyleType.LINK) node.getAttribute("href") else null
+      activeStyles.addLast(ActiveStyle(styleType, plainText.length, url))
+    }
 
     if (node.type == NodeType.Text) {
       plainText.append(node.content)
@@ -53,15 +50,14 @@ object InputParser {
     }
 
     for (child in node.children) {
-      walkNode(child, plainText, ranges, newActiveStyles)
+      walkNode(child, plainText, ranges, activeStyles)
     }
 
     if (styleType != null) {
-      val activeStyle = newActiveStyles.last()
-      val start = activeStyle.startPosition
+      val activeStyle = activeStyles.removeLast()
       val end = plainText.length
-      if (end > start) {
-        ranges.add(FormattingRange(styleType, start, end, activeStyle.url))
+      if (end > activeStyle.startPosition) {
+        ranges.add(FormattingRange(styleType, activeStyle.startPosition, end, activeStyle.url))
       }
     }
   }

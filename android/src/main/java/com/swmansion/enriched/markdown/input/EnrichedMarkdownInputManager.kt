@@ -71,17 +71,16 @@ class EnrichedMarkdownInputManager :
     return InputMeasurementStore.getMeasureById(context, id, width, height, heightMode, props)
   }
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
-    val map = mutableMapOf<String, Any>()
-    map[OnChangeTextEvent.EVENT_NAME] = mapOf("registrationName" to OnChangeTextEvent.EVENT_NAME)
-    map[OnChangeMarkdownEvent.EVENT_NAME] = mapOf("registrationName" to OnChangeMarkdownEvent.EVENT_NAME)
-    map[OnChangeSelectionEvent.EVENT_NAME] = mapOf("registrationName" to OnChangeSelectionEvent.EVENT_NAME)
-    map[OnChangeStateEvent.EVENT_NAME] = mapOf("registrationName" to OnChangeStateEvent.EVENT_NAME)
-    map[OnRequestMarkdownResultEvent.EVENT_NAME] = mapOf("registrationName" to OnRequestMarkdownResultEvent.EVENT_NAME)
-    map[OnInputFocusEvent.EVENT_NAME] = mapOf("registrationName" to OnInputFocusEvent.EVENT_NAME)
-    map[OnInputBlurEvent.EVENT_NAME] = mapOf("registrationName" to OnInputBlurEvent.EVENT_NAME)
-    return map
-  }
+  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
+    listOf(
+      OnChangeTextEvent.EVENT_NAME,
+      OnChangeMarkdownEvent.EVENT_NAME,
+      OnChangeSelectionEvent.EVENT_NAME,
+      OnChangeStateEvent.EVENT_NAME,
+      OnRequestMarkdownResultEvent.EVENT_NAME,
+      OnInputFocusEvent.EVENT_NAME,
+      OnInputBlurEvent.EVENT_NAME,
+    ).associateWithTo(mutableMapOf()) { name -> mapOf("registrationName" to name) }
 
   // Props
 

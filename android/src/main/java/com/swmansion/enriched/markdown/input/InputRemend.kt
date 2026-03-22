@@ -109,10 +109,5 @@ object InputRemend {
     return markdown + suffix.toString()
   }
 
-  private fun closingFor(entry: String): String {
-    for (pair in DELIMITER_PAIRS) {
-      if (entry == pair.open) return pair.close
-    }
-    return entry
-  }
+  private fun closingFor(entry: String): String = DELIMITER_PAIRS.firstOrNull { it.open == entry }?.close ?: entry
 }

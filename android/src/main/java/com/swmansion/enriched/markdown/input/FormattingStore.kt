@@ -9,8 +9,6 @@ class FormattingStore {
 
   val allRanges: List<FormattingRange> get() = Collections.unmodifiableList(ranges)
 
-  fun rangesOfType(type: StyleType): List<FormattingRange> = ranges.filter { it.type == type }
-
   fun setRanges(newRanges: List<FormattingRange>) {
     ranges.clear()
     ranges.addAll(newRanges.sortedBy { it.start })

@@ -12,9 +12,8 @@ object MarkdownSerializer {
 
     val events = ArrayList<BoundaryEvent>(ranges.size * 2)
     for (range in ranges) {
-      val priority = nestingPriority(range.type)
-      events.add(BoundaryEvent(range.start, true, range.type, priority, range.url))
-      events.add(BoundaryEvent(range.end, false, range.type, priority, range.url))
+      events.add(BoundaryEvent(range.start, true, range.type, range.url))
+      events.add(BoundaryEvent(range.end, false, range.type, range.url))
     }
 
     events.sortWith(BOUNDARY_COMPARATOR)
@@ -79,7 +78,6 @@ object MarkdownSerializer {
     val position: Int,
     val isOpening: Boolean,
     val type: StyleType,
-    val nestingPriority: Int,
     val url: String?,
   )
 
@@ -95,9 +93,9 @@ object MarkdownSerializer {
       // Among openings: outer first (lower priority emitted first)
       // Among closings: inner first (higher priority emitted first) — LIFO order
       if (a.isOpening) {
-        a.nestingPriority - b.nestingPriority
+        nestingPriority(a.type) - nestingPriority(b.type)
       } else {
-        b.nestingPriority - a.nestingPriority
+        nestingPriority(b.type) - nestingPriority(a.type)
       }
     }
 }

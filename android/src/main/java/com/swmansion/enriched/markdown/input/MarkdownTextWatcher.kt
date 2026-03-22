@@ -20,7 +20,7 @@ class MarkdownTextWatcher(
     editStart = start
     deletedLength = count
     insertedLength = after
-    view.onBeforeTextChanged(start, count, after)
+    view.onBeforeTextChanged()
   }
 
   override fun onTextChanged(

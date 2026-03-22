@@ -16,10 +16,8 @@ class InputLayoutManager(
     val needUpdate = InputMeasurementStore.store(view.id, text, paint)
     if (!needUpdate) return
 
-    val counter = forceHeightRecalculationCounter
-    forceHeightRecalculationCounter++
     val state = Arguments.createMap()
-    state.putInt("forceHeightRecalculationCounter", counter)
+    state.putInt("forceHeightRecalculationCounter", forceHeightRecalculationCounter++)
     view.stateWrapper?.updateState(state)
   }
 

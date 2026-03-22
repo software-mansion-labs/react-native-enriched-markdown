@@ -18,7 +18,6 @@ object InputMeasurementStore {
   )
 
   private data class MeasurementParams(
-    val initialized: Boolean,
     val cachedWidth: Float,
     val cachedSize: Long,
     val text: CharSequence?,
@@ -38,7 +37,7 @@ object InputMeasurementStore {
     val size = measure(cachedWidth, text, paint)
     val paintParams = PaintParams(paint.typeface, paint.textSize)
 
-    data[id] = MeasurementParams(true, cachedWidth, size, text, paintParams)
+    data[id] = MeasurementParams(cachedWidth, size, text, paintParams)
     return size != cachedSize
   }
 
@@ -73,7 +72,6 @@ object InputMeasurementStore {
   ): Long {
     if (id == null) return initialMeasure(context, width, props)
     val value = data[id] ?: return initialMeasure(context, width, props)
-    if (!value.initialized) return initialMeasure(context, width, props)
 
     if (width == value.cachedWidth) {
       return value.cachedSize
@@ -86,7 +84,7 @@ object InputMeasurementStore {
       }
 
     val size = measure(width, value.text, paint)
-    data[id] = MeasurementParams(true, width, size, value.text, value.paintParams)
+    data[id] = MeasurementParams(width, size, value.text, value.paintParams)
     return size
   }
 

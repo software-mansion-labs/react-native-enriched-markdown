@@ -165,11 +165,7 @@ class EnrichedMarkdownInputView(
     }
   }
 
-  fun onBeforeTextChanged(
-    start: Int,
-    count: Int,
-    after: Int,
-  ) {
+  fun onBeforeTextChanged() {
     if (isProcessingTextChange) return
     isTextChanging = true
     preEditSelectionStart = selectionStart
@@ -209,13 +205,13 @@ class EnrichedMarkdownInputView(
     super.onSelectionChanged(selStart, selEnd)
     if (!isComponentReady || isDuringTransaction) return
 
-    if (isTextChanging) {
-      // Selection moved during text change — ignore.
-    } else if (didTextChangeRecently) {
-      didTextChangeRecently = false
-    } else {
-      pendingStyles.clear()
-      pendingStyleRemovals.clear()
+    if (!isTextChanging) {
+      if (didTextChangeRecently) {
+        didTextChangeRecently = false
+      } else {
+        pendingStyles.clear()
+        pendingStyleRemovals.clear()
+      }
     }
 
     eventEmitter.emitSelection(selStart, selEnd)
@@ -347,17 +343,20 @@ class EnrichedMarkdownInputView(
   fun setValueFromJS(markdown: String) {
     val parsed = InputParser.parseToPlainTextAndRanges(markdown)
     blockEmitting = true
-    runAsATransaction {
-      formattingStore.clearAll()
-      formattingStore.setRanges(parsed.formattingRanges)
-      setText(parsed.plainText)
-      setSelection(text?.length ?: 0)
+    try {
+      runAsATransaction {
+        formattingStore.clearAll()
+        formattingStore.setRanges(parsed.formattingRanges)
+        setText(parsed.plainText)
+        setSelection(text?.length ?: 0)
+      }
+      applyFormatting()
+      forceScrollToSelection()
+      layoutManager.invalidateLayout()
+      lastProcessedText = text?.toString() ?: ""
+    } finally {
+      blockEmitting = false
     }
-    applyFormatting()
-    forceScrollToSelection()
-    layoutManager.invalidateLayout()
-    lastProcessedText = text?.toString() ?: ""
-    blockEmitting = false
   }
 
   override fun setBackgroundColor(color: Int) {

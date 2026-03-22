@@ -55,12 +55,9 @@ using namespace facebook::react;
   NSRange _lastSelectedRange;
   NSRange _preEditSelectedRange;
 
-  BOOL _prevStateBold;
-  BOOL _prevStateItalic;
-  BOOL _prevStateUnderline;
-  BOOL _prevStateStrikethrough;
-  BOOL _prevStateLink;
-  BOOL _prevStateInitialized;
+  struct {
+    BOOL bold, italic, underline, strikethrough, link, initialized;
+  } _prevState;
 }
 
 #pragma mark - Fabric lifecycle
@@ -717,18 +714,18 @@ using namespace facebook::react;
   BOOL strikethroughActive = [self isEffectiveStyleActive:ENRMInputStyleTypeStrikethrough atPosition:cursor];
   BOOL linkActive = [self isEffectiveStyleActive:ENRMInputStyleTypeLink atPosition:cursor];
 
-  if (_prevStateInitialized && _prevStateBold == boldActive && _prevStateItalic == italicActive &&
-      _prevStateUnderline == underlineActive && _prevStateStrikethrough == strikethroughActive &&
-      _prevStateLink == linkActive) {
+  if (_prevState.initialized && _prevState.bold == boldActive && _prevState.italic == italicActive &&
+      _prevState.underline == underlineActive && _prevState.strikethrough == strikethroughActive &&
+      _prevState.link == linkActive) {
     return;
   }
 
-  _prevStateBold = boldActive;
-  _prevStateItalic = italicActive;
-  _prevStateUnderline = underlineActive;
-  _prevStateStrikethrough = strikethroughActive;
-  _prevStateLink = linkActive;
-  _prevStateInitialized = YES;
+  _prevState.bold = boldActive;
+  _prevState.italic = italicActive;
+  _prevState.underline = underlineActive;
+  _prevState.strikethrough = strikethroughActive;
+  _prevState.link = linkActive;
+  _prevState.initialized = YES;
 
   emitter->onChangeState({
       .bold = {.isActive = boldActive},

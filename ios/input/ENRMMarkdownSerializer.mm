@@ -59,7 +59,6 @@ typedef struct {
   NSUInteger position;
   BOOL isOpening;
   ENRMInputStyleType type;
-  int nestingPriority;
   NSString *__unsafe_unretained url;
 } BoundaryEvent;
 
@@ -77,10 +76,12 @@ static int compareBoundaryEvents(const void *first, const void *second)
   }
   // Among openings: outer first (lower priority emitted first)
   // Among closings: inner first (higher priority emitted first) — LIFO order
+  int priorityA = nestingPriorityForType(eventA->type);
+  int priorityB = nestingPriorityForType(eventB->type);
   if (eventA->isOpening) {
-    return eventA->nestingPriority - eventB->nestingPriority;
+    return priorityA - priorityB;
   } else {
-    return eventB->nestingPriority - eventA->nestingPriority;
+    return priorityB - priorityA;
   }
 }
 
@@ -101,19 +102,16 @@ static int compareBoundaryEvents(const void *first, const void *second)
 
   NSUInteger eventIndex = 0;
   for (ENRMFormattingRange *formattingRange in ranges) {
-    int priority = nestingPriorityForType(formattingRange.type);
     events[eventIndex++] = (BoundaryEvent){
         .position = formattingRange.range.location,
         .isOpening = YES,
         .type = formattingRange.type,
-        .nestingPriority = priority,
         .url = formattingRange.url,
     };
     events[eventIndex++] = (BoundaryEvent){
         .position = NSMaxRange(formattingRange.range),
         .isOpening = NO,
         .type = formattingRange.type,
-        .nestingPriority = priority,
         .url = formattingRange.url,
     };
   }

@@ -131,6 +131,7 @@ static size_t closingDelimiterEndByte(const InlineSpanInfo &span, const char *ut
   return position;
 }
 
+// Reserved for future block-level support (lists, headings, blockquotes, code blocks, etc.)
 static int onEnterBlock(MD_BLOCKTYPE, void *, void *)
 {
   return 0;

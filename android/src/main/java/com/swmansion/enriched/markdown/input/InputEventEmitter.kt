@@ -15,12 +15,7 @@ import com.swmansion.enriched.markdown.input.model.StyleType
 class InputEventEmitter(
   private val view: EnrichedMarkdownInputView,
 ) {
-  private var prevStateBold = false
-  private var prevStateItalic = false
-  private var prevStateUnderline = false
-  private var prevStateStrikethrough = false
-  private var prevStateLink = false
-  private var prevStateInitialized = false
+  private var prevState: Map<StyleType, Boolean> = emptyMap()
 
   fun emitChangeText() {
     val plainText = view.text?.toString() ?: ""
@@ -28,8 +23,7 @@ class InputEventEmitter(
   }
 
   fun emitChangeMarkdown() {
-    val markdown = serializeToMarkdown()
-    dispatch(OnChangeMarkdownEvent(surfaceId(), view.id, markdown))
+    dispatch(OnChangeMarkdownEvent(surfaceId(), view.id, serializeToMarkdown()))
   }
 
   fun emitSelection(
@@ -41,55 +35,25 @@ class InputEventEmitter(
 
   fun emitState() {
     val pos = view.selectionStart
-    val isBold =
-      view.pendingStyles.contains(StyleType.BOLD) ||
-        (
-          !view.pendingStyleRemovals.contains(StyleType.BOLD) &&
-            view.formattingStore.isStyleActive(StyleType.BOLD, pos)
-        )
-    val isItalic =
-      view.pendingStyles.contains(StyleType.ITALIC) ||
-        (
-          !view.pendingStyleRemovals.contains(StyleType.ITALIC) &&
-            view.formattingStore.isStyleActive(StyleType.ITALIC, pos)
-        )
-    val isUnderline =
-      view.pendingStyles.contains(StyleType.UNDERLINE) ||
-        (
-          !view.pendingStyleRemovals.contains(StyleType.UNDERLINE) &&
-            view.formattingStore.isStyleActive(StyleType.UNDERLINE, pos)
-        )
-    val isStrikethrough =
-      view.pendingStyles.contains(StyleType.STRIKETHROUGH) ||
-        (
-          !view.pendingStyleRemovals.contains(StyleType.STRIKETHROUGH) &&
-            view.formattingStore.isStyleActive(StyleType.STRIKETHROUGH, pos)
-        )
-    val isLink =
-      view.pendingStyles.contains(StyleType.LINK) ||
-        (
-          !view.pendingStyleRemovals.contains(StyleType.LINK) &&
-            view.formattingStore.isStyleActive(StyleType.LINK, pos)
-        )
+    val current =
+      StyleType.entries.associateWith { style ->
+        isStyleEffectivelyActive(style, pos)
+      }
 
-    if (prevStateInitialized &&
-      isBold == prevStateBold &&
-      isItalic == prevStateItalic &&
-      isUnderline == prevStateUnderline &&
-      isStrikethrough == prevStateStrikethrough &&
-      isLink == prevStateLink
-    ) {
-      return
-    }
+    if (current == prevState) return
+    prevState = current
 
-    prevStateBold = isBold
-    prevStateItalic = isItalic
-    prevStateUnderline = isUnderline
-    prevStateStrikethrough = isStrikethrough
-    prevStateLink = isLink
-    prevStateInitialized = true
-
-    dispatch(OnChangeStateEvent(surfaceId(), view.id, isBold, isItalic, isUnderline, isStrikethrough, isLink))
+    dispatch(
+      OnChangeStateEvent(
+        surfaceId(),
+        view.id,
+        current[StyleType.BOLD] ?: false,
+        current[StyleType.ITALIC] ?: false,
+        current[StyleType.UNDERLINE] ?: false,
+        current[StyleType.STRIKETHROUGH] ?: false,
+        current[StyleType.LINK] ?: false,
+      ),
+    )
   }
 
   fun emitFocus() {
@@ -101,11 +65,20 @@ class InputEventEmitter(
   }
 
   fun emitRequestMarkdownResult(requestId: Int) {
-    val markdown = serializeToMarkdown()
-    dispatch(OnRequestMarkdownResultEvent(surfaceId(), view.id, requestId, markdown))
+    dispatch(OnRequestMarkdownResultEvent(surfaceId(), view.id, requestId, serializeToMarkdown()))
   }
 
-  fun serializeToMarkdown(): String {
+  private fun isStyleEffectivelyActive(
+    style: StyleType,
+    pos: Int,
+  ): Boolean =
+    view.pendingStyles.contains(style) ||
+      (
+        !view.pendingStyleRemovals.contains(style) &&
+          view.formattingStore.isStyleActive(style, pos)
+      )
+
+  private fun serializeToMarkdown(): String {
     val plainText = view.text?.toString() ?: ""
     return MarkdownSerializer.serialize(plainText, view.formattingStore.allRanges)
   }

@@ -229,14 +229,8 @@ class EnrichedMarkdownInputView(
     if (insertedLength == 0) return
     if (pendingStyles.isEmpty() && pendingStyleRemovals.isEmpty()) return
 
-    val editLocation =
-      if (preEditSelectionStart != preEditSelectionEnd) {
-        preEditSelectionStart
-      } else {
-        editStart
-      }
-    val rangeStart = editLocation
-    val rangeEnd = editLocation + insertedLength
+    val rangeStart = if (preEditSelectionStart != preEditSelectionEnd) preEditSelectionStart else editStart
+    val rangeEnd = rangeStart + insertedLength
 
     for (style in pendingStyles) {
       formattingStore.addRange(FormattingRange(style, rangeStart, rangeEnd))

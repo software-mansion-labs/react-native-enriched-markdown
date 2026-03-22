@@ -7,7 +7,6 @@ import com.swmansion.enriched.markdown.input.model.StyleType
 
 interface StyleHandler {
   val styleType: StyleType
-  val isParagraphStyle: Boolean
   val mergingConfig: StyleMergingConfig
 
   fun createSpans(

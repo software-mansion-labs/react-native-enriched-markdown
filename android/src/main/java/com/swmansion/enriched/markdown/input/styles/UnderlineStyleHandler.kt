@@ -13,7 +13,6 @@ private class MarkdownUnderlineSpan :
 
 class UnderlineStyleHandler : StyleHandler {
   override val styleType = StyleType.UNDERLINE
-  override val isParagraphStyle = false
   override val mergingConfig = StyleMergingConfig()
 
   override fun createSpans(

@@ -20,7 +20,6 @@ private class MarkdownBoldColorSpan(
 
 class BoldStyleHandler : StyleHandler {
   override val styleType = StyleType.BOLD
-  override val isParagraphStyle = false
   override val mergingConfig = StyleMergingConfig()
 
   override fun createSpans(

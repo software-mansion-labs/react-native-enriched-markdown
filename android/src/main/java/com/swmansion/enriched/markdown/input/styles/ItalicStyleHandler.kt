@@ -20,7 +20,6 @@ private class MarkdownItalicColorSpan(
 
 class ItalicStyleHandler : StyleHandler {
   override val styleType = StyleType.ITALIC
-  override val isParagraphStyle = false
   override val mergingConfig = StyleMergingConfig()
 
   override fun createSpans(

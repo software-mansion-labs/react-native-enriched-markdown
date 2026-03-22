@@ -13,7 +13,6 @@ private class MarkdownStrikethroughSpan :
 
 class StrikethroughStyleHandler : StyleHandler {
   override val styleType = StyleType.STRIKETHROUGH
-  override val isParagraphStyle = false
   override val mergingConfig = StyleMergingConfig()
 
   override fun createSpans(

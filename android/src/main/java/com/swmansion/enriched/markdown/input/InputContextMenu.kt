@@ -120,7 +120,7 @@ class InputContextMenu(
       .show()
   }
 
-  fun markdownForSelectedRange(): String? {
+  private fun markdownForSelectedRange(): String? {
     val selStart = view.selectionStart
     val selEnd = view.selectionEnd
     if (selStart >= selEnd) return null

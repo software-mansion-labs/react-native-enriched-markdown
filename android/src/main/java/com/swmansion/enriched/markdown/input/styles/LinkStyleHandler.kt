@@ -19,7 +19,6 @@ private class MarkdownLinkUnderlineSpan :
 
 class LinkStyleHandler : StyleHandler {
   override val styleType = StyleType.LINK
-  override val isParagraphStyle = false
   override val mergingConfig = StyleMergingConfig()
 
   override fun createSpans(

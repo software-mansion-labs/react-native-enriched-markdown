@@ -2,11 +2,12 @@ package com.swmansion.enriched.markdown.input
 
 import com.swmansion.enriched.markdown.input.model.FormattingRange
 import com.swmansion.enriched.markdown.input.model.StyleType
+import java.util.Collections
 
 class FormattingStore {
   private val ranges = mutableListOf<FormattingRange>()
 
-  val allRanges: List<FormattingRange> get() = ranges.toList()
+  val allRanges: List<FormattingRange> get() = Collections.unmodifiableList(ranges)
 
   fun rangesOfType(type: StyleType): List<FormattingRange> = ranges.filter { it.type == type }
 

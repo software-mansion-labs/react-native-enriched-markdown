@@ -12,6 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)toggleStrikethrough;
 - (void)showLinkPrompt;
 
+#if !TARGET_OS_OSX
+- (void)showFormatBar;
+#endif
+
 @end
 
 NS_ASSUME_NONNULL_END

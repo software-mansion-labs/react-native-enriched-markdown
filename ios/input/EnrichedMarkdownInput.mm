@@ -11,6 +11,9 @@
 #import "ENRMStyleMergingConfig.h"
 #import "ENRMUIKit.h"
 #import "InputStylePropsUtils.h"
+#if !TARGET_OS_OSX
+#import "ENRMFormatBar.h"
+#endif
 
 #import <ReactNativeEnrichedMarkdown/EnrichedMarkdownInputComponentDescriptor.h>
 #import <ReactNativeEnrichedMarkdown/EventEmitters.h>
@@ -25,7 +28,7 @@
 using namespace facebook::react;
 
 #if !TARGET_OS_OSX
-@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, UITextViewDelegate>
+@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, UITextViewDelegate, ENRMFormatBarDelegate>
 #else
 @interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, NSTextViewDelegate>
 #endif
@@ -58,6 +61,10 @@ using namespace facebook::react;
   struct {
     BOOL bold, italic, underline, strikethrough, link, initialized;
   } _prevState;
+
+#if !TARGET_OS_OSX
+  ENRMFormatBar *_formatBar;
+#endif
 }
 
 #pragma mark - Fabric lifecycle
@@ -902,6 +909,8 @@ using namespace facebook::react;
 
 - (void)textViewDidEndEditing:(UITextView *)textView
 {
+  [_formatBar dismiss];
+  _formatBar = nil;
   [self emitOnBlur];
 }
 
@@ -916,9 +925,98 @@ using namespace facebook::react;
   [_pendingStyleRemovals removeAllObjects];
 
   [self manageSelectionBasedChanges];
+
+  if (_formatBar && _formatBar.superview) {
+    if (_textView.selectedRange.length == 0) {
+      [_formatBar dismiss];
+      _formatBar = nil;
+    } else {
+      [self updateFormatBar];
+    }
+  }
+
   [self emitOnChangeSelection];
   [self emitOnChangeState];
 }
+
+#pragma mark - Format bar
+
+- (void)showFormatBar
+{
+  if (!_formatBar) {
+    _formatBar = [[ENRMFormatBar alloc] initWithDelegate:self];
+  }
+  [self updateFormatBar];
+}
+
+- (void)updateFormatBar
+{
+  NSRange selection = _textView.selectedRange;
+  if (selection.length == 0) {
+    [_formatBar dismiss];
+    _formatBar = nil;
+    return;
+  }
+
+  UIWindow *window = self.window;
+  if (!window || !_formatBar) {
+    return;
+  }
+
+  UITextPosition *start = [_textView positionFromPosition:_textView.beginningOfDocument
+                                                   offset:(NSInteger)selection.location];
+  UITextPosition *end = start ? [_textView positionFromPosition:start offset:(NSInteger)selection.length] : nil;
+  UITextRange *range = (start && end) ? [_textView textRangeFromPosition:start toPosition:end] : nil;
+  if (!range) {
+    return;
+  }
+  CGRect localRect = [_textView firstRectForRange:range];
+  if (CGRectIsNull(localRect) || CGRectIsInfinite(localRect)) {
+    return;
+  }
+  CGRect windowRect = [_textView convertRect:localRect toView:nil];
+  [_formatBar showAtSelectionRect:windowRect inWindow:window];
+}
+
+- (void)formatBar:(ENRMFormatBar *)bar didSelectAction:(ENRMFormatBarAction)action
+{
+  switch (action) {
+    case ENRMFormatBarActionBold:
+      [self toggleBold];
+      break;
+    case ENRMFormatBarActionItalic:
+      [self toggleItalic];
+      break;
+    case ENRMFormatBarActionUnderline:
+      [self toggleUnderline];
+      break;
+    case ENRMFormatBarActionStrikethrough:
+      [self toggleStrikethrough];
+      break;
+    case ENRMFormatBarActionLink:
+      [self showLinkPrompt];
+      break;
+  }
+  [_formatBar updateActiveStates];
+}
+
+- (BOOL)formatBar:(ENRMFormatBar *)bar isActionActive:(ENRMFormatBarAction)action
+{
+  NSUInteger cursor = _textView.selectedRange.location;
+  switch (action) {
+    case ENRMFormatBarActionBold:
+      return [self isEffectiveStyleActive:ENRMInputStyleTypeStrong atPosition:cursor];
+    case ENRMFormatBarActionItalic:
+      return [self isEffectiveStyleActive:ENRMInputStyleTypeEmphasis atPosition:cursor];
+    case ENRMFormatBarActionUnderline:
+      return [self isEffectiveStyleActive:ENRMInputStyleTypeUnderline atPosition:cursor];
+    case ENRMFormatBarActionStrikethrough:
+      return [self isEffectiveStyleActive:ENRMInputStyleTypeStrikethrough atPosition:cursor];
+    case ENRMFormatBarActionLink:
+      return [self isEffectiveStyleActive:ENRMInputStyleTypeLink atPosition:cursor];
+  }
+}
+
 #else
 - (BOOL)textView:(NSTextView *)textView shouldChangeTextInRange:(NSRange)range replacementString:(NSString *)text
 {

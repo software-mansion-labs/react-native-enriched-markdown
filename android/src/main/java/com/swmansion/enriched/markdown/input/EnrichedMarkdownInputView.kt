@@ -58,6 +58,7 @@ class EnrichedMarkdownInputView(
   private var fontWeightValue: Int = ReactConstants.UNSET
 
   val contextMenu = InputContextMenu(this)
+  val formatBar = FormatBar(this)
   val eventEmitter = InputEventEmitter(this)
 
   private var textWatcher: MarkdownTextWatcher? = null
@@ -97,6 +98,7 @@ class EnrichedMarkdownInputView(
         if (hasFocus) {
           eventEmitter.emitFocus()
         } else {
+          formatBar.dismiss()
           eventEmitter.emitBlur()
         }
       }
@@ -213,6 +215,8 @@ class EnrichedMarkdownInputView(
         pendingStyleRemovals.clear()
       }
     }
+
+    formatBar.onSelectionChanged(selStart, selEnd)
 
     eventEmitter.emitSelection(selStart, selEnd)
     eventEmitter.emitState()
@@ -434,5 +438,38 @@ class EnrichedMarkdownInputView(
       autoFocusRequested = false
       requestFocusProgrammatically()
     }
+  }
+
+  fun applyStyleToRange(
+    styleType: StyleType,
+    start: Int,
+    end: Int,
+  ) {
+    if (start >= end) return
+    val handler = formatter.handlers[styleType] ?: return
+    val isActive = formattingStore.isStyleActive(styleType, start)
+    if (isActive) {
+      formattingStore.removeType(styleType, start, end)
+    } else {
+      for (conflict in handler.mergingConfig.conflictingStyles) {
+        formattingStore.removeType(conflict, start, end)
+      }
+      formattingStore.addRange(FormattingRange(styleType, start, end))
+    }
+    applyFormatting()
+    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+    eventEmitter.emitState()
+  }
+
+  fun applyLinkToRange(
+    url: String,
+    start: Int,
+    end: Int,
+  ) {
+    if (start >= end) return
+    formattingStore.addRange(FormattingRange(StyleType.LINK, start, end, url))
+    applyFormatting()
+    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+    eventEmitter.emitState()
   }
 }

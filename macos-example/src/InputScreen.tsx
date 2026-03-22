@@ -1,125 +1,437 @@
-import { useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native-macos';
+import { useRef, useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+} from 'react-native-macos';
 import {
   EnrichedMarkdownInput,
+  EnrichedMarkdownText,
   type EnrichedMarkdownInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
 
+interface Message {
+  id: number;
+  markdown: string;
+  isOwn: boolean;
+  time: string;
+}
+
+const INITIAL_MESSAGES: Message[] = [
+  {
+    id: 1,
+    markdown: 'Hey! Try out the rich text editor below 👇',
+    isOwn: false,
+    time: '10:51',
+  },
+  {
+    id: 2,
+    markdown:
+      'Sure! It supports **bold**, *italic*, ~~strikethrough~~ and _underline_.',
+    isOwn: true,
+    time: '10:52',
+  },
+  {
+    id: 3,
+    markdown:
+      'You can also add [links](https://github.com) and combine **_bold italic_** styles.',
+    isOwn: true,
+    time: '10:52',
+  },
+  {
+    id: 4,
+    markdown:
+      'The toolbar above the input lets you toggle formatting at the cursor too.',
+    isOwn: true,
+    time: '10:53',
+  },
+];
+
+const MARKDOWN_STYLE = {
+  link: { color: '#2563EB', underline: true },
+};
+
+let nextId = 5;
+
 export default function InputScreen() {
   const inputRef = useRef<EnrichedMarkdownInputInstance>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const [state, setState] = useState<StyleState | null>(null);
-  const [markdown, setMarkdown] = useState('');
-  const [plainText, setPlainText] = useState('');
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+
+  const sendMessage = useCallback(async () => {
+    const md = await inputRef.current?.getMarkdown();
+    if (!md || md.trim().length === 0) return;
+
+    const now = new Date();
+    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: nextId++, markdown: md.trim(), isOwn: true, time },
+    ]);
+
+    inputRef.current?.setValue('');
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+  }, []);
 
   return (
     <View style={styles.container}>
-      <EnrichedMarkdownInput
-        ref={inputRef}
-        defaultValue="Hello **world** and *italic*"
-        style={styles.input}
-        markdownStyle={{
-          link: { color: '#2563EB', underline: true },
-          syntax: { color: '#9CA3AF' },
-        }}
-        onChangeText={setPlainText}
-        onChangeMarkdown={setMarkdown}
-        onChangeState={setState}
-      />
-
-      <View style={styles.toolbar}>
-        <Text
-          style={[
-            styles.toolbarButton,
-            state?.bold.isActive && styles.toolbarButtonActive,
-          ]}
-          onPress={() => inputRef.current?.toggleBold()}
-        >
-          B
-        </Text>
-        <Text
-          style={[
-            styles.toolbarButton,
-            state?.italic.isActive && styles.toolbarButtonActive,
-          ]}
-          onPress={() => inputRef.current?.toggleItalic()}
-        >
-          I
-        </Text>
-        <Text
-          style={[
-            styles.toolbarButton,
-            state?.link.isActive && styles.toolbarButtonActive,
-          ]}
-          onPress={() => {
-            if (state?.link.isActive) {
-              inputRef.current?.removeLink();
-            } else {
-              inputRef.current?.setLink('https://example.com');
-            }
-          }}
-        >
-          Link
-        </Text>
+      <View style={styles.sidebar}>
+        <View style={styles.sidebarHeader}>
+          <Text style={styles.sidebarTitle}>Messages</Text>
+        </View>
+        <View style={styles.sidebarItem}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>JD</Text>
+          </View>
+          <View style={styles.sidebarItemText}>
+            <Text style={styles.sidebarName}>John Doe</Text>
+            <Text style={styles.sidebarPreview} numberOfLines={1}>
+              online
+            </Text>
+          </View>
+        </View>
       </View>
+      <View style={styles.chat}>
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>JD</Text>
+          </View>
+          <View>
+            <Text style={styles.headerName}>John Doe</Text>
+            <Text style={styles.headerStatus}>online</Text>
+          </View>
+        </View>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.messageList}
+          contentContainerStyle={styles.messageListContent}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: false })
+          }
+        >
+          {messages.map((msg) => (
+            <View
+              key={msg.id}
+              style={[
+                styles.messageRow,
+                msg.isOwn ? styles.messageRowOwn : styles.messageRowOther,
+              ]}
+            >
+              <View
+                style={[
+                  styles.bubble,
+                  msg.isOwn ? styles.bubbleOwn : styles.bubbleOther,
+                ]}
+              >
+                <EnrichedMarkdownText
+                  containerStyle={StyleSheet.flatten([
+                    styles.bubbleText,
+                    msg.isOwn ? styles.bubbleTextOwn : styles.bubbleTextOther,
+                  ])}
+                  markdownStyle={MARKDOWN_STYLE}
+                  markdown={msg.markdown}
+                />
+                <Text
+                  style={[
+                    styles.bubbleTime,
+                    msg.isOwn ? styles.bubbleTimeOwn : styles.bubbleTimeOther,
+                  ]}
+                >
+                  {msg.time}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
 
-      <View style={styles.debug}>
-        <Text style={styles.debugLabel}>Plain:</Text>
-        <Text style={styles.debugText}>{plainText}</Text>
-        <Text style={styles.debugLabel}>Markdown:</Text>
-        <Text style={styles.debugText}>{markdown}</Text>
+        {/* Formatting toolbar */}
+        <View style={styles.toolbar}>
+          {(
+            [
+              { label: 'B', style: 'bold', action: 'toggleBold' },
+              { label: 'I', style: 'italic', action: 'toggleItalic' },
+              { label: 'U', style: 'underline', action: 'toggleUnderline' },
+              {
+                label: 'S',
+                style: 'strikethrough',
+                action: 'toggleStrikethrough',
+              },
+            ] as const
+          ).map(({ label, style, action }) => (
+            <Pressable
+              key={label}
+              style={[
+                styles.toolbarButton,
+                state?.[style].isActive && styles.toolbarButtonActive,
+              ]}
+              onPress={() => inputRef.current?.[action]()}
+            >
+              <Text
+                style={[
+                  styles.toolbarButtonText,
+                  style === 'italic' && styles.italic,
+                  style === 'underline' && styles.underline,
+                  style === 'strikethrough' && styles.strikethrough,
+                  state?.[style].isActive && styles.toolbarButtonTextActive,
+                ]}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+          <Pressable
+            style={[
+              styles.toolbarButton,
+              state?.link.isActive && styles.toolbarButtonActive,
+            ]}
+            onPress={() => {
+              if (state?.link.isActive) {
+                inputRef.current?.removeLink();
+              } else {
+                inputRef.current?.setLink('https://');
+              }
+            }}
+          >
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                state?.link.isActive && styles.toolbarButtonTextActive,
+              ]}
+            >
+              Link
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Input row */}
+        <View style={styles.inputRow}>
+          <EnrichedMarkdownInput
+            ref={inputRef}
+            placeholder="Message..."
+            placeholderTextColor="#9CA3AF"
+            style={styles.input}
+            markdownStyle={MARKDOWN_STYLE}
+            onChangeState={setState}
+          />
+          <Pressable style={styles.sendButton} onPress={sendMessage}>
+            <Text style={styles.sendIcon}>▶</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
 }
 
+const TEAL = '#4A9EBF';
+const OWN_BUBBLE = '#DCFCE7';
+const OTHER_BUBBLE = '#FFFFFF';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    flexDirection: 'row',
+    backgroundColor: '#E8F4F8',
   },
-  input: {
-    minHeight: 120,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
+  sidebar: {
+    width: 240,
+    backgroundColor: '#F3F4F6',
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: '#D1D5DB',
+  },
+  sidebarHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D1D5DB',
+  },
+  sidebarTitle: {
     fontSize: 16,
-    color: '#1F2937',
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sidebarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#DBEAFE',
+  },
+  sidebarItemText: {
+    flex: 1,
+  },
+  sidebarName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  sidebarPreview: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 1,
+  },
+  chat: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: TEAL,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2980B9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  headerName: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  headerStatus: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+  },
+  messageList: {
+    flex: 1,
+  },
+  messageListContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 6,
+  },
+  messageRow: {
+    flexDirection: 'row',
+  },
+  messageRowOwn: {
+    justifyContent: 'flex-end',
+  },
+  messageRowOther: {
+    justifyContent: 'flex-start',
+  },
+  bubble: {
+    maxWidth: '65%',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  bubbleOwn: {
+    backgroundColor: OWN_BUBBLE,
+    borderBottomRightRadius: 4,
+  },
+  bubbleOther: {
+    backgroundColor: OTHER_BUBBLE,
+    borderBottomLeftRadius: 4,
+  },
+  bubbleText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bubbleTextOwn: {
+    color: '#111827',
+  },
+  bubbleTextOther: {
+    color: '#111827',
+  },
+  bubbleTime: {
+    fontSize: 11,
+    marginTop: 4,
+    alignSelf: 'flex-end',
+  },
+  bubbleTimeOwn: {
+    color: '#6B9E6B',
+  },
+  bubbleTimeOther: {
+    color: '#9CA3AF',
   },
   toolbar: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 4,
+    backgroundColor: '#F9FAFB',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E5E7EB',
   },
   toolbarButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 4,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    backgroundColor: '#F9FAFB',
+    width: 30,
+    height: 26,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   toolbarButtonActive: {
     backgroundColor: '#DBEAFE',
-    borderColor: '#2563EB',
+  },
+  toolbarButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  toolbarButtonTextActive: {
     color: '#2563EB',
   },
-  debug: {
-    marginTop: 16,
+  italic: {
+    fontStyle: 'italic',
   },
-  debugLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginTop: 8,
+  underline: {
+    textDecorationLine: 'underline',
   },
-  debugText: {
+  strikethrough: {
+    textDecorationLine: 'line-through',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingTop: 6,
+    paddingBottom: 12,
+    backgroundColor: '#F9FAFB',
+  },
+  input: {
+    flex: 1,
+    minHeight: 32,
+    maxHeight: 120,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     fontSize: 14,
-    color: '#1F2937',
-    marginTop: 2,
+    color: '#111827',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#D1D5DB',
+  },
+  sendButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: TEAL,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendIcon: {
+    color: '#fff',
+    fontSize: 12,
+    marginLeft: 2,
   },
 });

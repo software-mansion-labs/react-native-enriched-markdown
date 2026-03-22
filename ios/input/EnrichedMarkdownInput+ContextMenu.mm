@@ -15,42 +15,10 @@
     return nil;
   }
 
-  // ── Format submenu ──────────────────────────────────────────────────────────
-
-  UIAction *boldAction = [UIAction actionWithTitle:@"Bold"
-                                             image:[UIImage systemImageNamed:@"bold"]
-                                        identifier:nil
-                                           handler:^(__kindof UIAction *action) { [self toggleBold]; }];
-
-  UIAction *italicAction = [UIAction actionWithTitle:@"Italic"
-                                               image:[UIImage systemImageNamed:@"italic"]
-                                          identifier:nil
-                                             handler:^(__kindof UIAction *action) { [self toggleItalic]; }];
-
-  UIAction *underlineAction = [UIAction actionWithTitle:@"Underline"
-                                                  image:[UIImage systemImageNamed:@"underline"]
-                                             identifier:nil
-                                                handler:^(__kindof UIAction *action) { [self toggleUnderline]; }];
-
-  UIAction *strikethroughAction =
-      [UIAction actionWithTitle:@"Strikethrough"
-                          image:[UIImage systemImageNamed:@"strikethrough"]
-                     identifier:nil
-                        handler:^(__kindof UIAction *action) { [self toggleStrikethrough]; }];
-
-  UIAction *linkAction = [UIAction actionWithTitle:@"Link"
-                                             image:[UIImage systemImageNamed:@"link"]
-                                        identifier:nil
-                                           handler:^(__kindof UIAction *action) { [self showLinkPrompt]; }];
-
-  UIMenu *formatMenu =
-      [UIMenu menuWithTitle:@"Format"
-                      image:[UIImage systemImageNamed:@"textformat"]
-                 identifier:@"com.enrichedmarkdown.format"
-                    options:0
-                   children:@[ boldAction, italicAction, underlineAction, strikethroughAction, linkAction ]];
-
-  // ── Copy as Markdown action ─────────────────────────────────────────────────
+  UIAction *formatAction = [UIAction actionWithTitle:@"Format"
+                                               image:[UIImage systemImageNamed:@"textformat"]
+                                          identifier:@"com.enrichedmarkdown.format"
+                                             handler:^(__kindof UIAction *action) { [self showFormatBar]; }];
 
   UIAction *copyMarkdownAction = [UIAction actionWithTitle:@"Copy as Markdown"
                                                      image:[UIImage systemImageNamed:@"doc.text"]
@@ -61,8 +29,6 @@
                                                        copyStringToPasteboard(markdown);
                                                      }
                                                    }];
-
-  // ── Assemble menu ───────────────────────────────────────────────────────────
 
   NSMutableArray *allActions = [suggestedActions mutableCopy];
   NSUInteger insertIndex = 0;
@@ -75,7 +41,7 @@
   if (insertIndex == 0) {
     insertIndex = allActions.count;
   }
-  [allActions insertObject:formatMenu atIndex:insertIndex];
+  [allActions insertObject:formatAction atIndex:insertIndex];
   [allActions insertObject:copyMarkdownAction atIndex:insertIndex + 1];
   return [UIMenu menuWithChildren:allActions];
 }

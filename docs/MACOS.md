@@ -92,6 +92,20 @@ The five supported types and their colours:
 
 On macOS, the library wraps content in a native `NSScrollView` automatically. Your app does **not** need to wrap `EnrichedMarkdownText` in a React Native `ScrollView`. The component is self-scrolling, and GFM-style anchor links scroll natively (see above).
 
+#### Content insets
+
+Use `contentInset` to pad the content area inside the scroll view without insetting the scrollbar:
+
+```tsx
+<EnrichedMarkdownText
+  markdown={content}
+  flavor="github"
+  contentInset={{ left: 16, right: 16, top: 16 }}
+/>
+```
+
+This follows the same pattern as React Native's `ScrollView.contentInset` on iOS. The scrollbar stays flush to the view edge. Only applies on macOS with `flavor="github"` — ignored on iOS and for `flavor="commonmark"`.
+
 ### Dark mode
 
 Pass a `markdownStyle` prop that responds to the system colour scheme:

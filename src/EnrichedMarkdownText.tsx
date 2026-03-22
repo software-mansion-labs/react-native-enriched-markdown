@@ -321,6 +321,19 @@ export interface EnrichedMarkdownTextProps extends Omit<
   admonitionLabels?: Partial<
     Record<'NOTE' | 'TIP' | 'IMPORTANT' | 'WARNING' | 'CAUTION', string>
   >;
+  /**
+   * Content insets for the scroll view (macOS only).
+   * Pads the content area while keeping the scrollbar flush to the view edge.
+   * Only applies when `flavor="github"` (the scrollable EnrichedMarkdown variant).
+   * Ignored on iOS and for `flavor="commonmark"`.
+   * @platform macos
+   */
+  contentInset?: {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+  };
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -455,6 +468,7 @@ export const EnrichedMarkdownText = ({
   flavor = 'commonmark',
   streamingAnimation = false,
   admonitionLabels,
+  contentInset,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -512,6 +526,19 @@ export const EnrichedMarkdownText = ({
     [markdown, flavor, mergedAdmonitionLabels]
   );
 
+  const normalizedContentInset = useMemo(
+    () =>
+      contentInset
+        ? {
+            top: contentInset.top ?? 0,
+            right: contentInset.right ?? 0,
+            bottom: contentInset.bottom ?? 0,
+            left: contentInset.left ?? 0,
+          }
+        : undefined,
+    [contentInset]
+  );
+
   const sharedProps = {
     markdown: processedMarkdown,
     markdownStyle: normalizedStyle,
@@ -525,6 +552,7 @@ export const EnrichedMarkdownText = ({
     maxFontSizeMultiplier,
     allowTrailingMargin,
     streamingAnimation,
+    contentInset: normalizedContentInset,
     style: containerStyle,
     ...rest,
   };

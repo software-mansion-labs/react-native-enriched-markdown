@@ -732,6 +732,18 @@ using namespace facebook::react;
 
   _enableLinkPreview = newViewProps.enableLinkPreview;
 
+#if TARGET_OS_OSX
+  {
+    const auto &inset = newViewProps.contentInset;
+    if (inset.top != 0 || inset.right != 0 || inset.bottom != 0 || inset.left != 0) {
+      _macScrollContainer.automaticallyAdjustsContentInsets = NO;
+      _macScrollContainer.contentInsets = NSEdgeInsetsMake(inset.top, inset.left, inset.bottom, inset.right);
+      // Push scroller back to the view edge so it isn't inset with the content
+      _macScrollContainer.scrollerInsets = NSEdgeInsetsMake(-inset.top, -inset.left, -inset.bottom, -inset.right);
+    }
+  }
+#endif
+
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];

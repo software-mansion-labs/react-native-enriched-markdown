@@ -198,6 +198,13 @@ export interface Md4cFlagsInternal {
   latexMath: boolean;
 }
 
+export interface ContentInsetInternal {
+  top: CodegenTypes.Float;
+  right: CodegenTypes.Float;
+  bottom: CodegenTypes.Float;
+  left: CodegenTypes.Float;
+}
+
 export interface NativeProps extends ViewProps {
   /**
    * Markdown content to render.
@@ -277,6 +284,12 @@ export interface NativeProps extends ViewProps {
    * @default false
    */
   streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
+  /**
+   * Content insets for the scroll view (macOS only, flavor="github").
+   * Pads the content area while keeping the scrollbar flush to the view edge.
+   * @platform macos
+   */
+  contentInset?: ContentInsetInternal;
 }
 
 export default codegenNativeComponent<NativeProps>('EnrichedMarkdown', {

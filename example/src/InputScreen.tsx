@@ -148,6 +148,7 @@ export default function InputScreen() {
                   }
                   markdownStyle={MARKDOWN_STYLE}
                   markdown={msg.markdown}
+                  md4cFlags={{ underline: true }}
                 />
                 <Text
                   style={[

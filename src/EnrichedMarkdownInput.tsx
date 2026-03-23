@@ -186,9 +186,8 @@ export const EnrichedMarkdownInput = ({
 
   useImperativeHandle(ref, () => {
     const node = getNativeRef(nativeRef);
-    // ViewRef in the codegen spec resolves to `never` due to a React.ComponentRef
-    // limitation with RN 0.84's function-based HostComponent type. At runtime the
-    // ref is always a valid HostInstance, so the cast is safe.
+    // Codegen's ViewRef resolves to `never` with RN 0.84's function-based
+    // HostComponent type — the cast is safe at runtime.
     const commandRef = node as Parameters<(typeof Commands)['focus']>[0];
     return {
       measure: (callback) => node.measure(callback),

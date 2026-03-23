@@ -2,7 +2,9 @@
 
 # react-native-enriched-markdown
 
-`react-native-enriched-markdown` is a powerful React Native library that renders Markdown content as native text:
+`react-native-enriched-markdown` is a powerful React Native library that renders Markdown content as native text and provides a rich text input with Markdown output. It supports iOS, Android, and macOS, and requires the New Architecture (Fabric).
+
+### EnrichedMarkdownText
 
 - ⚡ Fully native text rendering (no WebView)
 - 🎯 High-performance Markdown parsing with [md4c](https://github.com/mity/md4c)
@@ -11,14 +13,21 @@
 - 🧮 LaTeX math rendering (block `$$...$$` with `flavor="github"`, inline `$...$` in all flavors)
 - 🔀 [Markdown Streaming](docs/MARKDOWN_STREAMING.md) support (via [react-native-streamdown](https://github.com/software-mansion-labs/react-native-streamdown))
 - 🎨 Fully customizable styles for all elements
-- 📱 iOS, Android, and macOS support
-- 🏛 Supports only the New Architecture (Fabric)
 - ✨ Text selection and copy support
 - 🔗 Interactive link handling
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
 - 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android)
 - 🔄 Full RTL (right-to-left) support including text, lists, blockquotes, tables, and task lists
+
+### EnrichedMarkdownInput
+
+- ✏️ Rich text input with Markdown output
+- 🕹️ Imperative API for toggling styles and managing links
+- 📋 Native format bar and context menu with formatting options
+- 🔍 Real-time style state detection
+- 🔄 Smart copy/paste with Markdown preservation
+- 🎨 Customizable bold, italic, and link colors
 
 Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
 We can help you build your next dream product –
@@ -28,17 +37,25 @@ We can help you build your next dream product –
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Usage](#usage)
-- [LaTeX Math](docs/LATEX_MATH.md)
-- [Supported Markdown Elements](#supported-markdown-elements)
-- [Image Caching](docs/IMAGE_CACHING.md)
-- [Copy Options](#copy-options)
-- [Accessibility](#accessibility)
-- [RTL Support](#rtl-support)
-- [Customizing Styles](#customizing-styles)
+- [EnrichedMarkdownText](#enrichedmarkdowntext-1)
+  - [Usage](docs/TEXT.md#usage)
+  - [Supported Markdown Elements](docs/TEXT.md#supported-markdown-elements)
+  - [Copy Options](docs/TEXT.md#copy-options)
+  - [Accessibility](docs/TEXT.md#accessibility)
+  - [RTL Support](docs/TEXT.md#rtl-support)
+  - [Customizing Styles](docs/TEXT.md#customizing-styles)
+  - [LaTeX Math](docs/LATEX_MATH.md)
+  - [Image Caching](docs/IMAGE_CACHING.md)
+  - [Markdown Streaming](docs/MARKDOWN_STREAMING.md)
+- [EnrichedMarkdownInput](#enrichedmarkdowninput-1)
+  - [Usage](docs/INPUT.md#usage)
+  - [Inline Styles](docs/INPUT.md#inline-styles)
+  - [Links](docs/INPUT.md#links)
+  - [Style Detection](docs/INPUT.md#style-detection)
+  - [Other Events](docs/INPUT.md#other-events)
+  - [Customizing Styles](docs/INPUT.md#customizing-enrichedmarkdowninput--styles)
 - [API Reference](#api-reference)
 - [macOS Support](docs/MACOS.md)
-- [Markdown Streaming](docs/MARKDOWN_STREAMING.md)
 - [Contributing](#contributing)
 - [Future Plans](#future-plans)
 - [License](#license)
@@ -110,108 +127,13 @@ npx expo prebuild
 > <string>This app needs access to your photo library to save images.</string>
 > ```
 
-## Usage
+## EnrichedMarkdownText
 
-### CommonMark (default)
+See [EnrichedMarkdownText](docs/TEXT.md) for detailed documentation on usage examples, GFM tables, task lists, link handling, supported elements, copy options, accessibility, RTL support, and customizing styles.
 
-```tsx
-import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
-import { Linking } from 'react-native';
+## EnrichedMarkdownInput
 
-const markdown = `
-# Welcome to Markdown!
-
-This is a paragraph with **bold**, *italic*, and [links](https://reactnative.dev).
-
-- List item one
-- List item two
-  - Nested item
-`;
-
-export default function App() {
-  return (
-    <EnrichedMarkdownText
-      markdown={markdown}
-      onLinkPress={({ url }) => Linking.openURL(url)}
-    />
-  );
-}
-```
-
-### GFM (tables)
-
-Set `flavor="github"` to enable GitHub Flavored Markdown features like tables and task lists:
-
-```tsx
-<EnrichedMarkdownText
-  flavor="github"
-  markdown={markdown}
-  onLinkPress={({ url }) => Linking.openURL(url)}
-  markdownStyle={{
-    table: {
-      fontSize: 14,
-      borderColor: '#E5E7EB',
-      borderRadius: 8,
-      headerBackgroundColor: '#F3F4F6',
-      headerFontFamily: 'System-Bold',
-      cellPaddingHorizontal: 12,
-      cellPaddingVertical: 8,
-    },
-  }}
-/>
-```
-
-Tables support column alignment, rich text in cells (bold, italic, code, links), horizontal scrolling, header styling, alternating row colors, and a long-press context menu with "Copy" and "Copy as Markdown".
-
-### Task Lists
-
-Task lists with interactive checkboxes are available when `flavor="github"` is set. Handle checkbox taps with `onTaskListItemPress`:
-
-```tsx
-<EnrichedMarkdownText
-  flavor="github"
-  markdown={`
-- [x] Completed task
-- [ ] Incomplete task
-- [x] Another completed task
-  `}
-  onTaskListItemPress={({ index, checked, text }) => {
-    console.log(
-      `Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`
-    );
-    // Update your state or data model here
-  }}
-/>
-```
-
-### Link Handling
-
-Links in Markdown are interactive and can be handled with the `onLinkPress` and `onLinkLongPress` callbacks:
-
-- **`onLinkPress`**: Fired when a link is tapped. Use this to open URLs or handle link navigation.
-- **`onLinkLongPress`**: Fired when a link is long-pressed. On iOS, providing this callback automatically disables the system link preview so your handler can fire instead.
-
-See the [API Reference](docs/API_REFERENCE.md#onlinkpress) for detailed examples and usage.
-
-## Supported Markdown Elements
-
-`react-native-enriched-markdown` supports a comprehensive set of Markdown elements. See [Element Structure](docs/ELEMENTS_STRUCTURE.md) for a detailed overview of all supported elements, their syntax, block vs inline categorization, nesting behavior, and how elements inherit typography from their parent blocks.
-
-## Copy Options
-
-When text is selected, `react-native-enriched-markdown` provides enhanced copy functionality through the context menu. See [Copy Options](docs/COPY_OPTIONS.md) for details on smart copy, copy as Markdown, and copy image URL features.
-
-## Accessibility
-
-`react-native-enriched-markdown` provides comprehensive accessibility support for screen readers on both platforms. See [Accessibility](docs/ACCESSIBILITY.md) for detailed information about VoiceOver and TalkBack support, custom rotors, semantic traits, and best practices.
-
-## RTL Support
-
-`react-native-enriched-markdown` fully supports right-to-left (RTL) languages such as Arabic, Hebrew, and Persian. See [RTL Support](docs/RTL.md) for platform-specific setup instructions and how each element behaves in RTL contexts.
-
-## Customizing Styles
-
-`react-native-enriched-markdown` allows customizing styles of all Markdown elements using the `markdownStyle` prop. See the [Style Properties Reference](docs/STYLES.md) for a detailed overview of all available style properties.
+See [EnrichedMarkdownInput](docs/INPUT.md) for detailed documentation on usage examples, inline styles, links, style detection, events, and customizing styles.
 
 ## API Reference
 
@@ -225,7 +147,7 @@ See the [API Reference](docs/API_REFERENCE.md) for a detailed overview of all th
 
 We're actively working on expanding the capabilities of `react-native-enriched-markdown`. Here's what's on the roadmap:
 
-- `EnrichedMarkdownInput`
+- `EnrichedMarkdownInput`: headings, lists, blockquotes, code blocks, mentions, inline images
 - Web implementation via `react-native-web`
 - macOS: block math rendering, VoiceOver accessibility, tail fade-in animation
 

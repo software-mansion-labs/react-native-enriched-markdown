@@ -47,6 +47,9 @@ class InputContextMenu(
               val end = view.selectionEnd
               view.formatBar.show(start, end)
               mode.finish()
+              if (start != end) {
+                view.setSelection(start, end)
+              }
               true
             }
 

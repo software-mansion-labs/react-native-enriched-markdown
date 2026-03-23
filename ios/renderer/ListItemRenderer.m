@@ -1,5 +1,6 @@
 #import "ListItemRenderer.h"
 #import "ENRMUIKit.h"
+#import "LastElementUtils.h"
 #import "MarkdownASTNode.h"
 #import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
@@ -95,7 +96,7 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
   }
 
   // We enumerate to ensure we don't overwrite styles of nested sub-lists
-  // that may have already been rendered inside this item.
+  // or code blocks that may have already been rendered inside this item.
   [output enumerateAttribute:ListDepthAttribute
                      inRange:itemRange
                      options:0
@@ -103,6 +104,16 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
                     // If a segment already has a Depth attribute higher than our current level,
                     // it belongs to a nested list and we should skip it to preserve its styling.
                     if (depthAttr && [depthAttr integerValue] > nestingLevel) {
+                      return;
+                    }
+
+                    // Skip code block ranges — CodeBlockRenderer already applied its own
+                    // paragraph style (padding, LTR indent). Overwriting would add list
+                    // markers ("2.") inside the code block.
+                    NSNumber *isCodeBlock = [output attribute:CodeBlockAttributeName
+                                                     atIndex:range.location
+                                              effectiveRange:nil];
+                    if ([isCodeBlock boolValue]) {
                       return;
                     }
 

@@ -14,6 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 #if !TARGET_OS_OSX
 - (void)showFormatBar;
+#else
+- (NSMenu *)enrichedMenuForEvent:(NSEvent *)event defaultMenu:(NSMenu *)menu textView:(NSTextView *)textView;
 #endif
 
 @end

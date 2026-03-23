@@ -13,6 +13,8 @@
 #import "InputStylePropsUtils.h"
 #if !TARGET_OS_OSX
 #import "ENRMFormatBar.h"
+#else
+#import <React/RCTBackedTextInputDelegate.h>
 #endif
 
 #import <ReactNativeEnrichedMarkdown/EnrichedMarkdownInputComponentDescriptor.h>
@@ -30,7 +32,7 @@ using namespace facebook::react;
 #if !TARGET_OS_OSX
 @interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, UITextViewDelegate, ENRMFormatBarDelegate>
 #else
-@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, NSTextViewDelegate>
+@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, RCTBackedTextInputDelegate>
 #endif
 - (void)setupTextView;
 - (void)applyFormatting;
@@ -65,6 +67,8 @@ using namespace facebook::react;
 
 #if !TARGET_OS_OSX
   ENRMFormatBar *_formatBar;
+#else
+  NSScrollView *_scrollView;
 #endif
 }
 
@@ -104,6 +108,7 @@ using namespace facebook::react;
 
 - (void)setupTextView
 {
+#if !TARGET_OS_OSX
   _layoutManager = [[ENRMInputLayoutManager alloc] init];
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithSize:CGSizeMake(0, CGFLOAT_MAX)];
   textContainer.widthTracksTextView = YES;
@@ -113,19 +118,47 @@ using namespace facebook::react;
   [textStorage addLayoutManager:_layoutManager];
 
   ENRMInputTextView *inputTextView = [[ENRMInputTextView alloc] initWithFrame:CGRectZero textContainer:textContainer];
+#else
+  ENRMInputTextView *inputTextView = [[ENRMInputTextView alloc] initWithFrame:CGRectZero];
+#endif
   inputTextView.markdownInput = self;
   _textView = inputTextView;
   ENRMConfigureMarkdownInputTextView(_textView);
 #if !TARGET_OS_OSX
   _textView.adjustsFontForContentSizeCategory = YES;
-#endif
   _textView.delegate = self;
+#else
+  _textView.textInputDelegate = self;
+#endif
+
+#if !TARGET_OS_OSX
   self.contentView = _textView;
+#else
+  _textView.selectable = YES;
+
+  _scrollView = [[NSScrollView alloc] initWithFrame:CGRectZero];
+  _scrollView.backgroundColor = [RCTUIColor clearColor];
+  _scrollView.drawsBackground = NO;
+  _scrollView.borderType = NSNoBorder;
+  _scrollView.hasHorizontalRuler = NO;
+  _scrollView.hasVerticalRuler = NO;
+  _scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+
+  _textView.verticallyResizable = YES;
+  _textView.horizontallyResizable = YES;
+  _textView.textContainer.containerSize = NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX);
+  _textView.textContainer.widthTracksTextView = YES;
+
+  _scrollView.documentView = _textView;
+  self.contentView = _scrollView;
+#endif
 
   _placeholderLabel = ENRMCreatePlaceholderLabel(_textView, _formatterStyle.baseFont);
 #if !TARGET_OS_OSX
   _placeholderLabel.adjustsFontForContentSizeCategory = YES;
 #endif
+
+  [self resetBaseTypingAttributes];
 }
 
 #pragma mark - State
@@ -289,7 +322,7 @@ using namespace facebook::react;
     [self->_textView.layoutManager invalidateDisplayForCharacterRange:wholeRange];
 
     CGSize measuredSize = [self measureSize:self->_textView.frame.size.width];
-    self->_textView.contentSize = measuredSize;
+    ENRMSetContentSize(self->_textView, measuredSize);
   });
 }
 
@@ -312,6 +345,38 @@ using namespace facebook::react;
     }
   }
 }
+
+#if TARGET_OS_OSX
+
+#pragma mark - macOS responder chain
+
+- (BOOL)acceptsFirstResponder
+{
+  return _textView.acceptsFirstResponder;
+}
+
+- (BOOL)becomeFirstResponder
+{
+  return [self.window makeFirstResponder:_textView];
+}
+
+- (BOOL)needsPanelToBecomeKey
+{
+  return YES;
+}
+
+- (BOOL)mouseDownCanMoveWindow
+{
+  return NO;
+}
+
+- (void)mouseDown:(NSEvent *)event
+{
+  [self.window makeFirstResponder:_textView];
+  [_textView mouseDown:event];
+}
+
+#endif
 
 #if !TARGET_OS_OSX
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
@@ -365,12 +430,7 @@ using namespace facebook::react;
   NSUInteger editLocation = selection.location;
 
   _isApplyingFormatting = YES;
-  [_textView
-      replaceRange:[_textView textRangeFromPosition:[_textView positionFromPosition:_textView.beginningOfDocument
-                                                                             offset:(NSInteger)selection.location]
-                                         toPosition:[_textView positionFromPosition:_textView.beginningOfDocument
-                                                                             offset:(NSInteger)NSMaxRange(selection)]]
-          withText:text];
+  ENRMReplaceTextInRange(_textView, text, selection);
   _isApplyingFormatting = NO;
 
   [_formattingStore adjustForEditAtLocation:editLocation deletedLength:selection.length insertedLength:text.length];
@@ -402,10 +462,10 @@ using namespace facebook::react;
 
 - (void)resetBaseTypingAttributes
 {
-  _textView.typingAttributes = @{
+  ENRMSetDefaultTypingAttributes(_textView, @{
     NSFontAttributeName : _formatterStyle.baseFont,
     NSForegroundColorAttributeName : _formatterStyle.baseTextColor,
-  };
+  });
 }
 
 - (void)applyFormatting
@@ -1021,16 +1081,54 @@ static ENRMInputStyleType styleTypeForAction(ENRMFormatBarAction action)
 }
 
 #else
-- (BOOL)textView:(NSTextView *)textView shouldChangeTextInRange:(NSRange)range replacementString:(NSString *)text
+
+#pragma mark - RCTBackedTextInputDelegate (macOS)
+
+- (BOOL)textInputShouldBeginEditing
 {
-  _preEditSelectedRange = _lastSelectedRange;
-  _isTextChanging = YES;
   return YES;
 }
 
-- (void)textDidChange:(NSNotification *)notification
+- (void)textInputDidBeginEditing
+{
+  [self emitOnFocus];
+}
+
+- (BOOL)textInputShouldEndEditing
+{
+  return YES;
+}
+
+- (void)textInputDidEndEditing
+{
+  [self emitOnBlur];
+}
+
+- (BOOL)textInputShouldReturn
+{
+  return NO;
+}
+
+- (void)textInputDidReturn
+{
+}
+
+- (BOOL)textInputShouldSubmitOnReturn
+{
+  return NO;
+}
+
+- (nullable NSString *)textInputShouldChangeText:(NSString *)text inRange:(NSRange)range
+{
+  _preEditSelectedRange = _lastSelectedRange;
+  _isTextChanging = YES;
+  return text;
+}
+
+- (void)textInputDidChange
 {
   if (_isApplyingFormatting) {
+    _isTextChanging = NO;
     return;
   }
   [self handleTextChanged];
@@ -1038,17 +1136,7 @@ static ENRMInputStyleType styleTypeForAction(ENRMFormatBarAction action)
   _lastSelectedRange = _textView.selectedRange;
 }
 
-- (void)textDidBeginEditing:(NSNotification *)notification
-{
-  [self emitOnFocus];
-}
-
-- (void)textDidEndEditing:(NSNotification *)notification
-{
-  [self emitOnBlur];
-}
-
-- (void)textViewDidChangeSelection:(NSNotification *)notification
+- (void)textInputDidChangeSelection
 {
   if (_isApplyingFormatting || _isTextChanging) {
     return;
@@ -1061,6 +1149,69 @@ static ENRMInputStyleType styleTypeForAction(ENRMFormatBarAction action)
   [self emitOnChangeSelection];
   [self emitOnChangeState];
 }
+
+// @required stubs for RCTBackedTextInputDelegate — RCTUITextView's internal adapter
+// calls these via textInputDelegate; omitting any causes silent failures or crashes.
+
+- (BOOL)textInputShouldHandleDeleteBackward:(id<RCTBackedTextInputViewProtocol>)sender
+{
+  return YES;
+}
+
+- (BOOL)textInputShouldHandleDeleteForward:(id<RCTBackedTextInputViewProtocol>)sender
+{
+  return YES;
+}
+
+- (BOOL)textInputShouldHandleKeyEvent:(NSEvent *)event
+{
+  return YES;
+}
+
+- (BOOL)hasKeyDownEventOrKeyUpEvent:(NSString *)key
+{
+  return NO;
+}
+
+- (NSDragOperation)textInputDraggingEntered:(id<NSDraggingInfo>)draggingInfo
+{
+  return NSDragOperationNone;
+}
+
+- (void)textInputDraggingExited:(id<NSDraggingInfo>)draggingInfo
+{
+}
+
+- (BOOL)textInputShouldHandleDragOperation:(id<NSDraggingInfo>)draggingInfo
+{
+  return YES;
+}
+
+- (void)textInputDidCancel
+{
+}
+
+- (BOOL)textInputShouldHandlePaste:(id<RCTBackedTextInputViewProtocol>)sender
+{
+  return YES;
+}
+
+- (void)automaticSpellingCorrectionDidChange:(BOOL)enabled
+{
+}
+
+- (void)continuousSpellCheckingDidChange:(BOOL)enabled
+{
+}
+
+- (void)grammarCheckingDidChange:(BOOL)enabled
+{
+}
+
+- (void)submitOnKeyDownIfNeeded:(NSEvent *)event
+{
+}
+
 #endif
 
 @end

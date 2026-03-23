@@ -49,9 +49,9 @@
   return [UIMenu menuWithChildren:allActions];
 }
 #else
-- (NSMenu *)textView:(NSTextView *)view menu:(NSMenu *)menu forEvent:(NSEvent *)event atIndex:(NSUInteger)charIndex
+- (NSMenu *)enrichedMenuForEvent:(NSEvent *)event defaultMenu:(NSMenu *)menu textView:(NSTextView *)textView
 {
-  if (view.selectedRange.length == 0) {
+  if (textView.selectedRange.length == 0) {
     return menu;
   }
 

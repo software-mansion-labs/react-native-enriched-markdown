@@ -1,5 +1,8 @@
 #import "ENRMInputTextView.h"
 #import "EnrichedMarkdownInput.h"
+#if TARGET_OS_OSX
+#import "EnrichedMarkdownInput+Internal.h"
+#endif
 
 static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-markdown.markdown";
 
@@ -130,6 +133,28 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
             [pasteboard stringForType:kENRMMarkdownPasteboardType] != nil);
   }
   return [super validateMenuItem:menuItem];
+}
+
+- (BOOL)acceptsFirstResponder
+{
+  return self.isEditable;
+}
+
+- (void)mouseDown:(NSEvent *)event
+{
+  if (self.window != nil) {
+    [self.window makeFirstResponder:self];
+  }
+  [super mouseDown:event];
+}
+
+- (NSMenu *)menuForEvent:(NSEvent *)event
+{
+  NSMenu *menu = [super menuForEvent:event];
+  if (self.markdownInput != nil) {
+    return [self.markdownInput enrichedMenuForEvent:event defaultMenu:menu textView:self];
+  }
+  return menu;
 }
 
 - (void)layout

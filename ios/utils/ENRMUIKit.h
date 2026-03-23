@@ -87,13 +87,13 @@ static inline void BezierPathAddQuadCurve(UIBezierPath *path, CGPoint end, CGPoi
 }
 
 /// Cross-platform IME composition check: UITextView uses markedTextRange (nullable UITextRange);
-/// NSTextView uses markedRange (NSRange where location == NSNotFound when no marked text).
+/// NSTextView uses hasMarkedText (BOOL).
 static inline BOOL ENRMHasMarkedText(ENRMPlatformTextView *textView)
 {
 #if !TARGET_OS_OSX
   return textView.markedTextRange != nil;
 #else
-  return textView.markedRange.location != NSNotFound;
+  return textView.hasMarkedText;
 #endif
 }
 
@@ -137,6 +137,40 @@ static inline void ENRMSetAttributedText(ENRMPlatformTextView *textView, NSAttri
 #else
   [textView.textStorage setAttributedString:text];
 #endif
+}
+
+/// Cross-platform text replacement at a given range.
+/// iOS uses UITextInput protocol methods; macOS uses NSTextView's insertText:replacementRange:.
+static inline void ENRMReplaceTextInRange(ENRMPlatformTextView *textView, NSString *text, NSRange range)
+{
+#if !TARGET_OS_OSX
+  UITextPosition *start = [textView positionFromPosition:textView.beginningOfDocument offset:(NSInteger)range.location];
+  UITextPosition *end = [textView positionFromPosition:textView.beginningOfDocument
+                                                offset:(NSInteger)NSMaxRange(range)];
+  [textView replaceRange:[textView textRangeFromPosition:start toPosition:end] withText:text];
+#else
+  [textView insertText:text replacementRange:range];
+#endif
+}
+
+/// Cross-platform content size update after measurement.
+/// iOS UITextView has a settable contentSize; macOS NSTextView does not.
+static inline void ENRMSetContentSize(ENRMPlatformTextView *textView, CGSize size)
+{
+#if !TARGET_OS_OSX
+  textView.contentSize = size;
+#endif
+}
+
+/// Sets default typing attributes on the text view.
+/// On macOS, RCTUITextView overrides setTypingAttributes: to use defaultTextAttributes,
+/// so we must set that property as well.
+static inline void ENRMSetDefaultTypingAttributes(ENRMPlatformTextView *textView, NSDictionary *attrs)
+{
+#if TARGET_OS_OSX
+  textView.defaultTextAttributes = attrs;
+#endif
+  textView.typingAttributes = attrs;
 }
 
 /// Applies shared configuration to a text view used for markdown input editing.

@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import {
   EnrichedMarkdownInput,
@@ -16,6 +15,7 @@ import {
   type EnrichedMarkdownInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
+import { LinkModal } from './LinkModal';
 
 interface Message {
   id: number;
@@ -65,6 +65,10 @@ export default function InputScreen() {
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const [state, setState] = useState<StyleState | null>(null);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [linkModalVisible, setLinkModalVisible] = useState(false);
+  const [linkModalText, setLinkModalText] = useState('');
+  const [linkModalUrl, setLinkModalUrl] = useState('');
+  const hasSelectionRef = useRef(false);
 
   const sendMessage = useCallback(async () => {
     const md = await inputRef.current?.getMarkdown();
@@ -80,6 +84,23 @@ export default function InputScreen() {
 
     inputRef.current?.setValue('');
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+  }, []);
+
+  const openLinkModal = useCallback(() => {
+    setLinkModalText('');
+    setLinkModalUrl('');
+    setLinkModalVisible(true);
+  }, []);
+
+  const handleLinkSubmit = useCallback((text: string, url: string) => {
+    setLinkModalVisible(false);
+    if (url.length === 0) return;
+
+    if (hasSelectionRef.current) {
+      inputRef.current?.setLink(url);
+    } else {
+      inputRef.current?.insertLink(text, url);
+    }
   }, []);
 
   return (
@@ -182,12 +203,8 @@ export default function InputScreen() {
             onPress={() => {
               if (state?.link.isActive) {
                 inputRef.current?.removeLink();
-              } else if (Platform.OS === 'ios') {
-                Alert.prompt('Add Link', 'Enter URL', (url) => {
-                  if (url?.length) inputRef.current?.setLink(url);
-                });
               } else {
-                inputRef.current?.setLink('https://example.com');
+                openLinkModal();
               }
             }}
           >
@@ -209,12 +226,22 @@ export default function InputScreen() {
             style={styles.input}
             markdownStyle={MARKDOWN_STYLE}
             onChangeState={setState}
+            onChangeSelection={(sel) => {
+              hasSelectionRef.current = sel.start !== sel.end;
+            }}
           />
           <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
             <Text style={styles.sendIcon}>▶</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <LinkModal
+        visible={linkModalVisible}
+        initialText={linkModalText}
+        initialUrl={linkModalUrl}
+        onClose={() => setLinkModalVisible(false)}
+        onSubmit={handleLinkSubmit}
+      />
     </SafeAreaView>
   );
 }

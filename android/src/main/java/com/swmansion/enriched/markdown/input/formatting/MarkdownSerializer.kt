@@ -12,8 +12,17 @@ object MarkdownSerializer {
 
     val events = ArrayList<BoundaryEvent>(ranges.size * 2)
     for (range in ranges) {
-      events.add(BoundaryEvent(range.start, true, range.type, range.url))
-      events.add(BoundaryEvent(range.end, false, range.type, range.url))
+      var start = range.start
+      var end = range.end
+
+      // Trim leading/trailing whitespace so delimiters hug non-whitespace content
+      while (start < end && text[start].isWhitespace()) start++
+      while (end > start && text[end - 1].isWhitespace()) end--
+
+      if (start >= end) continue
+
+      events.add(BoundaryEvent(start, true, range.type, range.url))
+      events.add(BoundaryEvent(end, false, range.type, range.url))
     }
 
     events.sortWith(BOUNDARY_COMPARATOR)

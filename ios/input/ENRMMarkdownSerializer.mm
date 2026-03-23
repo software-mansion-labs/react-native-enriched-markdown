@@ -85,6 +85,14 @@ static int compareBoundaryEvents(const void *first, const void *second)
   }
 }
 
+static NSCharacterSet *whitespaceNewlineSet(void)
+{
+  static NSCharacterSet *set;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{ set = [NSCharacterSet whitespaceAndNewlineCharacterSet]; });
+  return set;
+}
+
 @implementation ENRMMarkdownSerializer
 
 + (NSString *)serializePlainText:(NSString *)text ranges:(NSArray<ENRMFormattingRange *> *)ranges
@@ -100,28 +108,46 @@ static int compareBoundaryEvents(const void *first, const void *second)
   if (!events)
     return text;
 
+  NSCharacterSet *ws = whitespaceNewlineSet();
   NSUInteger eventIndex = 0;
   for (ENRMFormattingRange *formattingRange in ranges) {
+    NSUInteger start = formattingRange.range.location;
+    NSUInteger end = NSMaxRange(formattingRange.range);
+
+    // Trim leading whitespace inside the range so delimiters hug non-whitespace
+    while (start < end && [ws characterIsMember:[text characterAtIndex:start]]) {
+      start++;
+    }
+    // Trim trailing whitespace
+    while (end > start && [ws characterIsMember:[text characterAtIndex:end - 1]]) {
+      end--;
+    }
+
+    if (start >= end) {
+      continue;
+    }
+
     events[eventIndex++] = (BoundaryEvent){
-        .position = formattingRange.range.location,
+        .position = start,
         .isOpening = YES,
         .type = formattingRange.type,
         .url = formattingRange.url,
     };
     events[eventIndex++] = (BoundaryEvent){
-        .position = NSMaxRange(formattingRange.range),
+        .position = end,
         .isOpening = NO,
         .type = formattingRange.type,
         .url = formattingRange.url,
     };
   }
 
-  qsort(events, eventCount, sizeof(BoundaryEvent), compareBoundaryEvents);
+  // eventIndex may be less than eventCount if whitespace-only ranges were skipped
+  qsort(events, eventIndex, sizeof(BoundaryEvent), compareBoundaryEvents);
 
   NSMutableString *markdown = [NSMutableString stringWithCapacity:textLength + eventCount * 4];
   NSUInteger lastPosition = 0;
 
-  for (NSUInteger currentEvent = 0; currentEvent < eventCount; currentEvent++) {
+  for (NSUInteger currentEvent = 0; currentEvent < eventIndex; currentEvent++) {
     BoundaryEvent event = events[currentEvent];
     NSUInteger position = MIN(event.position, textLength);
 

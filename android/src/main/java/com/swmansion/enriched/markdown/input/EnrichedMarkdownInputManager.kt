@@ -307,6 +307,16 @@ class EnrichedMarkdownInputManager :
     }
   }
 
+  override fun insertLink(
+    view: EnrichedMarkdownInputView?,
+    text: String?,
+    url: String?,
+  ) {
+    if (url != null) {
+      view?.insertLinkAtCursor(text ?: url, url)
+    }
+  }
+
   override fun removeLink(view: EnrichedMarkdownInputView?) {
     view?.removeLinkAtCursor()
   }

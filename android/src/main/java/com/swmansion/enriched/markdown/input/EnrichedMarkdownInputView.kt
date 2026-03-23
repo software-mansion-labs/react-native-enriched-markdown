@@ -246,6 +246,13 @@ class EnrichedMarkdownInputView(
     formatter.applyFormatting(editable, formattingStore.allRanges)
   }
 
+  private fun applyFormattingAndEmit() {
+    applyFormatting()
+    forceScrollToSelection()
+    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+    eventEmitter.emitState()
+  }
+
   private fun forceScrollToSelection() {
     val textLayout = layout ?: return
     val cursorOffset = selectionStart
@@ -315,10 +322,7 @@ class EnrichedMarkdownInputView(
         }
         formattingStore.addRange(FormattingRange(styleType, selStart, selEnd))
       }
-      applyFormatting()
-      forceScrollToSelection()
-      if (emitMarkdown) eventEmitter.emitChangeMarkdown()
-      eventEmitter.emitState()
+      applyFormattingAndEmit()
     }
   }
 
@@ -328,20 +332,38 @@ class EnrichedMarkdownInputView(
     if (selStart == selEnd) return
 
     formattingStore.addRange(FormattingRange(StyleType.LINK, selStart, selEnd, url))
-    applyFormatting()
-    forceScrollToSelection()
-    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
-    eventEmitter.emitState()
+    applyFormattingAndEmit()
+  }
+
+  fun insertLinkAtCursor(
+    displayText: String,
+    url: String,
+  ) {
+    val editable = text ?: return
+    val selStart = selectionStart
+    val selEnd = selectionEnd
+    val linkEnd = selStart + displayText.length
+
+    isProcessingTextChange = true
+    try {
+      editable.replace(selStart, selEnd, displayText)
+      formattingStore.adjustForEdit(selStart, selEnd - selStart, displayText.length)
+      formattingStore.addRange(FormattingRange(StyleType.LINK, selStart, linkEnd, url))
+      lastProcessedText = editable.toString()
+
+      setSelection(linkEnd)
+      applyFormattingAndEmit()
+      eventEmitter.emitChangeText()
+    } finally {
+      isProcessingTextChange = false
+    }
   }
 
   fun removeLinkAtCursor() {
     val pos = selectionStart
     val linkRange = formattingStore.rangeOfType(StyleType.LINK, pos) ?: return
     formattingStore.removeRange(linkRange)
-    applyFormatting()
-    forceScrollToSelection()
-    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
-    eventEmitter.emitState()
+    applyFormattingAndEmit()
   }
 
   fun setValueFromJS(markdown: String) {
@@ -456,9 +478,7 @@ class EnrichedMarkdownInputView(
       }
       formattingStore.addRange(FormattingRange(styleType, start, end))
     }
-    applyFormatting()
-    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
-    eventEmitter.emitState()
+    applyFormattingAndEmit()
   }
 
   fun applyLinkToRange(
@@ -468,8 +488,6 @@ class EnrichedMarkdownInputView(
   ) {
     if (start >= end) return
     formattingStore.addRange(FormattingRange(StyleType.LINK, start, end, url))
-    applyFormatting()
-    if (emitMarkdown) eventEmitter.emitChangeMarkdown()
-    eventEmitter.emitState()
+    applyFormattingAndEmit()
   }
 }

@@ -55,6 +55,7 @@ export interface EnrichedMarkdownInputInstance {
   toggleUnderline: () => void;
   toggleStrikethrough: () => void;
   setLink: (url: string) => void;
+  insertLink: (text: string, url: string) => void;
   removeLink: () => void;
   getMarkdown: () => Promise<string>;
 }
@@ -204,6 +205,7 @@ export const EnrichedMarkdownInput = ({
       toggleUnderline: () => Commands.toggleUnderline(commandRef),
       toggleStrikethrough: () => Commands.toggleStrikethrough(commandRef),
       setLink: (url) => Commands.setLink(commandRef, url),
+      insertLink: (text, url) => Commands.insertLink(commandRef, text, url),
       removeLink: () => Commands.removeLink(commandRef),
       getMarkdown: () =>
         new Promise<string>((resolve, reject) => {

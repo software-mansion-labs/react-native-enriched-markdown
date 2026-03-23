@@ -148,6 +148,11 @@ interface NativeCommands {
   toggleUnderline: (viewRef: React.ElementRef<ComponentType>) => void;
   toggleStrikethrough: (viewRef: React.ElementRef<ComponentType>) => void;
   setLink: (viewRef: React.ElementRef<ComponentType>, url: string) => void;
+  insertLink: (
+    viewRef: React.ElementRef<ComponentType>,
+    text: string,
+    url: string
+  ) => void;
   removeLink: (viewRef: React.ElementRef<ComponentType>) => void;
   requestMarkdown: (
     viewRef: React.ElementRef<ComponentType>,
@@ -166,6 +171,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'toggleUnderline',
     'toggleStrikethrough',
     'setLink',
+    'insertLink',
     'removeLink',
     'requestMarkdown',
   ],

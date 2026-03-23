@@ -36,6 +36,7 @@ using namespace facebook::react;
 - (void)applyFormatting;
 - (void)toggleInlineStyle:(ENRMInputStyleType)styleType;
 - (void)resetBaseTypingAttributes;
+- (void)replaceSelectedTextWith:(NSString *)text formattingRanges:(NSArray<ENRMFormattingRange *> *)ranges;
 @end
 
 @implementation EnrichedMarkdownInput {
@@ -358,15 +359,10 @@ using namespace facebook::react;
   _blockEmitting = NO;
 }
 
-- (void)pasteMarkdown:(NSString *)markdown
+- (void)replaceSelectedTextWith:(NSString *)text formattingRanges:(NSArray<ENRMFormattingRange *> *)ranges
 {
-  ENRMInputParser *parser = [[ENRMInputParser alloc] init];
-  ENRMParseResult *parsed = [parser parseToPlainTextAndRanges:markdown];
-
   NSRange selection = _textView.selectedRange;
   NSUInteger editLocation = selection.location;
-  NSUInteger deletedLength = selection.length;
-  NSUInteger insertedLength = parsed.plainText.length;
 
   _isApplyingFormatting = YES;
   [_textView
@@ -374,12 +370,12 @@ using namespace facebook::react;
                                                                              offset:(NSInteger)selection.location]
                                          toPosition:[_textView positionFromPosition:_textView.beginningOfDocument
                                                                              offset:(NSInteger)NSMaxRange(selection)]]
-          withText:parsed.plainText];
+          withText:text];
   _isApplyingFormatting = NO;
 
-  [_formattingStore adjustForEditAtLocation:editLocation deletedLength:deletedLength insertedLength:insertedLength];
+  [_formattingStore adjustForEditAtLocation:editLocation deletedLength:selection.length insertedLength:text.length];
 
-  for (ENRMFormattingRange *range in parsed.formattingRanges) {
+  for (ENRMFormattingRange *range in ranges) {
     NSRange shifted = NSMakeRange(range.range.location + editLocation, range.range.length);
     [_formattingStore addRange:[ENRMFormattingRange rangeWithType:range.type range:shifted url:range.url]];
   }
@@ -396,6 +392,13 @@ using namespace facebook::react;
   }
   [self requestHeightUpdate];
   [self scheduleRelayoutIfNeeded];
+}
+
+- (void)pasteMarkdown:(NSString *)markdown
+{
+  ENRMInputParser *parser = [[ENRMInputParser alloc] init];
+  ENRMParseResult *parsed = [parser parseToPlainTextAndRanges:markdown];
+  [self replaceSelectedTextWith:parsed.plainText formattingRanges:parsed.formattingRanges];
 }
 
 #pragma mark - Formatting
@@ -571,6 +574,14 @@ using namespace facebook::react;
   if (_emitMarkdown) {
     [self emitOnChangeMarkdown];
   }
+}
+
+- (void)insertLink:(NSString *)text url:(NSString *)url
+{
+  NSString *displayText = text.length > 0 ? text : url;
+  NSRange linkRange = NSMakeRange(0, displayText.length);
+  ENRMFormattingRange *range = [ENRMFormattingRange rangeWithType:ENRMInputStyleTypeLink range:linkRange url:url];
+  [self replaceSelectedTextWith:displayText formattingRanges:@[ range ]];
 }
 
 - (void)removeLink

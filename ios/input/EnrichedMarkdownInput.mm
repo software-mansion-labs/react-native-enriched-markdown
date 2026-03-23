@@ -445,6 +445,7 @@ using namespace facebook::react;
 - (void)setValue:(NSString *)markdown
 {
   [self importMarkdown:markdown];
+  _lastSelectedRange = _textView.selectedRange;
   [self emitOnChangeText];
   [self emitOnChangeSelection];
   [self emitOnChangeState];
@@ -923,10 +924,16 @@ using namespace facebook::react;
   if (_isApplyingFormatting || _isTextChanging) {
     return;
   }
-  _lastSelectedRange = textView.selectedRange;
 
-  [_pendingStyles removeAllObjects];
-  [_pendingStyleRemovals removeAllObjects];
+  NSRange newSelection = textView.selectedRange;
+  BOOL selectionMoved =
+      newSelection.location != _lastSelectedRange.location || newSelection.length != _lastSelectedRange.length;
+  _lastSelectedRange = newSelection;
+
+  if (selectionMoved) {
+    [_pendingStyles removeAllObjects];
+    [_pendingStyleRemovals removeAllObjects];
+  }
 
   [self manageSelectionBasedChanges];
 

@@ -1,11 +1,13 @@
 #import "ENRMInputLinkPrompt.h"
 
-// TODO: Wrap all user-facing strings with NSLocalizedString for localization support.
+static const CGFloat kMacOSURLFieldWidth = 260;
+static const CGFloat kMacOSURLFieldHeight = 24;
+
 void ENRMShowLinkPrompt(RCTUIView *sourceView, NSString *existingURL, void (^completion)(NSString *url))
 {
   BOOL isEditing = existingURL.length > 0;
   NSString *title = isEditing ? @"Edit Link" : @"Add Link";
-  NSString *buttonTitle = isEditing ? @"Update" : @"Add";
+  NSString *confirmTitle = isEditing ? @"Update" : @"Add";
 
 #if !TARGET_OS_OSX
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
@@ -20,16 +22,23 @@ void ENRMShowLinkPrompt(RCTUIView *sourceView, NSString *existingURL, void (^com
     textField.autocorrectionType = UITextAutocorrectionTypeNo;
   }];
 
-  [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+  UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:confirmTitle
+                                                          style:UIAlertActionStyleDefault
+                                                        handler:^(UIAlertAction *action) {
+                                                          NSString *url = alert.textFields.firstObject.text;
+                                                          completion(url);
+                                                        }];
+  confirmAction.enabled = isEditing;
 
-  [alert addAction:[UIAlertAction actionWithTitle:buttonTitle
-                                            style:UIAlertActionStyleDefault
-                                          handler:^(UIAlertAction *action) {
-                                            NSString *url = alert.textFields.firstObject.text ?: @"";
-                                            if (url.length > 0) {
-                                              completion(url);
-                                            }
-                                          }]];
+  [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+  [alert addAction:confirmAction];
+
+  UITextField *urlField = alert.textFields.firstObject;
+  [NSNotificationCenter.defaultCenter
+      addObserverForName:UITextFieldTextDidChangeNotification
+                  object:urlField
+                   queue:NSOperationQueue.mainQueue
+              usingBlock:^(NSNotification *note) { confirmAction.enabled = urlField.text.length > 0; }];
 
   UIViewController *presenter = sourceView.window.rootViewController;
   while (presenter.presentedViewController) {
@@ -40,10 +49,11 @@ void ENRMShowLinkPrompt(RCTUIView *sourceView, NSString *existingURL, void (^com
   NSAlert *alert = [[NSAlert alloc] init];
   alert.messageText = title;
   alert.informativeText = @"Enter the URL for the link.";
-  [alert addButtonWithTitle:buttonTitle];
+  [alert addButtonWithTitle:confirmTitle];
   [alert addButtonWithTitle:@"Cancel"];
 
-  NSTextField *urlField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 260, 24)];
+  NSTextField *urlField =
+      [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, kMacOSURLFieldWidth, kMacOSURLFieldHeight)];
   urlField.placeholderString = @"URL";
   urlField.stringValue = existingURL ?: @"";
   alert.accessoryView = urlField;
@@ -51,7 +61,7 @@ void ENRMShowLinkPrompt(RCTUIView *sourceView, NSString *existingURL, void (^com
   [alert beginSheetModalForWindow:sourceView.window
                 completionHandler:^(NSModalResponse returnCode) {
                   if (returnCode == NSAlertFirstButtonReturn) {
-                    NSString *url = urlField.stringValue ?: @"";
+                    NSString *url = urlField.stringValue;
                     if (url.length > 0) {
                       completion(url);
                     }

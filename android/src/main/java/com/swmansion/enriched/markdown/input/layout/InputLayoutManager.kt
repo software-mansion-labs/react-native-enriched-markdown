@@ -1,6 +1,7 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.layout
 
 import com.facebook.react.bridge.Arguments
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
 
 class InputLayoutManager(
   private val view: EnrichedMarkdownInputView,

@@ -1,7 +1,8 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.editing
 
 import android.text.Editable
 import android.text.TextWatcher
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
 
 class MarkdownTextWatcher(
   private val view: EnrichedMarkdownInputView,

@@ -1,7 +1,8 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.editing
 
 import android.view.KeyEvent
 import android.view.inputmethod.InputConnection
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
 import android.view.inputmethod.InputConnectionWrapper as AndroidInputConnectionWrapper
 
 class InputConnectionWrapper(

@@ -1,8 +1,9 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.layout
 
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.Event
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
 import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeStateEvent
@@ -10,6 +11,7 @@ import com.swmansion.enriched.markdown.input.events.OnChangeTextEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
+import com.swmansion.enriched.markdown.input.formatting.MarkdownSerializer
 import com.swmansion.enriched.markdown.input.model.StyleType
 
 class InputEventEmitter(

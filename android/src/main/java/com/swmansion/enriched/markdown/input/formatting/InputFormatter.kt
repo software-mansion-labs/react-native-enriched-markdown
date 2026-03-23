@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.formatting
 
 import android.text.Spannable
 import android.text.style.CharacterStyle

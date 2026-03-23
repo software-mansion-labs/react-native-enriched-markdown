@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.formatting
 
 import com.swmansion.enriched.markdown.input.model.FormattingRange
 import com.swmansion.enriched.markdown.input.model.StyleType

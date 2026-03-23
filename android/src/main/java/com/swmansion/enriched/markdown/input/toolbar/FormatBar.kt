@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.toolbar
 
 import android.content.Context
 import android.graphics.Canvas
@@ -21,6 +21,7 @@ import android.widget.LinearLayout
 import android.widget.PopupWindow
 import androidx.appcompat.app.AlertDialog
 import com.swmansion.enriched.markdown.R
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
 import com.swmansion.enriched.markdown.input.model.StyleType
 
 class FormatBar(

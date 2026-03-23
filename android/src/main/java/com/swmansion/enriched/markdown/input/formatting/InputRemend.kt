@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.formatting
 
 object InputRemend {
   private data class DelimiterPair(

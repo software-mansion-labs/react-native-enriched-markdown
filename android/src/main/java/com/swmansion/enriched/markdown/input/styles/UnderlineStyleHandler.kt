@@ -2,7 +2,7 @@ package com.swmansion.enriched.markdown.input.styles
 
 import android.text.style.CharacterStyle
 import android.text.style.UnderlineSpan
-import com.swmansion.enriched.markdown.input.MarkdownSpan
+import com.swmansion.enriched.markdown.input.formatting.MarkdownSpan
 import com.swmansion.enriched.markdown.input.model.FormattingRange
 import com.swmansion.enriched.markdown.input.model.InputFormatterStyle
 import com.swmansion.enriched.markdown.input.model.StyleType

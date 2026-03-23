@@ -1,4 +1,4 @@
-package com.swmansion.enriched.markdown.input
+package com.swmansion.enriched.markdown.input.toolbar
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -9,6 +9,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.formatting.MarkdownSerializer
 import com.swmansion.enriched.markdown.input.model.FormattingRange
 import com.swmansion.enriched.markdown.input.model.StyleType
 

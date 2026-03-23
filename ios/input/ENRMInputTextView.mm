@@ -5,7 +5,7 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
 
 #if !TARGET_OS_OSX
 
-#import <MobileCoreServices/MobileCoreServices.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @implementation ENRMInputTextView
 
@@ -21,7 +21,7 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
 
   UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
   NSMutableDictionary *items = [NSMutableDictionary dictionary];
-  items[(__bridge NSString *)kUTTypePlainText] = plainText;
+  items[UTTypePlainText.identifier] = plainText;
   if (markdown.length > 0) {
     items[kENRMMarkdownPasteboardType] = markdown;
   }

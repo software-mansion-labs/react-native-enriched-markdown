@@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSSet<NSNumber *> *blockingStyles;
 
 + (instancetype)configWithConflicting:(NSSet<NSNumber *> *)conflicting blocking:(NSSet<NSNumber *> *)blocking;
++ (instancetype)emptyConfig;
 
 @end
 

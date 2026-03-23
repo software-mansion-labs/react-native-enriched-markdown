@@ -9,11 +9,7 @@
 
 - (ENRMStyleMergingConfig *)mergingConfig
 {
-  static ENRMStyleMergingConfig *config;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken,
-                ^{ config = [ENRMStyleMergingConfig configWithConflicting:[NSSet set] blocking:[NSSet set]]; });
-  return config;
+  return [ENRMStyleMergingConfig emptyConfig];
 }
 
 - (UIFontDescriptorSymbolicTraits)fontTraits

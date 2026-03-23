@@ -386,10 +386,7 @@ using namespace facebook::react;
   [self updatePlaceholderVisibility];
   [self emitOnChangeText];
   [self emitOnChangeSelection];
-  [self emitOnChangeState];
-  if (_emitMarkdown) {
-    [self emitOnChangeMarkdown];
-  }
+  [self emitFormattingChanged];
   [self requestHeightUpdate];
   [self scheduleRelayoutIfNeeded];
 }
@@ -547,10 +544,7 @@ using namespace facebook::react;
   }
 
   [self applyFormatting];
-  [self emitOnChangeState];
-  if (_emitMarkdown) {
-    [self emitOnChangeMarkdown];
-  }
+  [self emitFormattingChanged];
 }
 
 - (void)setLink:(NSString *)url
@@ -570,10 +564,7 @@ using namespace facebook::react;
   }
 
   [self applyFormatting];
-  [self emitOnChangeState];
-  if (_emitMarkdown) {
-    [self emitOnChangeMarkdown];
-  }
+  [self emitFormattingChanged];
 }
 
 - (void)insertLink:(NSString *)text url:(NSString *)url
@@ -594,10 +585,7 @@ using namespace facebook::react;
 
   [_formattingStore removeRange:activeLink];
   [self applyFormatting];
-  [self emitOnChangeState];
-  if (_emitMarkdown) {
-    [self emitOnChangeMarkdown];
-  }
+  [self emitFormattingChanged];
 }
 
 - (void)showLinkPrompt
@@ -675,6 +663,14 @@ using namespace facebook::react;
 }
 
 #pragma mark - Event emitters
+
+- (void)emitFormattingChanged
+{
+  [self emitOnChangeState];
+  if (_emitMarkdown) {
+    [self emitOnChangeMarkdown];
+  }
+}
 
 - (std::shared_ptr<EnrichedMarkdownInputEventEmitter const>)getEventEmitter
 {
@@ -836,10 +832,7 @@ using namespace facebook::react;
   [self updatePlaceholderVisibility];
   [self emitOnChangeText];
   [self emitOnChangeSelection];
-  [self emitOnChangeState];
-  if (_emitMarkdown) {
-    [self emitOnChangeMarkdown];
-  }
+  [self emitFormattingChanged];
   [self requestHeightUpdate];
   [self scheduleRelayoutIfNeeded];
 }
@@ -989,43 +982,35 @@ using namespace facebook::react;
   [_formatBar showAtSelectionRect:windowRect inWindow:window];
 }
 
-- (void)formatBar:(ENRMFormatBar *)bar didSelectAction:(ENRMFormatBarAction)action
+static ENRMInputStyleType styleTypeForAction(ENRMFormatBarAction action)
 {
   switch (action) {
     case ENRMFormatBarActionBold:
-      [self toggleBold];
-      break;
+      return ENRMInputStyleTypeStrong;
     case ENRMFormatBarActionItalic:
-      [self toggleItalic];
-      break;
+      return ENRMInputStyleTypeEmphasis;
     case ENRMFormatBarActionUnderline:
-      [self toggleUnderline];
-      break;
+      return ENRMInputStyleTypeUnderline;
     case ENRMFormatBarActionStrikethrough:
-      [self toggleStrikethrough];
-      break;
+      return ENRMInputStyleTypeStrikethrough;
     case ENRMFormatBarActionLink:
-      [self showLinkPrompt];
-      break;
+      return ENRMInputStyleTypeLink;
+  }
+}
+
+- (void)formatBar:(ENRMFormatBar *)bar didSelectAction:(ENRMFormatBarAction)action
+{
+  if (action == ENRMFormatBarActionLink) {
+    [self showLinkPrompt];
+  } else {
+    [self toggleInlineStyle:styleTypeForAction(action)];
   }
   [_formatBar updateActiveStates];
 }
 
 - (BOOL)formatBar:(ENRMFormatBar *)bar isActionActive:(ENRMFormatBarAction)action
 {
-  NSUInteger cursor = _textView.selectedRange.location;
-  switch (action) {
-    case ENRMFormatBarActionBold:
-      return [self isEffectiveStyleActive:ENRMInputStyleTypeStrong atPosition:cursor];
-    case ENRMFormatBarActionItalic:
-      return [self isEffectiveStyleActive:ENRMInputStyleTypeEmphasis atPosition:cursor];
-    case ENRMFormatBarActionUnderline:
-      return [self isEffectiveStyleActive:ENRMInputStyleTypeUnderline atPosition:cursor];
-    case ENRMFormatBarActionStrikethrough:
-      return [self isEffectiveStyleActive:ENRMInputStyleTypeStrikethrough atPosition:cursor];
-    case ENRMFormatBarActionLink:
-      return [self isEffectiveStyleActive:ENRMInputStyleTypeLink atPosition:cursor];
-  }
+  return [self isEffectiveStyleActive:styleTypeForAction(action) atPosition:_textView.selectedRange.location];
 }
 
 #else

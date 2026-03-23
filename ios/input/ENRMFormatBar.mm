@@ -4,17 +4,32 @@
 
 static const CGFloat kButtonWidth = 44.0;
 static const CGFloat kBarHeight = 44.0;
-static const CGFloat kArrowH = 7.0;
-static const CGFloat kArrowW = 14.0;
+static const CGFloat kButtonInset = 4.0;
+static const CGFloat kArrowHeight = 7.0;
+static const CGFloat kArrowWidth = 14.0;
 static const CGFloat kCornerRadius = 12.0;
+static const CGFloat kButtonCornerRadius = 6.0;
 static const CGFloat kGapFromSelection = 8.0;
 static const CGFloat kScreenMargin = 10.0;
 static const CGFloat kMinTopMargin = 60.0;
+static const CGFloat kSeparatorWidth = 0.5;
+static const CGFloat kSeparatorInset = 10.0;
+
+static const struct {
+  const char *symbol;
+  ENRMFormatBarAction action;
+} kFormatItems[] = {
+    {"bold", ENRMFormatBarActionBold},           {"italic", ENRMFormatBarActionItalic},
+    {"underline", ENRMFormatBarActionUnderline}, {"strikethrough", ENRMFormatBarActionStrikethrough},
+    {"link", ENRMFormatBarActionLink},
+};
+static const NSInteger kFormatItemCount = sizeof(kFormatItems) / sizeof(kFormatItems[0]);
 
 @implementation ENRMFormatBar {
   __weak id<ENRMFormatBarDelegate> _delegate;
   UIVisualEffectView *_blurView;
   NSArray<UIButton *> *_buttons;
+  NSArray<UIView *> *_separators;
   CAShapeLayer *_arrowLayer;
   BOOL _arrowPointsUp;
   CGFloat _arrowCenterX;
@@ -22,8 +37,8 @@ static const CGFloat kMinTopMargin = 60.0;
 
 - (instancetype)initWithDelegate:(id<ENRMFormatBarDelegate>)delegate
 {
-  CGFloat width = kButtonWidth * 5;
-  if (self = [super initWithFrame:CGRectMake(0, 0, width, kBarHeight + kArrowH)]) {
+  CGFloat width = kButtonWidth * kFormatItemCount;
+  if (self = [super initWithFrame:CGRectMake(0, 0, width, kBarHeight + kArrowHeight)]) {
     _delegate = delegate;
     self.backgroundColor = [UIColor clearColor];
     self.userInteractionEnabled = YES;
@@ -50,55 +65,51 @@ static const CGFloat kMinTopMargin = 60.0;
   _blurView.layer.masksToBounds = YES;
   [self addSubview:_blurView];
 
-  static struct {
-    const char *symbol;
-    ENRMFormatBarAction action;
-  } const kItems[] = {
-      {"bold", ENRMFormatBarActionBold},           {"italic", ENRMFormatBarActionItalic},
-      {"underline", ENRMFormatBarActionUnderline}, {"strikethrough", ENRMFormatBarActionStrikethrough},
-      {"link", ENRMFormatBarActionLink},
-  };
-  NSInteger count = sizeof(kItems) / sizeof(kItems[0]);
-
-  UIImageSymbolConfiguration *symbolCfg =
+  UIImageSymbolConfiguration *symbolConfig =
       [UIImageSymbolConfiguration configurationWithPointSize:15 weight:UIImageSymbolWeightMedium];
 
-  NSMutableArray *buttons = [NSMutableArray array];
-  for (NSInteger i = 0; i < count; i++) {
-    UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
-    NSString *symbolName = [NSString stringWithUTF8String:kItems[i].symbol];
-    UIImage *icon = [[UIImage systemImageNamed:symbolName] imageWithConfiguration:symbolCfg];
-    [btn setImage:icon forState:UIControlStateNormal];
-    btn.tintColor = [UIColor labelColor];
-    btn.tag = kItems[i].action;
-    btn.layer.cornerRadius = 6;
-    [btn addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
-    [_blurView.contentView addSubview:btn];
-    [buttons addObject:btn];
+  NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
+  NSMutableArray<UIView *> *separators = [NSMutableArray array];
 
-    if (i < count - 1) {
-      UIView *sep = [[UIView alloc] init];
-      sep.backgroundColor = [UIColor separatorColor];
-      sep.tag = 100 + i;
-      [_blurView.contentView addSubview:sep];
+  for (NSInteger i = 0; i < kFormatItemCount; i++) {
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    NSString *symbolName = [NSString stringWithUTF8String:kFormatItems[i].symbol];
+    UIImage *icon = [[UIImage systemImageNamed:symbolName] imageWithConfiguration:symbolConfig];
+    [button setImage:icon forState:UIControlStateNormal];
+    button.tintColor = [UIColor labelColor];
+    button.tag = kFormatItems[i].action;
+    button.layer.cornerRadius = kButtonCornerRadius;
+    [button addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [_blurView.contentView addSubview:button];
+    [buttons addObject:button];
+
+    if (i < kFormatItemCount - 1) {
+      UIView *separator = [[UIView alloc] init];
+      separator.backgroundColor = [UIColor separatorColor];
+      [_blurView.contentView addSubview:separator];
+      [separators addObject:separator];
     }
   }
+
   _buttons = [buttons copy];
+  _separators = [separators copy];
 }
 
 - (void)layoutSubviews
 {
   [super layoutSubviews];
 
-  CGFloat barY = _arrowPointsUp ? kArrowH : 0;
+  CGFloat barY = _arrowPointsUp ? kArrowHeight : 0;
   _blurView.frame = CGRectMake(0, barY, self.bounds.size.width, kBarHeight);
 
   for (NSInteger i = 0; i < (NSInteger)_buttons.count; i++) {
-    _buttons[i].frame = CGRectMake(i * kButtonWidth + 4, 4, kButtonWidth - 8, kBarHeight - 8);
-    if (i < (NSInteger)_buttons.count - 1) {
-      UIView *sep = [_blurView.contentView viewWithTag:100 + i];
-      sep.frame = CGRectMake((i + 1) * kButtonWidth - 0.25, 10, 0.5, kBarHeight - 20);
-    }
+    _buttons[i].frame = CGRectMake(i * kButtonWidth + kButtonInset, kButtonInset, kButtonWidth - kButtonInset * 2,
+                                   kBarHeight - kButtonInset * 2);
+  }
+
+  for (NSInteger i = 0; i < (NSInteger)_separators.count; i++) {
+    _separators[i].frame = CGRectMake((i + 1) * kButtonWidth - kSeparatorWidth / 2, kSeparatorInset, kSeparatorWidth,
+                                      kBarHeight - kSeparatorInset * 2);
   }
 
   [self redrawArrow];
@@ -106,27 +117,31 @@ static const CGFloat kMinTopMargin = 60.0;
 
 - (void)redrawArrow
 {
-  CGFloat clamped =
-      MAX(kCornerRadius + kArrowW / 2, MIN(_arrowCenterX, self.bounds.size.width - kCornerRadius - kArrowW / 2));
+  CGFloat halfArrow = kArrowWidth / 2;
+  CGFloat minX = kCornerRadius + halfArrow;
+  CGFloat maxX = self.bounds.size.width - kCornerRadius - halfArrow;
+  CGFloat centerX = MAX(minX, MIN(_arrowCenterX, maxX));
+
   UIBezierPath *path = [UIBezierPath bezierPath];
   if (_arrowPointsUp) {
-    [path moveToPoint:CGPointMake(clamped, 0)];
-    [path addLineToPoint:CGPointMake(clamped - kArrowW / 2, kArrowH)];
-    [path addLineToPoint:CGPointMake(clamped + kArrowW / 2, kArrowH)];
+    [path moveToPoint:CGPointMake(centerX, 0)];
+    [path addLineToPoint:CGPointMake(centerX - halfArrow, kArrowHeight)];
+    [path addLineToPoint:CGPointMake(centerX + halfArrow, kArrowHeight)];
   } else {
-    CGFloat base = kBarHeight;
-    [path moveToPoint:CGPointMake(clamped, base + kArrowH)];
-    [path addLineToPoint:CGPointMake(clamped - kArrowW / 2, base)];
-    [path addLineToPoint:CGPointMake(clamped + kArrowW / 2, base)];
+    CGFloat baseY = kBarHeight;
+    [path moveToPoint:CGPointMake(centerX, baseY + kArrowHeight)];
+    [path addLineToPoint:CGPointMake(centerX - halfArrow, baseY)];
+    [path addLineToPoint:CGPointMake(centerX + halfArrow, baseY)];
   }
   [path closePath];
+
   _arrowLayer.path = path.CGPath;
   _arrowLayer.fillColor = [UIColor systemBackgroundColor].CGColor;
 }
 
-- (void)buttonTapped:(UIButton *)btn
+- (void)buttonTapped:(UIButton *)button
 {
-  [_delegate formatBar:self didSelectAction:(ENRMFormatBarAction)btn.tag];
+  [_delegate formatBar:self didSelectAction:(ENRMFormatBarAction)button.tag];
 }
 
 - (void)showAtSelectionRect:(CGRect)selectionRect inWindow:(UIWindow *)window
@@ -135,26 +150,26 @@ static const CGFloat kMinTopMargin = 60.0;
     [window addSubview:self];
   }
 
-  CGFloat barW = self.bounds.size.width;
-  CGFloat barH = kBarHeight + kArrowH;
-  CGFloat winW = window.bounds.size.width;
-  CGFloat winH = window.bounds.size.height;
+  CGFloat barWidth = self.bounds.size.width;
+  CGFloat barHeight = kBarHeight + kArrowHeight;
+  CGFloat windowWidth = window.bounds.size.width;
+  CGFloat windowHeight = window.bounds.size.height;
 
   CGFloat midX = CGRectGetMidX(selectionRect);
-  CGFloat x = midX - barW / 2.0;
-  x = MAX(kScreenMargin, MIN(x, winW - barW - kScreenMargin));
+  CGFloat x = midX - barWidth / 2.0;
+  x = MAX(kScreenMargin, MIN(x, windowWidth - barWidth - kScreenMargin));
   _arrowCenterX = midX - x;
 
-  CGFloat yAbove = CGRectGetMinY(selectionRect) - barH - kGapFromSelection;
+  CGFloat yAbove = CGRectGetMinY(selectionRect) - barHeight - kGapFromSelection;
   CGFloat yBelow = CGRectGetMaxY(selectionRect) + kGapFromSelection;
   BOOL placeAbove = yAbove >= kMinTopMargin;
 
   CGFloat y = placeAbove ? yAbove : yBelow;
-  y = MAX(kMinTopMargin, MIN(y, winH - barH - kScreenMargin));
+  y = MAX(kMinTopMargin, MIN(y, windowHeight - barHeight - kScreenMargin));
 
   _arrowPointsUp = !placeAbove;
 
-  self.frame = CGRectMake(x, y, barW, barH);
+  self.frame = CGRectMake(x, y, barWidth, barHeight);
   [self setNeedsLayout];
   [self updateActiveStates];
 
@@ -179,10 +194,10 @@ static const CGFloat kMinTopMargin = 60.0;
   if (!_delegate) {
     return;
   }
-  for (UIButton *btn in _buttons) {
-    BOOL active = [_delegate formatBar:self isActionActive:(ENRMFormatBarAction)btn.tag];
-    btn.tintColor = active ? [UIColor systemBlueColor] : [UIColor labelColor];
-    btn.backgroundColor = active ? [[UIColor systemBlueColor] colorWithAlphaComponent:0.12] : [UIColor clearColor];
+  for (UIButton *button in _buttons) {
+    BOOL active = [_delegate formatBar:self isActionActive:(ENRMFormatBarAction)button.tag];
+    button.tintColor = active ? [UIColor systemBlueColor] : [UIColor labelColor];
+    button.backgroundColor = active ? [[UIColor systemBlueColor] colorWithAlphaComponent:0.12] : [UIColor clearColor];
   }
 }
 

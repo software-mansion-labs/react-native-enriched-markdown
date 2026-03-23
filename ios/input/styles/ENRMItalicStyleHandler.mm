@@ -9,11 +9,7 @@
 
 - (ENRMStyleMergingConfig *)mergingConfig
 {
-  static ENRMStyleMergingConfig *config;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken,
-                ^{ config = [ENRMStyleMergingConfig configWithConflicting:[NSSet set] blocking:[NSSet set]]; });
-  return config;
+  return [ENRMStyleMergingConfig emptyConfig];
 }
 
 - (UIFontDescriptorSymbolicTraits)fontTraits
@@ -25,9 +21,8 @@
                                       range:(NSRange)range
                                       style:(ENRMInputFormatterStyle *)style
 {
-  if (style.italicColor != nil) {
-    [storage addAttribute:NSForegroundColorAttributeName value:style.italicColor range:range];
-  }
+  RCTUIColor *color = style.italicColor ?: style.baseTextColor;
+  [storage addAttribute:NSForegroundColorAttributeName value:color range:range];
 }
 
 @end

@@ -13,10 +13,6 @@
 @implementation ENRMParseResult
 @end
 
-@interface ENRMInputParser ()
-- (NSArray<ENRMInputStyledRange *> *)parse:(NSString *)markdown;
-@end
-
 namespace {
 
 static const size_t kByteOffsetUnset = SIZE_MAX;
@@ -70,31 +66,23 @@ static std::vector<NSUInteger> buildByteToUTF16Map(const char *utf8, size_t byte
   while (byteIndex < byteLength) {
     unsigned char leadByte = (unsigned char)utf8[byteIndex];
     size_t sequenceLength;
-    uint32_t codepoint;
 
     if (leadByte < 0x80) {
       sequenceLength = 1;
-      codepoint = leadByte;
     } else if ((leadByte & 0xE0) == 0xC0) {
       sequenceLength = 2;
-      codepoint = leadByte & 0x1F;
     } else if ((leadByte & 0xF0) == 0xE0) {
       sequenceLength = 3;
-      codepoint = leadByte & 0x0F;
     } else {
       sequenceLength = 4;
-      codepoint = leadByte & 0x07;
-    }
-
-    for (size_t offset = 1; offset < sequenceLength && (byteIndex + offset) < byteLength; offset++) {
-      codepoint = (codepoint << 6) | (utf8[byteIndex + offset] & 0x3F);
     }
 
     for (size_t offset = 0; offset < sequenceLength && (byteIndex + offset) <= byteLength; offset++) {
       map[byteIndex + offset] = utf16Index;
     }
 
-    utf16Index += (codepoint > 0xFFFF) ? 2 : 1;
+    // 4-byte UTF-8 sequences encode codepoints above U+FFFF, which need a surrogate pair in UTF-16
+    utf16Index += (sequenceLength == 4) ? 2 : 1;
     byteIndex += sequenceLength;
   }
 
@@ -107,31 +95,27 @@ static inline NSUInteger mapByteOffset(const std::vector<NSUInteger> &map, size_
   return map[std::min(offset, maxOffset)];
 }
 
+static const size_t kClosingDelimiterByteLength[] = {
+    [ENRMInputStyleTypeStrong] = 2,
+    [ENRMInputStyleTypeEmphasis] = 1,
+    [ENRMInputStyleTypeUnderline] = 1,
+    [ENRMInputStyleTypeStrikethrough] = 2,
+};
+
 static size_t closingDelimiterEndByte(const InlineSpanInfo &span, const char *utf8, size_t bufferLength)
 {
   size_t position = span.contentEndByteOffset;
-  switch (span.type) {
-    case ENRMInputStyleTypeStrong:
-      return position + 2;
-    case ENRMInputStyleTypeEmphasis:
-      return position + 1;
-    case ENRMInputStyleTypeUnderline:
-      return position + 1;
-    case ENRMInputStyleTypeStrikethrough:
-      return position + 2;
-    case ENRMInputStyleTypeLink:
-      while (position < bufferLength && utf8[position] != ')') {
-        position++;
-      }
-      if (position < bufferLength) {
-        position++;
-      }
-      return position;
+
+  if (span.type == ENRMInputStyleTypeLink) {
+    while (position < bufferLength && utf8[position] != ')') {
+      position++;
+    }
+    return (position < bufferLength) ? position + 1 : position;
   }
-  return position;
+
+  return position + kClosingDelimiterByteLength[span.type];
 }
 
-// Reserved for future block-level support (lists, headings, blockquotes, code blocks, etc.)
 static int onEnterBlock(MD_BLOCKTYPE, void *, void *)
 {
   return 0;
@@ -166,8 +150,8 @@ static int onEnterSpan(MD_SPANTYPE spanType, void *detail, void *userdata)
 
 static int onLeaveSpan(MD_SPANTYPE spanType, void *, void *userdata)
 {
-  ENRMInputStyleType unused;
-  if (!isSupportedSpan(spanType, unused)) {
+  ENRMInputStyleType styleType;
+  if (!isSupportedSpan(spanType, styleType)) {
     return 0;
   }
 
@@ -283,11 +267,8 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
   }
 
   [results sortUsingComparator:^NSComparisonResult(ENRMInputStyledRange *first, ENRMInputStyledRange *second) {
-    if (first.fullRange.location < second.fullRange.location)
-      return NSOrderedAscending;
-    if (first.fullRange.location > second.fullRange.location)
-      return NSOrderedDescending;
-    return NSOrderedSame;
+    NSUInteger a = first.fullRange.location, b = second.fullRange.location;
+    return (a < b) ? NSOrderedAscending : (a > b) ? NSOrderedDescending : NSOrderedSame;
   }];
 
   return results;
@@ -316,12 +297,7 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
 
   NSUInteger rawLength = markdown.length;
   NSMutableString *plainText = [NSMutableString stringWithCapacity:rawLength];
-  NSUInteger *rawToPlainMap = (NSUInteger *)malloc(sizeof(NSUInteger) * (rawLength + 1));
-  if (!rawToPlainMap) {
-    parseResult.plainText = markdown;
-    parseResult.formattingRanges = @[];
-    return parseResult;
-  }
+  __block std::vector<NSUInteger> rawToPlainMap(rawLength + 1, 0);
 
   __block NSUInteger plainPosition = 0;
   __block NSUInteger previousEnd = 0;
@@ -372,8 +348,6 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
                                        url:styledRange.url];
     [formattingRanges addObject:formattingRange];
   }
-
-  free(rawToPlainMap);
 
   parseResult.plainText = plainText;
   parseResult.formattingRanges = formattingRanges;

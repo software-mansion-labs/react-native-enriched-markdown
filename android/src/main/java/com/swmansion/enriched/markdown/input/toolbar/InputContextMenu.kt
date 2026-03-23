@@ -3,16 +3,12 @@ package com.swmansion.enriched.markdown.input.toolbar
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.text.InputType
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
 import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
 import com.swmansion.enriched.markdown.input.formatting.MarkdownSerializer
 import com.swmansion.enriched.markdown.input.model.FormattingRange
-import com.swmansion.enriched.markdown.input.model.StyleType
 
 class InputContextMenu(
   private val view: EnrichedMarkdownInputView,
@@ -68,33 +64,6 @@ class InputContextMenu(
 
         override fun onDestroyActionMode(mode: ActionMode) {}
       }
-  }
-
-  fun showLinkPrompt() {
-    if (view.selectionStart == view.selectionEnd) return
-
-    val existingLink =
-      view.formattingStore.rangeOfType(StyleType.LINK, view.selectionStart)
-
-    val urlInput =
-      EditText(view.context).apply {
-        hint = "https://example.com"
-        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-        setSingleLine(true)
-        existingLink?.url?.let { setText(it) }
-      }
-
-    AlertDialog
-      .Builder(view.context)
-      .setTitle(if (existingLink != null) "Edit Link" else "Add Link")
-      .setView(urlInput)
-      .setPositiveButton(if (existingLink != null) "Update" else "Add") { _, _ ->
-        val url = urlInput.text.toString().trim()
-        if (url.isNotEmpty()) {
-          view.setLinkForSelection(url)
-        }
-      }.setNegativeButton("Cancel", null)
-      .show()
   }
 
   private fun markdownForSelectedRange(): String? {

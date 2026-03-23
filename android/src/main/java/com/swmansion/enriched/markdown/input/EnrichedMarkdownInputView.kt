@@ -156,6 +156,8 @@ class EnrichedMarkdownInputView(
     return super.onTouchEvent(ev)
   }
 
+  override fun performClick(): Boolean = super.performClick()
+
   override fun canScrollVertically(direction: Int): Boolean = scrollEnabled && super.canScrollVertically(direction)
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled && super.canScrollHorizontally(direction)

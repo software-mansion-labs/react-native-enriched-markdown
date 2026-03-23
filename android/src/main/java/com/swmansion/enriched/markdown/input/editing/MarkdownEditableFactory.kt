@@ -8,7 +8,7 @@ class MarkdownEditableFactory(
   private val view: EnrichedMarkdownInputView,
 ) : Editable.Factory() {
   override fun newEditable(source: CharSequence): Editable {
-    val builder = if (source is SpannableStringBuilder) source else SpannableStringBuilder(source)
+    val builder = (source as? SpannableStringBuilder) ?: SpannableStringBuilder(source)
     view.attachTextWatcher(builder)
     return builder
   }

@@ -131,8 +131,6 @@ class FormattingStore {
             range.end = newStart + oldLength - charsClipped
             if (range.length == 0) indexesToRemove.add(idx)
           }
-
-          EditOverlap.NONE -> { /* no change */ }
         }
       } else {
         when {
@@ -165,7 +163,6 @@ class FormattingStore {
   }
 
   private enum class EditOverlap {
-    NONE,
     BEFORE_EDIT,
     AFTER_EDIT,
     FULLY_DELETED,
@@ -184,8 +181,6 @@ class FormattingStore {
     if (rangeStart >= deleteEnd) return EditOverlap.AFTER_EDIT
     if (rangeStart >= editLocation && rangeEnd <= deleteEnd) return EditOverlap.FULLY_DELETED
     if (rangeStart < editLocation && rangeEnd > deleteEnd) return EditOverlap.DELETED_INSIDE
-    if (rangeStart < editLocation && rangeEnd <= deleteEnd) return EditOverlap.CLIPPED_END
-    if (rangeStart >= editLocation && rangeStart < deleteEnd && rangeEnd > deleteEnd) return EditOverlap.CLIPPED_START
-    return EditOverlap.NONE
+    return if (rangeStart < editLocation) EditOverlap.CLIPPED_END else EditOverlap.CLIPPED_START
   }
 }

@@ -116,14 +116,14 @@ class FormatBar(
   }
 
   private fun updateActiveStates() {
-    buttons.forEach { (type, btn) ->
+    buttons.forEach { (type, button) ->
       val active = isStyleActive(type)
-      btn.colorFilter =
+      button.colorFilter =
         PorterDuffColorFilter(
           if (active) ACTIVE_COLOR else INACTIVE_COLOR,
           PorterDuff.Mode.SRC_IN,
         )
-      btn.background = if (active) activeButtonBackground() else null
+      button.background = if (active) activeButtonBackground() else null
     }
   }
 
@@ -160,17 +160,17 @@ class FormatBar(
     selStart: Int,
     selEnd: Int,
   ) {
-    val p = popup ?: return
-    if (!p.isShowing) return
-    val (x, y) = computePosition(selStart, selEnd, p.width, p.height)
-    p.update(x, y, p.width, p.height)
+    val currentPopup = popup ?: return
+    if (!currentPopup.isShowing) return
+    val (x, y) = computePosition(selStart, selEnd, currentPopup.width, currentPopup.height)
+    currentPopup.update(x, y, currentPopup.width, currentPopup.height)
   }
 
   private fun computePosition(
     selStart: Int,
     selEnd: Int,
-    barW: Int,
-    barH: Int,
+    barWidth: Int,
+    barHeight: Int,
   ): Pair<Int, Int> {
     val layout = view.layout ?: return 0 to 0
     val line = layout.getLineForOffset(selStart)
@@ -181,17 +181,17 @@ class FormatBar(
 
     val midX = selectionMidX(selStart, selEnd).toInt()
     val gap = dp(GAP_DP).toInt()
-    val rawX = location[0] + view.paddingLeft + midX - barW / 2
-    val rawY = location[1] + view.paddingTop + lineTop - barH - gap
+    val rawX = location[0] + view.paddingLeft + midX - barWidth / 2
+    val rawY = location[1] + view.paddingTop + lineTop - barHeight - gap
 
-    return rawX.coerceIn(gap, metrics.widthPixels - barW - gap) to
+    return rawX.coerceIn(gap, metrics.widthPixels - barWidth - gap) to
       rawY.coerceAtLeast(dp(MIN_TOP_MARGIN_DP).toInt())
   }
 
   private fun computeArrowCenterX(
     selStart: Int,
     selEnd: Int,
-    barW: Int,
+    barWidth: Int,
   ): Float {
     val midX = selectionMidX(selStart, selEnd)
 
@@ -200,11 +200,11 @@ class FormatBar(
 
     val gap = dp(GAP_DP)
     val selScreenX = location[0] + view.paddingLeft + midX
-    val barX = (selScreenX - barW / 2f).coerceIn(gap, metrics.widthPixels - barW - gap)
+    val barX = (selScreenX - barWidth / 2f).coerceIn(gap, metrics.widthPixels - barWidth - gap)
 
     val arrowX = selScreenX - barX
     val minX = dp(CORNER_RADIUS_DP) + dp(ARROW_W_DP) / 2f
-    return arrowX.coerceIn(minX, barW - minX)
+    return arrowX.coerceIn(minX, barWidth - minX)
   }
 
   // --- View building ---
@@ -214,17 +214,17 @@ class FormatBar(
     selStart: Int,
     selEnd: Int,
   ): BubbleLayout {
-    val barH = dp(BAR_HEIGHT_DP).toInt()
-    val arrowH = dp(ARROW_H_DP).toInt()
+    val barHeight = dp(BAR_HEIGHT_DP).toInt()
+    val arrowHeight = dp(ARROW_H_DP).toInt()
     val inset = dp(4f).toInt()
 
-    val buttonRow = buildButtonRow(context, barH - inset * 2)
+    val buttonRow = buildButtonRow(context, barHeight - inset * 2)
 
     buttonRow.measure(
       View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
       View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
     )
-    val totalW = buttonRow.measuredWidth + inset * 2
+    val totalWidth = buttonRow.measuredWidth + inset * 2
 
     return BubbleLayout(
       context,
@@ -232,7 +232,7 @@ class FormatBar(
       arrowHeight = dp(ARROW_H_DP),
       arrowWidth = dp(ARROW_W_DP),
       cornerRadius = dp(CORNER_RADIUS_DP),
-      arrowCenterX = computeArrowCenterX(selStart, selEnd, totalW),
+      arrowCenterX = computeArrowCenterX(selStart, selEnd, totalWidth),
     ).apply {
       val rowParams =
         FrameLayout
@@ -241,13 +241,13 @@ class FormatBar(
             FrameLayout.LayoutParams.WRAP_CONTENT,
           ).apply { setMargins(inset, inset, inset, inset) }
       addView(buttonRow, rowParams)
-      layoutParams = FrameLayout.LayoutParams(totalW, barH + arrowH)
+      layoutParams = FrameLayout.LayoutParams(totalWidth, barHeight + arrowHeight)
     }
   }
 
   private fun buildButtonRow(
     context: Context,
-    btnSize: Int,
+    buttonSize: Int,
   ): LinearLayout {
     val iconPadding = dp(8f).toInt()
 
@@ -256,7 +256,7 @@ class FormatBar(
 
       ITEMS.forEachIndexed { index, (iconRes, type) ->
         val active = isStyleActive(type)
-        val btn =
+        val button =
           ImageView(context).apply {
             setImageResource(iconRes)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
@@ -267,7 +267,7 @@ class FormatBar(
                 PorterDuff.Mode.SRC_IN,
               )
             background = if (active) activeButtonBackground() else null
-            layoutParams = LinearLayout.LayoutParams(btnSize, btnSize)
+            layoutParams = LinearLayout.LayoutParams(buttonSize, buttonSize)
             setOnClickListener {
               if (type == StyleType.LINK) {
                 if (!isCursorMode) showLinkDialog()
@@ -277,8 +277,8 @@ class FormatBar(
               }
             }
           }
-        buttons[type] = btn
-        addView(btn)
+        buttons[type] = button
+        addView(button)
 
         if (index < ITEMS.lastIndex) {
           addView(
@@ -298,11 +298,11 @@ class FormatBar(
   }
 
   private fun showLinkDialog() {
-    val ctx = view.context
+    val context = view.context
     val existingLink = view.formattingStore.rangeOfType(StyleType.LINK, savedSelStart)
 
     val urlInput =
-      EditText(ctx).apply {
+      EditText(context).apply {
         hint = "https://example.com"
         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
         setSingleLine(true)
@@ -311,7 +311,7 @@ class FormatBar(
 
     val isEdit = existingLink != null
     AlertDialog
-      .Builder(ctx)
+      .Builder(context)
       .setTitle(if (isEdit) "Edit Link" else "Add Link")
       .setView(urlInput)
       .setPositiveButton(if (isEdit) "Update" else "Add") { _, _ ->
@@ -375,12 +375,12 @@ class FormatBar(
       val path = Path()
       path.addRoundRect(RectF(0f, 0f, w, barHeight), cornerRadius, cornerRadius, Path.Direction.CW)
 
-      val halfW = arrowWidth / 2f
+      val halfArrowWidth = arrowWidth / 2f
       val arrowPath =
         Path().apply {
-          moveTo(arrowCenterX - halfW, barHeight)
+          moveTo(arrowCenterX - halfArrowWidth, barHeight)
           lineTo(arrowCenterX, barHeight + arrowHeight)
-          lineTo(arrowCenterX + halfW, barHeight)
+          lineTo(arrowCenterX + halfArrowWidth, barHeight)
           close()
         }
       path.op(arrowPath, Path.Op.UNION)

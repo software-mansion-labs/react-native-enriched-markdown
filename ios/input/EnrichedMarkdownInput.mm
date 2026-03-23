@@ -1072,7 +1072,8 @@ static ENRMInputStyleType styleTypeForAction(ENRMFormatBarAction action)
   } else {
     [self toggleInlineStyle:styleTypeForAction(action)];
   }
-  [_formatBar updateActiveStates];
+  [_formatBar dismiss];
+  _formatBar = nil;
 }
 
 - (BOOL)formatBar:(ENRMFormatBar *)bar isActionActive:(ENRMFormatBarAction)action

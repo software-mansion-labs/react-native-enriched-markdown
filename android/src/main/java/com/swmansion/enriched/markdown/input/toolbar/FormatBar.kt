@@ -273,8 +273,8 @@ class FormatBar(
                 if (!isCursorMode) showLinkDialog()
               } else {
                 applyStyle(type)
-                updateActiveStates()
               }
+              dismiss()
             }
           }
         buttons[type] = button

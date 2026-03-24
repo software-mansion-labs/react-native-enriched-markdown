@@ -16,6 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)applyAttributedText:(NSMutableAttributedString *)text context:(RenderContext *)context;
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth;
+- (CGSize)measureSize:(CGFloat)maxWidth;
 
 @property (nonatomic, readonly) ENRMPlatformTextView *textView;
 

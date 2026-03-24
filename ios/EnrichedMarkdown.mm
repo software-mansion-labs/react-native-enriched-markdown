@@ -180,12 +180,13 @@ using namespace facebook::react;
   return self;
 }
 
-- (CGFloat)computeSegmentLayoutForWidth:(CGFloat)width applyFrames:(BOOL)applyFrames
+- (CGSize)computeSegmentLayoutForWidth:(CGFloat)width applyFrames:(BOOL)applyFrames
 {
   if (_segmentViews.count == 0)
-    return 0.0;
+    return CGSizeZero;
 
   __block CGFloat yOffset = 0.0;
+  __block CGFloat maxContentWidth = 0.0;
   const NSUInteger lastIndex = _segmentViews.count - 1;
 
   [_segmentViews enumerateObjectsUsingBlock:^(RCTUIView *segment, NSUInteger i, BOOL *stop) {
@@ -197,16 +198,20 @@ using namespace facebook::react;
     if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
       EnrichedMarkdownInternalText *textView = (EnrichedMarkdownInternalText *)segment;
       textView.allowTrailingMargin = shouldAddBottomMargin;
-      segmentHeight = [textView measureHeight:width];
+      CGSize textSize = [textView measureSize:width];
+      segmentHeight = textSize.height;
+      maxContentWidth = MAX(maxContentWidth, textSize.width);
 
     } else if ([segment isKindOfClass:[TableContainerView class]]) {
       yOffset += _config.tableMarginTop;
       segmentHeight = [(TableContainerView *)segment measureHeight:width];
+      maxContentWidth = width;
     }
 #if ENRICHED_MARKDOWN_MATH
     else if ([segment isKindOfClass:[ENRMMathContainerView class]]) {
       yOffset += _config.mathMarginTop;
       segmentHeight = [(ENRMMathContainerView *)segment measureHeight:width];
+      maxContentWidth = width;
     }
 #endif
 
@@ -236,19 +241,20 @@ using namespace facebook::react;
 #endif
   }];
 
-  return yOffset;
+  return CGSizeMake(maxContentWidth, yOffset);
 }
 
 - (CGSize)measureSize:(CGFloat)maxWidth
 {
   CGFloat defaultHeight = UIFontLineHeight([UIFont systemFontOfSize:16.0]);
-  CGFloat totalHeight = [self computeSegmentLayoutForWidth:maxWidth applyFrames:NO];
-  if (totalHeight == 0)
+  CGSize contentSize = [self computeSegmentLayoutForWidth:maxWidth applyFrames:NO];
+  if (contentSize.height == 0)
     return CGSizeMake(maxWidth, defaultHeight);
 
-  // Round to pixel boundaries to match React Native's <Text> measurement
   CGFloat scale = RCTScreenScale();
-  return CGSizeMake(maxWidth, ceil(totalHeight * scale) / scale);
+  CGFloat measuredWidth = MIN(ceil(contentSize.width * scale) / scale, maxWidth);
+  CGFloat measuredHeight = ceil(contentSize.height * scale) / scale;
+  return CGSizeMake(measuredWidth, measuredHeight);
 }
 
 - (BOOL)hasRenderedMarkdown:(NSString *)markdown

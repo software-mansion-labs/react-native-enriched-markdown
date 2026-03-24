@@ -349,6 +349,7 @@ object MeasurementStore {
       val widthPx = width.toInt().coerceAtLeast(1)
       val lastIndex = segments.lastIndex
       var totalHeightPx = 0f
+      var maxContentWidthPx = 0f
 
       for ((index, segment) in segments.withIndex()) {
         val isLastSegment = index == lastIndex
@@ -364,6 +365,9 @@ object MeasurementStore {
             val layout = createStaticLayout(styledText, fontSize, widthPx)
             totalHeightPx += layout.height
 
+            val segmentMaxLineWidth = (0 until layout.lineCount).maxOfOrNull { layout.getLineWidth(it) } ?: 0f
+            maxContentWidthPx = maxOf(maxContentWidthPx, ceil(segmentMaxLineWidth))
+
             if (includeBottomMargin) {
               totalHeightPx += segmentRenderer.getLastElementMarginBottom()
             }
@@ -372,6 +376,7 @@ object MeasurementStore {
           is MarkdownSegment.Table -> {
             totalHeightPx += style.tableStyle.marginTop
             totalHeightPx += TableContainerView.measureTableNodeHeight(segment.node, style, context)
+            maxContentWidthPx = width
             if (includeBottomMargin) {
               totalHeightPx += style.tableStyle.marginBottom
             }
@@ -380,6 +385,7 @@ object MeasurementStore {
           is MarkdownSegment.Math -> {
             totalHeightPx += style.mathStyle.marginTop
             totalHeightPx += mathHeightByIndex[index] ?: 0f
+            maxContentWidthPx = width
             if (includeBottomMargin) {
               totalHeightPx += style.mathStyle.marginBottom
             }
@@ -388,7 +394,8 @@ object MeasurementStore {
       }
 
       val totalHeightDip = PixelUtil.toDIPFromPixel(totalHeightPx)
-      val result = YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), totalHeightDip)
+      val measuredWidthDip = PixelUtil.toDIPFromPixel(maxContentWidthPx).coerceAtMost(PixelUtil.toDIPFromPixel(width))
+      val result = YogaMeasureOutput.make(measuredWidthDip, totalHeightDip)
 
       if (id != null) {
         data[id] = MeasurementParams(width, result, null, PaintParams(Typeface.DEFAULT, fontSize), propsHash)

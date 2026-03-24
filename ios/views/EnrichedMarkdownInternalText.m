@@ -88,20 +88,25 @@
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth
 {
+  return [self measureSize:maxWidth].height;
+}
+
+- (CGSize)measureSize:(CGFloat)maxWidth
+{
   NSAttributedString *text = ENRMGetAttributedText(_textView);
   if (text.length == 0) {
-    return 0;
+    return CGSizeZero;
   }
 
   ENRMTextLayoutResult layout = ENRMMeasureTextLayout(_textView, maxWidth);
 
   CGFloat measuredHeight = layout.usedRect.size.height;
+  CGFloat measuredWidth = layout.usedRect.size.width;
 
   if (!CGRectIsEmpty(layout.extraLineFragmentRect)) {
     measuredHeight -= layout.extraLineFragmentRect.size.height;
   }
 
-  // Code block bottom padding compensation (same as EnrichedMarkdownText)
   if (isLastElementCodeBlock(text)) {
     measuredHeight += [_config codeBlockPadding];
   }
@@ -110,9 +115,8 @@
     measuredHeight += _lastElementMarginBottom;
   }
 
-  // Round to pixel boundaries to match React Native's <Text> measurement
   CGFloat scale = RCTScreenScale();
-  return ceil(measuredHeight * scale) / scale;
+  return CGSizeMake(ceil(measuredWidth * scale) / scale, ceil(measuredHeight * scale) / scale);
 }
 
 - (void)layoutSubviews

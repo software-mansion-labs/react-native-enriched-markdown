@@ -26,6 +26,18 @@ inline folly::dynamic toDynamic(const EnrichedMarkdownProps &props) {
 
   return serializedProps;
 }
+
+inline folly::dynamic toDynamic(const EnrichedMarkdownInputProps &props) {
+  folly::dynamic serializedProps = folly::dynamic::object();
+  serializedProps["defaultValue"] = props.defaultValue;
+  serializedProps["placeholder"] = props.placeholder;
+  serializedProps["fontSize"] = props.fontSize;
+  serializedProps["fontWeight"] = props.fontWeight;
+  serializedProps["fontFamily"] = props.fontFamily;
+  serializedProps["lineHeight"] = props.lineHeight;
+
+  return serializedProps;
+}
 #endif
 
 } // namespace facebook::react

@@ -1,6 +1,8 @@
 # API Reference
 
-## Props
+## EnrichedMarkdownText
+
+### Props
 
 ### `markdown`
 
@@ -165,3 +167,226 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table supp
 > **Note:** 
 > - **`'commonmark'`**: All Markdown content is rendered as a single TextView. Selecting text will select all content in the view.
 > - **`'github'`**: The Markdown AST is split into segments. Consecutive text blocks (paragraphs, headings, lists, etc.) are grouped into separate TextView segments, while tables are rendered as separate table views. This allows for granular text selection within each segment and enables interactive table features (horizontal scrolling, context menus). Text selection cannot span across segments.
+
+---
+
+## EnrichedMarkdownInput
+
+### Props
+
+### `defaultValue`
+
+Initial Markdown content for the input. The Markdown is parsed and formatting is applied on mount.
+
+| Type     | Default Value | Platform |
+| -------- | ------------- | -------- |
+| `string` | -             | Both     |
+
+### `placeholder`
+
+Placeholder text displayed when the input is empty.
+
+| Type     | Default Value | Platform |
+| -------- | ------------- | -------- |
+| `string` | -             | Both     |
+
+### `placeholderTextColor`
+
+Color of the placeholder text.
+
+| Type         | Default Value | Platform |
+| ------------ | ------------- | -------- |
+| `ColorValue` | -             | Both     |
+
+### `editable`
+
+Whether the input is editable.
+
+| Type      | Default Value | Platform |
+| --------- | ------------- | -------- |
+| `boolean` | `true`        | Both     |
+
+### `autoFocus`
+
+Whether the input should be focused on mount.
+
+| Type      | Default Value | Platform |
+| --------- | ------------- | -------- |
+| `boolean` | `false`       | Both     |
+
+### `scrollEnabled`
+
+Whether the input is scrollable when content exceeds the visible area.
+
+| Type      | Default Value | Platform |
+| --------- | ------------- | -------- |
+| `boolean` | `true`        | Both     |
+
+### `autoCapitalize`
+
+Auto-capitalization behavior.
+
+| Type     | Default Value  | Platform |
+| -------- | -------------- | -------- |
+| `string` | `'sentences'`  | Both     |
+
+### `multiline`
+
+Whether the input supports multiple lines.
+
+| Type      | Default Value | Platform |
+| --------- | ------------- | -------- |
+| `boolean` | `true`        | Both     |
+
+### `cursorColor`
+
+Color of the text cursor.
+
+| Type         | Default Value | Platform |
+| ------------ | ------------- | -------- |
+| `ColorValue` | -             | Both     |
+
+### `selectionColor`
+
+Color of the text selection highlight.
+
+| Type         | Default Value | Platform |
+| ------------ | ------------- | -------- |
+| `ColorValue` | -             | Both     |
+
+### `markdownStyle`
+
+Style configuration for formatted text in the input.
+
+| Type                 | Default Value | Platform |
+| -------------------- | ------------- | -------- |
+| `MarkdownInputStyle` | `{}`          | Both     |
+
+**Properties:**
+
+- `strong.color` — text color for bold text (defaults to the input's text color).
+- `em.color` — text color for italic text (defaults to the input's text color).
+- `link.color` — text color for links (defaults to `#2563EB`).
+- `link.underline` — whether links are underlined (defaults to `true`).
+
+### `style`
+
+Style for the input view. Accepts `ViewStyle` and `TextStyle` properties (e.g., `fontSize`, `color`, `padding`).
+
+| Type                    | Default Value | Platform |
+| ----------------------- | ------------- | -------- |
+| `ViewStyle \| TextStyle` | -             | Both     |
+
+### Events
+
+### `onChangeText`
+
+Fires when the plain text content changes. Returns the text without Markdown syntax.
+
+| Type                            | Default Value | Platform |
+| ------------------------------- | ------------- | -------- |
+| `(text: string) => void`       | -             | Both     |
+
+### `onChangeMarkdown`
+
+Fires when the Markdown representation changes. Returns the full Markdown string. Only active when the callback is provided — omitting it skips the serialization for better performance.
+
+| Type                                | Default Value | Platform |
+| ----------------------------------- | ------------- | -------- |
+| `(markdown: string) => void`       | -             | Both     |
+
+### `onChangeSelection`
+
+Fires when the text selection changes.
+
+| Type                                                  | Default Value | Platform |
+| ----------------------------------------------------- | ------------- | -------- |
+| `(selection: { start: number; end: number }) => void` | -             | Both     |
+
+### `onChangeState`
+
+Fires when the active style state changes. The payload provides a nested object for each style with an `isActive` property.
+
+| Type                              | Default Value | Platform |
+| --------------------------------- | ------------- | -------- |
+| `(state: StyleState) => void`    | -             | Both     |
+
+**`StyleState` shape:**
+
+```ts
+interface StyleState {
+  bold: { isActive: boolean };
+  italic: { isActive: boolean };
+  underline: { isActive: boolean };
+  strikethrough: { isActive: boolean };
+  link: { isActive: boolean };
+}
+```
+
+### `onFocus`
+
+Fires when the input gains focus.
+
+| Type           | Default Value | Platform |
+| -------------- | ------------- | -------- |
+| `() => void`   | -             | Both     |
+
+### `onBlur`
+
+Fires when the input loses focus.
+
+| Type           | Default Value | Platform |
+| -------------- | ------------- | -------- |
+| `() => void`   | -             | Both     |
+
+### Ref Methods
+
+All methods are called imperatively on the ref (`ref.current?.methodName()`).
+
+### `focus()`
+
+Focuses the input.
+
+### `blur()`
+
+Blurs the input.
+
+### `setValue(markdown: string)`
+
+Sets the input content from a Markdown string. Parses the Markdown and applies formatting.
+
+### `getMarkdown(): Promise<string>`
+
+Returns a Promise that resolves with the current Markdown content. The async nature is due to the native bridge — the request is sent to the native side and the result is returned via an event.
+
+### `setSelection(start: number, end: number)`
+
+Sets the text selection range.
+
+### `toggleBold()`
+
+Toggles bold on the current selection. When no text is selected, the style is queued and applied to the next characters typed.
+
+### `toggleItalic()`
+
+Toggles italic on the current selection or cursor.
+
+### `toggleUnderline()`
+
+Toggles underline on the current selection or cursor.
+
+### `toggleStrikethrough()`
+
+Toggles strikethrough on the current selection or cursor.
+
+### `setLink(url: string)`
+
+Applies a link URL to the currently selected text.
+
+### `insertLink(text: string, url: string)`
+
+Inserts a link with the given text and URL at the current cursor position. Useful when there is no text selection.
+
+### `removeLink()`
+
+Removes the link from the current selection.

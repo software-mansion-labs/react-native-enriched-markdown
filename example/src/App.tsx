@@ -1,4 +1,12 @@
-import { StyleSheet, ScrollView, Alert, Linking } from 'react-native';
+import { useState } from 'react';
+import {
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Linking,
+  View,
+  Text,
+} from 'react-native';
 import {
   EnrichedMarkdownText,
   type LinkPressEvent,
@@ -7,8 +15,12 @@ import { useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleMarkdown } from './sampleMarkdown';
 import { customMarkdownStyle } from './markdownStyles';
+import InputScreen from './InputScreen';
+
+type Screen = 'text' | 'input';
 
 export default function App() {
+  const [screen, setScreen] = useState<Screen>('input');
   const markdownStyle = useMemo(() => customMarkdownStyle, []);
 
   const handleLinkPress = (event: LinkPressEvent) => {
@@ -28,23 +40,63 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-      >
-        <EnrichedMarkdownText
-          flavor="github"
-          markdown={sampleMarkdown}
-          onLinkPress={handleLinkPress}
-          markdownStyle={markdownStyle}
-        />
-      </ScrollView>
+    <SafeAreaView style={styles.root}>
+      <View style={styles.tabs}>
+        <Text
+          style={[styles.tab, screen === 'input' && styles.tabActive]}
+          onPress={() => setScreen('input')}
+        >
+          Input
+        </Text>
+        <Text
+          style={[styles.tab, screen === 'text' && styles.tabActive]}
+          onPress={() => setScreen('text')}
+        >
+          Text
+        </Text>
+      </View>
+
+      {screen === 'input' ? (
+        <InputScreen />
+      ) : (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+        >
+          <EnrichedMarkdownText
+            flavor="github"
+            markdown={sampleMarkdown}
+            onLinkPress={handleLinkPress}
+            markdownStyle={markdownStyle}
+          />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  tabs: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D1D5DB',
+  },
+  tab: {
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 12,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  tabActive: {
+    color: '#2563EB',
+    borderBottomWidth: 2,
+    borderBottomColor: '#2563EB',
+  },
   scrollView: {
     paddingHorizontal: 16,
   },

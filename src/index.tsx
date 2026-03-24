@@ -9,3 +9,11 @@ export type {
   LinkLongPressEvent,
   TaskListItemPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';
+
+export { EnrichedMarkdownInput } from './EnrichedMarkdownInput';
+export type {
+  EnrichedMarkdownInputProps,
+  EnrichedMarkdownInputInstance,
+  MarkdownInputStyle,
+  StyleState,
+} from './EnrichedMarkdownInput';

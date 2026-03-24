@@ -25,3 +25,23 @@ CGFloat RCTFontSizeMultiplierWithMax(CGFloat maxFontSizeMultiplier)
 
   return multiplier;
 }
+
+UIFontWeight ENRMFontWeightFromString(NSString *weightString)
+{
+  if (weightString.length == 0) {
+    return UIFontWeightRegular;
+  }
+  if ([weightString isEqualToString:@"bold"] || [weightString isEqualToString:@"700"]) {
+    return UIFontWeightBold;
+  }
+  if ([weightString isEqualToString:@"semibold"] || [weightString isEqualToString:@"600"]) {
+    return UIFontWeightSemibold;
+  }
+  if ([weightString isEqualToString:@"medium"] || [weightString isEqualToString:@"500"]) {
+    return UIFontWeightMedium;
+  }
+  if ([weightString isEqualToString:@"light"] || [weightString isEqualToString:@"300"]) {
+    return UIFontWeightLight;
+  }
+  return UIFontWeightRegular;
+}

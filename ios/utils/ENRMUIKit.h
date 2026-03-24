@@ -86,6 +86,37 @@ static inline void BezierPathAddQuadCurve(UIBezierPath *path, CGPoint end, CGPoi
 #endif
 }
 
+/// Cross-platform IME composition check: UITextView uses markedTextRange (nullable UITextRange);
+/// NSTextView uses hasMarkedText (BOOL).
+static inline BOOL ENRMHasMarkedText(ENRMPlatformTextView *textView)
+{
+#if !TARGET_OS_OSX
+  return textView.markedTextRange != nil;
+#else
+  return textView.hasMarkedText;
+#endif
+}
+
+/// Cross-platform plain text read: UITextView uses .text; NSTextView uses .string.
+static inline NSString *ENRMGetPlainText(ENRMPlatformTextView *textView)
+{
+#if !TARGET_OS_OSX
+  return textView.text;
+#else
+  return textView.string;
+#endif
+}
+
+/// Cross-platform plain text write: UITextView uses .text setter; NSTextView uses setString:.
+static inline void ENRMSetPlainText(ENRMPlatformTextView *textView, NSString *text)
+{
+#if !TARGET_OS_OSX
+  textView.text = text;
+#else
+  [textView setString:text];
+#endif
+}
+
 /// Cross-platform attributed text read: NSTextView exposes content via textStorage;
 /// UITextView exposes it via attributedText.
 static inline NSAttributedString *ENRMGetAttributedText(ENRMPlatformTextView *textView)
@@ -105,6 +136,101 @@ static inline void ENRMSetAttributedText(ENRMPlatformTextView *textView, NSAttri
   textView.attributedText = text;
 #else
   [textView.textStorage setAttributedString:text];
+#endif
+}
+
+/// Cross-platform text replacement at a given range.
+/// iOS uses UITextInput protocol methods; macOS uses NSTextView's insertText:replacementRange:.
+static inline void ENRMReplaceTextInRange(ENRMPlatformTextView *textView, NSString *text, NSRange range)
+{
+#if !TARGET_OS_OSX
+  UITextPosition *start = [textView positionFromPosition:textView.beginningOfDocument offset:(NSInteger)range.location];
+  UITextPosition *end = [textView positionFromPosition:textView.beginningOfDocument
+                                                offset:(NSInteger)NSMaxRange(range)];
+  [textView replaceRange:[textView textRangeFromPosition:start toPosition:end] withText:text];
+#else
+  [textView insertText:text replacementRange:range];
+#endif
+}
+
+/// Cross-platform content size update after measurement.
+/// iOS UITextView has a settable contentSize; macOS NSTextView does not.
+static inline void ENRMSetContentSize(ENRMPlatformTextView *textView, CGSize size)
+{
+#if !TARGET_OS_OSX
+  textView.contentSize = size;
+#endif
+}
+
+/// Sets default typing attributes on the text view.
+/// On macOS, RCTUITextView overrides setTypingAttributes: to use defaultTextAttributes,
+/// so we must set that property as well.
+static inline void ENRMSetDefaultTypingAttributes(ENRMPlatformTextView *textView, NSDictionary *attrs)
+{
+#if TARGET_OS_OSX
+  textView.defaultTextAttributes = attrs;
+#endif
+  textView.typingAttributes = attrs;
+}
+
+/// Applies shared configuration to a text view used for markdown input editing.
+/// Handles platform differences: scroll indicators, text container insets,
+/// drawsBackground (macOS). Sets editable=YES, scrollEnabled=YES.
+static inline void ENRMConfigureMarkdownInputTextView(ENRMPlatformTextView *textView)
+{
+  textView.font = [UIFont systemFontOfSize:16.0];
+  textView.backgroundColor = [RCTUIColor clearColor];
+  textView.editable = YES;
+#if !TARGET_OS_OSX
+  textView.scrollEnabled = YES;
+  textView.showsVerticalScrollIndicator = NO;
+  textView.showsHorizontalScrollIndicator = NO;
+  textView.textContainerInset = UIEdgeInsetsZero;
+#else
+  textView.textContainerInsets = UIEdgeInsetsZero;
+  textView.drawsBackground = NO;
+#endif
+  textView.textContainer.lineFragmentPadding = 0;
+}
+
+/// Cross-platform cursor color: iOS uses tintColor; macOS uses insertionPointColor.
+static inline void ENRMSetCursorColor(ENRMPlatformTextView *textView, RCTUIColor *color)
+{
+#if !TARGET_OS_OSX
+  textView.tintColor = color;
+#else
+  textView.insertionPointColor = color;
+#endif
+}
+
+/// Cross-platform selection color: iOS uses tintColor (affects both cursor and selection);
+/// macOS selection highlight is managed by the system and not directly settable.
+static inline void ENRMSetSelectionColor(ENRMPlatformTextView *textView, RCTUIColor *color)
+{
+#if !TARGET_OS_OSX
+  textView.tintColor = color;
+#endif
+}
+
+/// Cross-platform focus: iOS uses becomeFirstResponder;
+/// macOS uses makeFirstResponder: on the window.
+static inline void ENRMFocusTextView(ENRMPlatformTextView *textView)
+{
+#if !TARGET_OS_OSX
+  [textView becomeFirstResponder];
+#else
+  [textView.window makeFirstResponder:textView];
+#endif
+}
+
+/// Cross-platform blur: iOS uses resignFirstResponder;
+/// macOS clears first responder via the window.
+static inline void ENRMBlurTextView(ENRMPlatformTextView *textView)
+{
+#if !TARGET_OS_OSX
+  [textView resignFirstResponder];
+#else
+  [textView.window makeFirstResponder:nil];
 #endif
 }
 
@@ -203,5 +329,62 @@ static inline void ENRMClearSelection(ENRMPlatformTextView *textView)
   if (textView.selectedRange.length > 0) {
     textView.selectedRange = NSMakeRange(0, 0);
   }
+#endif
+}
+
+// ── Placeholder label abstraction ──────────────────────────────────────────────
+
+#if !TARGET_OS_OSX
+typedef UILabel ENRMPlaceholderLabel;
+#else
+typedef NSTextField ENRMPlaceholderLabel;
+#endif
+
+/// Creates a placeholder label configured for use inside an ENRMPlatformTextView.
+/// On iOS: UILabel with multiline, placeholderTextColor, auto-layout pinned to
+/// textContainerInset and lineFragmentPadding.
+/// On macOS: borderless, non-editable NSTextField pinned to the text view origin.
+static inline ENRMPlaceholderLabel *ENRMCreatePlaceholderLabel(ENRMPlatformTextView *textView, UIFont *font)
+{
+#if !TARGET_OS_OSX
+  UILabel *label = [[UILabel alloc] init];
+  label.numberOfLines = 0;
+  label.textColor = [UIColor placeholderTextColor];
+  label.font = font;
+  label.translatesAutoresizingMaskIntoConstraints = NO;
+  [textView addSubview:label];
+  [NSLayoutConstraint activateConstraints:@[
+    [label.topAnchor constraintEqualToAnchor:textView.topAnchor constant:textView.textContainerInset.top],
+    [label.leadingAnchor constraintEqualToAnchor:textView.leadingAnchor
+                                        constant:textView.textContainer.lineFragmentPadding],
+    [label.trailingAnchor constraintEqualToAnchor:textView.trailingAnchor
+                                         constant:-textView.textContainer.lineFragmentPadding],
+  ]];
+  return label;
+#else
+  NSTextField *label = [[NSTextField alloc] initWithFrame:CGRectZero];
+  label.bordered = NO;
+  label.editable = NO;
+  label.selectable = NO;
+  label.drawsBackground = NO;
+  label.textColor = [NSColor placeholderTextColor];
+  label.font = font;
+  label.translatesAutoresizingMaskIntoConstraints = NO;
+  [textView addSubview:label];
+  [NSLayoutConstraint activateConstraints:@[
+    [label.topAnchor constraintEqualToAnchor:textView.topAnchor],
+    [label.leadingAnchor constraintEqualToAnchor:textView.leadingAnchor],
+  ]];
+  return label;
+#endif
+}
+
+/// Cross-platform placeholder text setter.
+static inline void ENRMSetPlaceholderText(ENRMPlaceholderLabel *label, NSString *text)
+{
+#if !TARGET_OS_OSX
+  label.text = text;
+#else
+  label.stringValue = text;
 #endif
 }

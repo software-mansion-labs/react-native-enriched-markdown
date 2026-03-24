@@ -12,8 +12,12 @@ import {
 import { useMemo, useState } from 'react';
 import { sampleMarkdown } from './sampleMarkdown';
 import { customMarkdownStyle } from './markdownStyles';
+import InputScreen from './InputScreen';
+
+type Screen = 'text' | 'input';
 
 export default function App() {
+  const [screen, setScreen] = useState<Screen>('input');
   const markdownStyle = useMemo(() => customMarkdownStyle, []);
   const [lastLink, setLastLink] = useState<string | null>(null);
 
@@ -24,20 +28,41 @@ export default function App() {
 
   return (
     <View style={styles.root}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        scrollIndicatorInsets={{ right: 1 }}
-      >
-        <EnrichedMarkdownText
-          flavor="github"
-          markdown={sampleMarkdown}
-          onLinkPress={handleLinkPress}
-          markdownStyle={markdownStyle}
-        />
-      </ScrollView>
-      {lastLink != null && (
-        <Text style={styles.linkBar}>Last tapped link: {lastLink}</Text>
+      <View style={styles.tabs}>
+        <Text
+          style={[styles.tab, screen === 'input' && styles.tabActive]}
+          onPress={() => setScreen('input')}
+        >
+          Input
+        </Text>
+        <Text
+          style={[styles.tab, screen === 'text' && styles.tabActive]}
+          onPress={() => setScreen('text')}
+        >
+          Text
+        </Text>
+      </View>
+
+      {screen === 'input' ? (
+        <InputScreen />
+      ) : (
+        <View style={styles.textScreen}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.content}
+            scrollIndicatorInsets={{ right: 1 }}
+          >
+            <EnrichedMarkdownText
+              flavor="github"
+              markdown={sampleMarkdown}
+              onLinkPress={handleLinkPress}
+              markdownStyle={markdownStyle}
+            />
+          </ScrollView>
+          {lastLink != null && (
+            <Text style={styles.linkBar}>Last tapped link: {lastLink}</Text>
+          )}
+        </View>
       )}
     </View>
   );
@@ -48,8 +73,29 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#ffffff',
   },
+  tabs: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D1D5DB',
+  },
+  tab: {
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 10,
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  tabActive: {
+    color: '#2563EB',
+    borderBottomWidth: 2,
+    borderBottomColor: '#2563EB',
+  },
+  textScreen: {
+    flex: 1,
+  },
   scrollView: {
-    height: '100%',
+    flex: 1,
   },
   content: {
     paddingHorizontal: 24,

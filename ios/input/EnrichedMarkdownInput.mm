@@ -333,7 +333,8 @@ using namespace facebook::react;
   [super didMoveToWindow];
 
   if (self.window) {
-    ENRMRefreshTextViewAfterWindowAttach(_textView, self.bounds);
+    // Don't override the contentView frame set by RCTViewComponentView.
+    ENRMRefreshTextViewLayout(_textView);
 
     [self applyFormatting];
     [self updatePlaceholderVisibility];

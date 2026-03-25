@@ -298,23 +298,31 @@ static inline ENRMTextLayoutResult ENRMMeasureTextLayout(ENRMPlatformTextView *t
 #define ENRMSetNeedsDisplay(view) [(view) setNeedsDisplay:YES]
 #endif
 
-/// Refreshes a text view's layout and display after it is attached to a window.
-/// On iOS, resets contentOffset to zero (NSTextView has no scroll position).
-/// Sets the frame and text container to the given bounds, invalidates layout for
-/// any existing content, then triggers a redraw.
-static inline void ENRMRefreshTextViewAfterWindowAttach(ENRMPlatformTextView *textView, CGRect bounds)
+/// Invalidates the text container, re-lays out any existing content, and
+/// triggers a redraw.  On iOS also resets contentOffset to zero.
+/// Does NOT touch the text view's frame — callers that need to reposition
+/// the view should set the frame themselves before calling this.
+static inline void ENRMRefreshTextViewLayout(ENRMPlatformTextView *textView)
 {
 #if !TARGET_OS_OSX
   textView.contentOffset = CGPointZero;
 #endif
-  textView.frame = bounds;
-  textView.textContainer.size = CGSizeMake(bounds.size.width, CGFLOAT_MAX);
+  textView.textContainer.size = CGSizeMake(textView.bounds.size.width, CGFLOAT_MAX);
   NSUInteger textLength = ENRMGetAttributedText(textView).length;
   if (textLength > 0) {
     [textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, textLength) actualCharacterRange:NULL];
     [textView.layoutManager ensureLayoutForTextContainer:textView.textContainer];
   }
   ENRMSetNeedsDisplay(textView);
+}
+
+/// Refreshes a text view's layout and display after it is attached to a window.
+/// Sets the frame and text container to the given bounds, invalidates layout for
+/// any existing content, then triggers a redraw.
+static inline void ENRMRefreshTextViewAfterWindowAttach(ENRMPlatformTextView *textView, CGRect bounds)
+{
+  textView.frame = bounds;
+  ENRMRefreshTextViewLayout(textView);
 }
 
 /// Cross-platform text deselection: UITextView uses selectedTextRange (nullable);

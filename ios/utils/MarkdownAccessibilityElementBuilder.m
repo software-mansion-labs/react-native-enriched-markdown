@@ -48,6 +48,11 @@ static NSString *const kBlockRoleCode = @"code";
                             : codeBlockRangeValue
                                 ? [codeBlockRangeValue rangeValue]
                                 : [self semanticParagraphRangeAtPosition:currentPos fullText:fullString];
+    semanticRange = [self clampedRange:semanticRange toTextLength:fullString.length];
+    if (semanticRange.location == NSNotFound || semanticRange.length == 0) {
+      currentPos++;
+      continue;
+    }
     NSRange trimmedRange = [self trimmedContentRangeWithinRange:semanticRange fullText:fullString];
     NSInteger level = [self headingLevelForRange:semanticRange info:info];
     NSDictionary *listInfo = listDescriptor ?: [self listItemInfoForRange:semanticRange info:info];
@@ -95,8 +100,12 @@ static NSString *const kBlockRoleCode = @"code";
                                                           info:(AccessibilityInfo *)info
 {
   NSMutableArray<UIAccessibilityElement *> *elements = [NSMutableArray array];
-  NSArray *images = [self imagesInRange:range info:info];
-  NSArray *links = [self linksInRange:range info:info];
+  range = [self clampedRange:range toTextLength:fullText.length];
+  if (range.location == NSNotFound || range.length == 0) {
+    return elements;
+  }
+  NSArray *images = [self imagesInRange:range info:info textLength:fullText.length];
+  NSArray *links = [self linksInRange:range info:info textLength:fullText.length];
   NSMutableArray *specials = [NSMutableArray arrayWithCapacity:images.count + links.count];
 
   for (NSDictionary *image in images) {
@@ -131,7 +140,10 @@ static NSString *const kBlockRoleCode = @"code";
   }];
 
   for (NSDictionary *item in sortedSpecials) {
-    NSRange itemRange = [item[@"range"] rangeValue];
+    NSRange itemRange = [self clampedRange:[item[@"range"] rangeValue] toTextLength:fullText.length];
+    if (itemRange.location == NSNotFound || itemRange.length == 0) {
+      continue;
+    }
     BOOL isImage = [item[@"type"] isEqual:@"image"];
     NSString *label = isImage ? item[@"altText"] : [fullText substringWithRange:itemRange];
     [elements addObject:[self createElementForRange:itemRange
@@ -238,6 +250,7 @@ static NSString *const kBlockRoleCode = @"code";
 
 + (NSRange)trimmedContentRangeWithinRange:(NSRange)range fullText:(NSString *)fullText
 {
+  range = [self clampedRange:range toTextLength:fullText.length];
   if (range.location == NSNotFound || range.length == 0) {
     return NSMakeRange(NSNotFound, 0);
   }
@@ -297,6 +310,10 @@ static NSString *const kBlockRoleCode = @"code";
 
 + (CGRect)frameForRange:(NSRange)range inTextView:(UITextView *)textView container:(id)container
 {
+  range = [self clampedRange:range toTextLength:textView.attributedText.length];
+  if (range.location == NSNotFound || range.length == 0) {
+    return CGRectZero;
+  }
   NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
   CGRect rect = [textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textView.textContainer];
   rect = CGRectOffset(CGRectInset(rect, -2, -2), textView.textContainerInset.left, textView.textContainerInset.top);
@@ -314,31 +331,32 @@ static NSString *const kBlockRoleCode = @"code";
   return 0;
 }
 
-+ (NSArray *)linksInRange:(NSRange)range info:(AccessibilityInfo *)info
++ (NSArray *)linksInRange:(NSRange)range info:(AccessibilityInfo *)info textLength:(NSUInteger)textLength
 {
   NSMutableArray *links = [NSMutableArray array];
   for (NSUInteger i = 0; i < info.linkRanges.count; i++) {
-    if (NSIntersectionRange(range, [info.linkRanges[i] rangeValue]).length > 0) {
-      [links addObject:@{@"range" : info.linkRanges[i], @"url" : info.linkURLs[i] ?: @""}];
+    NSRange linkRange = [self clampedRange:[info.linkRanges[i] rangeValue] toTextLength:textLength];
+    if (NSIntersectionRange(range, linkRange).length > 0) {
+      [links addObject:@{@"range" : [NSValue valueWithRange:linkRange], @"url" : info.linkURLs[i] ?: @""}];
     }
   }
   return links;
 }
 
-+ (NSArray *)imagesInRange:(NSRange)range info:(AccessibilityInfo *)info
++ (NSArray *)imagesInRange:(NSRange)range info:(AccessibilityInfo *)info textLength:(NSUInteger)textLength
 {
   NSMutableArray *images = [NSMutableArray array];
   for (NSUInteger i = 0; i < info.imageRanges.count; i++) {
-    NSRange imgRange = [info.imageRanges[i] rangeValue];
+    NSRange imgRange = [self clampedRange:[info.imageRanges[i] rangeValue] toTextLength:textLength];
     if (NSIntersectionRange(range, imgRange).length > 0) {
       BOOL linked = NO;
       for (NSValue *val in info.linkRanges)
-        if (NSIntersectionRange(imgRange, val.rangeValue).length > 0) {
+        if (NSIntersectionRange(imgRange, [self clampedRange:val.rangeValue toTextLength:textLength]).length > 0) {
           linked = YES;
           break;
         }
       [images addObject:@{
-        @"range" : info.imageRanges[i],
+        @"range" : [NSValue valueWithRange:imgRange],
         @"altText" : info.imageAltTexts[i] ?: @"",
         @"isLinked" : @(linked)
       }];
@@ -438,6 +456,7 @@ static NSString *const kBlockRoleCode = @"code";
 
 + (NSDictionary *)taskInfoForRange:(NSRange)range attributedText:(NSAttributedString *)attributedText
 {
+  range = [self clampedRange:range toTextLength:attributedText.length];
   if (!attributedText || range.location == NSNotFound || range.length == 0) {
     return nil;
   }
@@ -464,6 +483,16 @@ static NSString *const kBlockRoleCode = @"code";
 + (BOOL)rangesOverlap:(NSRange)first other:(NSRange)second
 {
   return NSIntersectionRange(first, second).length > 0;
+}
+
++ (NSRange)clampedRange:(NSRange)range toTextLength:(NSUInteger)textLength
+{
+  if (range.location == NSNotFound || range.length == 0 || textLength == 0 || range.location >= textLength) {
+    return NSMakeRange(NSNotFound, 0);
+  }
+
+  NSUInteger availableLength = textLength - range.location;
+  return NSMakeRange(range.location, MIN(range.length, availableLength));
 }
 
 #pragma mark - Rotors

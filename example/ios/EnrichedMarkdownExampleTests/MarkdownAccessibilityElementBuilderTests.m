@@ -127,6 +127,24 @@
   XCTAssertEqualObjects(elements[0].accessibilityLabel, text);
 }
 
+- (void)testClampsStaleAccessibilityRangesInsteadOfCrashing
+{
+  NSString *text = @"Short";
+  UITextView *textView = [self textViewWithText:text];
+  AccessibilityInfo *info = [self infoWithValues:@{
+    @"listItemRanges" : @[ [NSValue valueWithRange:NSMakeRange(0, 10)] ],
+    @"listItemPositions" : @[ @1 ],
+    @"listItemDepths" : @[ @1 ],
+    @"listItemOrdered" : @[ @YES ],
+    @"linkRanges" : @[ [NSValue valueWithRange:NSMakeRange(0, 10)] ],
+    @"linkURLs" : @[ @"https://example.com" ],
+  }];
+
+  XCTAssertNoThrow(([MarkdownAccessibilityElementBuilder buildElementsForTextView:textView
+                                                                             info:info
+                                                                        container:textView]));
+}
+
 - (UITextView *)textViewWithText:(NSString *)text
 {
   return [self textViewWithAttributedText:[[NSAttributedString alloc] initWithString:text]];

@@ -342,6 +342,104 @@ public:
   }
 };
 
+namespace {
+
+bool isDisplayMathNode(const MarkdownASTNode &node) {
+  return node.type == NodeType::LatexMathDisplay;
+}
+
+bool isSeparatorNode(const MarkdownASTNode &node) {
+  return node.type == NodeType::LineBreak ||
+         (node.type == NodeType::Text && node.content.find_first_not_of(" \t\n\r") == std::string::npos);
+}
+
+// md4c treats $$...$$ as an inline span, so when display math appears on a line
+// directly after text (no blank line), md4c merges them into a single Paragraph.
+// This function finds the trailing run of LatexMathDisplay nodes (possibly
+// interspersed with LineBreak / whitespace separators) at the end of a paragraph's
+// children. Returns the index where the trailing run starts, or children.size()
+// if there is nothing to promote.
+size_t findTrailingDisplayMathRun(const std::vector<std::shared_ptr<MarkdownASTNode>> &children) {
+  size_t trailingRunStart = children.size();
+  bool hasDisplayMath = false;
+
+  for (size_t j = children.size(); j > 0; --j) {
+    auto &node = children[j - 1];
+    if (isDisplayMathNode(*node)) {
+      trailingRunStart = j - 1;
+      hasDisplayMath = true;
+    } else if (isSeparatorNode(*node) && hasDisplayMath) {
+      trailingRunStart = j - 1;
+    } else {
+      break;
+    }
+  }
+
+  return hasDisplayMath ? trailingRunStart : children.size();
+}
+
+// Collect only the LatexMathDisplay nodes from a range, skipping separators.
+std::vector<std::shared_ptr<MarkdownASTNode>>
+collectDisplayMathNodes(const std::vector<std::shared_ptr<MarkdownASTNode>> &children, size_t from) {
+  std::vector<std::shared_ptr<MarkdownASTNode>> result;
+  for (size_t j = from; j < children.size(); ++j) {
+    if (isDisplayMathNode(*children[j]))
+      result.push_back(children[j]);
+  }
+  return result;
+}
+
+// md4c wraps $$...$$ (display math) as inline spans inside a Paragraph. When they
+// appear on consecutive lines without a blank separator, md4c merges them — along
+// with any preceding text — into a single Paragraph with LineBreak nodes between them.
+//
+// This post-processing step walks the document's top-level children and promotes
+// trailing LatexMathDisplay nodes out of their parent Paragraph so that the
+// rendering layer sees them as top-level block elements.
+//
+// Two cases:
+//  (a) Pure: every child is display math or a separator → replace paragraph entirely.
+//  (b) Mixed: leading text followed by display math → keep text in the paragraph,
+//      splice the display math nodes as siblings after it.
+void promoteDisplayMathFromParagraphs(MarkdownASTNode &root) {
+  auto &children = root.children;
+
+  for (size_t i = 0; i < children.size();) {
+    auto &paragraph = children[i];
+    if (paragraph->type != NodeType::Paragraph || paragraph->children.empty()) {
+      ++i;
+      continue;
+    }
+
+    auto &paragraphChildren = paragraph->children;
+    size_t trailingRunStart = findTrailingDisplayMathRun(paragraphChildren);
+
+    if (trailingRunStart >= paragraphChildren.size()) {
+      ++i;
+      continue;
+    }
+
+    auto promoted = collectDisplayMathNodes(paragraphChildren, trailingRunStart);
+
+    if (trailingRunStart == 0) {
+      auto position = children.erase(children.begin() + static_cast<ptrdiff_t>(i));
+      children.insert(position, promoted.begin(), promoted.end());
+      i += promoted.size();
+    } else {
+      paragraphChildren.erase(paragraphChildren.begin() + static_cast<ptrdiff_t>(trailingRunStart),
+                              paragraphChildren.end());
+      while (!paragraphChildren.empty() && isSeparatorNode(*paragraphChildren.back())) {
+        paragraphChildren.pop_back();
+      }
+      auto position = children.begin() + static_cast<ptrdiff_t>(i) + 1;
+      children.insert(position, promoted.begin(), promoted.end());
+      i += 1 + promoted.size();
+    }
+  }
+}
+
+} // anonymous namespace
+
 MD4CParser::MD4CParser() : impl_(std::make_unique<Impl>()) {}
 
 MD4CParser::~MD4CParser() = default;
@@ -395,44 +493,8 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
 
   impl_->flushText();
 
-  // md4c wraps certain block-level constructs as inline spans inside a Paragraph.
-  // When they appear on consecutive lines without a blank separator, md4c merges
-  // them into a single Paragraph with LineBreak / whitespace Text nodes between them.
-  // Detect and unwrap these, promoting each block node to a top-level sibling.
-  // Example: consecutive $$...$$ (LatexMathDisplay) on adjacent lines.
   if (impl_->root) {
-    auto shouldPromote = [](const MarkdownASTNode &n) { return n.type == NodeType::LatexMathDisplay; };
-    auto isSeparator = [](const MarkdownASTNode &n) {
-      return n.type == NodeType::LineBreak ||
-             (n.type == NodeType::Text && n.content.find_first_not_of(" \t\n\r") == std::string::npos);
-    };
-
-    auto &children = impl_->root->children;
-    for (size_t i = 0; i < children.size();) {
-      auto &para = children[i];
-      if (para->type != NodeType::Paragraph || para->children.empty()) {
-        ++i;
-        continue;
-      }
-
-      std::vector<std::shared_ptr<MarkdownASTNode>> promoted;
-      for (auto &pc : para->children) {
-        if (shouldPromote(*pc))
-          promoted.push_back(pc);
-        else if (!isSeparator(*pc)) {
-          promoted.clear();
-          break;
-        }
-      }
-
-      if (promoted.empty()) {
-        ++i;
-        continue;
-      }
-      auto pos = children.erase(children.begin() + static_cast<ptrdiff_t>(i));
-      children.insert(pos, promoted.begin(), promoted.end());
-      i += promoted.size();
-    }
+    promoteDisplayMathFromParagraphs(*impl_->root);
   }
 
   return impl_->root ? impl_->root : std::make_shared<MarkdownASTNode>(NodeType::Document);

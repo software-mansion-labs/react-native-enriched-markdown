@@ -51,6 +51,7 @@
     return;
 
   NSRange contentRange = NSMakeRange(contentStart, contentEnd - contentStart);
+  [context registerCodeBlockRange:contentRange];
 
   UIFont *codeFont = [_config codeBlockFont];
   RCTUIColor *codeColor = [_config codeBlockColor];

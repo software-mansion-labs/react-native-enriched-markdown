@@ -17,6 +17,9 @@
     info->_listItemPositions = [context.listItemPositions copy];
     info->_listItemDepths = [context.listItemDepths copy];
     info->_listItemOrdered = [context.listItemOrdered copy];
+    info->_blockquoteRanges = [context.blockquoteRanges copy];
+    info->_blockquoteDepths = [context.blockquoteDepths copy];
+    info->_codeBlockRanges = [context.codeBlockRanges copy];
   }
   return info;
 }

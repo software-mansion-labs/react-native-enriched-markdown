@@ -1,5 +1,6 @@
 #import "TableContainerView.h"
 #import "AttributedRenderer.h"
+#import "ENRMLocalization.h"
 #import "HTMLGenerator.h"
 #import "LinkTapUtils.h"
 #import "MarkdownASTNode.h"
@@ -624,8 +625,9 @@
     if (cellTexts.count > 0) {
 #if !TARGET_OS_OSX
       UIAccessibilityElement *element = [[UIAccessibilityElement alloc] initWithAccessibilityContainer:self];
-      element.accessibilityLabel = [NSString
-          stringWithFormat:@"Row %lu: %@", (unsigned long)(rowIndex + 1), [cellTexts componentsJoinedByString:@", "]];
+      element.accessibilityLabel =
+          [NSString stringWithFormat:ENRMLocalizedString(@"enrm.accessibility.table.row"),
+                                     (unsigned long)(rowIndex + 1), [cellTexts componentsJoinedByString:@", "]];
       element.accessibilityFrameInContainerSpace = CGRectMake(0, yOffset, _totalTableWidth, rowHeight);
       element.accessibilityTraits =
           row.firstObject.isHeader ? UIAccessibilityTraitHeader : UIAccessibilityTraitStaticText;

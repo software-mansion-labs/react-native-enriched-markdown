@@ -37,3 +37,7 @@ target 'EnrichedMarkdownExample' do
     )
   end
 end
+
+target 'EnrichedMarkdownExampleTests' do
+  inherit! :search_paths
+end

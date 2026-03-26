@@ -15,6 +15,9 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm,cpp}", "cpp/md4c/*.{c,h}", "cpp/parser/*.{hpp,cpp}"
   s.private_header_files = "ios/**/*.h"
+  s.resource_bundles = {
+    "ReactNativeEnrichedMarkdown" => ["ios/**/*.strings"]
+  }
 
   # To disable LaTeX math rendering (iosMath, supported on iOS and macOS), add ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] = '0' to your Podfile.
   enable_math = ENV['ENRICHED_MARKDOWN_ENABLE_MATH'] != '0'

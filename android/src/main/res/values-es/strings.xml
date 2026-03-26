@@ -1,0 +1,14 @@
+<resources>
+  <string name="enriched_markdown_accessibility_image_default">Imagen</string>
+  <string name="enriched_markdown_accessibility_heading_level">nivel de encabezado %1$d</string>
+  <string name="enriched_markdown_accessibility_link">enlace</string>
+  <string name="enriched_markdown_accessibility_list_item">elemento de lista %1$d</string>
+  <string name="enriched_markdown_accessibility_nested_list_item">elemento de lista anidado %1$d</string>
+  <string name="enriched_markdown_accessibility_bullet_point">elemento con viñeta</string>
+  <string name="enriched_markdown_accessibility_nested_bullet_point">elemento con viñeta anidado</string>
+  <string name="enriched_markdown_accessibility_checked">marcado</string>
+  <string name="enriched_markdown_accessibility_unchecked">sin marcar</string>
+  <string name="enriched_markdown_accessibility_quote">cita</string>
+  <string name="enriched_markdown_accessibility_nested_quote">cita anidada</string>
+  <string name="enriched_markdown_accessibility_code_block">bloque de código</string>
+</resources>

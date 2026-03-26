@@ -46,15 +46,16 @@ static NSString *const kNestedInfoRangeKey = @"range";
     return;
   }
 
-  [self applyStylingAndSpacing:output start:start end:end currentDepth:currentDepth];
+  NSRange accessibilityRange = [self applyStylingAndSpacing:output start:start end:end currentDepth:currentDepth];
+  [context registerBlockquoteRange:accessibilityRange depth:currentDepth];
 }
 
 #pragma mark - Styling and Spacing
 
-- (void)applyStylingAndSpacing:(NSMutableAttributedString *)output
-                         start:(NSUInteger)start
-                           end:(NSUInteger)end
-                  currentDepth:(NSInteger)currentDepth
+- (NSRange)applyStylingAndSpacing:(NSMutableAttributedString *)output
+                            start:(NSUInteger)start
+                              end:(NSUInteger)end
+                     currentDepth:(NSInteger)currentDepth
 {
   NSUInteger contentStart = start;
   if (currentDepth == 0) {
@@ -80,6 +81,8 @@ static NSString *const kNestedInfoRangeKey = @"range";
   if (currentDepth == 0) {
     applyBlockSpacingAfter(output, [_config blockquoteMarginBottom]);
   }
+
+  return blockquoteRange;
 }
 
 #pragma mark - Nested Blockquote Handling

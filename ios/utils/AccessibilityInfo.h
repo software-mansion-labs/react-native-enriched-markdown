@@ -28,6 +28,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSArray<NSNumber *> *listItemDepths;
 @property (nonatomic, copy, readonly) NSArray<NSNumber *> *listItemOrdered; // YES = ordered, NO = bullet
 
+// Blockquotes
+@property (nonatomic, copy, readonly) NSArray<NSValue *> *blockquoteRanges;
+@property (nonatomic, copy, readonly) NSArray<NSNumber *> *blockquoteDepths;
+
+// Code blocks
+@property (nonatomic, copy, readonly) NSArray<NSValue *> *codeBlockRanges;
+
 + (instancetype)infoFromContext:(RenderContext *)context;
 
 @end

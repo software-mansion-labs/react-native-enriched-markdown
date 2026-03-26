@@ -26,6 +26,9 @@
     _listItemPositions = [NSMutableArray array];
     _listItemDepths = [NSMutableArray array];
     _listItemOrdered = [NSMutableArray array];
+    _blockquoteRanges = [NSMutableArray array];
+    _blockquoteDepths = [NSMutableArray array];
+    _codeBlockRanges = [NSMutableArray array];
     _fontCache = [NSMutableDictionary dictionary];
     _currentBlockStyle = [[BlockStyle alloc] init];
     _allowFontScaling = YES;
@@ -149,6 +152,23 @@
   [self.listItemOrdered addObject:@(isOrdered)];
 }
 
+- (void)registerBlockquoteRange:(NSRange)range depth:(NSInteger)depth
+{
+  if (![self isValidRange:range])
+    return;
+
+  [self.blockquoteRanges addObject:[NSValue valueWithRange:range]];
+  [self.blockquoteDepths addObject:@(depth)];
+}
+
+- (void)registerCodeBlockRange:(NSRange)range
+{
+  if (![self isValidRange:range])
+    return;
+
+  [self.codeBlockRanges addObject:[NSValue valueWithRange:range]];
+}
+
 #pragma mark - Private
 
 - (BOOL)isValidRange:(NSRange)range
@@ -252,6 +272,9 @@
   [_listItemPositions removeAllObjects];
   [_listItemDepths removeAllObjects];
   [_listItemOrdered removeAllObjects];
+  [_blockquoteRanges removeAllObjects];
+  [_blockquoteDepths removeAllObjects];
+  [_codeBlockRanges removeAllObjects];
   [self clearBlockStyle];
 
   _blockquoteDepth = 0;

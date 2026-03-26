@@ -1,0 +1,16 @@
+"enrm.accessibility.image_default" = "Image";
+"enrm.accessibility.heading_level" = "heading level %ld";
+"enrm.accessibility.link_hint_open" = "Double-tap to open link";
+"enrm.accessibility.list_item" = "list item %ld";
+"enrm.accessibility.nested_list_item" = "nested list item %ld";
+"enrm.accessibility.bullet_point" = "bullet point";
+"enrm.accessibility.nested_bullet_point" = "nested bullet point";
+"enrm.accessibility.checked" = "checked";
+"enrm.accessibility.unchecked" = "unchecked";
+"enrm.accessibility.quote" = "quote";
+"enrm.accessibility.nested_quote" = "nested quote";
+"enrm.accessibility.code_block" = "code block";
+"enrm.accessibility.rotor.headings" = "Headings";
+"enrm.accessibility.rotor.links" = "Links";
+"enrm.accessibility.rotor.images" = "Images";
+"enrm.accessibility.table.row" = "Row %lu: %@";

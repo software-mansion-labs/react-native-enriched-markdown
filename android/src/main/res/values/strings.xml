@@ -1,0 +1,14 @@
+<resources>
+  <string name="enriched_markdown_accessibility_image_default">Image</string>
+  <string name="enriched_markdown_accessibility_heading_level">heading level %1$d</string>
+  <string name="enriched_markdown_accessibility_link">link</string>
+  <string name="enriched_markdown_accessibility_list_item">list item %1$d</string>
+  <string name="enriched_markdown_accessibility_nested_list_item">nested list item %1$d</string>
+  <string name="enriched_markdown_accessibility_bullet_point">bullet point</string>
+  <string name="enriched_markdown_accessibility_nested_bullet_point">nested bullet point</string>
+  <string name="enriched_markdown_accessibility_checked">checked</string>
+  <string name="enriched_markdown_accessibility_unchecked">unchecked</string>
+  <string name="enriched_markdown_accessibility_quote">quote</string>
+  <string name="enriched_markdown_accessibility_nested_quote">nested quote</string>
+  <string name="enriched_markdown_accessibility_code_block">code block</string>
+</resources>

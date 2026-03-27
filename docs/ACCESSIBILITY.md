@@ -6,6 +6,10 @@
 
 The library implements native accessibility features that enable screen readers (VoiceOver on iOS and TalkBack on Android) to properly navigate and understand Markdown content. This includes semantic labeling, custom navigation controls, and proper announcements for all supported elements.
 
+## Text Announcements
+
+Plain text paragraphs without inline links or images are announced as a single VoiceOver element per paragraph. Paragraphs containing links or images are segmented into text, link, and image parts so that each remains independently navigable. List items follow the same logic — a list item without inline specials is a single element, while one containing a link is split accordingly. Whitespace-only segments between elements are filtered out to avoid empty announcements.
+
 ## Supported Elements
 
 | Element | VoiceOver (iOS) | TalkBack (Android) |
@@ -81,3 +85,7 @@ List items are announced with their position and type:
 **Nested Lists:**
 - iOS: Proper depth handling with semantic structure
 - Android: "Nested" prefix is added for items at deeper levels (e.g., "nested bullet point", "nested list item 1")
+
+## Known Issues
+
+- **Blockquote border with inline links (iOS):** When a blockquote contains inline links, the background/border may break at link boundaries instead of spanning the full line. This is a cosmetic limitation of `NSAttributedString` drawing separate background rects per attribute run and will be addressed in a future update.

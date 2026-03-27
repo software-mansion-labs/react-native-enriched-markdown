@@ -1,0 +1,16 @@
+"enrm.accessibility.image_default" = "Imagen";
+"enrm.accessibility.heading_level" = "nivel de encabezado %ld";
+"enrm.accessibility.link_hint_open" = "Doble toque para abrir el enlace";
+"enrm.accessibility.list_item" = "elemento de lista %ld";
+"enrm.accessibility.nested_list_item" = "elemento de lista anidado %ld";
+"enrm.accessibility.bullet_point" = "elemento con viñeta";
+"enrm.accessibility.nested_bullet_point" = "elemento con viñeta anidado";
+"enrm.accessibility.checked" = "marcado";
+"enrm.accessibility.unchecked" = "sin marcar";
+"enrm.accessibility.quote" = "cita";
+"enrm.accessibility.nested_quote" = "cita anidada";
+"enrm.accessibility.code_block" = "bloque de código";
+"enrm.accessibility.rotor.headings" = "Encabezados";
+"enrm.accessibility.rotor.links" = "Enlaces";
+"enrm.accessibility.rotor.images" = "Imágenes";
+"enrm.accessibility.table.row" = "Fila %lu: %@";

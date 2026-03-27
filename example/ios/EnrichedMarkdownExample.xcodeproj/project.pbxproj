@@ -8,32 +8,52 @@
 
 /* Begin PBXBuildFile section */
 		029E4BE967864F599BC07069 /* Montserrat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EFDFCE7DCD1A46B5B744D7EE /* Montserrat-Regular.ttf */; };
+		048DF1E98A732EAA7E0133AD /* AccessibilityInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C57E5AE5516E92DE037BE9A /* AccessibilityInfo.m */; };
+		05A0E9DA8B0C4A33A9D7A101 /* ENRMLocalization.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A0E9DA8B0C4A33A9D7A100 /* ENRMLocalization.m */; };
 		0C80B921A6F3F58F76C31292 /* libPods-EnrichedMarkdownExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-EnrichedMarkdownExample.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		17C89E93130560A986A07D41 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23260FAF25BD2C1AC6A51217 /* XCTest.framework */; };
+		52D7D80EA2D9CE97CF4D62C3 /* libPods-EnrichedMarkdownExampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DA2F056E8D288CF5B4D52A6 /* libPods-EnrichedMarkdownExampleTests.a */; };
+		56A6967BF234F08839CA97BC /* MarkdownAccessibilityElementBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = AC05487AAF46543C622A8523 /* MarkdownAccessibilityElementBuilder.m */; };
 		597CBD3D53AB4507A479C53A /* Montserrat-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EFA8D1CE74004DB3BF0ABC53 /* Montserrat-SemiBold.ttf */; };
 		62AB1D56FF474B6E8985F1AC /* Montserrat-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B24805265C44464B924D7791 /* Montserrat-Italic.ttf */; };
+		69D8854184D148F4B9A7F6E1 /* ListItemAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = 69D8854184D148F4B9A7F6E0 /* ListItemAttributes.m */; };
 		755D3925A27144D59E0D48AA /* Montserrat-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 431C95EEA90C4B3995118D3D /* Montserrat-Bold.ttf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		82103DDD53C31EFD147710F8 /* MarkdownAccessibilityElementBuilderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 66B8A481BA146563293BD349 /* MarkdownAccessibilityElementBuilderTests.m */; };
 		97BABF0A6D86D894F56D1968 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		99A566FEE0BE7615171E3A49 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3B8DEF88B3D072E1565DAB /* Foundation.framework */; };
 		9BFD46416F6C43EFBD2EE56C /* Montserrat-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9BC709807BEE4A948F59B9EF /* Montserrat-Medium.ttf */; };
 		9E6DECF91246407194021F8B /* CourierPrime-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D495169E422740CF87E4E8EB /* CourierPrime-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		05A0E9DA8B0C4A33A9D7A100 /* ENRMLocalization.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = ENRMLocalization.m; path = ../../ios/utils/ENRMLocalization.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* EnrichedMarkdownExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EnrichedMarkdownExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = EnrichedMarkdownExample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = EnrichedMarkdownExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = EnrichedMarkdownExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1DA2F056E8D288CF5B4D52A6 /* libPods-EnrichedMarkdownExampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EnrichedMarkdownExampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		23260FAF25BD2C1AC6A51217 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-EnrichedMarkdownExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnrichedMarkdownExample.debug.xcconfig"; path = "Target Support Files/Pods-EnrichedMarkdownExample/Pods-EnrichedMarkdownExample.debug.xcconfig"; sourceTree = "<group>"; };
 		431C95EEA90C4B3995118D3D /* Montserrat-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-Bold.ttf"; path = "../assets/fonts/Montserrat-Bold.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-EnrichedMarkdownExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnrichedMarkdownExample.release.xcconfig"; path = "Target Support Files/Pods-EnrichedMarkdownExample/Pods-EnrichedMarkdownExample.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-EnrichedMarkdownExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EnrichedMarkdownExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		66B8A481BA146563293BD349 /* MarkdownAccessibilityElementBuilderTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MarkdownAccessibilityElementBuilderTests.m; path = EnrichedMarkdownExampleTests/MarkdownAccessibilityElementBuilderTests.m; sourceTree = "<group>"; };
+		69D8854184D148F4B9A7F6E0 /* ListItemAttributes.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = ListItemAttributes.m; path = ../../ios/utils/ListItemAttributes.m; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = EnrichedMarkdownExample/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = EnrichedMarkdownExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8647C4D308E561F1FD38DCE9 /* Pods-EnrichedMarkdownExampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnrichedMarkdownExampleTests.release.xcconfig"; path = "Target Support Files/Pods-EnrichedMarkdownExampleTests/Pods-EnrichedMarkdownExampleTests.release.xcconfig"; sourceTree = "<group>"; };
+		8C57E5AE5516E92DE037BE9A /* AccessibilityInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = AccessibilityInfo.m; path = ../../ios/utils/AccessibilityInfo.m; sourceTree = "<group>"; };
 		9BC709807BEE4A948F59B9EF /* Montserrat-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-Medium.ttf"; path = "../assets/fonts/Montserrat-Medium.ttf"; sourceTree = "<group>"; };
+		AA1642370822FF89F7845AB1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = EnrichedMarkdownExampleTests/Info.plist; sourceTree = "<group>"; };
+		AC05487AAF46543C622A8523 /* MarkdownAccessibilityElementBuilder.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MarkdownAccessibilityElementBuilder.m; path = ../../ios/utils/MarkdownAccessibilityElementBuilder.m; sourceTree = "<group>"; };
 		B24805265C44464B924D7791 /* Montserrat-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-Italic.ttf"; path = "../assets/fonts/Montserrat-Italic.ttf"; sourceTree = "<group>"; };
+		B5B4C73C0BDE583156A98E1E /* EnrichedMarkdownExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EnrichedMarkdownExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD3B8DEF88B3D072E1565DAB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		D495169E422740CF87E4E8EB /* CourierPrime-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "CourierPrime-Regular.ttf"; path = "../assets/fonts/CourierPrime-Regular.ttf"; sourceTree = "<group>"; };
+		DB10DCF1BA0708B30EBF7122 /* Pods-EnrichedMarkdownExampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnrichedMarkdownExampleTests.debug.xcconfig"; path = "Target Support Files/Pods-EnrichedMarkdownExampleTests/Pods-EnrichedMarkdownExampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EFA8D1CE74004DB3BF0ABC53 /* Montserrat-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-SemiBold.ttf"; path = "../assets/fonts/Montserrat-SemiBold.ttf"; sourceTree = "<group>"; };
 		EFDFCE7DCD1A46B5B744D7EE /* Montserrat-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-Regular.ttf"; path = "../assets/fonts/Montserrat-Regular.ttf"; sourceTree = "<group>"; };
@@ -45,6 +65,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-EnrichedMarkdownExample.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC0E591805529FD51591D8C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99A566FEE0BE7615171E3A49 /* Foundation.framework in Frameworks */,
+				17C89E93130560A986A07D41 /* XCTest.framework in Frameworks */,
+				52D7D80EA2D9CE97CF4D62C3 /* libPods-EnrichedMarkdownExampleTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,8 +98,24 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-EnrichedMarkdownExample.a */,
+				AC426588B54D4B7CA1296B5C /* iOS */,
+				23260FAF25BD2C1AC6A51217 /* XCTest.framework */,
+				1DA2F056E8D288CF5B4D52A6 /* libPods-EnrichedMarkdownExampleTests.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		717A1932033097B08C9A121B /* EnrichedMarkdownExampleTests */ = {
+			isa = PBXGroup;
+			children = (
+				66B8A481BA146563293BD349 /* MarkdownAccessibilityElementBuilderTests.m */,
+				AA1642370822FF89F7845AB1 /* Info.plist */,
+				8C57E5AE5516E92DE037BE9A /* AccessibilityInfo.m */,
+				05A0E9DA8B0C4A33A9D7A100 /* ENRMLocalization.m */,
+				69D8854184D148F4B9A7F6E0 /* ListItemAttributes.m */,
+				AC05487AAF46543C622A8523 /* MarkdownAccessibilityElementBuilder.m */,
+			);
+			name = EnrichedMarkdownExampleTests;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -88,6 +134,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
 				8B7EA5AC4A5C4E55B7B86961 /* Resources */,
+				717A1932033097B08C9A121B /* EnrichedMarkdownExampleTests */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -98,6 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* EnrichedMarkdownExample.app */,
+				B5B4C73C0BDE583156A98E1E /* EnrichedMarkdownExampleTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,11 +164,21 @@
 			path = "";
 			sourceTree = "<group>";
 		};
+		AC426588B54D4B7CA1296B5C /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				BD3B8DEF88B3D072E1565DAB /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
 				3B4392A12AC88292D35C810B /* Pods-EnrichedMarkdownExample.debug.xcconfig */,
 				5709B34CF0A7D63546082F79 /* Pods-EnrichedMarkdownExample.release.xcconfig */,
+				8647C4D308E561F1FD38DCE9 /* Pods-EnrichedMarkdownExampleTests.release.xcconfig */,
+				DB10DCF1BA0708B30EBF7122 /* Pods-EnrichedMarkdownExampleTests.debug.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -149,6 +207,24 @@
 			productReference = 13B07F961A680F5B00A75B9A /* EnrichedMarkdownExample.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BDF7ACA15E61CCE105B5FABA /* EnrichedMarkdownExampleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EAC2E2FA67C6993DEFC0B988 /* Build configuration list for PBXNativeTarget "EnrichedMarkdownExampleTests" */;
+			buildPhases = (
+				93C94056F7891752B2F63993 /* [CP] Check Pods Manifest.lock */,
+				850E8437D32DF626805E7348 /* Sources */,
+				BC0E591805529FD51591D8C3 /* Frameworks */,
+				703B988600CFBE216761BFB4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EnrichedMarkdownExampleTests;
+			productName = EnrichedMarkdownExampleTests;
+			productReference = B5B4C73C0BDE583156A98E1E /* EnrichedMarkdownExampleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -176,6 +252,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* EnrichedMarkdownExample */,
+				BDF7ACA15E61CCE105B5FABA /* EnrichedMarkdownExampleTests */,
 			);
 		};
 /* End PBXProject section */
@@ -194,6 +271,13 @@
 				029E4BE967864F599BC07069 /* Montserrat-Regular.ttf in Resources */,
 				62AB1D56FF474B6E8985F1AC /* Montserrat-Italic.ttf in Resources */,
 				9E6DECF91246407194021F8B /* CourierPrime-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		703B988600CFBE216761BFB4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -231,6 +315,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EnrichedMarkdownExample/Pods-EnrichedMarkdownExample-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		93C94056F7891752B2F63993 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-EnrichedMarkdownExampleTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
@@ -280,6 +386,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		850E8437D32DF626805E7348 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				82103DDD53C31EFD147710F8 /* MarkdownAccessibilityElementBuilderTests.m in Sources */,
+				048DF1E98A732EAA7E0133AD /* AccessibilityInfo.m in Sources */,
+				05A0E9DA8B0C4A33A9D7A101 /* ENRMLocalization.m in Sources */,
+				69D8854184D148F4B9A7F6E1 /* ListItemAttributes.m in Sources */,
+				56A6967BF234F08839CA97BC /* MarkdownAccessibilityElementBuilder.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,6 +461,45 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		7E14E65766A2D728269D20AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DB10DCF1BA0708B30EBF7122 /* Pods-EnrichedMarkdownExampleTests.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../ios",
+					"$(SRCROOT)/../../ios/utils",
+					"$(SRCROOT)/../../ios/renderer",
+					"$(SRCROOT)/../../ios/styles",
+					"$(SRCROOT)/../../ios/views",
+				);
+				INFOPLIST_FILE = EnrichedMarkdownExampleTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.enrichedmarkdown.example.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../ios",
+					"$(SRCROOT)/../../ios/utils",
+					"$(SRCROOT)/../../ios/renderer",
+					"$(SRCROOT)/../../ios/styles",
+					"$(SRCROOT)/../../ios/views",
+				);
+			};
+			name = Debug;
 		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -500,6 +657,46 @@
 			};
 			name = Release;
 		};
+		FC1608120203BC6204CE2E04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8647C4D308E561F1FD38DCE9 /* Pods-EnrichedMarkdownExampleTests.release.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../ios",
+					"$(SRCROOT)/../../ios/utils",
+					"$(SRCROOT)/../../ios/renderer",
+					"$(SRCROOT)/../../ios/styles",
+					"$(SRCROOT)/../../ios/views",
+				);
+				INFOPLIST_FILE = EnrichedMarkdownExampleTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.enrichedmarkdown.example.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../ios",
+					"$(SRCROOT)/../../ios/utils",
+					"$(SRCROOT)/../../ios/renderer",
+					"$(SRCROOT)/../../ios/styles",
+					"$(SRCROOT)/../../ios/views",
+				);
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -517,6 +714,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EAC2E2FA67C6993DEFC0B988 /* Build configuration list for PBXNativeTarget "EnrichedMarkdownExampleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC1608120203BC6204CE2E04 /* Release */,
+				7E14E65766A2D728269D20AF /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

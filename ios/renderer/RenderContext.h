@@ -34,6 +34,9 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemPositions; // Position in parent list (1, 2, 3...)
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemDepths;  // Nesting depth (1 = top level, 2+ = nested)
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *listItemOrdered; // YES = ordered, NO = unordered (bullet)
+@property (nonatomic, strong) NSMutableArray<NSValue *> *blockquoteRanges;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *blockquoteDepths;
+@property (nonatomic, strong) NSMutableArray<NSValue *> *codeBlockRanges;
 @property (nonatomic, assign) BlockType currentBlockType;
 @property (nonatomic, strong) BlockStyle *currentBlockStyle;
 @property (nonatomic, assign) NSInteger currentHeadingLevel;
@@ -61,6 +64,8 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
                      position:(NSInteger)position
                         depth:(NSInteger)depth
                     isOrdered:(BOOL)isOrdered;
+- (void)registerBlockquoteRange:(NSRange)range depth:(NSInteger)depth;
+- (void)registerCodeBlockRange:(NSRange)range;
 - (void)setBlockStyle:(BlockType)type
              fontSize:(CGFloat)fontSize
            fontFamily:(NSString *)fontFamily

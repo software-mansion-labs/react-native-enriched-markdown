@@ -5,12 +5,6 @@
 #import "StyleConfig.h"
 #import <React/RCTI18nUtil.h>
 
-extern NSString *const ListDepthAttribute;
-extern NSString *const ListTypeAttribute;
-extern NSString *const ListItemNumberAttribute;
-extern NSString *const TaskItemAttribute;
-extern NSString *const TaskCheckedAttribute;
-
 @implementation ListMarkerDrawer {
   StyleConfig *_config;
 }

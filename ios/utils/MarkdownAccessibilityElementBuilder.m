@@ -37,13 +37,14 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
       NSDictionary *list = [self listItemInfoForRange:paragraphRange info:info];
 
       if (specials.count == 0) {
-        [self addTextElementsPerLineTo:elements
-                                 range:paragraphRange
-                              fullText:fullString
-                               heading:level
-                              listInfo:list
-                                  view:textView
-                             container:container];
+        [elements addObject:[self createElementForRange:paragraphRange
+                                                   type:ElementTypeText
+                                                   text:trimmed
+                                               isLinked:NO
+                                                heading:level
+                                               listInfo:list
+                                                   view:textView
+                                              container:container]];
       } else {
         [elements addObjectsFromArray:[self segmentedElementsForParagraph:paragraphRange
                                                                  fullText:fullString
@@ -60,6 +61,14 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 }
 
 #pragma mark - Segmentation
+
++ (BOOL)hasAlphanumericContent:(NSString *)text
+{
+  static NSCharacterSet *alphanumericSet;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{ alphanumericSet = [NSCharacterSet alphanumericCharacterSet]; });
+  return [text rangeOfCharacterFromSet:alphanumericSet].location != NSNotFound;
+}
 
 + (NSArray<UIAccessibilityElement *> *)segmentedElementsForParagraph:(NSRange)paragraphRange
                                                             fullText:(NSString *)fullText
@@ -80,13 +89,18 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 
     if (itemRange.location > segmentStart) {
       NSRange beforeRange = NSMakeRange(segmentStart, itemRange.location - segmentStart);
-      [self addTextElementsPerLineTo:elements
-                               range:beforeRange
-                            fullText:fullText
-                             heading:headingLevel
-                            listInfo:listInfo
-                                view:textView
-                           container:container];
+      NSString *beforeText = [[fullText substringWithRange:beforeRange]
+          stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+      if (beforeText.length > 0 && [self hasAlphanumericContent:beforeText]) {
+        [elements addObject:[self createElementForRange:beforeRange
+                                                   type:ElementTypeText
+                                                   text:beforeText
+                                               isLinked:NO
+                                                heading:headingLevel
+                                               listInfo:listInfo
+                                                   view:textView
+                                              container:container]];
+      }
     }
 
     BOOL isImg = item[@"altText"] != nil;
@@ -104,18 +118,23 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 
   if (segmentStart < NSMaxRange(paragraphRange)) {
     NSRange afterRange = NSMakeRange(segmentStart, NSMaxRange(paragraphRange) - segmentStart);
-    [self addTextElementsPerLineTo:elements
-                             range:afterRange
-                          fullText:fullText
-                           heading:headingLevel
-                          listInfo:listInfo
-                              view:textView
-                         container:container];
+    NSString *afterText = [[fullText substringWithRange:afterRange]
+        stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if (afterText.length > 0 && [self hasAlphanumericContent:afterText]) {
+      [elements addObject:[self createElementForRange:afterRange
+                                                 type:ElementTypeText
+                                                 text:afterText
+                                             isLinked:NO
+                                              heading:headingLevel
+                                             listInfo:listInfo
+                                                 view:textView
+                                            container:container]];
+    }
   }
   return elements;
 }
 
-#pragma mark - Factory & Precise Splitting
+#pragma mark - Factory
 
 + (UIAccessibilityElement *)createElementForRange:(NSRange)range
                                              type:(ElementType)type
@@ -157,41 +176,6 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
   }
 
   return el;
-}
-
-+ (void)addTextElementsPerLineTo:(NSMutableArray *)elements
-                           range:(NSRange)range
-                        fullText:(NSString *)fullText
-                         heading:(NSInteger)level
-                        listInfo:(NSDictionary *)listInfo
-                            view:(UITextView *)tv
-                       container:(id)c
-{
-  NSLayoutManager *lm = tv.layoutManager;
-  NSRange glyphRange = [lm glyphRangeForCharacterRange:range actualCharacterRange:NULL];
-
-  [lm enumerateLineFragmentsForGlyphRange:glyphRange
-                               usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *tc, NSRange lineGlyphRange,
-                                            BOOL *stop) {
-                                 NSRange intersection = NSIntersectionRange(glyphRange, lineGlyphRange);
-                                 if (intersection.length > 0) {
-                                   NSRange charRange = [lm characterRangeForGlyphRange:intersection
-                                                                      actualGlyphRange:NULL];
-                                   NSString *trimmed = [[fullText substringWithRange:charRange]
-                                       stringByTrimmingCharactersInSet:[NSCharacterSet
-                                                                           whitespaceAndNewlineCharacterSet]];
-                                   if (trimmed.length > 0) {
-                                     [elements addObject:[self createElementForRange:charRange
-                                                                                type:ElementTypeText
-                                                                                text:trimmed
-                                                                            isLinked:NO
-                                                                             heading:level
-                                                                            listInfo:listInfo
-                                                                                view:tv
-                                                                           container:c]];
-                                   }
-                                 }
-                               }];
 }
 
 #pragma mark - Helpers

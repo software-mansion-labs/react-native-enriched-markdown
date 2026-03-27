@@ -70,13 +70,20 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                                                            container:(id)container
 {
   NSMutableArray<UIAccessibilityElement *> *elements = [NSMutableArray array];
+  paragraphRange = [self clampedRange:paragraphRange toTextLength:fullText.length];
+  if (paragraphRange.location == NSNotFound || paragraphRange.length == 0) {
+    return elements;
+  }
   NSArray *sortedSpecials = [specials sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
     return [@([a[@"range"] rangeValue].location) compare:@([b[@"range"] rangeValue].location)];
   }];
 
   NSUInteger segmentStart = paragraphRange.location;
   for (NSDictionary *item in sortedSpecials) {
-    NSRange itemRange = [item[@"range"] rangeValue];
+    NSRange itemRange = [self clampedRange:[item[@"range"] rangeValue] toTextLength:fullText.length];
+    if (itemRange.location == NSNotFound || itemRange.length == 0) {
+      continue;
+    }
 
     if (itemRange.location > segmentStart) {
       NSRange beforeRange = NSMakeRange(segmentStart, itemRange.location - segmentStart);
@@ -167,6 +174,10 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                             view:(UITextView *)tv
                        container:(id)c
 {
+  range = [self clampedRange:range toTextLength:fullText.length];
+  if (range.location == NSNotFound || range.length == 0) {
+    return;
+  }
   NSLayoutManager *lm = tv.layoutManager;
   NSRange glyphRange = [lm glyphRangeForCharacterRange:range actualCharacterRange:NULL];
 
@@ -206,10 +217,24 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 
 + (CGRect)frameForRange:(NSRange)range inTextView:(UITextView *)textView container:(id)container
 {
+  range = [self clampedRange:range toTextLength:textView.attributedText.length];
+  if (range.location == NSNotFound || range.length == 0) {
+    return CGRectZero;
+  }
   NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
   CGRect rect = [textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textView.textContainer];
   rect = CGRectOffset(CGRectInset(rect, -2, -2), textView.textContainerInset.left, textView.textContainerInset.top);
   return [(UIView *)container convertRect:CGRectIntegral(rect) fromView:textView];
+}
+
++ (NSRange)clampedRange:(NSRange)range toTextLength:(NSUInteger)textLength
+{
+  if (range.location == NSNotFound || range.length == 0 || textLength == 0 || range.location >= textLength) {
+    return NSMakeRange(NSNotFound, 0);
+  }
+
+  NSUInteger availableLength = textLength - range.location;
+  return NSMakeRange(range.location, MIN(range.length, availableLength));
 }
 
 #pragma mark - Data Helpers
@@ -227,8 +252,9 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 {
   NSMutableArray *links = [NSMutableArray array];
   for (NSUInteger i = 0; i < info.linkRanges.count; i++) {
-    if (NSIntersectionRange(range, [info.linkRanges[i] rangeValue]).length > 0) {
-      [links addObject:@{@"range" : info.linkRanges[i], @"url" : info.linkURLs[i] ?: @""}];
+    NSRange linkRange = [self clampedRange:[info.linkRanges[i] rangeValue] toTextLength:NSMaxRange(range)];
+    if (NSIntersectionRange(range, linkRange).length > 0) {
+      [links addObject:@{@"range" : [NSValue valueWithRange:linkRange], @"url" : info.linkURLs[i] ?: @""}];
     }
   }
   return links;
@@ -238,16 +264,17 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 {
   NSMutableArray *images = [NSMutableArray array];
   for (NSUInteger i = 0; i < info.imageRanges.count; i++) {
-    NSRange imgRange = [info.imageRanges[i] rangeValue];
+    NSRange imgRange = [self clampedRange:[info.imageRanges[i] rangeValue] toTextLength:NSMaxRange(range)];
     if (NSIntersectionRange(range, imgRange).length > 0) {
       BOOL linked = NO;
       for (NSValue *val in info.linkRanges)
-        if (NSIntersectionRange(imgRange, val.rangeValue).length > 0) {
+        if (NSIntersectionRange(imgRange, [self clampedRange:val.rangeValue toTextLength:NSMaxRange(range)]).length >
+            0) {
           linked = YES;
           break;
         }
       [images addObject:@{
-        @"range" : info.imageRanges[i],
+        @"range" : [NSValue valueWithRange:imgRange],
         @"altText" : info.imageAltTexts[i] ?: @"",
         @"isLinked" : @(linked)
       }];

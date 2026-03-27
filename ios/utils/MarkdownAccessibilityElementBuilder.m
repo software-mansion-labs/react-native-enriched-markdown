@@ -206,7 +206,13 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 
 + (CGRect)frameForRange:(NSRange)range inTextView:(UITextView *)textView container:(id)container
 {
-  NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
+  NSUInteger textLength = textView.attributedText.string.length;
+  if (textLength == 0 || range.location >= textLength) {
+    return CGRectZero;
+  }
+  NSRange clamped = NSMakeRange(range.location, MIN(range.length, textLength - range.location));
+
+  NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:clamped actualCharacterRange:NULL];
   CGRect rect = [textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textView.textContainer];
   rect = CGRectOffset(CGRectInset(rect, -2, -2), textView.textContainerInset.left, textView.textContainerInset.top);
   return [(UIView *)container convertRect:CGRectIntegral(rect) fromView:textView];

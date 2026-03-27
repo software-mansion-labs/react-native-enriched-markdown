@@ -368,6 +368,9 @@ using namespace facebook::react;
   }
   _textView.textContainer.size = CGSizeMake(containerWidth, CGFLOAT_MAX);
 
+  _accessibilityElements = nil;
+  _accessibilityNeedsRebuild = YES;
+
   _textView.attributedText = attributedText;
   _renderedMarkdown = [_cachedMarkdown copy];
 
@@ -390,8 +393,6 @@ using namespace facebook::react;
       [self requestHeightUpdate];
     }
   }
-
-  _accessibilityNeedsRebuild = YES;
 
   if (_textView.hidden) {
     dispatch_async(dispatch_get_main_queue(), ^{ self->_textView.hidden = NO; });

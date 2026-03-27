@@ -74,6 +74,9 @@
 
   objc_setAssociatedObject(_textView.textContainer, kTextViewKey, _textView, OBJC_ASSOCIATION_ASSIGN);
 
+  _accessibilityElements = nil;
+  _accessibilityNeedsRebuild = YES;
+
   ENRMSetAttributedText(_textView, text);
 
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, text.length) actualCharacterRange:NULL];
@@ -82,8 +85,6 @@
   [_textView setNeedsLayout];
 #endif
   ENRMSetNeedsDisplay(_textView);
-
-  _accessibilityNeedsRebuild = (_accessibilityInfo != nil);
 }
 
 - (CGFloat)measureHeight:(CGFloat)maxWidth

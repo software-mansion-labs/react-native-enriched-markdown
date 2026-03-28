@@ -1,7 +1,7 @@
 const path = require('path');
 const { getDefaultConfig } = require('@react-native/metro-config');
 
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '../..');
 const rnMacosDir = path.dirname(
   require.resolve('react-native-macos/package.json', { paths: [__dirname] })
 );

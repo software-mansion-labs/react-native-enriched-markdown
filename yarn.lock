@@ -11202,9 +11202,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-enriched-markdown-example@workspace:example":
+"react-native-enriched-markdown-example@workspace:apps/example":
   version: 0.0.0-use.local
-  resolution: "react-native-enriched-markdown-example@workspace:example"
+  resolution: "react-native-enriched-markdown-example@workspace:apps/example"
   dependencies:
     "@babel/core": "npm:^7.25.2"
     "@babel/preset-env": "npm:^7.25.3"
@@ -11225,9 +11225,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native-enriched-markdown-macos-example@workspace:macos-example":
+"react-native-enriched-markdown-macos-example@workspace:apps/macos-example":
   version: 0.0.0-use.local
-  resolution: "react-native-enriched-markdown-macos-example@workspace:macos-example"
+  resolution: "react-native-enriched-markdown-macos-example@workspace:apps/macos-example"
   dependencies:
     "@babel/core": "npm:^7.25.2"
     "@react-native-community/cli": "npm:20.0.0"

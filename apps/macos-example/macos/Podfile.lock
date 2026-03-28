@@ -2359,7 +2359,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native-macos/ReactCommon`)
-  - ReactNativeEnrichedMarkdown (from `../..`)
+  - ReactNativeEnrichedMarkdown (from `../../..`)
   - SocketRocket (~> 0.7.1)
   - Yoga (from `../node_modules/react-native-macos/ReactCommon/yoga`)
 
@@ -2511,7 +2511,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native-macos/ReactCommon"
   ReactNativeEnrichedMarkdown:
-    :path: "../.."
+    :path: "../../.."
   Yoga:
     :path: "../node_modules/react-native-macos/ReactCommon/yoga"
 

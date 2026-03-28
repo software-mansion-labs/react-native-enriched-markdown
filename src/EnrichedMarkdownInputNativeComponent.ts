@@ -4,12 +4,8 @@ import {
   type ViewProps,
   type ColorValue,
   type HostComponent,
+  type CodegenTypes,
 } from 'react-native';
-import type {
-  DirectEventHandler,
-  Float,
-  Int32,
-} from 'react-native/Libraries/Types/CodegenTypes';
 import type React from 'react';
 
 interface MarkdownInputStyleInternal {
@@ -26,7 +22,7 @@ interface MarkdownInputStyleInternal {
 }
 
 interface TargetedEvent {
-  target: Int32;
+  target: CodegenTypes.Int32;
 }
 
 export interface OnChangeTextEvent {
@@ -38,8 +34,8 @@ export interface OnChangeMarkdownEvent {
 }
 
 export interface OnChangeSelectionEvent {
-  start: Int32;
-  end: Int32;
+  start: CodegenTypes.Int32;
+  end: CodegenTypes.Int32;
 }
 
 export interface OnChangeStateEvent {
@@ -51,7 +47,7 @@ export interface OnChangeStateEvent {
 }
 
 export interface OnRequestMarkdownResultEvent {
-  requestId: Int32;
+  requestId: CodegenTypes.Int32;
   markdown: string;
 }
 
@@ -108,8 +104,8 @@ export interface NativeProps extends ViewProps {
 
   // These should not be passed as regular props.
   color?: ColorValue;
-  fontSize?: Float;
-  lineHeight?: Float;
+  fontSize?: CodegenTypes.Float;
+  lineHeight?: CodegenTypes.Float;
   fontFamily?: string;
   fontWeight?: string;
 
@@ -120,13 +116,13 @@ export interface NativeProps extends ViewProps {
   isOnChangeMarkdownSet?: boolean;
 
   // Events
-  onChangeText?: DirectEventHandler<OnChangeTextEvent>;
-  onChangeMarkdown?: DirectEventHandler<OnChangeMarkdownEvent>;
-  onChangeSelection?: DirectEventHandler<OnChangeSelectionEvent>;
-  onChangeState?: DirectEventHandler<OnChangeStateEvent>;
-  onInputFocus?: DirectEventHandler<TargetedEvent>;
-  onInputBlur?: DirectEventHandler<TargetedEvent>;
-  onRequestMarkdownResult?: DirectEventHandler<OnRequestMarkdownResultEvent>;
+  onChangeText?: CodegenTypes.DirectEventHandler<OnChangeTextEvent>;
+  onChangeMarkdown?: CodegenTypes.DirectEventHandler<OnChangeMarkdownEvent>;
+  onChangeSelection?: CodegenTypes.DirectEventHandler<OnChangeSelectionEvent>;
+  onChangeState?: CodegenTypes.DirectEventHandler<OnChangeStateEvent>;
+  onInputFocus?: CodegenTypes.DirectEventHandler<TargetedEvent>;
+  onInputBlur?: CodegenTypes.DirectEventHandler<TargetedEvent>;
+  onRequestMarkdownResult?: CodegenTypes.DirectEventHandler<OnRequestMarkdownResultEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;
@@ -140,8 +136,8 @@ interface NativeCommands {
   ) => void;
   setSelection: (
     viewRef: React.ElementRef<ComponentType>,
-    start: Int32,
-    end: Int32
+    start: CodegenTypes.Int32,
+    end: CodegenTypes.Int32
   ) => void;
   toggleBold: (viewRef: React.ElementRef<ComponentType>) => void;
   toggleItalic: (viewRef: React.ElementRef<ComponentType>) => void;
@@ -156,7 +152,7 @@ interface NativeCommands {
   removeLink: (viewRef: React.ElementRef<ComponentType>) => void;
   requestMarkdown: (
     viewRef: React.ElementRef<ComponentType>,
-    requestId: Int32
+    requestId: CodegenTypes.Int32
   ) => void;
 }
 

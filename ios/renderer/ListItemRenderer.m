@@ -169,10 +169,19 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
                      options:0
                   usingBlock:^(NSNumber *depth, NSRange segmentRange, BOOL *stop) {
                     BOOL isNestedSubItem = (depth && [depth integerValue] > nestingLevel);
-
-                    if (!isNestedSubItem) {
-                      [output addAttributes:checkedAttrs range:segmentRange];
+                    if (isNestedSubItem) {
+                      return;
                     }
+
+                    // Skip code block ranges — preserve CodeBlockRenderer styles.
+                    NSNumber *isCodeBlock = [output attribute:CodeBlockAttributeName
+                                                     atIndex:segmentRange.location
+                                              effectiveRange:nil];
+                    if ([isCodeBlock boolValue]) {
+                      return;
+                    }
+
+                    [output addAttributes:checkedAttrs range:segmentRange];
                   }];
 }
 

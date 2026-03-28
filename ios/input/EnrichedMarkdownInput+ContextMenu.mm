@@ -37,16 +37,19 @@
                         handler:^(__kindof UIAction *action) { [self copySelectedRangeAsMarkdown]; }];
 
   NSArray<NSString *> *customItemTexts = [self contextMenuItemTexts];
+  NSArray<NSString *> *customItemIcons = [self contextMenuItemIcons];
   __weak EnrichedMarkdownInput *weakSelf = self;
   NSMutableArray<UIMenuElement *> *allActions = [NSMutableArray arrayWithCapacity:customItemTexts.count];
-  for (NSString *itemText in customItemTexts) {
+  [customItemTexts enumerateObjectsUsingBlock:^(NSString *itemText, NSUInteger index, BOOL *_) {
+    NSString *iconName = index < customItemIcons.count ? customItemIcons[index] : nil;
+    UIImage *image = iconName.length > 0 ? [UIImage systemImageNamed:iconName] : nil;
     UIAction *customAction =
         [UIAction actionWithTitle:itemText
-                            image:nil
+                            image:image
                        identifier:nil
                           handler:^(__kindof UIAction *_) { [weakSelf emitContextMenuItemPress:itemText]; }];
     [allActions addObject:customAction];
-  }
+  }];
 
   NSUInteger insertIndex = suggestedActions.count;
   NSMutableArray *systemActions = [suggestedActions mutableCopy];
@@ -70,10 +73,11 @@
   }
 
   __weak EnrichedMarkdownInput *weakSelf = self;
-  NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
-      [self contextMenuItemTexts], textView, ^(NSString *itemText, NSString *_, NSUInteger __, NSUInteger ___) {
-        [weakSelf emitContextMenuItemPress:itemText];
-      });
+  NSArray<NSMenuItem *> *customItems =
+      ENRMBuildContextMenuItems([self contextMenuItemTexts], [self contextMenuItemIcons], textView,
+                                ^(NSString *itemText, NSString *_, NSUInteger __, NSUInteger ___) {
+                                  [weakSelf emitContextMenuItemPress:itemText];
+                                });
   ENRMPrependMenuItems(menu, customItems);
 
   [menu addItem:[NSMenuItem separatorItem]];

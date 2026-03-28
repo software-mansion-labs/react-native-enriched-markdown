@@ -140,6 +140,7 @@ using namespace facebook::react;
   BOOL _enableLinkPreview;
 
   NSArray<NSString *> *_contextMenuItemTexts;
+  NSArray<NSString *> *_contextMenuItemIcons;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -545,7 +546,7 @@ using namespace facebook::react;
     }
     NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.textStorage, textView.selectedRange);
     NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
-        strongSelf->_contextMenuItemTexts, textView,
+        strongSelf->_contextMenuItemTexts, strongSelf->_contextMenuItemIcons, textView,
         ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
           auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
           if (eventEmitter) {
@@ -683,6 +684,7 @@ using namespace facebook::react;
 
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
+    _contextMenuItemIcons = ENRMContextMenuIconsFromItems(newViewProps.contextMenuItems);
   }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
@@ -812,7 +814,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
         }
       };
   NSMutableArray<UIAction *> *customActions =
-      ENRMBuildContextMenuActions(_contextMenuItemTexts, textView, range, handler);
+      ENRMBuildContextMenuActions(_contextMenuItemTexts, _contextMenuItemIcons, textView, range, handler);
 
   NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.attributedText, range);
   return buildEditMenuForSelection(textView.attributedText, range, segmentMarkdown, _config, suggestedActions,

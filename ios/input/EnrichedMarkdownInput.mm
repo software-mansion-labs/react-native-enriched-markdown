@@ -73,6 +73,7 @@ using namespace facebook::react;
 #endif
 
   NSArray<NSString *> *_contextMenuItemTexts;
+  NSArray<NSString *> *_contextMenuItemIcons;
 }
 
 #pragma mark - Fabric lifecycle
@@ -277,6 +278,7 @@ using namespace facebook::react;
 
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
+    _contextMenuItemIcons = ENRMContextMenuIconsFromItems(newViewProps.contextMenuItems);
   }
 
   BOOL styleChanged = applyInputStyleProps(_formatterStyle, newViewProps, oldViewProps);
@@ -822,6 +824,11 @@ using namespace facebook::react;
 - (NSArray<NSString *> *)contextMenuItemTexts
 {
   return _contextMenuItemTexts ?: @[];
+}
+
+- (NSArray<NSString *> *)contextMenuItemIcons
+{
+  return _contextMenuItemIcons ?: @[];
 }
 
 - (void)emitContextMenuItemPress:(NSString *)itemText

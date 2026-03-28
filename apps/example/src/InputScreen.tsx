@@ -107,7 +107,8 @@ export default function InputScreen() {
   const bubbleContextMenuItems = useMemo(
     () => [
       {
-        text: '✦ Summarize with AI',
+        text: 'Summarize with AI',
+        icon: Platform.OS === 'ios' ? 'sparkles' : undefined,
         onPress: ({ text }: { text: string }) => {
           Alert.alert('✦ Summarize with AI', `"${text}"`, [
             { text: 'Dismiss', style: 'cancel' },
@@ -116,6 +117,8 @@ export default function InputScreen() {
       },
       {
         text: 'Reply',
+        icon:
+          Platform.OS === 'ios' ? 'arrowshape.turn.up.left.fill' : undefined,
         onPress: ({ text }: { text: string }) => {
           inputRef.current?.setValue(`> ${text}\n\n`);
           inputRef.current?.focus();
@@ -129,6 +132,7 @@ export default function InputScreen() {
     () => [
       {
         text: '✦ Summarize with AI',
+        icon: Platform.OS === 'ios' ? 'sparkles' : undefined,
         onPress: ({
           text,
           styleState,

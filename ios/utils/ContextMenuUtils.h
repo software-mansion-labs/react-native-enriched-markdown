@@ -14,7 +14,7 @@ static bool ENRMContextMenuItemsChanged(const std::vector<T> &oldItems, const st
     return true;
   }
   for (size_t i = 0; i < newItems.size(); i++) {
-    if (newItems[i].text != oldItems[i].text) {
+    if (newItems[i].text != oldItems[i].text || newItems[i].icon != oldItems[i].icon) {
       return true;
     }
   }
@@ -30,6 +30,18 @@ template <typename T> static NSArray<NSString *> *ENRMContextMenuTextsFromItems(
   return [result copy];
 }
 
+template <typename T> static NSArray<NSString *> *_Nullable ENRMContextMenuIconsFromItems(const std::vector<T> &items)
+{
+  NSMutableArray<NSString *> *result = [NSMutableArray arrayWithCapacity:items.size()];
+  bool hasAnyIcon = false;
+  for (const auto &item : items) {
+    NSString *iconName = @(item.icon.c_str());
+    hasAnyIcon = hasAnyIcon || iconName.length > 0;
+    [result addObject:iconName];
+  }
+  return hasAnyIcon ? [result copy] : nil;
+}
+
 #endif
 
 typedef void (^ENRMContextMenuPressHandler)(NSString *_Nonnull itemText, NSString *_Nonnull selectedText,
@@ -43,6 +55,7 @@ extern "C" {
 
 // TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
 NSMutableArray<UIAction *> *_Nullable ENRMBuildContextMenuActions(NSArray<NSString *> *_Nonnull itemTexts,
+                                                                  NSArray<NSString *> *_Nullable iconNames,
                                                                   UITextView *_Nonnull textView, NSRange selectedRange,
                                                                   ENRMContextMenuPressHandler _Nonnull handler)
     API_AVAILABLE(ios(16.0));
@@ -50,6 +63,7 @@ NSMutableArray<UIAction *> *_Nullable ENRMBuildContextMenuActions(NSArray<NSStri
 #else
 
 NSArray<NSMenuItem *> *_Nullable ENRMBuildContextMenuItems(NSArray<NSString *> *_Nonnull itemTexts,
+                                                           NSArray<NSString *> *_Nullable iconNames,
                                                            NSTextView *_Nonnull textView,
                                                            ENRMContextMenuPressHandler _Nonnull handler);
 

@@ -25,7 +25,8 @@ export default function App() {
   const contextMenuItems = useMemo(
     () => [
       {
-        text: '✦ Summarize with AI',
+        text: 'Summarize with AI',
+        icon: 'sparkles',
         onPress: ({ text }: { text: string }) => {
           Alert.alert('✦ Summarize with AI', `"${text}"`, [
             { text: 'Dismiss', style: 'cancel' },
@@ -34,6 +35,7 @@ export default function App() {
       },
       {
         text: 'Translate',
+        icon: 'globe',
         onPress: ({ text }: { text: string }) => {
           Alert.alert('Translate', `"${text}"`, [
             { text: 'Dismiss', style: 'cancel' },

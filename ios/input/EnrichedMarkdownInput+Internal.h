@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)emitContextMenuItemPress:(NSString *)itemText;
 - (NSArray<NSString *> *)contextMenuItemTexts;
+- (NSArray<NSString *> *)contextMenuItemIcons;
 
 #if !TARGET_OS_OSX
 - (void)showFormatBar;

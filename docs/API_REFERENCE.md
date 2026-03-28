@@ -172,6 +172,8 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table supp
 
 Custom items to add to the text selection context menu. Items appear before the system actions (Copy, etc.). Items with `visible: false` are hidden from the menu.
 
+> **iOS**: Requires iOS 16+. On earlier versions the prop is ignored.
+
 | Type                 | Default Value | Platform |
 | -------------------- | ------------- | -------- |
 | `ContextMenuItem[]`  | -             | Both     |
@@ -182,6 +184,12 @@ Custom items to add to the text selection context menu. Items appear before the 
 interface ContextMenuItem {
   /** Label shown in the context menu. */
   text: string;
+  /**
+   * SF Symbol name for the icon shown next to the item label.
+   * Supported on iOS and macOS. Ignored on Android.
+   * Example: 'sparkles', 'translate', 'doc.text'
+   */
+  icon?: string;
   /** Called when the item is tapped. */
   onPress: (event: {
     /** The selected text at the time of the press. */
@@ -393,6 +401,8 @@ Fires when the input loses focus.
 
 Custom items to add to the text selection context menu. Items appear before the system actions (Copy, Cut, etc.). Items with `visible: false` are hidden from the menu.
 
+> **iOS**: Requires iOS 16+. On earlier versions the prop is ignored.
+
 | Type                 | Default Value | Platform |
 | -------------------- | ------------- | -------- |
 | `ContextMenuItem[]`  | -             | Both     |
@@ -403,6 +413,12 @@ Custom items to add to the text selection context menu. Items appear before the 
 interface ContextMenuItem {
   /** Label shown in the context menu. */
   text: string;
+  /**
+   * SF Symbol name for the icon shown next to the item label.
+   * Supported on iOS and macOS. Ignored on Android.
+   * Example: 'sparkles', 'translate', 'doc.text'
+   */
+  icon?: string;
   /** Called when the item is tapped. */
   onPress: (event: {
     /** The selected text at the time of the press. */

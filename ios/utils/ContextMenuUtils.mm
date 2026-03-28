@@ -4,8 +4,9 @@
 #if !TARGET_OS_OSX
 
 // TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
-NSMutableArray<UIAction *> *_Nullable ENRMBuildContextMenuActions(NSArray<NSString *> *itemTexts, UITextView *textView,
-                                                                  NSRange selectedRange,
+NSMutableArray<UIAction *> *_Nullable ENRMBuildContextMenuActions(NSArray<NSString *> *itemTexts,
+                                                                  NSArray<NSString *> *_Nullable iconNames,
+                                                                  UITextView *textView, NSRange selectedRange,
                                                                   ENRMContextMenuPressHandler handler)
     API_AVAILABLE(ios(16.0))
 {
@@ -18,21 +19,24 @@ NSMutableArray<UIAction *> *_Nullable ENRMBuildContextMenuActions(NSArray<NSStri
   NSUInteger selectionEnd = NSMaxRange(selectedRange);
 
   NSMutableArray<UIAction *> *actions = [NSMutableArray arrayWithCapacity:itemTexts.count];
-  for (NSString *itemText in itemTexts) {
+  [itemTexts enumerateObjectsUsingBlock:^(NSString *itemText, NSUInteger index, BOOL *_) {
+    NSString *iconName = iconNames ? iconNames[index] : nil;
+    UIImage *image = iconName.length > 0 ? [UIImage systemImageNamed:iconName] : nil;
     [actions addObject:[UIAction actionWithTitle:itemText
-                                           image:nil
+                                           image:image
                                       identifier:nil
                                          handler:^(__kindof UIAction *_) {
                                            handler(itemText, selectedText, selectionStart, selectionEnd);
                                          }]];
-  }
+  }];
   return actions;
 }
 
 #else
 
-NSArray<NSMenuItem *> *_Nullable ENRMBuildContextMenuItems(NSArray<NSString *> *itemTexts, NSTextView *textView,
-                                                           ENRMContextMenuPressHandler handler)
+NSArray<NSMenuItem *> *_Nullable ENRMBuildContextMenuItems(NSArray<NSString *> *itemTexts,
+                                                           NSArray<NSString *> *_Nullable iconNames,
+                                                           NSTextView *textView, ENRMContextMenuPressHandler handler)
 {
   if (itemTexts.count == 0) {
     return nil;
@@ -44,9 +48,15 @@ NSArray<NSMenuItem *> *_Nullable ENRMBuildContextMenuItems(NSArray<NSString *> *
   NSUInteger selectionEnd = NSMaxRange(selectedRange);
 
   NSMutableArray<NSMenuItem *> *items = [NSMutableArray arrayWithCapacity:itemTexts.count];
-  for (NSString *itemText in itemTexts) {
-    [items addObject:ENRMCreateMenuItem(itemText, ^{ handler(itemText, selectedText, selectionStart, selectionEnd); })];
-  }
+  [itemTexts enumerateObjectsUsingBlock:^(NSString *itemText, NSUInteger index, BOOL *_) {
+    NSMenuItem *item =
+        ENRMCreateMenuItem(itemText, ^{ handler(itemText, selectedText, selectionStart, selectionEnd); });
+    NSString *iconName = iconNames ? iconNames[index] : nil;
+    if (iconName.length > 0) {
+      item.image = [NSImage imageWithSystemSymbolName:iconName accessibilityDescription:nil];
+    }
+    [items addObject:item];
+  }];
   return items;
 }
 

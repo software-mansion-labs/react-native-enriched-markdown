@@ -53,6 +53,7 @@ export interface OnRequestMarkdownResultEvent {
 
 export interface ContextMenuItemConfig {
   text: string;
+  icon?: string;
 }
 
 export interface OnContextMenuItemPressEvent {

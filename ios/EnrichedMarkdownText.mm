@@ -82,6 +82,7 @@ using namespace facebook::react;
   BOOL _accessibilityNeedsRebuild;
 
   NSArray<NSString *> *_contextMenuItemTexts;
+  NSArray<NSString *> *_contextMenuItemIcons;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -210,7 +211,7 @@ using namespace facebook::react;
       return baseMenu;
     }
     NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
-        strongSelf->_contextMenuItemTexts, textView,
+        strongSelf->_contextMenuItemTexts, strongSelf->_contextMenuItemIcons, textView,
         ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
           auto eventEmitter =
               std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(strongSelf->_eventEmitter);
@@ -495,6 +496,7 @@ using namespace facebook::react;
 
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
+    _contextMenuItemIcons = ENRMContextMenuIconsFromItems(newViewProps.contextMenuItems);
   }
 
   if (newViewProps.streamingAnimation != oldViewProps.streamingAnimation) {
@@ -629,7 +631,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
         }
       };
   NSMutableArray<UIAction *> *customActions =
-      ENRMBuildContextMenuActions(_contextMenuItemTexts, textView, range, handler);
+      ENRMBuildContextMenuActions(_contextMenuItemTexts, _contextMenuItemIcons, textView, range, handler);
 
   return buildEditMenuForSelection(textView.attributedText, range, _cachedMarkdown, _config, suggestedActions,
                                    customActions);

@@ -4,6 +4,7 @@ import {
   ScrollView,
   Alert,
   Linking,
+  Platform,
   View,
   Text,
 } from 'react-native';
@@ -25,7 +26,8 @@ export default function App() {
   const contextMenuItems = useMemo(
     () => [
       {
-        text: '✦ Summarize with AI',
+        text: 'Summarize with AI',
+        icon: Platform.OS === 'ios' ? 'sparkles' : undefined,
         onPress: ({ text }: { text: string }) => {
           Alert.alert('✦ Summarize with AI', `"${text}"`, [
             { text: 'Dismiss', style: 'cancel' },
@@ -34,6 +36,7 @@ export default function App() {
       },
       {
         text: 'Translate',
+        icon: Platform.OS === 'ios' ? 'globe' : undefined,
         onPress: ({ text }: { text: string }) => {
           Alert.alert('Translate', `"${text}"`, [
             { text: 'Dismiss', style: 'cancel' },

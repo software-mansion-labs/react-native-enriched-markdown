@@ -179,6 +179,7 @@ export interface TaskListItemPressEvent {
 
 export interface ContextMenuItemConfig {
   text: string;
+  icon?: string;
 }
 
 export interface OnContextMenuItemPressEvent {

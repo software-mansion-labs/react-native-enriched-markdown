@@ -51,12 +51,12 @@ export interface StyleState {
 
 export interface ContextMenuItem {
   text: string;
-  icon?: string;
   onPress: (event: {
     text: string;
     selection: { start: number; end: number };
     styleState: StyleState;
   }) => void;
+  icon?: string;
   visible?: boolean;
 }
 

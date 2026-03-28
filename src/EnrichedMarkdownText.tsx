@@ -212,11 +212,11 @@ export interface Md4cFlags {
 
 export interface ContextMenuItem {
   text: string;
-  icon?: string;
   onPress: (event: {
     text: string;
     selection: { start: number; end: number };
   }) => void;
+  icon?: string;
   visible?: boolean;
 }
 

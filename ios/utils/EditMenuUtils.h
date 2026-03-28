@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 #if !TARGET_OS_OSX
+// TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
 UIMenu *buildEditMenuForSelection(NSAttributedString *attributedText, NSRange range, NSString *_Nullable cachedMarkdown,
                                   StyleConfig *styleConfig, NSArray<UIMenuElement *> *suggestedActions,
                                   NSArray<UIAction *> *_Nullable customActions) API_AVAILABLE(ios(16.0));

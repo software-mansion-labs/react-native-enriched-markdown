@@ -3,6 +3,7 @@
 
 #if !TARGET_OS_OSX
 
+// TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
 NSMutableArray<UIAction *> *_Nullable ENRMBuildContextMenuActions(NSArray<NSString *> *itemTexts, UITextView *textView,
                                                                   NSRange selectedRange,
                                                                   ENRMContextMenuPressHandler handler)

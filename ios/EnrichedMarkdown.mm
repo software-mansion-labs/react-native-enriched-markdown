@@ -789,6 +789,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   ENRMClearSelection(textView);
 }
 
+// TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
 #if !TARGET_OS_OSX
 - (UIMenu *)textView:(UITextView *)textView
     editMenuForTextInRange:(NSRange)range

@@ -607,6 +607,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 
 #pragma mark - UITextViewDelegate (Edit Menu)
 
+// TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
 - (UIMenu *)textView:(ENRMPlatformTextView *)textView
     editMenuForTextInRange:(NSRange)range
           suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))

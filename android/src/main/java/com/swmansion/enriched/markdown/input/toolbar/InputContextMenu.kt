@@ -13,6 +13,12 @@ import com.swmansion.enriched.markdown.input.model.FormattingRange
 class InputContextMenu(
   private val view: EnrichedMarkdownInputView,
 ) {
+  private var customItemTexts: List<String> = emptyList()
+
+  fun setContextMenuItems(items: List<String>) {
+    customItemTexts = items
+  }
+
   fun install() {
     view.customSelectionActionModeCallback =
       object : ActionMode.Callback {
@@ -26,10 +32,18 @@ class InputContextMenu(
           menu: Menu,
         ): Boolean {
           menu.removeGroup(FORMAT_MENU_GROUP_ID)
+          menu.removeGroup(CUSTOM_MENU_GROUP_ID)
 
           menu.add(FORMAT_MENU_GROUP_ID, MENU_FORMAT_ID, 100, "Format")
+
           if (view.selectionStart < view.selectionEnd) {
             menu.add(FORMAT_MENU_GROUP_ID, MENU_COPY_MARKDOWN_ID, 101, "Copy as Markdown")
+
+            customItemTexts.forEachIndexed { index, text ->
+              menu
+                .add(CUSTOM_MENU_GROUP_ID, MENU_CUSTOM_BASE + index, index, text)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            }
           }
 
           return true
@@ -38,8 +52,10 @@ class InputContextMenu(
         override fun onActionItemClicked(
           mode: ActionMode,
           item: MenuItem,
-        ): Boolean =
-          when (item.itemId) {
+        ): Boolean {
+          val itemId = item.itemId
+
+          when (itemId) {
             MENU_FORMAT_ID -> {
               val start = view.selectionStart
               val end = view.selectionEnd
@@ -48,19 +64,28 @@ class InputContextMenu(
               if (start != end) {
                 view.setSelection(start, end)
               }
-              true
+              return true
             }
 
             MENU_COPY_MARKDOWN_ID -> {
               copyAsMarkdown()
               mode.finish()
-              true
-            }
-
-            else -> {
-              false
+              return true
             }
           }
+
+          val customIndex = itemId - MENU_CUSTOM_BASE
+          if (customIndex in customItemTexts.indices) {
+            val start = view.selectionStart
+            val end = view.selectionEnd
+            val selectedText = if (start < end) view.text?.substring(start, end) ?: "" else ""
+            view.eventEmitter.emitContextMenuItemPress(customItemTexts[customIndex], selectedText, start, end)
+            mode.finish()
+            return true
+          }
+
+          return false
+        }
 
         override fun onDestroyActionMode(mode: ActionMode) {}
       }
@@ -98,5 +123,7 @@ class InputContextMenu(
     private const val FORMAT_MENU_GROUP_ID = 1000
     private const val MENU_FORMAT_ID = 1001
     private const val MENU_COPY_MARKDOWN_ID = 1002
+    private const val CUSTOM_MENU_GROUP_ID = 2000
+    private const val MENU_CUSTOM_BASE = 2001
   }
 }

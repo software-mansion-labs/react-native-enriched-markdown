@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -11,7 +11,6 @@ import {
   EnrichedMarkdownText,
   type LinkPressEvent,
 } from 'react-native-enriched-markdown';
-import { useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleMarkdown } from './sampleMarkdown';
 import { customMarkdownStyle } from './markdownStyles';
@@ -22,6 +21,28 @@ type Screen = 'text' | 'input';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('input');
   const markdownStyle = useMemo(() => customMarkdownStyle, []);
+
+  const contextMenuItems = useMemo(
+    () => [
+      {
+        text: '✦ Summarize with AI',
+        onPress: ({ text }: { text: string }) => {
+          Alert.alert('✦ Summarize with AI', `"${text}"`, [
+            { text: 'Dismiss', style: 'cancel' },
+          ]);
+        },
+      },
+      {
+        text: 'Translate',
+        onPress: ({ text }: { text: string }) => {
+          Alert.alert('Translate', `"${text}"`, [
+            { text: 'Dismiss', style: 'cancel' },
+          ]);
+        },
+      },
+    ],
+    []
+  );
 
   const handleLinkPress = (event: LinkPressEvent) => {
     const { url } = event;
@@ -68,6 +89,7 @@ export default function App() {
             markdown={sampleMarkdown}
             onLinkPress={handleLinkPress}
             markdownStyle={markdownStyle}
+            contextMenuItems={contextMenuItems}
           />
         </ScrollView>
       )}

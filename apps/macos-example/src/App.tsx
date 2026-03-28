@@ -4,6 +4,7 @@ import {
   View,
   Text,
   Linking,
+  Alert,
 } from 'react-native-macos';
 import {
   EnrichedMarkdownText,
@@ -20,6 +21,28 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('input');
   const markdownStyle = useMemo(() => customMarkdownStyle, []);
   const [lastLink, setLastLink] = useState<string | null>(null);
+
+  const contextMenuItems = useMemo(
+    () => [
+      {
+        text: '✦ Summarize with AI',
+        onPress: ({ text }: { text: string }) => {
+          Alert.alert('✦ Summarize with AI', `"${text}"`, [
+            { text: 'Dismiss', style: 'cancel' },
+          ]);
+        },
+      },
+      {
+        text: 'Translate',
+        onPress: ({ text }: { text: string }) => {
+          Alert.alert('Translate', `"${text}"`, [
+            { text: 'Dismiss', style: 'cancel' },
+          ]);
+        },
+      },
+    ],
+    []
+  );
 
   const handleLinkPress = (event: LinkPressEvent) => {
     setLastLink(event.url);
@@ -57,6 +80,7 @@ export default function App() {
               markdown={sampleMarkdown}
               onLinkPress={handleLinkPress}
               markdownStyle={markdownStyle}
+              contextMenuItems={contextMenuItems}
             />
           </ScrollView>
           {lastLink != null && (

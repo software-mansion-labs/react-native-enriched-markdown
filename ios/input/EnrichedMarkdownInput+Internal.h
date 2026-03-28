@@ -12,6 +12,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)toggleStrikethrough;
 - (void)showLinkPrompt;
 
+- (void)emitContextMenuItemPress:(NSString *)itemText;
+- (NSArray<NSString *> *)contextMenuItemTexts;
+
 #if !TARGET_OS_OSX
 - (void)showFormatBar;
 #else

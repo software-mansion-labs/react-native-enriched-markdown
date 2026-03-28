@@ -1,3 +1,4 @@
+#import "ContextMenuUtils.h"
 #import "ENRMMenuAction.h"
 #import "EditMenuUtils.h"
 #import "PasteboardUtils.h"
@@ -8,7 +9,7 @@
 
 NSMenu *_Nullable buildEditMenuForSelection(NSAttributedString *attributedText, NSRange range,
                                             NSString *_Nullable cachedMarkdown, StyleConfig *styleConfig,
-                                            NSArray *suggestedActions)
+                                            NSArray *suggestedActions, NSArray<NSMenuItem *> *_Nullable customItems)
 {
   NSMenu *menu = ([suggestedActions.firstObject isKindOfClass:[NSMenu class]]) ? (NSMenu *)suggestedActions.firstObject
                                                                                : [[NSMenu alloc] initWithTitle:@""];
@@ -49,6 +50,8 @@ NSMenu *_Nullable buildEditMenuForSelection(NSAttributedString *attributedText, 
             copyStringToPasteboard(urlsToCopy);
           })];
   }
+
+  ENRMPrependMenuItems(menu, customItems);
 
   return menu;
 }

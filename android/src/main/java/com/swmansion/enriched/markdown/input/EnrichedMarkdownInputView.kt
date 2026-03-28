@@ -378,6 +378,10 @@ class EnrichedMarkdownInputView(
     applyFormattingAndEmit()
   }
 
+  fun setContextMenuItems(items: List<String>) {
+    contextMenu.setContextMenuItems(items)
+  }
+
   fun setValueFromJS(markdown: String) {
     val parsed = InputParser.parseToPlainTextAndRanges(markdown)
     blockEmitting = true

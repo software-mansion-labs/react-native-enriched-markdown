@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import {
   EnrichedMarkdownInput,
@@ -103,6 +104,58 @@ export default function InputScreen() {
     }
   }, []);
 
+  const bubbleContextMenuItems = useMemo(
+    () => [
+      {
+        text: '✦ Summarize with AI',
+        onPress: ({ text }: { text: string }) => {
+          Alert.alert('✦ Summarize with AI', `"${text}"`, [
+            { text: 'Dismiss', style: 'cancel' },
+          ]);
+        },
+      },
+      {
+        text: 'Reply',
+        onPress: ({ text }: { text: string }) => {
+          inputRef.current?.setValue(`> ${text}\n\n`);
+          inputRef.current?.focus();
+        },
+      },
+    ],
+    []
+  );
+
+  const inputContextMenuItems = useMemo(
+    () => [
+      {
+        text: '✦ Summarize with AI',
+        onPress: ({
+          text,
+          styleState,
+        }: {
+          text: string;
+          styleState: StyleState;
+        }) => {
+          const flags = [
+            styleState.bold.isActive && 'bold',
+            styleState.italic.isActive && 'italic',
+            styleState.underline.isActive && 'underline',
+            styleState.strikethrough.isActive && 'strikethrough',
+            styleState.link.isActive && 'link',
+          ]
+            .filter(Boolean)
+            .join(', ');
+          Alert.alert(
+            '✦ Summarize with AI',
+            `"${text}"${flags ? `\n\nActive styles: ${flags}` : ''}`,
+            [{ text: 'Dismiss', style: 'cancel' }]
+          );
+        },
+      },
+    ],
+    []
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -149,6 +202,7 @@ export default function InputScreen() {
                   markdownStyle={MARKDOWN_STYLE}
                   markdown={msg.markdown}
                   md4cFlags={{ underline: true }}
+                  contextMenuItems={bubbleContextMenuItems}
                 />
                 <Text
                   style={[
@@ -230,6 +284,7 @@ export default function InputScreen() {
             onChangeSelection={(sel) => {
               hasSelectionRef.current = sel.start !== sel.end;
             }}
+            contextMenuItems={inputContextMenuItems}
           />
           <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
             <Text style={styles.sendIcon}>▶</Text>

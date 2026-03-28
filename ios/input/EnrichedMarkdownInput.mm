@@ -1,4 +1,5 @@
 #import "EnrichedMarkdownInput.h"
+#import "ContextMenuUtils.h"
 #import "ENRMFormattingRange.h"
 #import "ENRMFormattingStore.h"
 #import "ENRMInputFormatter.h"
@@ -70,6 +71,8 @@ using namespace facebook::react;
 #else
   NSScrollView *_scrollView;
 #endif
+
+  NSArray<NSString *> *_contextMenuItemTexts;
 }
 
 #pragma mark - Fabric lifecycle
@@ -271,6 +274,10 @@ using namespace facebook::react;
   }
 
   _emitMarkdown = newViewProps.isOnChangeMarkdownSet;
+
+  if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
+    _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
+  }
 
   BOOL styleChanged = applyInputStyleProps(_formatterStyle, newViewProps, oldViewProps);
 
@@ -809,6 +816,51 @@ using namespace facebook::react;
       .underline = {.isActive = underlineActive},
       .strikethrough = {.isActive = strikethroughActive},
       .link = {.isActive = linkActive},
+  });
+}
+
+- (NSArray<NSString *> *)contextMenuItemTexts
+{
+  return _contextMenuItemTexts ?: @[];
+}
+
+- (void)emitContextMenuItemPress:(NSString *)itemText
+{
+  auto eventEmitter = [self getEventEmitter];
+  if (eventEmitter == nullptr) {
+    return;
+  }
+
+  NSRange selectedRange = _textView.selectedRange;
+  NSString *selectedText =
+      selectedRange.length > 0 ? [_textView.textStorage.string substringWithRange:selectedRange] : @"";
+
+  auto isActive = [&](ENRMInputStyleType type) -> BOOL {
+    if (selectedRange.length > 0) {
+      return [_formattingStore isStyleActive:type inRange:selectedRange];
+    }
+    return [self isEffectiveStyleActive:type atPosition:selectedRange.location];
+  };
+
+  BOOL boldActive = isActive(ENRMInputStyleTypeStrong);
+  BOOL italicActive = isActive(ENRMInputStyleTypeEmphasis);
+  BOOL underlineActive = isActive(ENRMInputStyleTypeUnderline);
+  BOOL strikethroughActive = isActive(ENRMInputStyleTypeStrikethrough);
+  BOOL linkActive = isActive(ENRMInputStyleTypeLink);
+
+  eventEmitter->onContextMenuItemPress({
+      .itemText = std::string(itemText.UTF8String),
+      .selectedText = std::string(selectedText.UTF8String),
+      .selectionStart = static_cast<int>(selectedRange.location),
+      .selectionEnd = static_cast<int>(NSMaxRange(selectedRange)),
+      .styleState =
+          {
+              .bold = {.isActive = boldActive},
+              .italic = {.isActive = italicActive},
+              .underline = {.isActive = underlineActive},
+              .strikethrough = {.isActive = strikethroughActive},
+              .link = {.isActive = linkActive},
+          },
   });
 }
 

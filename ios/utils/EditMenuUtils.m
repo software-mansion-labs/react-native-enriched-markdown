@@ -70,9 +70,10 @@ static void insertOptionalAction(NSMutableArray<UIMenuElement *> *array, UIActio
   }
 }
 
+// TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
 UIMenu *buildEditMenuForSelection(NSAttributedString *attributedText, NSRange range, NSString *_Nullable cachedMarkdown,
-                                  StyleConfig *styleConfig, NSArray<UIMenuElement *> *suggestedActions)
-    API_AVAILABLE(ios(16.0))
+                                  StyleConfig *styleConfig, NSArray<UIMenuElement *> *suggestedActions,
+                                  NSArray<UIAction *> *_Nullable customActions) API_AVAILABLE(ios(16.0))
 {
   NSAttributedString *selectedText = [attributedText attributedSubstringFromRange:range];
   NSString *markdown = markdownForRange(attributedText, range, cachedMarkdown);
@@ -101,11 +102,14 @@ UIMenu *buildEditMenuForSelection(NSAttributedString *attributedText, NSRange ra
     [result addObject:element];
   }
 
-  // Fallback if standard-edit menu wasn't found
   if (!foundStandardEditMenu) {
     [result insertObject:copyAction atIndex:0];
     insertOptionalAction(result, copyMarkdownAction, 1);
     addOptionalAction(result, copyImageURLAction);
+  }
+
+  if (customActions.count > 0) {
+    return [UIMenu menuWithChildren:[customActions arrayByAddingObjectsFromArray:result]];
   }
 
   return [UIMenu menuWithChildren:result];

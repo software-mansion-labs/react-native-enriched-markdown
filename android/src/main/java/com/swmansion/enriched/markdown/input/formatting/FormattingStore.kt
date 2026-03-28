@@ -28,6 +28,12 @@ class FormattingStore {
     position: Int,
   ): Boolean = rangeOfType(type, position) != null
 
+  fun isStyleActiveInRange(
+    type: StyleType,
+    start: Int,
+    end: Int,
+  ): Boolean = ranges.any { it.type == type && it.start < end && it.end > start }
+
   fun addRange(newRange: FormattingRange) {
     var mergedStart = newRange.start
     var mergedEnd = newRange.end

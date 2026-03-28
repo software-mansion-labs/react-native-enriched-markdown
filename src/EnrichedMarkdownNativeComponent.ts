@@ -177,6 +177,17 @@ export interface TaskListItemPressEvent {
   text: string;
 }
 
+export interface ContextMenuItemConfig {
+  text: string;
+}
+
+export interface OnContextMenuItemPressEvent {
+  itemText: string;
+  selectedText: string;
+  selectionStart: CodegenTypes.Int32;
+  selectionEnd: CodegenTypes.Int32;
+}
+
 /**
  * MD4C parser flags configuration.
  * Controls how the markdown parser interprets certain syntax.
@@ -276,6 +287,16 @@ export interface NativeProps extends ViewProps {
    * @default false
    */
   streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
+
+  /**
+   * Custom items to show in the text selection context menu.
+   */
+  contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+  /**
+   * Fired when a custom context menu item is pressed.
+   * Receives the item label, the currently selected text, and the selection range.
+   */
+  onContextMenuItemPress?: CodegenTypes.BubblingEventHandler<OnContextMenuItemPressEvent>;
 }
 
 export default codegenNativeComponent<NativeProps>('EnrichedMarkdown', {

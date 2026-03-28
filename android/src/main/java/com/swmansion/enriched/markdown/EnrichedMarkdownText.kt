@@ -22,6 +22,7 @@ import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMeth
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
+import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
@@ -53,6 +54,9 @@ class EnrichedMarkdownText
     // Accessibility helper for TalkBack support
     private val accessibilityHelper = MarkdownAccessibilityHelper(this)
 
+    private var contextMenuItemTexts: List<String> = emptyList()
+    var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
+
     var markdownStyle: StyleConfig? = null
       private set
 
@@ -75,6 +79,14 @@ class EnrichedMarkdownText
 
     init {
       setupAsMarkdownTextView(accessibilityHelper)
+      customSelectionActionModeCallback =
+        createSelectionActionModeCallback(
+          this,
+          getCustomItemTexts = { contextMenuItemTexts },
+          onCustomItemPress = { itemText, selectedText, start, end ->
+            onContextMenuItemPressCallback?.invoke(itemText, selectedText, start, end)
+          },
+        )
     }
 
     fun setMarkdownContent(markdown: String) {
@@ -230,6 +242,10 @@ class EnrichedMarkdownText
         fadeAnimator?.animate(tailStart, styledText.length)
         previousTextLength = styledText.length
       }
+    }
+
+    fun setContextMenuItems(items: List<String>) {
+      contextMenuItemTexts = items
     }
 
     fun setIsSelectable(selectable: Boolean) {

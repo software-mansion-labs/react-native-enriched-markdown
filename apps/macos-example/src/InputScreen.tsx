@@ -1,10 +1,11 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Pressable,
+  Alert,
 } from 'react-native-macos';
 import {
   EnrichedMarkdownInput,
@@ -61,6 +62,58 @@ export default function InputScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const [state, setState] = useState<StyleState | null>(null);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+
+  const bubbleContextMenuItems = useMemo(
+    () => [
+      {
+        text: '✦ Summarize with AI',
+        onPress: ({ text }: { text: string }) => {
+          Alert.alert('✦ Summarize with AI', `"${text}"`, [
+            { text: 'Dismiss', style: 'cancel' },
+          ]);
+        },
+      },
+      {
+        text: 'Reply',
+        onPress: ({ text }: { text: string }) => {
+          inputRef.current?.setValue(`> ${text}\n\n`);
+          inputRef.current?.focus();
+        },
+      },
+    ],
+    []
+  );
+
+  const inputContextMenuItems = useMemo(
+    () => [
+      {
+        text: '✦ Summarize with AI',
+        onPress: ({
+          text,
+          styleState,
+        }: {
+          text: string;
+          styleState: StyleState;
+        }) => {
+          const flags = [
+            styleState.bold.isActive && 'bold',
+            styleState.italic.isActive && 'italic',
+            styleState.underline.isActive && 'underline',
+            styleState.strikethrough.isActive && 'strikethrough',
+            styleState.link.isActive && 'link',
+          ]
+            .filter(Boolean)
+            .join(', ');
+          Alert.alert(
+            '✦ Summarize with AI',
+            `"${text}"${flags ? `\n\nActive styles: ${flags}` : ''}`,
+            [{ text: 'Dismiss', style: 'cancel' }]
+          );
+        },
+      },
+    ],
+    []
+  );
 
   const sendMessage = useCallback(async () => {
     const md = await inputRef.current?.getMarkdown();
@@ -135,6 +188,7 @@ export default function InputScreen() {
                   ])}
                   markdownStyle={MARKDOWN_STYLE}
                   markdown={msg.markdown}
+                  contextMenuItems={bubbleContextMenuItems}
                 />
                 <Text
                   style={[
@@ -217,6 +271,7 @@ export default function InputScreen() {
             style={styles.input}
             markdownStyle={MARKDOWN_STYLE}
             onChangeState={setState}
+            contextMenuItems={inputContextMenuItems}
           />
           <Pressable style={styles.sendButton} onPress={sendMessage}>
             <Text style={styles.sendIcon}>▶</Text>

@@ -1,6 +1,7 @@
 package com.swmansion.enriched.markdown
 
 import android.content.Context
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
@@ -11,6 +12,7 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerInterface
 import com.facebook.yoga.YogaMeasureMode
+import com.swmansion.enriched.markdown.events.ContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
@@ -29,7 +31,13 @@ class EnrichedMarkdownTextManager :
 
   override fun getName(): String = NAME
 
-  override fun createViewInstance(reactContext: ThemedReactContext): EnrichedMarkdownText = EnrichedMarkdownText(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): EnrichedMarkdownText {
+    val view = EnrichedMarkdownText(reactContext)
+    view.onContextMenuItemPressCallback = { itemText, selectedText, selectionStart, selectionEnd ->
+      emitContextMenuItemPress(view, itemText, selectedText, selectionStart, selectionEnd)
+    }
+    return view
+  }
 
   override fun onDropViewInstance(view: EnrichedMarkdownText) {
     super.onDropViewInstance(view)
@@ -44,6 +52,8 @@ class EnrichedMarkdownTextManager :
     map[LinkLongPressEvent.EVENT_NAME] = mapOf("registrationName" to LinkLongPressEvent.EVENT_NAME)
     map[TaskListItemPressEvent.EVENT_NAME] =
       mapOf("registrationName" to TaskListItemPressEvent.EVENT_NAME)
+    map[ContextMenuItemPressEvent.EVENT_NAME] =
+      mapOf("registrationName" to ContextMenuItemPressEvent.EVENT_NAME)
     return map
   }
 
@@ -152,6 +162,16 @@ class EnrichedMarkdownTextManager :
     view?.setStreamingAnimation(streamingAnimation)
   }
 
+  @ReactProp(name = "contextMenuItems")
+  override fun setContextMenuItems(
+    view: EnrichedMarkdownText?,
+    value: ReadableArray?,
+  ) {
+    if (view == null) return
+    val items = (0 until (value?.size() ?: 0)).mapNotNull { value?.getMap(it)?.getString("text") }
+    view.setContextMenuItems(items)
+  }
+
   override fun setPadding(
     view: EnrichedMarkdownText,
     left: Int,
@@ -185,6 +205,19 @@ class EnrichedMarkdownTextManager :
     val event = LinkLongPressEvent(surfaceId, view.id, url)
 
     eventDispatcher?.dispatchEvent(event)
+  }
+
+  private fun emitContextMenuItemPress(
+    view: EnrichedMarkdownText,
+    itemText: String,
+    selectedText: String,
+    selectionStart: Int,
+    selectionEnd: Int,
+  ) {
+    val context = view.context as com.facebook.react.bridge.ReactContext
+    val surfaceId = UIManagerHelper.getSurfaceId(context)
+    val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
+    eventDispatcher?.dispatchEvent(ContextMenuItemPressEvent(surfaceId, view.id, itemText, selectedText, selectionStart, selectionEnd))
   }
 
   private fun emitOnTaskListItemPress(

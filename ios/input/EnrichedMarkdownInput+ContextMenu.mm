@@ -1,3 +1,4 @@
+#import "ContextMenuUtils.h"
 #import "ENRMUIKit.h"
 #import "EnrichedMarkdownInput+Internal.h"
 #import "PasteboardUtils.h"
@@ -34,18 +35,30 @@
                      identifier:@"com.enrichedmarkdown.copyMarkdown"
                         handler:^(__kindof UIAction *action) { [self copySelectedRangeAsMarkdown]; }];
 
-  NSMutableArray *allActions = [suggestedActions mutableCopy];
+  NSArray<NSString *> *customItemTexts = [self contextMenuItemTexts];
+  __weak EnrichedMarkdownInput *weakSelf = self;
+  NSMutableArray<UIMenuElement *> *allActions = [NSMutableArray arrayWithCapacity:customItemTexts.count];
+  for (NSString *itemText in customItemTexts) {
+    UIAction *customAction =
+        [UIAction actionWithTitle:itemText
+                            image:nil
+                       identifier:nil
+                          handler:^(__kindof UIAction *_) { [weakSelf emitContextMenuItemPress:itemText]; }];
+    [allActions addObject:customAction];
+  }
 
-  NSUInteger insertIndex = allActions.count;
-  for (NSUInteger i = 0; i < allActions.count; i++) {
-    if ([allActions[i] isKindOfClass:[UIMenu class]]) {
+  NSUInteger insertIndex = suggestedActions.count;
+  NSMutableArray *systemActions = [suggestedActions mutableCopy];
+  for (NSUInteger i = 0; i < systemActions.count; i++) {
+    if ([systemActions[i] isKindOfClass:[UIMenu class]]) {
       insertIndex = i + 1;
       break;
     }
   }
+  [systemActions insertObject:formatAction atIndex:insertIndex];
+  [systemActions insertObject:copyMarkdownAction atIndex:insertIndex + 1];
+  [allActions addObjectsFromArray:systemActions];
 
-  [allActions insertObject:formatAction atIndex:insertIndex];
-  [allActions insertObject:copyMarkdownAction atIndex:insertIndex + 1];
   return [UIMenu menuWithChildren:allActions];
 }
 #else
@@ -54,6 +67,13 @@
   if (textView.selectedRange.length == 0) {
     return menu;
   }
+
+  __weak EnrichedMarkdownInput *weakSelf = self;
+  NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
+      [self contextMenuItemTexts], textView, ^(NSString *itemText, NSString *_, NSUInteger __, NSUInteger ___) {
+        [weakSelf emitContextMenuItemPress:itemText];
+      });
+  ENRMPrependMenuItems(menu, customItems);
 
   [menu addItem:[NSMenuItem separatorItem]];
 

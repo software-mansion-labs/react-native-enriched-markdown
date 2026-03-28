@@ -104,6 +104,16 @@ static EditOverlap classifyOverlap(NSUInteger rangeStart, NSUInteger rangeEnd, N
   return [self rangeOfType:type containingPosition:position] != nil;
 }
 
+- (BOOL)isStyleActive:(ENRMInputStyleType)type inRange:(NSRange)range
+{
+  for (ENRMFormattingRange *formattingRange in _ranges) {
+    if (formattingRange.type == type && NSIntersectionRange(formattingRange.range, range).length > 0) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
 - (void)addRange:(ENRMFormattingRange *)newRange
 {
   NSMutableIndexSet *mergeIndexes = [NSMutableIndexSet indexSet];

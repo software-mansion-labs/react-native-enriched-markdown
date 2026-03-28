@@ -1,6 +1,7 @@
 #import "EnrichedMarkdown.h"
 #import "AccessibilityInfo.h"
 #import "AttributedRenderer.h"
+#import "ContextMenuUtils.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
 #import "ENRMUIKit.h"
@@ -137,6 +138,8 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _selectable;
   BOOL _enableLinkPreview;
+
+  NSArray<NSString *> *_contextMenuItemTexts;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -541,8 +544,21 @@ using namespace facebook::react;
       return baseMenu;
     }
     NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.textStorage, textView.selectedRange);
+    NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
+        strongSelf->_contextMenuItemTexts, textView,
+        ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
+          auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+          if (eventEmitter) {
+            eventEmitter->onContextMenuItemPress({
+                .itemText = std::string(itemText.UTF8String),
+                .selectedText = std::string(selectedText.UTF8String),
+                .selectionStart = (int)selectionStart,
+                .selectionEnd = (int)selectionEnd,
+            });
+          }
+        });
     return buildEditMenuForSelection(textView.textStorage, textView.selectedRange, segmentMarkdown, strongSelf->_config,
-                                     @[ baseMenu ]);
+                                     @[ baseMenu ], customItems);
   }];
 #endif
 
@@ -665,6 +681,10 @@ using namespace facebook::react;
 
   _enableLinkPreview = newViewProps.enableLinkPreview;
 
+  if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
+    _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
+  }
+
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
@@ -774,8 +794,28 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     editMenuForTextInRange:(NSRange)range
           suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions API_AVAILABLE(ios(16.0))
 {
+  __weak EnrichedMarkdown *weakSelf = self;
+  ENRMContextMenuPressHandler handler =
+      ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
+        EnrichedMarkdown *strongSelf = weakSelf;
+        if (!strongSelf)
+          return;
+        auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+        if (eventEmitter) {
+          eventEmitter->onContextMenuItemPress({
+              .itemText = std::string(itemText.UTF8String),
+              .selectedText = std::string(selectedText.UTF8String),
+              .selectionStart = (int)selectionStart,
+              .selectionEnd = (int)selectionEnd,
+          });
+        }
+      };
+  NSMutableArray<UIAction *> *customActions =
+      ENRMBuildContextMenuActions(_contextMenuItemTexts, textView, range, handler);
+
   NSString *segmentMarkdown = extractMarkdownFromAttributedString(textView.attributedText, range);
-  return buildEditMenuForSelection(textView.attributedText, range, segmentMarkdown, _config, suggestedActions);
+  return buildEditMenuForSelection(textView.attributedText, range, segmentMarkdown, _config, suggestedActions,
+                                   customActions);
 }
 
 - (BOOL)textView:(UITextView *)textView

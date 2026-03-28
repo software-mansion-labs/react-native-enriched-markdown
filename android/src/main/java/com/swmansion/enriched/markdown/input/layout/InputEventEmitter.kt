@@ -8,6 +8,7 @@ import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeStateEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeTextEvent
+import com.swmansion.enriched.markdown.input.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
@@ -68,6 +69,39 @@ class InputEventEmitter(
 
   fun emitRequestMarkdownResult(requestId: Int) {
     dispatch(OnRequestMarkdownResultEvent(surfaceId(), view.id, requestId, serializeToMarkdown()))
+  }
+
+  fun emitContextMenuItemPress(
+    itemText: String,
+    selectedText: String,
+    selectionStart: Int,
+    selectionEnd: Int,
+  ) {
+    val store = view.formattingStore
+    val isSelection = selectionStart < selectionEnd
+
+    fun isActive(type: StyleType) =
+      if (isSelection) {
+        store.isStyleActiveInRange(type, selectionStart, selectionEnd)
+      } else {
+        isStyleEffectivelyActive(type, selectionStart)
+      }
+
+    dispatch(
+      OnContextMenuItemPressEvent(
+        surfaceId(),
+        view.id,
+        itemText,
+        selectedText,
+        selectionStart,
+        selectionEnd,
+        isBold = isActive(StyleType.BOLD),
+        isItalic = isActive(StyleType.ITALIC),
+        isUnderline = isActive(StyleType.UNDERLINE),
+        isStrikethrough = isActive(StyleType.STRIKETHROUGH),
+        isLink = isActive(StyleType.LINK),
+      ),
+    )
   }
 
   private fun isStyleEffectivelyActive(

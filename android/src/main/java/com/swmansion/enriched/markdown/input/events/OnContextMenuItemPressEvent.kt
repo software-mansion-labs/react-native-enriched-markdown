@@ -1,0 +1,46 @@
+package com.swmansion.enriched.markdown.input.events
+
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.uimanager.events.Event
+
+class OnContextMenuItemPressEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val itemText: String,
+  private val selectedText: String,
+  private val selectionStart: Int,
+  private val selectionEnd: Int,
+  private val isBold: Boolean,
+  private val isItalic: Boolean,
+  private val isUnderline: Boolean,
+  private val isStrikethrough: Boolean,
+  private val isLink: Boolean,
+) : Event<OnContextMenuItemPressEvent>(surfaceId, viewId) {
+  override fun getEventName(): String = EVENT_NAME
+
+  override fun getEventData(): WritableMap {
+    fun styleEntry(isActive: Boolean) = Arguments.createMap().apply { putBoolean("isActive", isActive) }
+
+    return Arguments.createMap().apply {
+      putString("itemText", itemText)
+      putString("selectedText", selectedText)
+      putInt("selectionStart", selectionStart)
+      putInt("selectionEnd", selectionEnd)
+      putMap(
+        "styleState",
+        Arguments.createMap().apply {
+          putMap("bold", styleEntry(isBold))
+          putMap("italic", styleEntry(isItalic))
+          putMap("underline", styleEntry(isUnderline))
+          putMap("strikethrough", styleEntry(isStrikethrough))
+          putMap("link", styleEntry(isLink))
+        },
+      )
+    }
+  }
+
+  companion object {
+    const val EVENT_NAME = "onContextMenuItemPress"
+  }
+}

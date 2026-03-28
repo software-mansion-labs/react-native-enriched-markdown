@@ -2,6 +2,7 @@ package com.swmansion.enriched.markdown.input
 
 import android.content.Context
 import android.graphics.Color
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ReactStylesDiffMap
@@ -17,6 +18,7 @@ import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeStateEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeTextEvent
+import com.swmansion.enriched.markdown.input.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
@@ -81,6 +83,7 @@ class EnrichedMarkdownInputManager :
       OnRequestMarkdownResultEvent.EVENT_NAME,
       OnInputFocusEvent.EVENT_NAME,
       OnInputBlurEvent.EVENT_NAME,
+      OnContextMenuItemPressEvent.EVENT_NAME,
     ).associateWithTo(mutableMapOf()) { name -> mapOf("registrationName" to name) }
 
   // Props
@@ -232,6 +235,16 @@ class EnrichedMarkdownInputManager :
     value: Boolean,
   ) {
     view?.emitMarkdown = value
+  }
+
+  @ReactProp(name = "contextMenuItems")
+  override fun setContextMenuItems(
+    view: EnrichedMarkdownInputView?,
+    value: ReadableArray?,
+  ) {
+    if (view == null) return
+    val items = (0 until (value?.size() ?: 0)).mapNotNull { value?.getMap(it)?.getString("text") }
+    view.setContextMenuItems(items)
   }
 
   override fun updateProperties(

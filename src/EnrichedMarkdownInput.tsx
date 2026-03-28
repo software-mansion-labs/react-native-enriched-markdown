@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import type React from 'react';
 import EnrichedMarkdownInputNativeComponent, {
   Commands,
@@ -8,6 +14,7 @@ import EnrichedMarkdownInputNativeComponent, {
   type OnChangeSelectionEvent,
   type OnChangeStateEvent,
   type OnRequestMarkdownResultEvent,
+  type OnContextMenuItemPressEvent,
 } from './EnrichedMarkdownInputNativeComponent';
 import type {
   HostInstance,
@@ -40,6 +47,16 @@ export interface StyleState {
   underline: { isActive: boolean };
   strikethrough: { isActive: boolean };
   link: { isActive: boolean };
+}
+
+export interface ContextMenuItem {
+  text: string;
+  onPress: (event: {
+    text: string;
+    selection: { start: number; end: number };
+    styleState: StyleState;
+  }) => void;
+  visible?: boolean;
 }
 
 export interface EnrichedMarkdownInputInstance {
@@ -80,6 +97,7 @@ export interface EnrichedMarkdownInputProps {
   onChangeState?: (state: StyleState) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  contextMenuItems?: ContextMenuItem[];
 }
 
 type MarkdownRequest = {
@@ -116,11 +134,34 @@ export const EnrichedMarkdownInput = ({
   onChangeState,
   onFocus,
   onBlur,
+  contextMenuItems,
 }: EnrichedMarkdownInputProps) => {
   const nativeRef = useRef<NativeRef | null>(null);
 
   const nextRequestId = useRef(1);
   const pendingRequests = useRef(new Map<number, MarkdownRequest>());
+
+  const contextMenuCallbacksRef = useRef<
+    Map<string, ContextMenuItem['onPress']>
+  >(new Map());
+
+  useEffect(() => {
+    const callbacksMap = new Map<string, ContextMenuItem['onPress']>();
+    if (contextMenuItems) {
+      for (const item of contextMenuItems) {
+        callbacksMap.set(item.text, item.onPress);
+      }
+    }
+    contextMenuCallbacksRef.current = callbacksMap;
+  }, [contextMenuItems]);
+
+  const nativeContextMenuItems = useMemo(
+    () =>
+      contextMenuItems
+        ?.filter((item) => item.visible !== false)
+        .map((item) => ({ text: item.text })),
+    [contextMenuItems]
+  );
 
   useEffect(() => {
     const pending = pendingRequests.current;
@@ -184,6 +225,25 @@ export const EnrichedMarkdownInput = ({
     []
   );
 
+  const handleContextMenuItemPress = useCallback(
+    (e: NativeSyntheticEvent<OnContextMenuItemPressEvent>) => {
+      const {
+        itemText,
+        selectedText,
+        selectionStart,
+        selectionEnd,
+        styleState,
+      } = e.nativeEvent;
+      const callback = contextMenuCallbacksRef.current.get(itemText);
+      callback?.({
+        text: selectedText,
+        selection: { start: selectionStart, end: selectionEnd },
+        styleState,
+      });
+    },
+    []
+  );
+
   useImperativeHandle(ref, () => {
     const node = getNativeRef(nativeRef);
     // Codegen's ViewRef resolves to `never` with RN 0.84's function-based
@@ -241,6 +301,10 @@ export const EnrichedMarkdownInput = ({
       onInputBlur={handleBlur as NativeProps['onInputBlur']}
       onRequestMarkdownResult={
         handleRequestMarkdownResult as NativeProps['onRequestMarkdownResult']
+      }
+      contextMenuItems={nativeContextMenuItems}
+      onContextMenuItemPress={
+        handleContextMenuItemPress as NativeProps['onContextMenuItemPress']
       }
     />
   );

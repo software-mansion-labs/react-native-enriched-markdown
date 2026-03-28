@@ -19,12 +19,18 @@ import com.swmansion.enriched.markdown.utils.text.conversion.MarkdownExtractor
 
 private const val MENU_ITEM_COPY_MARKDOWN = 1000
 private const val MENU_ITEM_COPY_IMAGE_URL = 1001
+private const val MENU_ITEM_CUSTOM_BASE = 2000
+private const val MENU_ITEM_CUSTOM_GROUP = 2001
 
 /**
  * Creates an ActionMode.Callback that adds custom copy options and
  * overrides the default "Copy" action to include HTML for rich text support.
  */
-fun createSelectionActionModeCallback(textView: TextView): ActionMode.Callback =
+fun createSelectionActionModeCallback(
+  textView: TextView,
+  getCustomItemTexts: () -> List<String> = { emptyList() },
+  onCustomItemPress: (itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit = { _, _, _, _ -> },
+): ActionMode.Callback =
   object : ActionMode.Callback {
     override fun onCreateActionMode(
       mode: ActionMode?,
@@ -39,9 +45,17 @@ fun createSelectionActionModeCallback(textView: TextView): ActionMode.Callback =
 
       menu.removeItem(MENU_ITEM_COPY_MARKDOWN)
       menu.removeItem(MENU_ITEM_COPY_IMAGE_URL)
+      menu.removeGroup(MENU_ITEM_CUSTOM_GROUP)
 
       if (textView.selectionStart >= 0 && textView.selectionEnd > textView.selectionStart) {
         menu.add(Menu.NONE, MENU_ITEM_COPY_MARKDOWN, Menu.NONE, "Copy as Markdown")
+
+        val customItems = getCustomItemTexts()
+        customItems.forEachIndexed { index, text ->
+          menu
+            .add(MENU_ITEM_CUSTOM_GROUP, MENU_ITEM_CUSTOM_BASE + index, index, text)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
       }
 
       val imageUrls = textView.getImageUrlsInSelection()
@@ -62,7 +76,9 @@ fun createSelectionActionModeCallback(textView: TextView): ActionMode.Callback =
       mode: ActionMode?,
       item: MenuItem?,
     ): Boolean {
-      when (item?.itemId) {
+      val itemId = item?.itemId ?: return false
+
+      when (itemId) {
         android.R.id.copy -> {
           textView.copyWithHTML()
           mode?.finish()
@@ -81,6 +97,18 @@ fun createSelectionActionModeCallback(textView: TextView): ActionMode.Callback =
           return true
         }
       }
+
+      val customItems = getCustomItemTexts()
+      val customIndex = itemId - MENU_ITEM_CUSTOM_BASE
+      if (customIndex in customItems.indices) {
+        val start = textView.selectionStart
+        val end = textView.selectionEnd
+        val selectedText = if (start >= 0 && end > start) textView.text.substring(start, end) else ""
+        onCustomItemPress(customItems[customIndex], selectedText, start, end)
+        mode?.finish()
+        return true
+      }
+
       return false
     }
 

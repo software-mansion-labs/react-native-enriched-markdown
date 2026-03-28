@@ -16,4 +16,7 @@ export type {
   EnrichedMarkdownInputInstance,
   MarkdownInputStyle,
   StyleState,
+  ContextMenuItem,
 } from './EnrichedMarkdownInput';
+
+export type { ContextMenuItem as TextContextMenuItem } from './EnrichedMarkdownText';

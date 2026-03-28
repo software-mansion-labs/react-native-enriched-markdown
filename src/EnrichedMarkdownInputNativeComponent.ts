@@ -51,6 +51,24 @@ export interface OnRequestMarkdownResultEvent {
   markdown: string;
 }
 
+export interface ContextMenuItemConfig {
+  text: string;
+}
+
+export interface OnContextMenuItemPressEvent {
+  itemText: string;
+  selectedText: string;
+  selectionStart: CodegenTypes.Int32;
+  selectionEnd: CodegenTypes.Int32;
+  styleState: {
+    bold: { isActive: boolean };
+    italic: { isActive: boolean };
+    underline: { isActive: boolean };
+    strikethrough: { isActive: boolean };
+    link: { isActive: boolean };
+  };
+}
+
 export interface NativeProps extends ViewProps {
   /**
    * Initial markdown content.
@@ -115,6 +133,12 @@ export interface NativeProps extends ViewProps {
    */
   isOnChangeMarkdownSet?: boolean;
 
+  /**
+   * Custom items to show in the text selection context menu.
+   * Each item is shown by its `text` label; invisible items should be filtered out before passing here.
+   */
+  contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+
   // Events
   onChangeText?: CodegenTypes.DirectEventHandler<OnChangeTextEvent>;
   onChangeMarkdown?: CodegenTypes.DirectEventHandler<OnChangeMarkdownEvent>;
@@ -123,6 +147,7 @@ export interface NativeProps extends ViewProps {
   onInputFocus?: CodegenTypes.DirectEventHandler<TargetedEvent>;
   onInputBlur?: CodegenTypes.DirectEventHandler<TargetedEvent>;
   onRequestMarkdownResult?: CodegenTypes.DirectEventHandler<OnRequestMarkdownResultEvent>;
+  onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

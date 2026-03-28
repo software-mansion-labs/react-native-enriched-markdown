@@ -168,6 +168,56 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table supp
 > - **`'commonmark'`**: All Markdown content is rendered as a single TextView. Selecting text will select all content in the view.
 > - **`'github'`**: The Markdown AST is split into segments. Consecutive text blocks (paragraphs, headings, lists, etc.) are grouped into separate TextView segments, while tables are rendered as separate table views. This allows for granular text selection within each segment and enables interactive table features (horizontal scrolling, context menus). Text selection cannot span across segments.
 
+### `contextMenuItems`
+
+Custom items to add to the text selection context menu. Items appear before the system actions (Copy, etc.). Items with `visible: false` are hidden from the menu.
+
+| Type                 | Default Value | Platform |
+| -------------------- | ------------- | -------- |
+| `ContextMenuItem[]`  | -             | Both     |
+
+**`ContextMenuItem` shape:**
+
+```ts
+interface ContextMenuItem {
+  /** Label shown in the context menu. */
+  text: string;
+  /** Called when the item is tapped. */
+  onPress: (event: {
+    /** The selected text at the time of the press. */
+    text: string;
+    /** Absolute character range of the selection within the full content. */
+    selection: { start: number; end: number };
+  }) => void;
+  /** When false, the item is not shown in the menu. Defaults to true. */
+  visible?: boolean;
+}
+```
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownText
+  markdown={content}
+  contextMenuItems={[
+    {
+      text: 'Summarize with AI',
+      onPress: ({ text }) => {
+        console.log('Selected:', text);
+      },
+    },
+    {
+      text: 'Translate',
+      onPress: ({ text }) => {
+        translate(text);
+      },
+    },
+  ]}
+/>
+```
+
+> **Note:** When using `flavor="github"`, `selection.start` and `selection.end` are relative to the text segment the selection is in, not the full markdown string. With `flavor="commonmark"` (default) they are always absolute within the full rendered text.
+
 ---
 
 ## EnrichedMarkdownInput
@@ -338,6 +388,55 @@ Fires when the input loses focus.
 | Type           | Default Value | Platform |
 | -------------- | ------------- | -------- |
 | `() => void`   | -             | Both     |
+
+### `contextMenuItems`
+
+Custom items to add to the text selection context menu. Items appear before the system actions (Copy, Cut, etc.). Items with `visible: false` are hidden from the menu.
+
+| Type                 | Default Value | Platform |
+| -------------------- | ------------- | -------- |
+| `ContextMenuItem[]`  | -             | Both     |
+
+**`ContextMenuItem` shape:**
+
+```ts
+interface ContextMenuItem {
+  /** Label shown in the context menu. */
+  text: string;
+  /** Called when the item is tapped. */
+  onPress: (event: {
+    /** The selected text at the time of the press. */
+    text: string;
+    /** Absolute character range of the selection within the full content. */
+    selection: { start: number; end: number };
+    /** Active formatting styles at the time of the press. */
+    styleState: {
+      bold: { isActive: boolean };
+      italic: { isActive: boolean };
+      underline: { isActive: boolean };
+      strikethrough: { isActive: boolean };
+      link: { isActive: boolean };
+    };
+  }) => void;
+  /** When false, the item is not shown in the menu. Defaults to true. */
+  visible?: boolean;
+}
+```
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownInput
+  contextMenuItems={[
+    {
+      text: 'Summarize with AI',
+      onPress: ({ text, styleState }) => {
+        console.log('Selected:', text, 'Bold:', styleState.bold.isActive);
+      },
+    },
+  ]}
+/>
+```
 
 ### Ref Methods
 

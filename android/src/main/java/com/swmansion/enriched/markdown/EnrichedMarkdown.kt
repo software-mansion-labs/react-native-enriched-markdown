@@ -75,6 +75,8 @@ class EnrichedMarkdown
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
     private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
+    private var contextMenuItemTexts: List<String> = emptyList()
+    var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
 
     fun setMarkdownContent(markdown: String) {
       if (currentMarkdown == markdown) return
@@ -145,6 +147,22 @@ class EnrichedMarkdown
 
     fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
       onTaskListItemPressCallback = callback
+    }
+
+    fun setContextMenuItems(items: List<String>) {
+      contextMenuItemTexts = items
+      segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
+        it.setContextMenuItems(items, ::forwardContextMenuItemPress)
+      }
+    }
+
+    private fun forwardContextMenuItemPress(
+      itemText: String,
+      selectedText: String,
+      selectionStart: Int,
+      selectionEnd: Int,
+    ) {
+      onContextMenuItemPressCallback?.invoke(itemText, selectedText, selectionStart, selectionEnd)
     }
 
     private fun recreateStyleConfig() {
@@ -260,6 +278,10 @@ class EnrichedMarkdown
 
         onTaskListItemPressCallback = { taskIndex, checked, itemText ->
           this@EnrichedMarkdown.onTaskListItemPressCallback?.invoke(taskIndex, checked, itemText)
+        }
+
+        if (contextMenuItemTexts.isNotEmpty()) {
+          setContextMenuItems(contextMenuItemTexts, ::forwardContextMenuItemPress)
         }
       }
 

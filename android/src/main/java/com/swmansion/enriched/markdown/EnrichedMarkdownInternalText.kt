@@ -11,6 +11,7 @@ import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMeth
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
+import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
 import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
 import com.swmansion.enriched.markdown.views.BlockSegmentView
 
@@ -36,8 +37,19 @@ class EnrichedMarkdownInternalText
 
     override val segmentMarginBottom: Int get() = lastElementMarginBottom.toInt()
 
+    private var contextMenuItemTexts: List<String> = emptyList()
+    private var onContextMenuItemPress: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
+
     init {
       setupAsMarkdownTextView(accessibilityHelper)
+      customSelectionActionModeCallback =
+        createSelectionActionModeCallback(
+          this,
+          getCustomItemTexts = { contextMenuItemTexts },
+          onCustomItemPress = { itemText, selectedText, start, end ->
+            onContextMenuItemPress?.invoke(itemText, selectedText, start, end)
+          },
+        )
     }
 
     fun applyStyledText(styledText: CharSequence) {
@@ -52,6 +64,14 @@ class EnrichedMarkdownInternalText
 
     fun setIsSelectable(selectable: Boolean) {
       applySelectableState(selectable)
+    }
+
+    fun setContextMenuItems(
+      items: List<String>,
+      onPress: (itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit,
+    ) {
+      contextMenuItemTexts = items
+      onContextMenuItemPress = onPress
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -1,9 +1,10 @@
-import { useMemo, useCallback, useRef } from 'react';
+import { useMemo, useCallback, useRef, useEffect } from 'react';
 import EnrichedMarkdownTextNativeComponent, {
   type NativeProps,
   type LinkPressEvent,
   type LinkLongPressEvent,
   type TaskListItemPressEvent,
+  type OnContextMenuItemPressEvent,
 } from './EnrichedMarkdownTextNativeComponent';
 import type { MarkdownStyleInternal } from './EnrichedMarkdownTextNativeComponent';
 import EnrichedMarkdownNativeComponent from './EnrichedMarkdownNativeComponent';
@@ -209,6 +210,15 @@ export interface Md4cFlags {
   latexMath?: boolean;
 }
 
+export interface ContextMenuItem {
+  text: string;
+  onPress: (event: {
+    text: string;
+    selection: { start: number; end: number };
+  }) => void;
+  visible?: boolean;
+}
+
 export interface EnrichedMarkdownTextProps
   extends Omit<
     NativeProps,
@@ -219,6 +229,8 @@ export interface EnrichedMarkdownTextProps
     | 'onTaskListItemPress'
     | 'md4cFlags'
     | 'enableLinkPreview'
+    | 'contextMenuItems'
+    | 'onContextMenuItemPress'
   > {
   /**
    * Style configuration for markdown elements
@@ -305,6 +317,12 @@ export interface EnrichedMarkdownTextProps
    * @default false
    */
   streamingAnimation?: boolean;
+  /**
+   * Custom items to show in the text selection context menu.
+   * Each item requires a `text` label and an `onPress` callback.
+   * Items with `visible: false` are hidden from the menu.
+   */
+  contextMenuItems?: ContextMenuItem[];
 }
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -327,6 +345,7 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   flavor = 'commonmark',
   streamingAnimation = false,
+  contextMenuItems,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -344,6 +363,41 @@ export const EnrichedMarkdownText = ({
       latexMath: md4cFlags.latexMath ?? true,
     }),
     [md4cFlags]
+  );
+
+  const contextMenuCallbacksRef = useRef<
+    Map<string, ContextMenuItem['onPress']>
+  >(new Map());
+
+  useEffect(() => {
+    const callbacksMap = new Map<string, ContextMenuItem['onPress']>();
+    if (contextMenuItems) {
+      for (const item of contextMenuItems) {
+        callbacksMap.set(item.text, item.onPress);
+      }
+    }
+    contextMenuCallbacksRef.current = callbacksMap;
+  }, [contextMenuItems]);
+
+  const nativeContextMenuItems = useMemo(
+    () =>
+      contextMenuItems
+        ?.filter((item) => item.visible !== false)
+        .map((item) => ({ text: item.text })),
+    [contextMenuItems]
+  );
+
+  const handleContextMenuItemPress = useCallback(
+    (e: NativeSyntheticEvent<OnContextMenuItemPressEvent>) => {
+      const { itemText, selectedText, selectionStart, selectionEnd } =
+        e.nativeEvent;
+      const callback = contextMenuCallbacksRef.current.get(itemText);
+      callback?.({
+        text: selectedText,
+        selection: { start: selectionStart, end: selectionEnd },
+      });
+    },
+    []
   );
 
   const handleLinkPress = useCallback(
@@ -384,6 +438,8 @@ export const EnrichedMarkdownText = ({
     allowTrailingMargin,
     streamingAnimation,
     style: containerStyle,
+    contextMenuItems: nativeContextMenuItems,
+    onContextMenuItemPress: handleContextMenuItemPress,
     ...rest,
   };
 

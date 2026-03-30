@@ -250,9 +250,11 @@ static EditOverlap classifyOverlap(NSUInteger rangeStart, NSUInteger rangeEnd, N
         }
       }
     } else {
-      if (rangeStart > editLocation) {
+      if (rangeStart >= editLocation) {
+        // Insertion at or before the range start: shift right.
+        // _pendingStyles handles whether the inserted text inherits the style.
         formattingRange.range = NSMakeRange(rangeStart + insertedLength, formattingRange.range.length);
-      } else if (editLocation > rangeStart && editLocation < rangeEnd) {
+      } else if (editLocation < rangeEnd) {
         formattingRange.range = NSMakeRange(rangeStart, formattingRange.range.length + insertedLength);
       }
       // Typing at rangeEnd does not expand — pending styles control

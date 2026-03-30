@@ -116,6 +116,19 @@ static size_t closingDelimiterEndByte(const InlineSpanInfo &span, const char *ut
   return position + kClosingDelimiterByteLength[span.type];
 }
 
+// TODO: onEnterBlock/onLeaveBlock are no-ops, so lastTextEnd never advances
+// past inter-block whitespace. This causes onEnterSpan to set
+// openingDelimiterByteOffset to a position that includes \n\n (or other
+// block-separator characters) in the syntax range. The newline-stripping
+// workaround in parseToPlainTextAndRanges only handles \n/\r — it won't
+// catch block-level syntax like list markers, blockquote '>', or heading '#'
+// if those elements are added in the future.
+//
+// A proper fix would advance lastTextEnd here (or retroactively adjust
+// openingDelimiterByteOffset for spans opened since the last block
+// transition). md4c's enter_block doesn't provide a byte offset, so this
+// likely requires tracking a "new block" flag and correcting span offsets
+// in onText when the first text inside a new block arrives.
 static int onEnterBlock(MD_BLOCKTYPE, void *, void *)
 {
   return 0;
@@ -286,16 +299,36 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
 
   NSArray<ENRMInputStyledRange *> *styledRanges = [self parse:markdown];
 
+  NSUInteger rawLength = markdown.length;
+
   NSMutableIndexSet *syntaxIndexes = [NSMutableIndexSet indexSet];
   for (ENRMInputStyledRange *styledRange in styledRanges) {
     if (!styledRange.isComplete)
       continue;
     for (NSValue *syntaxValue in styledRange.syntaxRanges) {
-      [syntaxIndexes addIndexesInRange:[syntaxValue rangeValue]];
+      NSRange syntaxRange = [syntaxValue rangeValue];
+      if (NSMaxRange(syntaxRange) > rawLength) {
+        syntaxRange.length = (syntaxRange.location < rawLength) ? rawLength - syntaxRange.location : 0;
+      }
+      if (syntaxRange.length > 0) {
+        [syntaxIndexes addIndexesInRange:syntaxRange];
+      }
     }
   }
 
-  NSUInteger rawLength = markdown.length;
+  // Strip \n/\r from syntax ranges — newlines are structural content, not
+  // markdown syntax (included due to no-op onEnterBlock/onLeaveBlock).
+  NSMutableIndexSet *newlineIndexes = [NSMutableIndexSet indexSet];
+  [syntaxIndexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop) {
+    if (index < rawLength) {
+      unichar character = [markdown characterAtIndex:index];
+      if (character == '\n' || character == '\r') {
+        [newlineIndexes addIndex:index];
+      }
+    }
+  }];
+  [syntaxIndexes removeIndexes:newlineIndexes];
+
   NSMutableString *plainText = [NSMutableString stringWithCapacity:rawLength];
   __block std::vector<NSUInteger> rawToPlainMap(rawLength + 1, 0);
 

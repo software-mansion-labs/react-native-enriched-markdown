@@ -95,6 +95,9 @@ static NSCharacterSet *whitespaceSet(void)
 
 /// Split formatting ranges at paragraph breaks (\n\n) so each segment gets
 /// its own delimiters — CommonMark delimiters can't span paragraphs.
+/// NOTE: This only handles inline styles (bold, italic, etc.). Block-level
+/// elements (lists, blockquotes, headings) are prefix-based and will need
+/// a separate serialization path.
 static NSArray<ENRMFormattingRange *> *splitRangesAtParagraphBreaks(NSArray<ENRMFormattingRange *> *ranges,
                                                                     NSString *text)
 {

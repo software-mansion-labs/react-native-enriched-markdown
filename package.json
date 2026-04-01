@@ -36,6 +36,8 @@
   "scripts": {
     "example": "yarn workspace react-native-enriched-markdown-example",
     "macos-example": "yarn workspace react-native-enriched-markdown-macos-example",
+    "web-example": "yarn workspace react-native-enriched-markdown-web-example",
+    "build:wasm": "bash cpp/wasm/build.sh",
     "android:build:release": "cd apps/example && npx react-native build-android --mode=release",
     "android:test:release": "cd apps/example && yarn android --mode release",
     "test": "jest",
@@ -91,6 +93,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "jest": "^29.7.0",
+    "katex": "^0.16.44",
     "lefthook": "^2.0.3",
     "prettier": "^3.6.2",
     "react": "19.2.3",
@@ -102,17 +105,22 @@
   },
   "peerDependencies": {
     "@expo/config-plugins": ">=50.0.0",
+    "katex": ">=0.16.0",
     "react": "*",
     "react-native": "*"
   },
   "peerDependenciesMeta": {
     "@expo/config-plugins": {
       "optional": true
+    },
+    "katex": {
+      "optional": true
     }
   },
   "workspaces": [
     "apps/example",
-    "apps/macos-example"
+    "apps/macos-example",
+    "apps/web-example"
   ],
   "packageManager": "yarn@4.11.0",
   "jest": {

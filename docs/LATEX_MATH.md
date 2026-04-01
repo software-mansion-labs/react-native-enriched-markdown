@@ -37,6 +37,35 @@ Block math equations are rendered as standalone display elements with spacing an
 > [!IMPORTANT]
 > LaTeX commands use backslashes (e.g. `\frac`, `\alpha`). In regular JS strings and template literals, backslashes are escape characters. Use `String.raw` or double backslashes (`\\frac`) to preserve them. Block math (`$$...$$`) must be on its own line to render as a display element.
 
+## Web
+
+On web the library renders LaTeX via [KaTeX](https://katex.org/) in **MathML output mode**. Browsers render MathML natively — no CSS or font files are required.
+
+### Installation
+
+Install the optional peer dependency:
+
+```sh
+npm install katex
+# or
+yarn add katex
+```
+
+KaTeX is loaded lazily the first time a LaTeX node is encountered, so it has no impact on pages that do not render math. No stylesheet or `<link>` tag is needed.
+
+> [!NOTE]
+> MathML is supported natively in Chrome 109+, Firefox, and Safari. Older browsers will display the raw LaTeX source as a text fallback.
+
+### Disabling on web
+
+Pass `latexMath: false` in `md4cFlags` to skip parsing and treat `$` as plain text:
+
+```tsx
+<EnrichedMarkdownText markdown="Price is $5" md4cFlags={{ latexMath: false }} />
+```
+
+This also prevents KaTeX from being loaded at runtime.
+
 ## Disabling LaTeX Math (reducing bundle size)
 
 LaTeX math rendering relies on native third-party libraries — **iosMath** (~2.5 MB) on iOS and **AndroidMath** on Android. These are included by default but can be excluded to reduce your app's binary size.

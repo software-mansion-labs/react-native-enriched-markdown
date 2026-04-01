@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "EnrichedMarkdownWebExample",
+    "slug": "enriched-markdown-web-example",
+    "version": "1.0.0",
+    "platforms": ["web"],
+    "web": {
+      "output": "single"
+    }
+  }
+}

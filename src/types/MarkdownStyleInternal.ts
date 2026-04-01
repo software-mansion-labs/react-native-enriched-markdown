@@ -1,0 +1,164 @@
+// Mirrors the public TextAlign type from MarkdownStyle.ts plus 'auto' sentinel.
+// 'auto' is a React Native concept meaning "use the device default direction";
+// the web normalizer maps it to undefined (no CSS textAlign set).
+export type BlockTextAlign = 'auto' | 'left' | 'right' | 'center' | 'justify';
+
+// Mirrors the public fontStyle values; empty string means "inherit / no override".
+export type EmphasisFontStyle = 'normal' | 'italic' | 'oblique' | '';
+
+interface BaseBlockStyleInternal {
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: string;
+  color: string;
+  marginTop: number;
+  marginBottom: number;
+  lineHeight: number;
+}
+
+interface ParagraphStyleInternal extends BaseBlockStyleInternal {
+  textAlign: BlockTextAlign;
+}
+
+interface HeadingStyleInternal extends BaseBlockStyleInternal {
+  textAlign: BlockTextAlign;
+}
+
+interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
+  borderColor: string;
+  borderWidth: number;
+  gapWidth: number;
+  backgroundColor: string;
+}
+
+interface ListStyleInternal extends BaseBlockStyleInternal {
+  bulletColor: string;
+  bulletSize: number;
+  markerColor: string;
+  markerFontWeight: string;
+  gapWidth: number;
+  marginLeft: number;
+}
+
+interface CodeBlockStyleInternal extends BaseBlockStyleInternal {
+  backgroundColor: string;
+  borderColor: string;
+  borderRadius: number;
+  borderWidth: number;
+  padding: number;
+}
+
+interface LinkStyleInternal {
+  fontFamily: string;
+  color: string;
+  underline: boolean;
+}
+
+interface StrongStyleInternal {
+  fontFamily: string;
+  fontWeight: string;
+  color?: string;
+}
+
+interface EmphasisStyleInternal {
+  fontFamily: string;
+  fontStyle: EmphasisFontStyle;
+  color?: string;
+}
+
+interface StrikethroughStyleInternal {
+  color: string;
+}
+
+interface UnderlineStyleInternal {
+  color: string;
+}
+
+interface CodeStyleInternal {
+  fontFamily: string;
+  fontSize: number;
+  color: string;
+  backgroundColor: string;
+  borderColor: string;
+}
+
+interface ImageStyleInternal {
+  height: number;
+  borderRadius: number;
+  marginTop: number;
+  marginBottom: number;
+}
+
+interface InlineImageStyleInternal {
+  size: number;
+}
+
+interface ThematicBreakStyleInternal {
+  color: string;
+  height: number;
+  marginTop: number;
+  marginBottom: number;
+}
+
+interface TableStyleInternal extends BaseBlockStyleInternal {
+  headerFontFamily: string;
+  headerBackgroundColor: string;
+  headerTextColor: string;
+  rowEvenBackgroundColor: string;
+  rowOddBackgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  cellPaddingHorizontal: number;
+  cellPaddingVertical: number;
+}
+
+interface TaskListStyleInternal {
+  checkedColor: string;
+  borderColor: string;
+  checkboxSize: number;
+  checkboxBorderRadius: number;
+  checkmarkColor: string;
+  checkedTextColor: string;
+  checkedStrikethrough: boolean;
+}
+
+interface MathStyleInternal {
+  fontSize: number;
+  color: string;
+  backgroundColor: string;
+  padding: number;
+  marginTop: number;
+  marginBottom: number;
+  textAlign: BlockTextAlign;
+}
+
+interface InlineMathStyleInternal {
+  color: string;
+}
+
+export interface MarkdownStyleInternal {
+  paragraph: ParagraphStyleInternal;
+  h1: HeadingStyleInternal;
+  h2: HeadingStyleInternal;
+  h3: HeadingStyleInternal;
+  h4: HeadingStyleInternal;
+  h5: HeadingStyleInternal;
+  h6: HeadingStyleInternal;
+  blockquote: BlockquoteStyleInternal;
+  list: ListStyleInternal;
+  codeBlock: CodeBlockStyleInternal;
+  link: LinkStyleInternal;
+  strong: StrongStyleInternal;
+  em: EmphasisStyleInternal;
+  strikethrough: StrikethroughStyleInternal;
+  underline: UnderlineStyleInternal;
+  code: CodeStyleInternal;
+  image: ImageStyleInternal;
+  inlineImage: InlineImageStyleInternal;
+  thematicBreak: ThematicBreakStyleInternal;
+  table: TableStyleInternal;
+  taskList: TaskListStyleInternal;
+  math: MathStyleInternal;
+  inlineMath: InlineMathStyleInternal;
+}

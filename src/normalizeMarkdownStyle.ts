@@ -1,19 +1,40 @@
-import { Platform, processColor, type ColorValue } from 'react-native';
-import type { MarkdownStyle } from './EnrichedMarkdownText';
-import type { MarkdownStyleInternal } from './EnrichedMarkdownTextNativeComponent';
+import { Platform, processColor } from 'react-native';
+import type { MarkdownStyle } from './types/MarkdownStyle';
+import type {
+  BlockTextAlign,
+  EmphasisFontStyle,
+  MarkdownStyleInternal,
+} from './types/MarkdownStyleInternal';
 
+// On native, processColor converts hex strings to ARGB integers the renderer
+// expects. On web, CSS accepts hex strings natively — no conversion needed.
+// MarkdownStyleInternal types colors as `string`; native consumers
+// (EnrichedMarkdownTextNativeComponent) accept `ColorValue` (string | number)
+// at runtime, so the ARGB integers processColor produces are handled correctly.
 export const normalizeColor = (
   color: string | undefined
-): ColorValue | undefined => (color ? processColor(color) : undefined);
+): string | undefined =>
+  color
+    ? Platform.OS === 'web'
+      ? color
+      : ((processColor(color) ?? undefined) as string | undefined)
+    : undefined;
 
-const getSystemFont = () =>
+const getSystemFont = (): string =>
   Platform.select({
     ios: 'System',
     android: 'sans-serif',
+    web: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     default: 'sans-serif',
-  });
-const getMonospaceFont = () =>
-  Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+  })!;
+
+const getMonospaceFont = (): string =>
+  Platform.select({
+    ios: 'Menlo',
+    android: 'monospace',
+    web: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace',
+    default: 'monospace',
+  })!;
 
 function mergeSubStyle<T extends Record<string, unknown>>(
   defaultStyle: T,
@@ -21,12 +42,14 @@ function mergeSubStyle<T extends Record<string, unknown>>(
 ): T {
   if (!userStyle) return defaultStyle;
   const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
+  // Normalize any user-supplied color strings. On web this is a no-op (CSS
+  // accepts hex strings); on native it converts them to ARGB integers.
   for (const key in result) {
     if (
       key.toLowerCase().includes('color') &&
       typeof result[key] === 'string'
     ) {
-      result[key] = normalizeColor(result[key]);
+      result[key] = normalizeColor(result[key] as string);
     }
   }
   return result as T;
@@ -34,7 +57,16 @@ function mergeSubStyle<T extends Record<string, unknown>>(
 
 const defaultTextColor = normalizeColor('#1F2937')!;
 const defaultHeadingColor = normalizeColor('#111827')!;
-const baseHeader = {
+
+// Explicit type annotation needed: Object.freeze breaks contextual typing, so
+// TypeScript widens literal 'auto' to `string` instead of `BlockTextAlign`.
+const baseHeader: {
+  fontFamily: string;
+  fontWeight: string;
+  marginTop: number;
+  marginBottom: number;
+  textAlign: BlockTextAlign;
+} = {
   fontFamily: getSystemFont(),
   fontWeight: '',
   marginTop: 0,
@@ -48,53 +80,53 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     fontFamily: getSystemFont(),
     fontWeight: '',
     color: defaultTextColor,
-    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 })!,
     marginTop: 0,
     marginBottom: 16,
-    textAlign: 'auto',
+    textAlign: 'auto' as BlockTextAlign,
   },
   h1: {
     ...baseHeader,
     fontSize: 30,
     color: defaultHeadingColor,
-    lineHeight: Platform.select({ ios: 36, android: 38, default: 38 }),
+    lineHeight: Platform.select({ ios: 36, android: 38, default: 38 })!,
   },
   h2: {
     ...baseHeader,
     fontSize: 24,
     color: defaultHeadingColor,
-    lineHeight: Platform.select({ ios: 30, android: 32, default: 32 }),
+    lineHeight: Platform.select({ ios: 30, android: 32, default: 32 })!,
   },
   h3: {
     ...baseHeader,
     fontSize: 20,
     color: defaultHeadingColor,
-    lineHeight: Platform.select({ ios: 26, android: 28, default: 28 }),
+    lineHeight: Platform.select({ ios: 26, android: 28, default: 28 })!,
   },
   h4: {
     ...baseHeader,
     fontSize: 18,
     color: defaultHeadingColor,
-    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 })!,
   },
   h5: {
     ...baseHeader,
     fontSize: 16,
     color: normalizeColor('#374151')!,
-    lineHeight: Platform.select({ ios: 22, android: 24, default: 24 }),
+    lineHeight: Platform.select({ ios: 22, android: 24, default: 24 })!,
   },
   h6: {
     ...baseHeader,
     fontSize: 14,
     color: normalizeColor('#4B5563')!,
-    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 })!,
   },
   blockquote: {
     fontSize: 16,
     fontFamily: getSystemFont(),
     fontWeight: '',
     color: normalizeColor('#4B5563')!,
-    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 }),
+    lineHeight: Platform.select({ ios: 24, android: 26, default: 26 })!,
     marginTop: 0,
     marginBottom: 16,
     borderColor: normalizeColor('#D1D5DB')!,
@@ -107,7 +139,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     fontFamily: getSystemFont(),
     fontWeight: '',
     color: defaultTextColor,
-    lineHeight: Platform.select({ ios: 22, android: 26, default: 26 }),
+    lineHeight: Platform.select({ ios: 22, android: 26, default: 26 })!,
     marginTop: 0,
     marginBottom: 16,
     bulletColor: normalizeColor('#6B7280')!,
@@ -122,7 +154,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     fontFamily: getMonospaceFont(),
     fontWeight: '',
     color: normalizeColor('#F3F4F6')!,
-    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 })!,
     marginTop: 0,
     marginBottom: 16,
     backgroundColor: normalizeColor('#1F2937')!,
@@ -133,11 +165,17 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
   },
   link: { fontFamily: '', color: normalizeColor('#2563EB')!, underline: true },
   strong: { fontFamily: '', fontWeight: 'bold', color: undefined },
-  em: { fontFamily: '', fontStyle: 'italic', color: undefined },
+  em: {
+    fontFamily: '',
+    fontStyle: 'italic' as EmphasisFontStyle,
+    color: undefined,
+  },
   strikethrough: { color: normalizeColor('#9CA3AF')! },
   underline: { color: defaultTextColor },
   code: {
-    fontFamily: '',
+    // Native uses '' (inherit); web needs an explicit monospace stack so inline
+    // code doesn't fall back to the browser's default proportional font.
+    fontFamily: Platform.select({ web: getMonospaceFont(), default: '' })!,
     fontSize: 0,
     color: normalizeColor('#E01E5A')!,
     backgroundColor: normalizeColor('#FDF2F4')!,
@@ -158,7 +196,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     color: defaultTextColor,
     marginTop: 0,
     marginBottom: 16,
-    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 }),
+    lineHeight: Platform.select({ ios: 20, android: 22, default: 22 })!,
     headerFontFamily: '',
     headerBackgroundColor: normalizeColor('#F3F4F6')!,
     headerTextColor: normalizeColor('#111827')!,
@@ -177,7 +215,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     padding: 12,
     marginTop: 0,
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: 'center' as BlockTextAlign,
   },
   inlineMath: { color: defaultTextColor },
   taskList: {
@@ -185,7 +223,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
       ios: normalizeColor('#007AFF')!,
       android: normalizeColor('#2196F3')!,
       default: normalizeColor('#007AFF')!,
-    }),
+    })!,
     borderColor: normalizeColor('#9E9E9E')!,
     checkboxSize: 14,
     checkboxBorderRadius: 3,
@@ -233,22 +271,24 @@ export const normalizeMarkdownStyle = (
     return entry.result;
   }
 
-  const result: any = {};
+  const result: Record<string, unknown> = {};
   (
     Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyleInternal)[]
   ).forEach((key) => {
     result[key] = mergeSubStyle(
-      DEFAULT_NORMALIZED_STYLE[key] as any,
-      style[key] as any
+      DEFAULT_NORMALIZED_STYLE[key] as unknown as Record<string, unknown>,
+      style[key] as unknown as Record<string, unknown> | undefined
     );
   });
 
   if (style.taskList?.checkboxSize === undefined) {
-    const listSize = result.list.fontSize;
-    result.taskList.checkboxSize = Math.round(listSize * 0.9);
+    const listSize = (result.list as { fontSize: number }).fontSize;
+    (result.taskList as { checkboxSize: number }).checkboxSize = Math.round(
+      listSize * 0.9
+    );
   }
 
-  const finalResult = Object.freeze(result);
+  const finalResult = Object.freeze(result) as unknown as MarkdownStyleInternal;
   refCache.set(style, finalResult);
   structuralCache.unshift({ style, result: finalResult });
   if (structuralCache.length > LRU_MAX) structuralCache.pop();

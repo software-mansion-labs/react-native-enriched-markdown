@@ -583,10 +583,9 @@ static NSString *slugifyHeading(NSString *headingText)
   return slug;
 }
 
-#if TARGET_OS_OSX
 - (BOOL)scrollToAnchor:(NSString *)fragment
 {
-  if (!_textView || !_scrollContainer)
+  if (!_textView)
     return NO;
 
   // Strip leading '#'
@@ -627,11 +626,15 @@ static NSString *slugifyHeading(NSString *headingText)
   if (matchRange.location == NSNotFound)
     return NO;
 
-  // Get the glyph rect for the heading and scroll to it
+  // Get the glyph rect for the heading
   NSLayoutManager *layoutManager = _textView.layoutManager;
   NSTextContainer *textContainer = _textView.textContainer;
   NSRange glyphRange = [layoutManager glyphRangeForCharacterRange:matchRange actualCharacterRange:NULL];
-  NSRect headingRect = [layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textContainer];
+  CGRect headingRect = [layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textContainer];
+
+#if TARGET_OS_OSX
+  if (!_scrollContainer)
+    return NO;
 
   // Add text container inset offset
   NSEdgeInsets inset = _textView.textContainerInset;
@@ -640,10 +643,34 @@ static NSString *slugifyHeading(NSString *headingText)
 
   [_scrollContainer.contentView scrollToPoint:NSMakePoint(0, headingRect.origin.y)];
   [_scrollContainer reflectScrolledClipView:_scrollContainer.contentView];
+#else
+  // On iOS, scrollEnabled is NO on the UITextView — walk up the view
+  // hierarchy to find the parent UIScrollView (typically a React Native
+  // ScrollView) and scroll it instead.
+  UIEdgeInsets inset = _textView.textContainerInset;
+  CGFloat targetY = headingRect.origin.y + inset.top;
+
+  // Convert from text view coordinates to the scroll view's coordinate space
+  UIScrollView *parentScroll = nil;
+  UIView *current = _textView.superview;
+  while (current) {
+    if ([current isKindOfClass:[UIScrollView class]]) {
+      parentScroll = (UIScrollView *)current;
+      break;
+    }
+    current = current.superview;
+  }
+  if (!parentScroll)
+    return NO;
+
+  CGPoint pointInScroll = [_textView convertPoint:CGPointMake(0, targetY) toView:parentScroll];
+  CGFloat maxOffsetY = parentScroll.contentSize.height - parentScroll.bounds.size.height;
+  CGFloat clampedY = MIN(pointInScroll.y, MAX(maxOffsetY, 0));
+  [parentScroll setContentOffset:CGPointMake(0, clampedY) animated:YES];
+#endif
 
   return YES;
 }
-#endif
 
 - (void)textTapped:(ENRMTapRecognizer *)recognizer
 {
@@ -667,7 +694,6 @@ static NSString *slugifyHeading(NSString *headingText)
 
   NSString *url = linkURLAtTapLocation(textView, recognizer);
   if (url) {
-#if TARGET_OS_OSX
     // Handle in-document anchor links natively by scrolling to the heading
     if ([url hasPrefix:@"#"] && [self scrollToAnchor:url]) {
       // Still emit to JS so the consuming app can track/log it
@@ -677,7 +703,6 @@ static NSString *slugifyHeading(NSString *headingText)
       }
       return;
     }
-#endif
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
     if (eventEmitter) {
       eventEmitter->onLinkPress({.url = std::string([url UTF8String])});

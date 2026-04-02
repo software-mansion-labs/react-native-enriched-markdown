@@ -451,6 +451,7 @@ using namespace facebook::react;
   }
 
   _lastTextLength = ENRMGetPlainText(_textView).length;
+  _lastSelectedRange = _textView.selectedRange;
 
   [self applyFormatting];
   [self updatePlaceholderVisibility];

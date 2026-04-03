@@ -85,12 +85,53 @@ static int compareBoundaryEvents(const void *first, const void *second)
   }
 }
 
-static NSCharacterSet *whitespaceNewlineSet(void)
+static NSCharacterSet *whitespaceSet(void)
 {
   static NSCharacterSet *set;
   static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{ set = [NSCharacterSet whitespaceAndNewlineCharacterSet]; });
+  dispatch_once(&onceToken, ^{ set = [NSCharacterSet whitespaceCharacterSet]; });
   return set;
+}
+
+/// Split formatting ranges at paragraph breaks (\n\n) so each segment gets
+/// its own delimiters — CommonMark delimiters can't span paragraphs.
+/// NOTE: This only handles inline styles (bold, italic, etc.). Block-level
+/// elements (lists, blockquotes, headings) are prefix-based and will need
+/// a separate serialization path.
+static NSArray<ENRMFormattingRange *> *splitRangesAtParagraphBreaks(NSArray<ENRMFormattingRange *> *ranges,
+                                                                    NSString *text)
+{
+  NSMutableArray<ENRMFormattingRange *> *result = [NSMutableArray arrayWithCapacity:ranges.count];
+
+  for (ENRMFormattingRange *formattingRange in ranges) {
+    NSUInteger rangeStart = formattingRange.range.location;
+    NSUInteger rangeEnd = NSMaxRange(formattingRange.range);
+
+    NSUInteger segStart = rangeStart;
+    while (segStart < rangeEnd) {
+      NSUInteger segEnd = segStart;
+      while (segEnd < rangeEnd) {
+        if (segEnd + 1 < rangeEnd && [text characterAtIndex:segEnd] == '\n' &&
+            [text characterAtIndex:segEnd + 1] == '\n') {
+          break;
+        }
+        segEnd++;
+      }
+
+      if (segEnd > segStart) {
+        [result addObject:[ENRMFormattingRange rangeWithType:formattingRange.type
+                                                       range:NSMakeRange(segStart, segEnd - segStart)
+                                                         url:formattingRange.url]];
+      }
+
+      segStart = (segEnd < rangeEnd && segEnd + 1 < rangeEnd && [text characterAtIndex:segEnd] == '\n' &&
+                  [text characterAtIndex:segEnd + 1] == '\n')
+                     ? segEnd + 2
+                     : segEnd;
+    }
+  }
+
+  return result;
 }
 
 @implementation ENRMMarkdownSerializer
@@ -101,24 +142,24 @@ static NSCharacterSet *whitespaceNewlineSet(void)
     return text;
   }
 
+  NSArray<ENRMFormattingRange *> *splitRanges = splitRangesAtParagraphBreaks(ranges, text);
+
   NSUInteger textLength = text.length;
-  NSUInteger eventCount = ranges.count * 2;
+  NSUInteger eventCount = splitRanges.count * 2;
 
   BoundaryEvent *events = (BoundaryEvent *)malloc(sizeof(BoundaryEvent) * eventCount);
   if (!events)
     return text;
 
-  NSCharacterSet *ws = whitespaceNewlineSet();
+  NSCharacterSet *ws = whitespaceSet();
   NSUInteger eventIndex = 0;
-  for (ENRMFormattingRange *formattingRange in ranges) {
+  for (ENRMFormattingRange *formattingRange in splitRanges) {
     NSUInteger start = formattingRange.range.location;
     NSUInteger end = NSMaxRange(formattingRange.range);
 
-    // Trim leading whitespace inside the range so delimiters hug non-whitespace
     while (start < end && [ws characterIsMember:[text characterAtIndex:start]]) {
       start++;
     }
-    // Trim trailing whitespace
     while (end > start && [ws characterIsMember:[text characterAtIndex:end - 1]]) {
       end--;
     }
@@ -141,7 +182,6 @@ static NSCharacterSet *whitespaceNewlineSet(void)
     };
   }
 
-  // eventIndex may be less than eventCount if whitespace-only ranges were skipped
   qsort(events, eventIndex, sizeof(BoundaryEvent), compareBoundaryEvents);
 
   NSMutableString *markdown = [NSMutableString stringWithCapacity:textLength + eventCount * 4];

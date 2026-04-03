@@ -113,11 +113,10 @@
 
   [textStorage beginEditing];
 
-  NSDictionary *baseAttributes = @{
-    NSFontAttributeName : style.baseFont,
-    NSForegroundColorAttributeName : style.baseTextColor,
-  };
-  [textStorage setAttributes:baseAttributes range:fullTextRange];
+  [textStorage addAttribute:NSFontAttributeName value:style.baseFont range:fullTextRange];
+  [textStorage addAttribute:NSForegroundColorAttributeName value:style.baseTextColor range:fullTextRange];
+  [textStorage removeAttribute:NSUnderlineStyleAttributeName range:fullTextRange];
+  [textStorage removeAttribute:NSStrikethroughStyleAttributeName range:fullTextRange];
 
   UIFontDescriptorSymbolicTraits *traitMap =
       (UIFontDescriptorSymbolicTraits *)calloc(textLength, sizeof(UIFontDescriptorSymbolicTraits));

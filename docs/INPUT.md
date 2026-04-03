@@ -77,6 +77,50 @@ The built-in native format bar also includes a link option that presents a URL p
 
 A complete example of a setup that supports both setting links on the selected text, as well as inserting them at the cursor position can be found in the example app code.
 
+## Auto-Link Detection
+
+`EnrichedMarkdownInput` can automatically detect URLs as the user types and convert them into Markdown links. Detected links are visually styled in the input and serialized as `[text](url)` in the Markdown output.
+
+### Basic usage
+
+Auto-link detection is enabled by default. URLs like `google.com`, `www.google.com`, and `https://google.com` are detected when followed by a space or newline.
+
+Bare domains and `www.` prefixes are automatically normalized with `https://` (e.g., `google.com` becomes `[google.com](https://google.com)`).
+
+### Custom regex
+
+You can provide a custom regex pattern to control which text is detected as a link:
+
+```tsx
+<EnrichedMarkdownInput
+  linkRegex={/https?:\/\/[^\s]+/i}
+/>
+```
+
+Pass `null` to disable auto-link detection entirely:
+
+```tsx
+<EnrichedMarkdownInput linkRegex={null} />
+```
+
+### Listening for detections
+
+Use the `onLinkDetected` callback to be notified when a new link is detected:
+
+```tsx
+<EnrichedMarkdownInput
+  onLinkDetected={({ text, url, start, end }) => {
+    console.log(`Detected link: ${text} -> ${url} at [${start}, ${end}]`);
+  }}
+/>
+```
+
+The callback fires only for newly detected links — not for links that were already detected and remain unchanged.
+
+### Interaction with manual links
+
+When a manual link is applied (via `setLink` or `insertLink`) over an auto-detected link, the auto-detected link is replaced by the manual one. Auto-link detection skips ranges that already contain a manual link.
+
 ## Style Detection
 
 All of the above styles can be detected with the use of [onChangeState](API_REFERENCE.md#onchangestate) callback payload.

@@ -11,6 +11,7 @@ import com.swmansion.enriched.markdown.input.events.OnChangeTextEvent
 import com.swmansion.enriched.markdown.input.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
+import com.swmansion.enriched.markdown.input.events.OnLinkDetectedEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
 import com.swmansion.enriched.markdown.input.formatting.MarkdownSerializer
 import com.swmansion.enriched.markdown.input.model.StyleType
@@ -67,6 +68,15 @@ class InputEventEmitter(
     dispatch(OnInputBlurEvent(surfaceId(), view.id))
   }
 
+  fun emitLinkDetected(
+    text: String,
+    url: String,
+    start: Int,
+    end: Int,
+  ) {
+    dispatch(OnLinkDetectedEvent(surfaceId(), view.id, text, url, start, end))
+  }
+
   fun emitRequestMarkdownResult(requestId: Int) {
     dispatch(OnRequestMarkdownResultEvent(surfaceId(), view.id, requestId, serializeToMarkdown()))
   }
@@ -116,7 +126,7 @@ class InputEventEmitter(
 
   private fun serializeToMarkdown(): String {
     val plainText = view.text?.toString() ?: ""
-    return MarkdownSerializer.serialize(plainText, view.formattingStore.allRanges)
+    return MarkdownSerializer.serialize(plainText, view.allFormattingRangesForSerialization())
   }
 
   private fun surfaceId(): Int {

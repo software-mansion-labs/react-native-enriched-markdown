@@ -18,4 +18,5 @@ export type {
   MarkdownInputStyle,
   StyleState,
   ContextMenuItem,
+  OnLinkDetected,
 } from './EnrichedMarkdownInput';

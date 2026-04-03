@@ -51,6 +51,21 @@ export interface OnRequestMarkdownResultEvent {
   markdown: string;
 }
 
+export interface LinkNativeRegex {
+  pattern: string;
+  caseInsensitive: boolean;
+  dotAll: boolean;
+  isDisabled: boolean;
+  isDefault: boolean;
+}
+
+export interface OnLinkDetected {
+  text: string;
+  url: string;
+  start: CodegenTypes.Int32;
+  end: CodegenTypes.Int32;
+}
+
 export interface ContextMenuItemConfig {
   text: string;
   icon?: string;
@@ -140,6 +155,12 @@ export interface NativeProps extends ViewProps {
    */
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
 
+  /**
+   * Regex configuration for automatic link detection.
+   * Omit or pass undefined to use platform defaults.
+   */
+  linkRegex?: Readonly<LinkNativeRegex>;
+
   // Events
   onChangeText?: CodegenTypes.DirectEventHandler<OnChangeTextEvent>;
   onChangeMarkdown?: CodegenTypes.DirectEventHandler<OnChangeMarkdownEvent>;
@@ -149,6 +170,7 @@ export interface NativeProps extends ViewProps {
   onInputBlur?: CodegenTypes.DirectEventHandler<TargetedEvent>;
   onRequestMarkdownResult?: CodegenTypes.DirectEventHandler<OnRequestMarkdownResultEvent>;
   onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
+  onLinkDetected?: CodegenTypes.DirectEventHandler<OnLinkDetected>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

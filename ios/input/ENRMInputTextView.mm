@@ -41,7 +41,14 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
 {
   UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
 
-  NSString *markdown = [pasteboard valueForPasteboardType:kENRMMarkdownPasteboardType];
+  NSString *markdown = nil;
+  id markdownValue = [pasteboard valueForPasteboardType:kENRMMarkdownPasteboardType];
+  if ([markdownValue isKindOfClass:[NSString class]]) {
+    markdown = markdownValue;
+  } else if ([markdownValue isKindOfClass:[NSData class]]) {
+    markdown = [[NSString alloc] initWithData:markdownValue encoding:NSUTF8StringEncoding];
+  }
+
   if (markdown.length > 0 && self.markdownInput != nil) {
     [self.markdownInput pasteMarkdown:markdown];
     return;

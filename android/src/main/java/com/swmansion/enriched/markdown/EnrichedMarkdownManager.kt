@@ -123,6 +123,15 @@ class EnrichedMarkdownManager :
     // No-op on Android — only used on iOS
   }
 
+  @ReactProp(name = "contentInset")
+  override fun setContentInset(
+    view: EnrichedMarkdown?,
+    value: ReadableMap?,
+  ) {
+    // TODO: Implement contentInset for Android ScrollView.
+    // Currently only implemented on macOS (NSScrollView document view padding).
+  }
+
   @ReactProp(name = "streamingAnimation", defaultBoolean = false)
   override fun setStreamingAnimation(
     view: EnrichedMarkdown?,

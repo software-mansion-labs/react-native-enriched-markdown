@@ -1,5 +1,7 @@
 #import "EnrichedMarkdownInput.h"
 #import "ContextMenuUtils.h"
+#import "ENRMAutoLinkDetector.h"
+#import "ENRMDetectorPipeline.h"
 #import "ENRMFormattingRange.h"
 #import "ENRMFormattingStore.h"
 #import "ENRMInputFormatter.h"
@@ -7,6 +9,7 @@
 #import "ENRMInputLinkPrompt.h"
 #import "ENRMInputParser.h"
 #import "ENRMInputTextView.h"
+#import "ENRMLinkRegexConfig.h"
 #import "ENRMMarkdownSerializer.h"
 #import "ENRMStyleHandler.h"
 #import "ENRMStyleMergingConfig.h"
@@ -74,6 +77,9 @@ using namespace facebook::react;
 
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
+
+  ENRMAutoLinkDetector *_autoLinkDetector;
+  ENRMDetectorPipeline *_detectorPipeline;
 }
 
 #pragma mark - Fabric lifecycle
@@ -106,8 +112,25 @@ using namespace facebook::react;
     _lastSelectedRange = NSMakeRange(0, 0);
 
     [self setupTextView];
+
+    [self setupDetectorPipeline];
   }
   return self;
+}
+
+- (void)setupDetectorPipeline
+{
+  _autoLinkDetector = [[ENRMAutoLinkDetector alloc] initWithTextStorage:_textView.textStorage
+                                                        formattingStore:_formattingStore
+                                                                  style:_formatterStyle];
+
+  __weak EnrichedMarkdownInput *weakSelf = self;
+  _autoLinkDetector.onLinkDetected = ^(NSString *text, NSString *url, NSRange range) {
+    [weakSelf emitOnLinkDetectedWithText:text url:url range:range];
+  };
+
+  _detectorPipeline = [[ENRMDetectorPipeline alloc] init];
+  [_detectorPipeline addDetector:_autoLinkDetector];
 }
 
 - (void)setupTextView
@@ -275,6 +298,21 @@ using namespace facebook::react;
   }
 
   _emitMarkdown = newViewProps.isOnChangeMarkdownSet;
+
+  {
+    auto configFromProp = [](const auto &prop) {
+      return [[ENRMLinkRegexConfig alloc] initWithPattern:[NSString stringWithUTF8String:prop.pattern.c_str()]
+                                          caseInsensitive:prop.caseInsensitive
+                                                   dotAll:prop.dotAll
+                                               isDisabled:prop.isDisabled
+                                                isDefault:prop.isDefault];
+    };
+    ENRMLinkRegexConfig *oldRegexConfig = configFromProp(oldViewProps.linkRegex);
+    ENRMLinkRegexConfig *newRegexConfig = configFromProp(newViewProps.linkRegex);
+    if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
+      [_autoLinkDetector setRegexConfig:newRegexConfig];
+    }
+  }
 
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
@@ -454,6 +492,10 @@ using namespace facebook::react;
   _lastSelectedRange = _textView.selectedRange;
 
   [self applyFormatting];
+
+  [_detectorPipeline processTextChange:ENRMGetPlainText(_textView)
+                     modificationRange:NSMakeRange(editLocation, text.length)];
+
   [self updatePlaceholderVisibility];
   [self emitOnChangeText];
   [self emitOnChangeSelection];
@@ -492,6 +534,7 @@ using namespace facebook::react;
   NSRange savedSelection = _textView.selectedRange;
 
   [_formatter applyFormattingRanges:_formattingStore.allRanges toTextView:_textView style:_formatterStyle];
+  [_detectorPipeline refreshAllStyling];
 
   NSUInteger textLen = ENRMGetPlainText(_textView).length;
   if (savedSelection.location + savedSelection.length <= textLen) {
@@ -628,9 +671,11 @@ using namespace facebook::react;
 
   if (activeLink != nil) {
     activeLink.url = url;
+    [_autoLinkDetector clearAutoLinkInRange:activeLink.range];
   } else if (selection.length > 0) {
     ENRMFormattingRange *linkRange = [ENRMFormattingRange rangeWithType:ENRMInputStyleTypeLink range:selection url:url];
     [_formattingStore addRange:linkRange];
+    [_autoLinkDetector clearAutoLinkInRange:selection];
   } else {
     return;
   }
@@ -682,7 +727,7 @@ using namespace facebook::react;
   NSUInteger selEnd = NSMaxRange(selection);
 
   NSMutableArray<ENRMFormattingRange *> *clippedRanges = [NSMutableArray array];
-  for (ENRMFormattingRange *range in _formattingStore.allRanges) {
+  for (ENRMFormattingRange *range in [self allRangesIncludingTransient]) {
     NSUInteger rangeStart = range.range.location;
     NSUInteger rangeEnd = NSMaxRange(range.range);
 
@@ -707,7 +752,7 @@ using namespace facebook::react;
     return;
   }
   NSString *markdown = [ENRMMarkdownSerializer serializePlainText:ENRMGetPlainText(_textView)
-                                                           ranges:_formattingStore.allRanges];
+                                                           ranges:[self allRangesIncludingTransient]];
   emitter->onRequestMarkdownResult({
       .requestId = static_cast<int>(requestId),
       .markdown = std::string([markdown UTF8String] ?: ""),
@@ -752,6 +797,17 @@ using namespace facebook::react;
   return std::static_pointer_cast<EnrichedMarkdownInputEventEmitter const>(_eventEmitter);
 }
 
+- (NSArray<ENRMFormattingRange *> *)allRangesIncludingTransient
+{
+  NSArray<ENRMFormattingRange *> *transient = [_detectorPipeline allTransientFormattingRanges];
+  if (transient.count == 0) {
+    return _formattingStore.allRanges;
+  }
+  NSMutableArray<ENRMFormattingRange *> *merged = [_formattingStore.allRanges mutableCopy];
+  [merged addObjectsFromArray:transient];
+  return merged;
+}
+
 - (void)emitOnChangeText
 {
   auto emitter = [self getEventEmitter];
@@ -769,7 +825,7 @@ using namespace facebook::react;
     return;
   }
   NSString *markdown = [ENRMMarkdownSerializer serializePlainText:ENRMGetPlainText(_textView)
-                                                           ranges:_formattingStore.allRanges];
+                                                           ranges:[self allRangesIncludingTransient]];
   emitter->onChangeMarkdown({.value = std::string([markdown UTF8String] ?: "")});
 }
 
@@ -890,6 +946,20 @@ using namespace facebook::react;
   emitter->onInputBlur({});
 }
 
+- (void)emitOnLinkDetectedWithText:(NSString *)text url:(NSString *)url range:(NSRange)range
+{
+  auto emitter = [self getEventEmitter];
+  if (emitter == nullptr) {
+    return;
+  }
+  emitter->onLinkDetected({
+      .text = std::string([text UTF8String] ?: ""),
+      .url = std::string([url UTF8String] ?: ""),
+      .start = static_cast<int>(range.location),
+      .end = static_cast<int>(range.location + range.length),
+  });
+}
+
 #pragma mark - Text edit tracking
 
 - (void)handleTextChanged
@@ -951,6 +1021,10 @@ using namespace facebook::react;
 #endif
 
   [self applyFormatting];
+
+  [_detectorPipeline processTextChange:ENRMGetPlainText(_textView)
+                     modificationRange:NSMakeRange(editLocation, insertedLength)];
+
   [self updatePlaceholderVisibility];
   [self emitOnChangeText];
   [self emitOnChangeSelection];

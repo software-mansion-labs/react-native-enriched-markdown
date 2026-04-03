@@ -14,6 +14,7 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EnrichedMarkdownInputManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownInputManagerInterface
 import com.facebook.yoga.YogaMeasureMode
+import com.swmansion.enriched.markdown.input.autolink.LinkRegexConfig
 import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeStateEvent
@@ -21,6 +22,7 @@ import com.swmansion.enriched.markdown.input.events.OnChangeTextEvent
 import com.swmansion.enriched.markdown.input.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
+import com.swmansion.enriched.markdown.input.events.OnLinkDetectedEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
 import com.swmansion.enriched.markdown.input.layout.InputMeasurementStore
 import com.swmansion.enriched.markdown.input.model.StyleType
@@ -84,6 +86,7 @@ class EnrichedMarkdownInputManager :
       OnInputFocusEvent.EVENT_NAME,
       OnInputBlurEvent.EVENT_NAME,
       OnContextMenuItemPressEvent.EVENT_NAME,
+      OnLinkDetectedEvent.EVENT_NAME,
     ).associateWithTo(mutableMapOf()) { name -> mapOf("registrationName" to name) }
 
   // Props
@@ -181,6 +184,7 @@ class EnrichedMarkdownInputManager :
     if (view == null || value == null) return
 
     val style = MarkdownStyleParser.parse(value)
+    view.setAutoLinkStyle(style)
     val changed = view.formatter.updateStyle(style)
     if (changed) {
       view.applyFormatting()
@@ -245,6 +249,27 @@ class EnrichedMarkdownInputManager :
     if (view == null) return
     val items = (0 until (value?.size() ?: 0)).mapNotNull { value?.getMap(it)?.getString("text") }
     view.setContextMenuItems(items)
+  }
+
+  @ReactProp(name = "linkRegex")
+  override fun setLinkRegex(
+    view: EnrichedMarkdownInputView?,
+    value: ReadableMap?,
+  ) {
+    if (view == null) return
+    val config =
+      if (value != null) {
+        LinkRegexConfig(
+          pattern = value.getString("pattern") ?: "",
+          caseInsensitive = value.getBoolean("caseInsensitive"),
+          dotAll = value.getBoolean("dotAll"),
+          isDisabled = value.getBoolean("isDisabled"),
+          isDefault = value.getBoolean("isDefault"),
+        )
+      } else {
+        LinkRegexConfig("", caseInsensitive = false, dotAll = false, isDisabled = false, isDefault = true)
+      }
+    view.setLinkRegex(config)
   }
 
   override fun updateProperties(

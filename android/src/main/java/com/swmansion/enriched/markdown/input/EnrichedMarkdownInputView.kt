@@ -20,6 +20,9 @@ import com.facebook.react.uimanager.BackgroundStyleApplicator
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.views.text.ReactTypefaceUtils
+import com.swmansion.enriched.markdown.input.autolink.AutoLinkDetector
+import com.swmansion.enriched.markdown.input.autolink.LinkRegexConfig
+import com.swmansion.enriched.markdown.input.detection.DetectorPipeline
 import com.swmansion.enriched.markdown.input.editing.InputConnectionWrapper
 import com.swmansion.enriched.markdown.input.editing.MarkdownEditableFactory
 import com.swmansion.enriched.markdown.input.editing.MarkdownTextWatcher
@@ -29,6 +32,7 @@ import com.swmansion.enriched.markdown.input.formatting.InputParser
 import com.swmansion.enriched.markdown.input.layout.InputEventEmitter
 import com.swmansion.enriched.markdown.input.layout.InputLayoutManager
 import com.swmansion.enriched.markdown.input.model.FormattingRange
+import com.swmansion.enriched.markdown.input.model.InputFormatterStyle
 import com.swmansion.enriched.markdown.input.model.StyleType
 import com.swmansion.enriched.markdown.input.toolbar.FormatBar
 import com.swmansion.enriched.markdown.input.toolbar.InputContextMenu
@@ -70,6 +74,8 @@ class EnrichedMarkdownInputView(
   val contextMenu = InputContextMenu(this)
   val formatBar = FormatBar(this)
   val eventEmitter = InputEventEmitter(this)
+  private val autoLinkDetector = AutoLinkDetector(formattingStore)
+  private val detectorPipeline = DetectorPipeline()
 
   private var textWatcher: MarkdownTextWatcher? = null
   private var inputMethodManager: InputMethodManager? = null
@@ -77,8 +83,16 @@ class EnrichedMarkdownInputView(
   var scrollEnabled: Boolean = true
 
   init {
+    setupDetectorPipeline()
     prepareComponent()
     isComponentReady = true
+  }
+
+  private fun setupDetectorPipeline() {
+    autoLinkDetector.onLinkDetected = { text, url, start, end ->
+      eventEmitter.emitLinkDetected(text, url, start, end)
+    }
+    detectorPipeline.addDetector(autoLinkDetector)
   }
 
   private fun prepareComponent() {
@@ -201,6 +215,12 @@ class EnrichedMarkdownInputView(
       formattingStore.adjustForEdit(editStart, deletedLength, insertedLength)
       applyPendingStyles(editStart, insertedLength)
       applyFormatting()
+
+      val editable = text
+      if (editable != null) {
+        detectorPipeline.processTextChange(editable, currentText, editStart, insertedLength)
+      }
+
       forceScrollToSelection()
       eventEmitter.emitChangeText()
       if (emitMarkdown) eventEmitter.emitChangeMarkdown()
@@ -343,6 +363,10 @@ class EnrichedMarkdownInputView(
     val selEnd = selectionEnd
     if (selStart == selEnd) return
 
+    val editable = text
+    if (editable != null) {
+      autoLinkDetector.clearAutoLinkInRange(editable, selStart, selEnd)
+    }
     formattingStore.addRange(FormattingRange(StyleType.LINK, selStart, selEnd, url))
     applyFormattingAndEmit()
   }
@@ -360,6 +384,7 @@ class EnrichedMarkdownInputView(
     try {
       editable.replace(selStart, selEnd, displayText)
       formattingStore.adjustForEdit(selStart, selEnd - selStart, displayText.length)
+      autoLinkDetector.clearAutoLinkInRange(editable, selStart, linkEnd)
       formattingStore.addRange(FormattingRange(StyleType.LINK, selStart, linkEnd, url))
       lastProcessedText = editable.toString()
 
@@ -380,6 +405,21 @@ class EnrichedMarkdownInputView(
 
   fun setContextMenuItems(items: List<String>) {
     contextMenu.setContextMenuItems(items)
+  }
+
+  fun setLinkRegex(config: LinkRegexConfig) {
+    autoLinkDetector.setRegexConfig(config)
+  }
+
+  fun setAutoLinkStyle(style: InputFormatterStyle) {
+    autoLinkDetector.style = style
+  }
+
+  fun allFormattingRangesForSerialization(): List<FormattingRange> {
+    val editable = text ?: return formattingStore.allRanges
+    val transientRanges = detectorPipeline.allTransientFormattingRanges(editable)
+    if (transientRanges.isEmpty()) return formattingStore.allRanges
+    return formattingStore.allRanges + transientRanges
   }
 
   fun setValueFromJS(markdown: String) {

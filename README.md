@@ -27,6 +27,7 @@
 - 🕹️ Imperative API for toggling styles and managing links
 - 📋 Native format bar and context menu with formatting options
 - 🔍 Real-time style state detection
+- 🔗 Auto-link detection with customizable regex
 - 🔄 Smart copy/paste with Markdown preservation
 - 🎨 Customizable bold, italic, and link colors
 
@@ -52,6 +53,7 @@ We can help you build your next dream product –
   - [Usage](docs/INPUT.md#usage)
   - [Inline Styles](docs/INPUT.md#inline-styles)
   - [Links](docs/INPUT.md#links)
+  - [Auto-Link Detection](docs/INPUT.md#auto-link-detection)
   - [Style Detection](docs/INPUT.md#style-detection)
   - [Other Events](docs/INPUT.md#other-events)
   - [Customizing Styles](docs/INPUT.md#customizing-enrichedmarkdowninput--styles)

@@ -15,7 +15,9 @@ import EnrichedMarkdownInputNativeComponent, {
   type OnChangeStateEvent,
   type OnRequestMarkdownResultEvent,
   type OnContextMenuItemPressEvent,
+  type OnLinkDetected,
 } from './EnrichedMarkdownInputNativeComponent';
+export type { OnLinkDetected } from './EnrichedMarkdownInputNativeComponent';
 import type {
   HostInstance,
   NativeSyntheticEvent,
@@ -24,6 +26,7 @@ import type {
   ColorValue,
 } from 'react-native';
 import { normalizeMarkdownInputStyle } from './normalizeMarkdownInputStyle';
+import { toNativeRegexConfig } from './utils/regexParser';
 import type { RefObject } from 'react';
 
 type NativeRef = HostInstance;
@@ -96,9 +99,11 @@ export interface EnrichedMarkdownInputProps {
   onChangeMarkdown?: (markdown: string) => void;
   onChangeSelection?: (selection: { start: number; end: number }) => void;
   onChangeState?: (state: StyleState) => void;
+  onLinkDetected?: (event: OnLinkDetected) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   contextMenuItems?: ContextMenuItem[];
+  linkRegex?: RegExp | null;
 }
 
 type MarkdownRequest = {
@@ -133,9 +138,11 @@ export const EnrichedMarkdownInput = ({
   onChangeMarkdown,
   onChangeSelection,
   onChangeState,
+  onLinkDetected,
   onFocus,
   onBlur,
   contextMenuItems,
+  linkRegex: _linkRegex,
 }: EnrichedMarkdownInputProps) => {
   const nativeRef = useRef<NativeRef | null>(null);
 
@@ -175,6 +182,19 @@ export const EnrichedMarkdownInput = ({
   }, []);
 
   const normalizedStyle = normalizeMarkdownInputStyle(markdownStyle);
+
+  const linkRegex = useMemo(
+    () => toNativeRegexConfig(_linkRegex),
+    [_linkRegex]
+  );
+
+  const handleLinkDetected = useCallback(
+    (e: NativeSyntheticEvent<OnLinkDetected>) => {
+      const { text, url, start, end } = e.nativeEvent;
+      onLinkDetected?.({ text, url, start, end });
+    },
+    [onLinkDetected]
+  );
 
   const handleChangeText = useCallback(
     (e: NativeSyntheticEvent<OnChangeTextEvent>) => {
@@ -298,6 +318,7 @@ export const EnrichedMarkdownInput = ({
         handleChangeSelection as NativeProps['onChangeSelection']
       }
       onChangeState={handleChangeState as NativeProps['onChangeState']}
+      onLinkDetected={handleLinkDetected as NativeProps['onLinkDetected']}
       onInputFocus={handleFocus as NativeProps['onInputFocus']}
       onInputBlur={handleBlur as NativeProps['onInputBlur']}
       onRequestMarkdownResult={
@@ -307,6 +328,7 @@ export const EnrichedMarkdownInput = ({
       onContextMenuItemPress={
         handleContextMenuItemPress as NativeProps['onContextMenuItemPress']
       }
+      linkRegex={linkRegex}
     />
   );
 };

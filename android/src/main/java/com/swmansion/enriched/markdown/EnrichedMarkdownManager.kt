@@ -3,6 +3,7 @@ package com.swmansion.enriched.markdown
 import android.content.Context
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
@@ -11,6 +12,7 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EnrichedMarkdownManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownManagerInterface
 import com.facebook.yoga.YogaMeasureMode
+import com.facebook.yoga.YogaMeasureOutput
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
@@ -45,6 +47,9 @@ class EnrichedMarkdownManager :
     markdown: String?,
   ) {
     view?.setOnLinkPressCallback { url ->
+      if (url.startsWith("#")) {
+        view.scrollToAnchor(url)
+      }
       emitOnLinkPress(view, url)
     }
 
@@ -128,8 +133,11 @@ class EnrichedMarkdownManager :
     view: EnrichedMarkdown?,
     value: ReadableMap?,
   ) {
-    // TODO: Implement contentInset for Android ScrollView.
-    // Currently only implemented on macOS (NSScrollView document view padding).
+    val top = PixelUtil.toPixelFromDIP(value?.getDouble("top")?.toFloat() ?: 0f).toInt()
+    val right = PixelUtil.toPixelFromDIP(value?.getDouble("right")?.toFloat() ?: 0f).toInt()
+    val bottom = PixelUtil.toPixelFromDIP(value?.getDouble("bottom")?.toFloat() ?: 0f).toInt()
+    val left = PixelUtil.toPixelFromDIP(value?.getDouble("left")?.toFloat() ?: 0f).toInt()
+    view?.setContentInset(top, right, bottom, left)
   }
 
   @ReactProp(name = "streamingAnimation", defaultBoolean = false)
@@ -196,7 +204,26 @@ class EnrichedMarkdownManager :
     attachmentsPositions: FloatArray?,
   ): Long {
     val id = localData?.getInt("viewTag")
-    return MeasurementStore.getMeasureById(context, id, width, height, heightMode, props, splitTableSegments = true)
+
+    val inset = props?.getMap("contentInset")
+    val insetLeftDip = inset?.getDouble("left")?.toFloat() ?: 0f
+    val insetRightDip = inset?.getDouble("right")?.toFloat() ?: 0f
+    val insetTopDip = inset?.getDouble("top")?.toFloat() ?: 0f
+    val insetBottomDip = inset?.getDouble("bottom")?.toFloat() ?: 0f
+    val insetHPx = PixelUtil.toPixelFromDIP(insetLeftDip + insetRightDip)
+    val insetVDip = insetTopDip + insetBottomDip
+
+    val contentWidth = if (insetHPx > 0f) (width - insetHPx).coerceAtLeast(1f) else width
+
+    val size = MeasurementStore.getMeasureById(context, id, contentWidth, height, heightMode, props, splitTableSegments = true)
+
+    if (insetVDip > 0f || insetHPx > 0f) {
+      val measuredWidth = YogaMeasureOutput.getWidth(size)
+      val measuredHeight = YogaMeasureOutput.getHeight(size)
+      return YogaMeasureOutput.make(measuredWidth + insetLeftDip + insetRightDip, measuredHeight + insetVDip)
+    }
+
+    return size
   }
 
   companion object {

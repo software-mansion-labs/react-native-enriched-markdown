@@ -5,16 +5,20 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.text.Spanned
 import android.text.SpannableString
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ScrollView
 import com.facebook.react.bridge.ReadableMap
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
@@ -71,6 +75,10 @@ class EnrichedMarkdown
     private var maxFontSizeMultiplier: Float = 0f
     private var allowTrailingMargin: Boolean = false
     private var selectable: Boolean = true
+    private var contentInsetTop: Int = 0
+    private var contentInsetRight: Int = 0
+    private var contentInsetBottom: Int = 0
+    private var contentInsetLeft: Int = 0
 
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
@@ -346,9 +354,13 @@ class EnrichedMarkdown
       val containerWidth = width
       if (containerWidth <= 0) return
 
-      var currentY = 0
+      val contentLeft = paddingLeft + contentInsetLeft
+      val contentWidth = containerWidth - paddingLeft - paddingRight - contentInsetLeft - contentInsetRight
+      if (contentWidth <= 0) return
+
+      var currentY = paddingTop + contentInsetTop
       val lastIndex = segmentViews.lastIndex
-      val widthSpec = MeasureSpec.makeMeasureSpec(containerWidth, MeasureSpec.EXACTLY)
+      val widthSpec = MeasureSpec.makeMeasureSpec(contentWidth, MeasureSpec.EXACTLY)
       val heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
 
       segmentViews.forEachIndexed { index, view ->
@@ -358,7 +370,7 @@ class EnrichedMarkdown
         currentY += segment?.segmentMarginTop ?: 0
         view.measure(widthSpec, heightSpec)
 
-        view.layout(0, currentY, containerWidth, currentY + view.measuredHeight)
+        view.layout(contentLeft, currentY, contentLeft + contentWidth, currentY + view.measuredHeight)
         currentY += view.measuredHeight
 
         if (shouldAddBottomMargin) {
@@ -367,7 +379,71 @@ class EnrichedMarkdown
       }
     }
 
+    fun setContentInset(top: Int, right: Int, bottom: Int, left: Int) {
+      if (contentInsetTop == top && contentInsetRight == right &&
+        contentInsetBottom == bottom && contentInsetLeft == left
+      ) return
+      contentInsetTop = top
+      contentInsetRight = right
+      contentInsetBottom = bottom
+      contentInsetLeft = left
+      requestLayout()
+    }
+
+    fun scrollToAnchor(fragment: String) {
+      val anchor = fragment.removePrefix("#")
+      if (anchor.isEmpty()) return
+
+      val targetY = findHeadingY(anchor) ?: return
+
+      val scrollView = findParentScrollView() ?: return
+      scrollView.smoothScrollTo(0, targetY.toInt())
+    }
+
+    private fun findHeadingY(anchor: String): Float? {
+      for (view in segmentViews) {
+        if (view !is EnrichedMarkdownInternalText) continue
+        val spanned = view.text as? Spanned ?: continue
+        val layout = view.layout ?: continue
+
+        val headingSpans = spanned.getSpans(0, spanned.length, HeadingSpan::class.java)
+        for (span in headingSpans) {
+          val spanStart = spanned.getSpanStart(span)
+          val spanEnd = spanned.getSpanEnd(span)
+          val headingText = spanned.subSequence(spanStart, spanEnd).toString()
+          val slug = slugifyHeading(headingText)
+
+          if (slug == anchor) {
+            val line = layout.getLineForOffset(spanStart)
+            val lineY = layout.getLineTop(line).toFloat()
+            return view.top + lineY
+          }
+        }
+      }
+      return null
+    }
+
+    private fun findParentScrollView(): ScrollView? {
+      var current: ViewGroup? = parent as? ViewGroup
+      while (current != null) {
+        if (current is ScrollView) return current
+        current = current.parent as? ViewGroup
+      }
+      return null
+    }
+
     companion object {
       private const val TAG = "EnrichedMarkdown"
+
+      fun slugifyHeading(text: String): String {
+        val sb = StringBuilder(text.length)
+        for (ch in text.lowercase()) {
+          when {
+            ch in 'a'..'z' || ch in '0'..'9' || ch == '-' || ch == '_' -> sb.append(ch)
+            ch == ' ' -> sb.append('-')
+          }
+        }
+        return sb.toString()
+      }
     }
   }

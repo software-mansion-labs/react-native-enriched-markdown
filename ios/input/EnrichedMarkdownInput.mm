@@ -15,9 +15,7 @@
 #import "ENRMStyleMergingConfig.h"
 #import "ENRMUIKit.h"
 #import "InputStylePropsUtils.h"
-#if !TARGET_OS_OSX
-#import "ENRMFormatBar.h"
-#else
+#if TARGET_OS_OSX
 #import <React/RCTBackedTextInputDelegate.h>
 #endif
 
@@ -34,7 +32,7 @@
 using namespace facebook::react;
 
 #if !TARGET_OS_OSX
-@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, UITextViewDelegate, ENRMFormatBarDelegate>
+@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, UITextViewDelegate>
 #else
 @interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, RCTBackedTextInputDelegate>
 #endif
@@ -69,9 +67,7 @@ using namespace facebook::react;
     BOOL bold, italic, underline, strikethrough, link, initialized;
   } _prevState;
 
-#if !TARGET_OS_OSX
-  ENRMFormatBar *_formatBar;
-#else
+#if TARGET_OS_OSX
   NSScrollView *_scrollView;
 #endif
 
@@ -1109,8 +1105,6 @@ using namespace facebook::react;
 
 - (void)textViewDidEndEditing:(UITextView *)textView
 {
-  [_formatBar dismiss];
-  _formatBar = nil;
   [self emitOnBlur];
 }
 
@@ -1132,88 +1126,8 @@ using namespace facebook::react;
 
   [self manageSelectionBasedChanges];
 
-  if (_formatBar && _formatBar.superview) {
-    if (_textView.selectedRange.length == 0) {
-      [_formatBar dismiss];
-      _formatBar = nil;
-    } else {
-      [self updateFormatBar];
-    }
-  }
-
   [self emitOnChangeSelection];
   [self emitOnChangeState];
-}
-
-#pragma mark - Format bar
-
-- (void)showFormatBar
-{
-  if (!_formatBar) {
-    _formatBar = [[ENRMFormatBar alloc] initWithDelegate:self];
-  }
-  [self updateFormatBar];
-}
-
-- (void)updateFormatBar
-{
-  NSRange selection = _textView.selectedRange;
-  if (selection.length == 0) {
-    [_formatBar dismiss];
-    _formatBar = nil;
-    return;
-  }
-
-  UIWindow *window = self.window;
-  if (!window || !_formatBar) {
-    return;
-  }
-
-  UITextPosition *start = [_textView positionFromPosition:_textView.beginningOfDocument
-                                                   offset:(NSInteger)selection.location];
-  UITextPosition *end = start ? [_textView positionFromPosition:start offset:(NSInteger)selection.length] : nil;
-  UITextRange *range = (start && end) ? [_textView textRangeFromPosition:start toPosition:end] : nil;
-  if (!range) {
-    return;
-  }
-  CGRect localRect = [_textView firstRectForRange:range];
-  if (CGRectIsNull(localRect) || CGRectIsInfinite(localRect)) {
-    return;
-  }
-  CGRect windowRect = [_textView convertRect:localRect toView:nil];
-  [_formatBar showAtSelectionRect:windowRect inWindow:window];
-}
-
-static ENRMInputStyleType styleTypeForAction(ENRMFormatBarAction action)
-{
-  switch (action) {
-    case ENRMFormatBarActionBold:
-      return ENRMInputStyleTypeStrong;
-    case ENRMFormatBarActionItalic:
-      return ENRMInputStyleTypeEmphasis;
-    case ENRMFormatBarActionUnderline:
-      return ENRMInputStyleTypeUnderline;
-    case ENRMFormatBarActionStrikethrough:
-      return ENRMInputStyleTypeStrikethrough;
-    case ENRMFormatBarActionLink:
-      return ENRMInputStyleTypeLink;
-  }
-}
-
-- (void)formatBar:(ENRMFormatBar *)bar didSelectAction:(ENRMFormatBarAction)action
-{
-  if (action == ENRMFormatBarActionLink) {
-    [self showLinkPrompt];
-  } else {
-    [self toggleInlineStyle:styleTypeForAction(action)];
-  }
-  [_formatBar dismiss];
-  _formatBar = nil;
-}
-
-- (BOOL)formatBar:(ENRMFormatBar *)bar isActionActive:(ENRMFormatBarAction)action
-{
-  return [self isEffectiveStyleActive:styleTypeForAction(action) atPosition:_textView.selectedRange.location];
 }
 
 #else

@@ -34,7 +34,6 @@ import com.swmansion.enriched.markdown.input.layout.InputLayoutManager
 import com.swmansion.enriched.markdown.input.model.FormattingRange
 import com.swmansion.enriched.markdown.input.model.InputFormatterStyle
 import com.swmansion.enriched.markdown.input.model.StyleType
-import com.swmansion.enriched.markdown.input.toolbar.FormatBar
 import com.swmansion.enriched.markdown.input.toolbar.InputContextMenu
 import com.swmansion.enriched.markdown.utils.input.AutoCapitalizeUtils
 import kotlin.math.ceil
@@ -72,7 +71,6 @@ class EnrichedMarkdownInputView(
   private var fontWeightValue: Int = ReactConstants.UNSET
 
   val contextMenu = InputContextMenu(this)
-  val formatBar = FormatBar(this)
   val eventEmitter = InputEventEmitter(this)
   private val autoLinkDetector = AutoLinkDetector(formattingStore)
   private val detectorPipeline = DetectorPipeline()
@@ -122,7 +120,6 @@ class EnrichedMarkdownInputView(
         if (hasFocus) {
           eventEmitter.emitFocus()
         } else {
-          formatBar.dismiss()
           eventEmitter.emitBlur()
         }
       }
@@ -247,8 +244,6 @@ class EnrichedMarkdownInputView(
         pendingStyleRemovals.clear()
       }
     }
-
-    formatBar.onSelectionChanged(selStart, selEnd)
 
     eventEmitter.emitSelection(selStart, selEnd)
     eventEmitter.emitState()

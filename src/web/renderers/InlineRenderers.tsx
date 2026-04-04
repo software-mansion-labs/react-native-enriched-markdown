@@ -1,62 +1,62 @@
-import { type MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import type { RendererProps, RendererMap } from '../types';
 import { extractNodeText } from '../utils';
-import {
-  strongCSS,
-  emphasisCSS,
-  codeCSS,
-  linkCSS,
-  strikethroughCSS,
-  underlineCSS,
-  mathInlineCSS,
-} from '../cssMap';
+import { KaTeXRenderer } from './KaTeXRenderer';
 
 function TextRenderer({ node }: RendererProps) {
   return <>{node.content ?? ''}</>;
 }
 
-function LineBreakRenderer() {
+function LineBreakRenderer(_props: RendererProps) {
   return <br />;
 }
 
-function StrongRenderer({ node, style, renderChildren }: RendererProps) {
-  return <strong style={strongCSS(style)}>{renderChildren(node)}</strong>;
+function StrongRenderer({ node, styles, renderChildren }: RendererProps) {
+  return <strong style={styles.strong}>{renderChildren(node)}</strong>;
 }
 
-function EmphasisRenderer({ node, style, renderChildren }: RendererProps) {
-  return <em style={emphasisCSS(style)}>{renderChildren(node)}</em>;
+function EmphasisRenderer({ node, styles, renderChildren }: RendererProps) {
+  return <em style={styles.emphasis}>{renderChildren(node)}</em>;
 }
 
-function StrikethroughRenderer({ node, style, renderChildren }: RendererProps) {
-  return <s style={strikethroughCSS(style)}>{renderChildren(node)}</s>;
+function StrikethroughRenderer({
+  node,
+  styles,
+  renderChildren,
+}: RendererProps) {
+  return <s style={styles.strikethrough}>{renderChildren(node)}</s>;
 }
 
-function UnderlineRenderer({ node, style, renderChildren }: RendererProps) {
-  return <u style={underlineCSS(style)}>{renderChildren(node)}</u>;
+function UnderlineRenderer({ node, styles, renderChildren }: RendererProps) {
+  return <u style={styles.underline}>{renderChildren(node)}</u>;
 }
 
-function CodeRenderer({ node, style, renderChildren }: RendererProps) {
-  return <code style={codeCSS(style)}>{renderChildren(node)}</code>;
+function CodeRenderer({ node, styles, renderChildren }: RendererProps) {
+  return (
+    <code style={styles.code}>{node.content ?? renderChildren(node)}</code>
+  );
 }
 
 function LinkRenderer({
   node,
-  style,
+  styles,
   callbacks,
   renderChildren,
 }: RendererProps) {
-  const url = node.attributes?.url ?? '';
+  const url = node.attributes?.url;
 
-  const handleClick = (e: MouseEvent) => {
+  if (!url) return <>{renderChildren(node)}</>;
+
+  const handleClick = (event: MouseEvent) => {
     if (callbacks.onLinkPress) {
-      e.preventDefault();
+      event.preventDefault();
       callbacks.onLinkPress({ url });
     }
   };
 
-  const handleContextMenu = (e: MouseEvent) => {
+  const handleContextMenu = (event: MouseEvent) => {
     if (callbacks.onLinkLongPress) {
-      e.preventDefault();
+      event.preventDefault();
       callbacks.onLinkLongPress({ url });
     }
   };
@@ -64,7 +64,7 @@ function LinkRenderer({
   return (
     <a
       href={url}
-      style={linkCSS(style)}
+      style={styles.link}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}
@@ -75,23 +75,20 @@ function LinkRenderer({
   );
 }
 
-function LatexMathInlineRenderer({ node, style, callbacks }: RendererProps) {
+function LatexMathInlineRenderer({
+  node,
+  styles,
+  capabilities,
+}: RendererProps) {
   const content = extractNodeText(node);
 
-  if (!callbacks.katex) {
-    return <code style={mathInlineCSS(style)}>{`$${content}$`}</code>;
-  }
-
-  const html = callbacks.katex.renderToString(content, {
-    output: 'mathml',
-    displayMode: false,
-    throwOnError: false,
-  });
-
   return (
-    <span
-      style={mathInlineCSS(style)}
-      dangerouslySetInnerHTML={{ __html: html }}
+    <KaTeXRenderer
+      content={content}
+      katex={capabilities.katex}
+      displayMode={false}
+      style={styles.mathInline}
+      fallbackTag="code"
     />
   );
 }

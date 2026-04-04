@@ -7,10 +7,28 @@ import type {
 const normalizeFontFamily = (value: string): string | undefined =>
   value || undefined;
 
-// MarkdownStyleInternal uses "" for "unset" — the cast is the single point
-// where that wide string meets CSSProperties['fontWeight'].
-const normalizeFontWeight = (value: string): CSSProperties['fontWeight'] =>
-  (value || undefined) as CSSProperties['fontWeight'];
+const VALID_FONT_WEIGHTS = new Set([
+  'normal',
+  'bold',
+  'bolder',
+  'lighter',
+  '100',
+  '200',
+  '300',
+  '400',
+  '500',
+  '600',
+  '700',
+  '800',
+  '900',
+]);
+
+const normalizeFontWeight = (value: string): CSSProperties['fontWeight'] => {
+  if (!value) return undefined;
+  if (VALID_FONT_WEIGHTS.has(value))
+    return value as CSSProperties['fontWeight'];
+  return undefined;
+};
 
 const normalizeTextAlign = (
   value: BlockTextAlign
@@ -46,10 +64,11 @@ export function zeroTrailingMargins(
   };
 }
 
-export type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 export function toHeadingLevel(level: string): HeadingLevel {
-  return `h${level}` as HeadingLevel;
+  const clamped = Math.max(1, Math.min(6, parseInt(level, 10) || 1));
+  return `h${clamped}` as HeadingLevel;
 }
 
 type BaseBlock = Pick<
@@ -77,24 +96,24 @@ function baseBlock(block: BaseBlock): CSSProperties {
   };
 }
 
-export function paragraphCSS(style: MarkdownStyleInternal): CSSProperties {
+function paragraphStyle(style: MarkdownStyleInternal): CSSProperties {
   return baseBlock(style.paragraph);
 }
 
-export function paragraphInBlockquoteCSS(
+function paragraphInBlockquoteStyle(
   style: MarkdownStyleInternal
 ): CSSProperties {
   return { ...baseBlock(style.paragraph), marginTop: 0, marginBottom: 0 };
 }
 
-export function headingCSS(
+function headingStyle(
   style: MarkdownStyleInternal,
   level: string
 ): CSSProperties {
   return baseBlock(style[toHeadingLevel(level)]);
 }
 
-export function blockquoteCSS(style: MarkdownStyleInternal): CSSProperties {
+function blockquoteStyle(style: MarkdownStyleInternal): CSSProperties {
   const blockquote = style.blockquote;
   return {
     fontSize: blockquote.fontSize,
@@ -112,7 +131,7 @@ export function blockquoteCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function listCSS(
+function listStyle(
   style: MarkdownStyleInternal,
   isTaskList = false
 ): CSSProperties {
@@ -130,7 +149,7 @@ export function listCSS(
   };
 }
 
-export function codeBlockCSS(style: MarkdownStyleInternal): CSSProperties {
+function codeBlockStyle(style: MarkdownStyleInternal): CSSProperties {
   const codeBlock = style.codeBlock;
   return {
     fontSize: codeBlock.fontSize,
@@ -150,7 +169,7 @@ export function codeBlockCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function thematicBreakCSS(style: MarkdownStyleInternal): CSSProperties {
+function thematicBreakStyle(style: MarkdownStyleInternal): CSSProperties {
   const thematicBreak = style.thematicBreak;
   return {
     border: 'none', // reset UA borders on all sides before drawing only the top
@@ -161,7 +180,7 @@ export function thematicBreakCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function imageCSS(style: MarkdownStyleInternal): CSSProperties {
+function imageStyle(style: MarkdownStyleInternal): CSSProperties {
   const image = style.image;
   return {
     height: image.height,
@@ -173,7 +192,17 @@ export function imageCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function strongCSS(style: MarkdownStyleInternal): CSSProperties {
+function inlineImageStyle(style: MarkdownStyleInternal): CSSProperties {
+  const size = style.inlineImage.size;
+  return {
+    width: size,
+    height: size,
+    verticalAlign: 'middle',
+    display: 'inline',
+  };
+}
+
+function strongStyle(style: MarkdownStyleInternal): CSSProperties {
   const strong = style.strong;
   return {
     fontFamily: normalizeFontFamily(strong.fontFamily),
@@ -182,7 +211,7 @@ export function strongCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function emphasisCSS(style: MarkdownStyleInternal): CSSProperties {
+function emphasisStyle(style: MarkdownStyleInternal): CSSProperties {
   const emphasis = style.em;
   return {
     fontFamily: normalizeFontFamily(emphasis.fontFamily),
@@ -191,7 +220,7 @@ export function emphasisCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function codeCSS(style: MarkdownStyleInternal): CSSProperties {
+function codeStyle(style: MarkdownStyleInternal): CSSProperties {
   const code = style.code;
   return {
     fontFamily: normalizeFontFamily(code.fontFamily),
@@ -206,7 +235,7 @@ export function codeCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function linkCSS(style: MarkdownStyleInternal): CSSProperties {
+function linkStyle(style: MarkdownStyleInternal): CSSProperties {
   const link = style.link;
   return {
     color: link.color,
@@ -215,25 +244,25 @@ export function linkCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function strikethroughCSS(style: MarkdownStyleInternal): CSSProperties {
+function strikethroughStyle(style: MarkdownStyleInternal): CSSProperties {
   return {
     textDecorationLine: 'line-through',
     textDecorationColor: style.strikethrough.color,
   };
 }
 
-export function underlineCSS(style: MarkdownStyleInternal): CSSProperties {
+function underlineStyle(style: MarkdownStyleInternal): CSSProperties {
   return {
     textDecorationLine: 'underline',
     textDecorationColor: style.underline.color,
   };
 }
 
-export function mathInlineCSS(style: MarkdownStyleInternal): CSSProperties {
+function mathInlineStyle(style: MarkdownStyleInternal): CSSProperties {
   return { color: style.inlineMath.color };
 }
 
-export function mathDisplayCSS(style: MarkdownStyleInternal): CSSProperties {
+function mathDisplayStyle(style: MarkdownStyleInternal): CSSProperties {
   const math = style.math;
   return {
     fontSize: math.fontSize,
@@ -247,7 +276,7 @@ export function mathDisplayCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function tableCSS(style: MarkdownStyleInternal): CSSProperties {
+function tableStyle(style: MarkdownStyleInternal): CSSProperties {
   const table = style.table;
   return {
     borderCollapse: 'collapse',
@@ -261,21 +290,23 @@ export function tableCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function listItemCSS(
-  style: MarkdownStyleInternal,
-  isTask: boolean,
-  isChecked: boolean
+export function listItemStyle(isTask: boolean): CSSProperties | undefined {
+  return isTask ? { listStyle: 'none' } : undefined;
+}
+
+export function checkedTaskTextStyle(
+  style: MarkdownStyleInternal
 ): CSSProperties {
   const taskList = style.taskList;
   return {
-    listStyle: isTask ? 'none' : undefined,
-    color: isChecked ? taskList.checkedTextColor : undefined,
-    textDecoration:
-      isChecked && taskList.checkedStrikethrough ? 'line-through' : undefined,
+    color: taskList.checkedTextColor || undefined,
+    textDecorationLine: taskList.checkedStrikethrough
+      ? 'line-through'
+      : undefined,
   };
 }
 
-export function taskCheckboxCSS(style: MarkdownStyleInternal): CSSProperties {
+function taskCheckboxStyle(style: MarkdownStyleInternal): CSSProperties {
   const taskList = style.taskList;
   return {
     width: taskList.checkboxSize,
@@ -287,7 +318,7 @@ export function taskCheckboxCSS(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function tableBodyRowCSS(
+export function tableBodyRowStyle(
   style: MarkdownStyleInternal,
   rowIndex: number
 ): CSSProperties {
@@ -300,20 +331,20 @@ export function tableBodyRowCSS(
   };
 }
 
-export function tableWrapperCSS(style: MarkdownStyleInternal): CSSProperties {
+function tableWrapperStyle(style: MarkdownStyleInternal): CSSProperties {
   const table = style.table;
   return {
     overflowX: 'auto',
+    overflowY: 'hidden',
     marginTop: table.marginTop,
     marginBottom: table.marginBottom,
     // borderRadius must live on the wrapper, not the <table> — border-collapse:
     // collapse causes browsers to ignore border-radius on the table element itself.
     borderRadius: table.borderRadius,
-    overflow: 'hidden',
   };
 }
 
-export function tableHeaderCellCSS(
+function tableHeaderCellStyle(
   style: MarkdownStyleInternal,
   align: 'left' | 'center' | 'right' | 'default' | undefined
 ): CSSProperties {
@@ -331,7 +362,7 @@ export function tableHeaderCellCSS(
   };
 }
 
-export function tableCellCSS(
+function tableCellStyle(
   style: MarkdownStyleInternal,
   align: 'left' | 'center' | 'right' | 'default' | undefined
 ): CSSProperties {
@@ -341,4 +372,98 @@ export function tableCellCSS(
     border: `${table.borderWidth}px solid ${table.borderColor}`,
     textAlign: resolveColumnAlign(align),
   };
+}
+
+export const parseErrorFallbackStyle: CSSProperties = {
+  whiteSpace: 'pre-wrap',
+  margin: 0,
+};
+
+export interface Styles {
+  paragraph: CSSProperties;
+  paragraphInBlockquote: CSSProperties;
+  h1: CSSProperties;
+  h2: CSSProperties;
+  h3: CSSProperties;
+  h4: CSSProperties;
+  h5: CSSProperties;
+  h6: CSSProperties;
+  blockquote: CSSProperties;
+  list: CSSProperties;
+  listNested: CSSProperties;
+  listTask: CSSProperties;
+  codeBlock: CSSProperties;
+  codeBlockFont: CSSProperties;
+  thematicBreak: CSSProperties;
+  image: CSSProperties;
+  inlineImage: CSSProperties;
+  strong: CSSProperties;
+  emphasis: CSSProperties;
+  code: CSSProperties;
+  link: CSSProperties;
+  strikethrough: CSSProperties;
+  underline: CSSProperties;
+  mathInline: CSSProperties;
+  mathDisplay: CSSProperties;
+  table: CSSProperties;
+  tableWrapper: CSSProperties;
+  tableHeaderCell: Record<ColumnAlign, CSSProperties>;
+  tableCell: Record<ColumnAlign, CSSProperties>;
+  taskCheckbox: CSSProperties;
+}
+
+type ColumnAlign = 'left' | 'center' | 'right' | 'default';
+
+const stylesStore = new WeakMap<MarkdownStyleInternal, Styles>();
+
+export function buildStyles(style: MarkdownStyleInternal): Styles {
+  const cached = stylesStore.get(style);
+  if (cached) return cached;
+
+  const codeBlock = codeBlockStyle(style);
+  const result: Styles = {
+    paragraph: paragraphStyle(style),
+    paragraphInBlockquote: paragraphInBlockquoteStyle(style),
+    h1: headingStyle(style, '1'),
+    h2: headingStyle(style, '2'),
+    h3: headingStyle(style, '3'),
+    h4: headingStyle(style, '4'),
+    h5: headingStyle(style, '5'),
+    h6: headingStyle(style, '6'),
+    blockquote: blockquoteStyle(style),
+    list: listStyle(style),
+    listNested: { ...listStyle(style), marginBottom: 0 },
+    listTask: listStyle(style, true),
+    codeBlock,
+    codeBlockFont: { fontFamily: codeBlock.fontFamily },
+    thematicBreak: thematicBreakStyle(style),
+    image: imageStyle(style),
+    inlineImage: inlineImageStyle(style),
+    strong: strongStyle(style),
+    emphasis: emphasisStyle(style),
+    code: codeStyle(style),
+    link: linkStyle(style),
+    strikethrough: strikethroughStyle(style),
+    underline: underlineStyle(style),
+    mathInline: mathInlineStyle(style),
+    mathDisplay: mathDisplayStyle(style),
+    table: tableStyle(style),
+    tableWrapper: tableWrapperStyle(style),
+    tableHeaderCell: {
+      left: tableHeaderCellStyle(style, 'left'),
+      center: tableHeaderCellStyle(style, 'center'),
+      right: tableHeaderCellStyle(style, 'right'),
+      default: tableHeaderCellStyle(style, 'default'),
+    },
+    tableCell: {
+      left: tableCellStyle(style, 'left'),
+      center: tableCellStyle(style, 'center'),
+      right: tableCellStyle(style, 'right'),
+      default: tableCellStyle(style, 'default'),
+    },
+    taskCheckbox: taskCheckboxStyle(style),
+  };
+
+  stylesStore.set(style, result);
+  return result;
 }

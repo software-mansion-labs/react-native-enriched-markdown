@@ -1,4 +1,5 @@
 export { EnrichedMarkdownText, default } from './web/EnrichedMarkdownText';
+export type { WebMarkdownTextProps } from './web/EnrichedMarkdownText';
 export type {
   EnrichedMarkdownTextProps,
   ContextMenuItem as TextContextMenuItem,

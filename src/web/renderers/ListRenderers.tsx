@@ -1,64 +1,100 @@
 import { useState } from 'react';
 import { extractNodeText } from '../utils';
-import type { RendererProps, RendererMap } from '../types';
-import { listCSS, listItemCSS, taskCheckboxCSS } from '../cssMap';
+import type { RendererProps, RendererMap, ASTNode, NodeType } from '../types';
+import { listItemStyle, checkedTaskTextStyle } from '../styles';
+
+const NESTED_LIST_TYPES: Set<NodeType> = new Set([
+  'UnorderedList',
+  'OrderedList',
+]);
 
 function ListRenderer({
   node,
-  style,
+  styles,
   parentType,
   renderChildren,
-  tag: Tag,
-}: RendererProps & { tag: 'ul' | 'ol' }) {
+  listTag: ListTag,
+}: RendererProps & { listTag: 'ul' | 'ol' }) {
   const isNested = parentType === 'ListItem';
-  const isTopLevelTaskList =
-    !isNested && node.children?.[0]?.attributes?.isTask === 'true';
-  const css = isNested
-    ? { ...listCSS(style), marginBottom: 0 }
-    : listCSS(style, isTopLevelTaskList);
-  return <Tag style={css}>{renderChildren(node)}</Tag>;
+  const hasTaskChild =
+    !isNested &&
+    node.children?.some((child) => child.attributes?.isTask === 'true');
+
+  const resolvedStyle = isNested
+    ? styles.listNested
+    : hasTaskChild
+      ? styles.listTask
+      : styles.list;
+  return <ListTag style={resolvedStyle}>{renderChildren(node)}</ListTag>;
 }
 
 function UnorderedListRenderer(props: RendererProps) {
-  return <ListRenderer {...props} tag="ul" />;
+  return <ListRenderer {...props} listTag="ul" />;
 }
 
 function OrderedListRenderer(props: RendererProps) {
-  return <ListRenderer {...props} tag="ol" />;
+  return <ListRenderer {...props} listTag="ol" />;
+}
+
+function isNestedList(child: ASTNode): boolean {
+  return NESTED_LIST_TYPES.has(child.type);
 }
 
 function ListItemRenderer({
   node,
   style,
+  styles,
   callbacks,
   renderChildren,
 }: RendererProps) {
   const isTask = node.attributes?.isTask === 'true';
   const initialChecked = node.attributes?.taskChecked === 'true';
-
+  const taskText = isTask ? extractNodeText(node) : '';
   const [isChecked, setIsChecked] = useState(initialChecked);
 
   const handleChange = () => {
+    const taskIndex = node.attributes?.taskIndex;
+    if (taskIndex === undefined) return;
+
     const newChecked = !isChecked;
     setIsChecked(newChecked);
+
     callbacks.onTaskListItemPress?.({
-      index: node.attributes?.taskIndex ?? 0,
+      index: taskIndex,
       checked: newChecked,
-      text: extractNodeText(node),
+      text: taskText,
     });
   };
 
+  const hasNestedList = node.children?.some(isNestedList);
+  const checkedStyle =
+    isTask && isChecked ? checkedTaskTextStyle(style) : undefined;
+
+  const inlineNode: ASTNode = hasNestedList
+    ? {
+        ...node,
+        children: node.children?.filter((child) => !isNestedList(child)),
+      }
+    : node;
+  const nestedNode: ASTNode | null = hasNestedList
+    ? { ...node, children: node.children?.filter(isNestedList) }
+    : null;
+
   return (
-    <li style={listItemCSS(style, isTask, isTask && isChecked)}>
-      {isTask && (
-        <input
-          type="checkbox"
-          checked={isChecked}
-          onChange={handleChange}
-          style={taskCheckboxCSS(style)}
-        />
-      )}
-      {renderChildren(node)}
+    <li style={listItemStyle(isTask)}>
+      <span style={checkedStyle}>
+        {isTask && (
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={handleChange}
+            style={styles.taskCheckbox}
+            aria-label={`Task: ${taskText}`}
+          />
+        )}
+        {renderChildren(inlineNode)}
+      </span>
+      {nestedNode && renderChildren(nestedNode)}
     </li>
   );
 }

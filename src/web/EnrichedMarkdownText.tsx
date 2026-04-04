@@ -7,13 +7,27 @@ import {
 } from 'react';
 import type { EnrichedMarkdownTextProps } from '../types/MarkdownTextProps';
 import { normalizeMarkdownStyle } from '../normalizeMarkdownStyle';
-import { zeroTrailingMargins } from './cssMap';
+import {
+  zeroTrailingMargins,
+  parseErrorFallbackStyle,
+  buildStyles,
+} from './styles';
 import { parseMarkdown } from './parseMarkdown';
-import { renderNode } from './renderers';
-import type { ASTNode, RendererCallbacks } from './types';
-import { indexTaskItems } from './utils';
+import { RenderNode } from './renderers';
+import type { ASTNode, RendererCallbacks, RenderCapabilities } from './types';
+import { indexTaskItems, markInlineImages } from './utils';
 import { loadKaTeX } from './katex';
 import type { KaTeXInstance } from './katex';
+
+export interface WebMarkdownTextProps extends EnrichedMarkdownTextProps {
+  /**
+   * Sets the text direction on the root container.
+   * Useful for RTL languages — CSS logical properties in the renderers
+   * automatically flip blockquote borders, list indentation, etc.
+   * @platform web
+   */
+  dir?: 'ltr' | 'rtl' | 'auto';
+}
 
 export const EnrichedMarkdownText = ({
   markdown,
@@ -25,11 +39,16 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   containerStyle,
   selectable = true,
-}: EnrichedMarkdownTextProps) => {
-  const normalizedStyle = normalizeMarkdownStyle(markdownStyle);
+  dir,
+}: WebMarkdownTextProps) => {
+  const normalizedStyle = useMemo(
+    () => normalizeMarkdownStyle(markdownStyle),
+    [markdownStyle]
+  );
 
   const [ast, setAst] = useState<ASTNode | null>(null);
   const [katex, setKatex] = useState<KaTeXInstance | null>(null);
+  const [parseError, setParseError] = useState<boolean>(false);
 
   const { underline = false, latexMath = true } = md4cFlags;
 
@@ -38,22 +57,40 @@ export const EnrichedMarkdownText = ({
   useEffect(() => {
     const parseId = ++parseIdRef.current;
     const katexPromise = latexMath ? loadKaTeX() : Promise.resolve(null);
+
     Promise.all([
       parseMarkdown(markdown, { underline, latexMath }),
       katexPromise,
-    ]).then(([result, katexInstance]) => {
-      if (parseIdRef.current === parseId) {
-        indexTaskItems(result);
-        setKatex(katexInstance);
-        setAst(result);
-      }
-    });
+    ])
+      .then(([result, katexInstance]) => {
+        if (parseIdRef.current === parseId) {
+          indexTaskItems(result);
+          markInlineImages(result);
+
+          setParseError(false);
+          setKatex(katexInstance);
+          setAst(result);
+        }
+      })
+      .catch((error) => {
+        if (parseIdRef.current === parseId) {
+          if (__DEV__) {
+            console.error('[EnrichedMarkdownText] Parse failed:', error);
+          }
+
+          setParseError(true);
+          setAst(null);
+          setKatex(null);
+        }
+      });
   }, [markdown, underline, latexMath]);
 
   const callbacks = useMemo<RendererCallbacks>(
-    () => ({ onLinkPress, onLinkLongPress, onTaskListItemPress, katex }),
-    [onLinkPress, onLinkLongPress, onTaskListItemPress, katex]
+    () => ({ onLinkPress, onLinkLongPress, onTaskListItemPress }),
+    [onLinkPress, onLinkLongPress, onTaskListItemPress]
   );
+
+  const capabilities = useMemo<RenderCapabilities>(() => ({ katex }), [katex]);
 
   const lastChildStyle = useMemo(
     () =>
@@ -63,15 +100,30 @@ export const EnrichedMarkdownText = ({
     [normalizedStyle, allowTrailingMargin]
   );
 
+  const styles = useMemo(() => buildStyles(normalizedStyle), [normalizedStyle]);
+
+  const lastChildStyles = useMemo(
+    () => buildStyles(lastChildStyle),
+    [lastChildStyle]
+  );
+
   const wrapperStyle = useMemo<CSSProperties>(
     () => ({
       display: 'flex',
       flexDirection: 'column',
-      ...(containerStyle as unknown as CSSProperties),
+      ...(containerStyle as CSSProperties),
       ...(selectable ? undefined : { userSelect: 'none' }),
     }),
     [containerStyle, selectable]
   );
+
+  if (parseError) {
+    return (
+      <div style={wrapperStyle} dir={dir}>
+        <pre style={parseErrorFallbackStyle}>{markdown}</pre>
+      </div>
+    );
+  }
 
   if (!ast) return null;
 
@@ -79,15 +131,17 @@ export const EnrichedMarkdownText = ({
   const lastIdx = children.length - 1;
 
   return (
-    <div style={wrapperStyle}>
-      {children.map((child, index) =>
-        renderNode(
-          child,
-          index === lastIdx ? lastChildStyle : normalizedStyle,
-          callbacks,
-          index
-        )
-      )}
+    <div style={wrapperStyle} dir={dir}>
+      {children.map((child, index) => (
+        <RenderNode
+          key={index}
+          node={child}
+          style={index === lastIdx ? lastChildStyle : normalizedStyle}
+          styles={index === lastIdx ? lastChildStyles : styles}
+          callbacks={callbacks}
+          capabilities={capabilities}
+        />
+      ))}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
 import type { MarkdownStyleInternal } from '../types/MarkdownStyleInternal';
+import type { Styles } from './styles';
 import type {
   LinkPressEvent,
   LinkLongPressEvent,
@@ -45,6 +46,8 @@ export interface NodeAttributes {
   taskChecked?: string;
   /** Stamped by indexTaskItems() — not present in the raw WASM output. */
   taskIndex?: number;
+  /** Stamped by markInlineImages() — not present in the raw WASM output. */
+  isInline?: boolean;
   colCount?: string;
   headRowCount?: string;
   bodyRowCount?: string;
@@ -65,14 +68,19 @@ export interface RendererCallbacks {
   onLinkPress?: (event: LinkPressEvent) => void;
   onLinkLongPress?: (event: LinkLongPressEvent) => void;
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
+}
+
+export interface RenderCapabilities {
   katex: KaTeXInstance | null;
 }
 
 export interface RendererProps {
   node: ASTNode;
   style: MarkdownStyleInternal;
+  styles: Styles;
   parentType?: NodeType;
   callbacks: RendererCallbacks;
+  capabilities: RenderCapabilities;
   renderChildren: (node: ASTNode) => ReactNode;
 }
 

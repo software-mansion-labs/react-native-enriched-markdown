@@ -1,16 +1,10 @@
 import type { RendererProps, RendererMap } from '../types';
-import {
-  tableCSS,
-  tableWrapperCSS,
-  tableBodyRowCSS,
-  tableHeaderCellCSS,
-  tableCellCSS,
-} from '../cssMap';
+import { tableBodyRowStyle } from '../styles';
 
-function TableRenderer({ node, style, renderChildren }: RendererProps) {
+function TableRenderer({ node, styles, renderChildren }: RendererProps) {
   return (
-    <div style={tableWrapperCSS(style)}>
-      <table style={tableCSS(style)}>{renderChildren(node)}</table>
+    <div style={styles.tableWrapper}>
+      <table style={styles.table}>{renderChildren(node)}</table>
     </div>
   );
 }
@@ -19,11 +13,13 @@ function TableHeadRenderer({ node, renderChildren }: RendererProps) {
   return <thead>{renderChildren(node)}</thead>;
 }
 
+// Renders <tr> directly instead of delegating to TableRowRenderer because
+// zebra-striping requires the row index, which renderChildren doesn't provide.
 function TableBodyRenderer({ node, style, renderChildren }: RendererProps) {
   return (
     <tbody>
       {node.children?.map((rowNode, rowIndex) => (
-        <tr key={rowIndex} style={tableBodyRowCSS(style, rowIndex)}>
+        <tr key={rowIndex} style={tableBodyRowStyle(style, rowIndex)}>
           {renderChildren(rowNode)}
         </tr>
       ))}
@@ -37,19 +33,19 @@ function TableRowRenderer({ node, renderChildren }: RendererProps) {
 
 function TableHeaderCellRenderer({
   node,
-  style,
+  styles,
   renderChildren,
 }: RendererProps) {
   return (
-    <th style={tableHeaderCellCSS(style, node.attributes?.align)}>
+    <th style={styles.tableHeaderCell[node.attributes?.align ?? 'default']}>
       {renderChildren(node)}
     </th>
   );
 }
 
-function TableCellRenderer({ node, style, renderChildren }: RendererProps) {
+function TableCellRenderer({ node, styles, renderChildren }: RendererProps) {
   return (
-    <td style={tableCellCSS(style, node.attributes?.align)}>
+    <td style={styles.tableCell[node.attributes?.align ?? 'default']}>
       {renderChildren(node)}
     </td>
   );

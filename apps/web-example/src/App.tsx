@@ -158,14 +158,11 @@ export default function App() {
         <View style={styles.divider} />
 
         <SectionLabel>RTL</SectionLabel>
-        {/* Native <div dir="rtl"> — CSS logical properties in cssMap.ts
-            automatically flip blockquote borders, list indentation, etc. */}
-        <div dir="rtl">
-          <EnrichedMarkdownText
-            markdown={rtlMarkdown}
-            onTaskListItemPress={onTaskListItemPress}
-          />
-        </div>
+        <EnrichedMarkdownText
+          markdown={rtlMarkdown}
+          dir="rtl"
+          onTaskListItemPress={onTaskListItemPress}
+        />
       </ScrollView>
 
       {lastEvent && (

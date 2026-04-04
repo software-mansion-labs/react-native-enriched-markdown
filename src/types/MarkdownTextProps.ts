@@ -23,24 +23,29 @@ export interface ContextMenuItem {
 export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
   /**
    * Markdown content to render.
+   * @platform ios, android, web
    */
   markdown: string;
   /**
    * Style configuration for markdown elements.
+   * @platform ios, android, web
    */
   markdownStyle?: MarkdownStyle;
   /**
    * Style for the container view.
+   * @platform ios, android, web
    */
   containerStyle?: ViewStyle | TextStyle;
   /**
    * MD4C parser flags configuration.
    * Controls how the markdown parser interprets certain syntax.
+   * @platform ios, android, web
    */
   md4cFlags?: Md4cFlags;
   /**
    * Callback fired when a link is pressed.
    * Receives the link URL directly.
+   * @platform ios, android, web
    */
   onLinkPress?: (event: LinkPressEvent) => void;
   /**
@@ -49,6 +54,8 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * - iOS: When provided, automatically disables the system link preview
    *   (unless `enableLinkPreview` is explicitly set to `true`).
    * - Android: Handles long press gestures on links.
+   * - Web: Mapped to the `contextmenu` event (right-click).
+   * @platform ios, android, web
    */
   onLinkLongPress?: (event: LinkLongPressEvent) => void;
   /**
@@ -59,6 +66,7 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * and the item's plain text.
    *
    * Only fires when `flavor="github"` (GFM task lists require GitHub flavor).
+   * @platform ios, android, web
    */
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
   /**
@@ -70,22 +78,24 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * Defaults to `true`, but automatically becomes `false` when `onLinkLongPress`
    * is provided. Set explicitly to override the automatic behavior.
    *
-   * Android: No-op.
-   *
    * @default true
    * @platform ios
    */
   enableLinkPreview?: boolean;
   /**
+   * Controls text selection.
    * - iOS: Controls text selection and link previews on long press.
    * - Android: Controls text selection.
+   * - Web: Applies `user-select: none` when `false`.
    * @default true
+   * @platform ios, android, web
    */
   selectable?: boolean;
   /**
    * Specifies whether fonts should scale to respect Text Size accessibility settings.
    * When false, text will not scale with the user's accessibility settings.
    * @default true
+   * @platform ios, android
    */
   allowFontScaling?: boolean;
   /**
@@ -95,6 +105,7 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * - `0`: no limit
    * - `>= 1`: sets the maxFontSizeMultiplier of this node to this value
    * @default undefined
+   * @platform ios, android
    */
   maxFontSizeMultiplier?: number;
   /**
@@ -102,6 +113,7 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * eliminate bottom spacing.
    * When true, keeps the trailing margin from the last element's marginBottom style.
    * @default false
+   * @platform ios, android, web
    */
   allowTrailingMargin?: boolean;
   /**
@@ -110,6 +122,7 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * - `'github'`: GitHub Flavored Markdown — container-based renderer with
    *   support for tables and other GFM extensions.
    * @default 'commonmark'
+   * @platform ios, android
    */
   flavor?: 'commonmark' | 'github';
   /**
@@ -117,12 +130,14 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * Only the tail (new characters beyond the previous content) is animated.
    * Recommended for LLM streaming use cases with `flavor="commonmark"`.
    * @default false
+   * @platform ios, android
    */
   streamingAnimation?: boolean;
   /**
    * Custom items to show in the text selection context menu.
    * Each item requires a `text` label and an `onPress` callback.
    * Items with `visible: false` are hidden from the menu.
+   * @platform ios, android
    */
   contextMenuItems?: ContextMenuItem[];
 }

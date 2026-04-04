@@ -19,7 +19,7 @@
 - 🔗 Interactive link handling
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
-- 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android)
+- 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android, semantic HTML on web)
 - 🔄 Full RTL (right-to-left) support including text, lists, blockquotes, tables, and task lists
 
 ### EnrichedMarkdownInput
@@ -177,6 +177,7 @@ We're actively working on expanding the capabilities of `react-native-enriched-m
 - `EnrichedMarkdownInput`: headings, lists, blockquotes, code blocks, mentions, inline images
 - `EnrichedMarkdownInput` web support
 - macOS: block math rendering, VoiceOver accessibility, tail fade-in animation
+- Web: streaming animation, configurable link `target`, copy options (Copy as Markdown, multi-format clipboard)
 
 ## Contributing
 

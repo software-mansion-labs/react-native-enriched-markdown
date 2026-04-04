@@ -1,20 +1,11 @@
-import { extractNodeText } from '../utils';
+import { extractNodeText, filenameFromUrl } from '../utils';
 import type { RendererProps, RendererMap } from '../types';
-import {
-  paragraphCSS,
-  paragraphInBlockquoteCSS,
-  headingCSS,
-  toHeadingLevel,
-  blockquoteCSS,
-  codeBlockCSS,
-  thematicBreakCSS,
-  imageCSS,
-  mathDisplayCSS,
-} from '../cssMap';
+import { toHeadingLevel } from '../styles';
+import { KaTeXRenderer } from './KaTeXRenderer';
 
 function ParagraphRenderer({
   node,
-  style,
+  styles,
   parentType,
   renderChildren,
 }: RendererProps) {
@@ -23,67 +14,68 @@ function ParagraphRenderer({
   if (isImageOnly) return <>{renderChildren(node)}</>;
 
   if (parentType === 'Blockquote') {
-    return (
-      <p style={paragraphInBlockquoteCSS(style)}>{renderChildren(node)}</p>
-    );
+    return <p style={styles.paragraphInBlockquote}>{renderChildren(node)}</p>;
   }
 
   if (parentType === 'ListItem') {
     return <span>{renderChildren(node)}</span>;
   }
 
-  return <p style={paragraphCSS(style)}>{renderChildren(node)}</p>;
+  return <p style={styles.paragraph}>{renderChildren(node)}</p>;
 }
 
-function HeadingRenderer({ node, style, renderChildren }: RendererProps) {
-  const level = node.attributes?.level ?? '1';
-  const Tag = toHeadingLevel(level);
-  return <Tag style={headingCSS(style, level)}>{renderChildren(node)}</Tag>;
+function HeadingRenderer({ node, styles, renderChildren }: RendererProps) {
+  const Tag = toHeadingLevel(node.attributes?.level ?? '1');
+  return <Tag style={styles[Tag]}>{renderChildren(node)}</Tag>;
 }
 
-function BlockquoteRenderer({ node, style, renderChildren }: RendererProps) {
+function BlockquoteRenderer({ node, styles, renderChildren }: RendererProps) {
   return (
-    <blockquote style={blockquoteCSS(style)}>{renderChildren(node)}</blockquote>
+    <blockquote style={styles.blockquote}>{renderChildren(node)}</blockquote>
   );
 }
 
-function CodeBlockRenderer({ node, style, renderChildren }: RendererProps) {
-  const css = codeBlockCSS(style);
+function CodeBlockRenderer({ node, styles, renderChildren }: RendererProps) {
+  const language = node.attributes?.language;
+  const label = language ? `Code block: ${language}` : 'Code block';
+
   return (
-    <pre style={css}>
-      <code style={{ fontFamily: css.fontFamily }}>{renderChildren(node)}</code>
+    <pre style={styles.codeBlock} aria-label={label}>
+      <code style={styles.codeBlockFont}>{renderChildren(node)}</code>
     </pre>
   );
 }
 
-function ThematicBreakRenderer({ style }: RendererProps) {
-  return <hr style={thematicBreakCSS(style)} />;
+function ThematicBreakRenderer({ styles }: RendererProps) {
+  return <hr style={styles.thematicBreak} />;
 }
 
-function ImageRenderer({ node, style }: RendererProps) {
-  const url = node.attributes?.url ?? '';
+function ImageRenderer({ node, styles }: RendererProps) {
+  const url = node.attributes?.url;
+  if (!url) return null;
+
   const title = node.attributes?.title;
-  const alt = extractNodeText(node);
-  return <img src={url} alt={alt} title={title} style={imageCSS(style)} />;
+  const alt = extractNodeText(node) || title || filenameFromUrl(url) || 'Image';
+  const imgStyle = node.attributes?.isInline
+    ? styles.inlineImage
+    : styles.image;
+  return <img src={url} alt={alt} title={title} style={imgStyle} />;
 }
 
-function LatexMathDisplayRenderer({ node, style, callbacks }: RendererProps) {
+function LatexMathDisplayRenderer({
+  node,
+  styles,
+  capabilities,
+}: RendererProps) {
   const content = extractNodeText(node);
 
-  if (!callbacks.katex) {
-    return <pre style={mathDisplayCSS(style)}>{`$$${content}$$`}</pre>;
-  }
-
-  const html = callbacks.katex.renderToString(content, {
-    output: 'mathml',
-    displayMode: true,
-    throwOnError: false,
-  });
-
   return (
-    <div
-      style={mathDisplayCSS(style)}
-      dangerouslySetInnerHTML={{ __html: html }}
+    <KaTeXRenderer
+      content={content}
+      katex={capabilities.katex}
+      displayMode
+      style={styles.mathDisplay}
+      fallbackTag="pre"
     />
   );
 }

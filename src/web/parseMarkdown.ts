@@ -28,10 +28,28 @@ function initializeParser(): Promise<ParseFn> {
   return parserPromise;
 }
 
+function isASTNode(value: unknown): value is ASTNode {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    typeof (value as ASTNode).type === 'string'
+  );
+}
+
 export async function parseMarkdown(
   markdown: string,
   { underline = false, latexMath = true }: Md4cFlags = {}
 ): Promise<ASTNode> {
   const parse = await initializeParser();
-  return JSON.parse(parse(markdown, underline ? 1 : 0, latexMath ? 1 : 0));
+
+  const result: unknown = JSON.parse(
+    parse(markdown, underline ? 1 : 0, latexMath ? 1 : 0)
+  );
+
+  if (!isASTNode(result)) {
+    throw new Error('WASM parser returned invalid AST');
+  }
+
+  return result;
 }

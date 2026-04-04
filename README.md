@@ -25,7 +25,7 @@
 
 - ✏️ Rich text input with Markdown output
 - 🕹️ Imperative API for toggling styles and managing links
-- 📋 Native format bar and context menu with formatting options
+- 📋 Native context menu with formatting submenu
 - 🔍 Real-time style state detection
 - 🔗 Auto-link detection with customizable regex
 - 🔄 Smart copy/paste with Markdown preservation

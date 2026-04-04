@@ -19,16 +19,6 @@ import { indexTaskItems, markInlineImages } from './utils';
 import { loadKaTeX } from './katex';
 import type { KaTeXInstance } from './katex';
 
-export interface WebMarkdownTextProps extends EnrichedMarkdownTextProps {
-  /**
-   * Sets the text direction on the root container.
-   * Useful for RTL languages — CSS logical properties in the renderers
-   * automatically flip blockquote borders, list indentation, etc.
-   * @platform web
-   */
-  dir?: 'ltr' | 'rtl' | 'auto';
-}
-
 export const EnrichedMarkdownText = ({
   markdown,
   markdownStyle = {},
@@ -40,7 +30,7 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   selectable = true,
   dir,
-}: WebMarkdownTextProps) => {
+}: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
     () => normalizeMarkdownStyle(markdownStyle),
     [markdownStyle]

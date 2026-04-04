@@ -140,4 +140,11 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @platform ios, android
    */
   contextMenuItems?: ContextMenuItem[];
+  /**
+   * Sets the text direction on the root container.
+   * Useful for RTL languages — CSS logical properties in the renderers
+   * automatically flip blockquote borders, list indentation, etc.
+   * @platform web
+   */
+  dir?: 'ltr' | 'rtl' | 'auto';
 }

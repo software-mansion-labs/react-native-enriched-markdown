@@ -12,6 +12,7 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
 #endif
+#import "ENRMSpoilerTapUtils.h"
 #import "EnrichedMarkdownInternalText.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
@@ -676,7 +677,6 @@ using namespace facebook::react;
     _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;
   }
-
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
@@ -777,6 +777,17 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
           },
           ^(NSString *updatedMarkdown) { [self renderMarkdownContent:updatedMarkdown]; })) {
     return;
+  }
+
+  for (RCTUIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      EnrichedMarkdownInternalText *textSeg = (EnrichedMarkdownInternalText *)segment;
+      if (textSeg.textView == textView) {
+        if (handleSpoilerTap(textView, recognizer, textSeg.spoilerManager))
+          return;
+        break;
+      }
+    }
   }
 
   NSString *url = linkURLAtTapLocation(textView, recognizer);

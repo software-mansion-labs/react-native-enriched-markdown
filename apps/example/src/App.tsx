@@ -94,6 +94,7 @@ export default function App() {
             markdownStyle={markdownStyle}
             contextMenuItems={contextMenuItems}
           />
+          <View style={{height: 100, backgroundColor: 'red'}} />
         </ScrollView>
       )}
     </SafeAreaView>

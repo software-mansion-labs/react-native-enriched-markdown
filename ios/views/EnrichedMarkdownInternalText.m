@@ -1,6 +1,7 @@
 #import "EnrichedMarkdownInternalText.h"
 #import "AccessibilityInfo.h"
 #import "ENRMContextMenuTextView+macOS.h"
+#import "ENRMSpoilerOverlayManager.h"
 #import "ENRMUIKit.h"
 #import "LastElementUtils.h"
 #import "MarkdownAccessibilityElementBuilder.h"
@@ -20,9 +21,11 @@
   NSMutableArray *_accessibilityElements;
 #endif
   BOOL _accessibilityNeedsRebuild;
+  ENRMSpoilerOverlayManager *_spoilerManager;
 }
 
 @synthesize textView = _textView;
+@synthesize spoilerManager = _spoilerManager;
 
 - (instancetype)initWithConfig:(StyleConfig *)config
 {
@@ -49,6 +52,8 @@
   [self addSubview:_textView];
 
   [self setupLayoutManager];
+
+  _spoilerManager = [[ENRMSpoilerOverlayManager alloc] initWithTextView:_textView config:_config];
 }
 
 - (void)setupLayoutManager
@@ -80,6 +85,8 @@
   ENRMSetAttributedText(_textView, text);
 
   [_textView.layoutManager invalidateLayoutForCharacterRange:NSMakeRange(0, text.length) actualCharacterRange:NULL];
+
+  [_spoilerManager setNeedsUpdate];
 
 #if !TARGET_OS_OSX
   [_textView setNeedsLayout];
@@ -124,6 +131,8 @@
 {
   [super layoutSubviews];
   _textView.frame = self.bounds;
+
+  [_spoilerManager updateIfNeeded];
 }
 
 #pragma mark - Accessibility

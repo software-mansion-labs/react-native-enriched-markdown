@@ -193,6 +193,11 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     checkedTextColor: normalizeColor('#000000')!,
     checkedStrikethrough: false,
   },
+  spoiler: {
+    particleColor: normalizeColor('#374151')!,
+    particleDensity: 8,
+    particleSpeed: 20,
+  },
 });
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();

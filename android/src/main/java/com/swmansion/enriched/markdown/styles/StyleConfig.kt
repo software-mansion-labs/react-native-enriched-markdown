@@ -226,6 +226,14 @@ class StyleConfig(
     InlineMathStyle.fromReadableMap(map, styleParser)
   }
 
+  val spoilerStyle: SpoilerStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("spoiler")) {
+        "Spoiler style not found. JS should always provide defaults."
+      }
+    SpoilerStyle.fromReadableMap(map, styleParser)
+  }
+
   val tableTypeface: Typeface? by lazy {
     val fontFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
     val fontWeight = parseFontWeight(tableStyle.fontWeight)
@@ -288,7 +296,8 @@ class StyleConfig(
       tableStyle == other.tableStyle &&
       taskListStyle == other.taskListStyle &&
       mathStyle == other.mathStyle &&
-      inlineMathStyle == other.inlineMathStyle
+      inlineMathStyle == other.inlineMathStyle &&
+      spoilerStyle == other.spoilerStyle
   }
 
   override fun hashCode(): Int {
@@ -310,6 +319,7 @@ class StyleConfig(
     result = 31 * result + taskListStyle.hashCode()
     result = 31 * result + mathStyle.hashCode()
     result = 31 * result + inlineMathStyle.hashCode()
+    result = 31 * result + spoilerStyle.hashCode()
     return result
   }
 }

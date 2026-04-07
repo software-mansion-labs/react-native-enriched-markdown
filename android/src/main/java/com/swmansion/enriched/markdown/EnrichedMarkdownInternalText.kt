@@ -1,11 +1,13 @@
 package com.swmansion.enriched.markdown
 
 import android.content.Context
+import android.graphics.Canvas
 import android.text.Layout
 import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
@@ -37,6 +39,8 @@ class EnrichedMarkdownInternalText
 
     override val segmentMarginBottom: Int get() = lastElementMarginBottom.toInt()
 
+    var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
+      private set
     private var contextMenuItemTexts: List<String> = emptyList()
     private var onContextMenuItemPress: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
 
@@ -59,7 +63,19 @@ class EnrichedMarkdownInternalText
         movementMethod = LinkLongPressMovementMethod.createInstance()
       }
 
+      spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer)
       accessibilityHelper.invalidateAccessibilityItems()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+      super.onDraw(canvas)
+      spoilerOverlayDrawer?.draw(canvas)
+    }
+
+    override fun onDetachedFromWindow() {
+      spoilerOverlayDrawer?.stop()
+      spoilerOverlayDrawer = null
+      super.onDetachedFromWindow()
     }
 
     fun setIsSelectable(selectable: Boolean) {

@@ -111,6 +111,20 @@ The largest terrestrial biome, spanning across **Northern Russia, Canada, and Sc
 
 ---
 
+## Spoiler Examples
+
+Try tapping the hidden text below to reveal it:
+
+The secret location of the oldest tree is ||deep in the White Mountains of California||.
+
+Here is a spoiler with **bold** inside: ||The tree is named **Methuselah** and is over *4,850 years old*||.
+
+Multiple spoilers in one paragraph: The password is ||swordfish|| and the code is ||42||.
+
+||The entire Amazon rainforest produces about **20% of the world's oxygen**, but recent studies suggest that the true figure may be closer to *6-9%* because the forest also consumes a significant amount of oxygen through decomposition. Nevertheless, the Amazon remains the single largest tropical rainforest on Earth, spanning **5.5 million square kilometers** across nine countries.||
+
+---
+
 ## Fascinating Forest Facts
 
 Did you know that trees communicate through an underground network? Scientists call this the \`Wood Wide Web\` — a fungal network connecting tree roots across entire forests.

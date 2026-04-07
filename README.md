@@ -16,6 +16,7 @@
 - ✨ Text selection and copy support
 - 📌 Custom text selection context menu items
 - 🔗 Interactive link handling
+- 🙈 Spoiler text with animated particle overlay and tap-to-reveal
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
 - 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android)

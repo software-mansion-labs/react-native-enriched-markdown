@@ -64,6 +64,8 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 24;
     case NodeType::LatexMathDisplay:
       return 25;
+    case NodeType::Spoiler:
+      return 26;
     default:
       return 0;
   }

@@ -86,6 +86,7 @@ class RendererFactory(
       put(MarkdownASTNode.NodeType.Image, ImageRenderer())
       put(MarkdownASTNode.NodeType.LineBreak, lineBreakRenderer)
       put(MarkdownASTNode.NodeType.ThematicBreak, ThematicBreakRenderer(config))
+      put(MarkdownASTNode.NodeType.Spoiler, SpoilerRenderer())
       if (FeatureFlags.IS_MATH_ENABLED) {
         try {
           val mathInlineRendererClass = Class.forName("com.swmansion.enriched.markdown.renderer.MathInlineRenderer")

@@ -35,6 +35,7 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Inline Code | `` `code` `` | `code` | Parent block | Monospace font, background, optional fontSize |
 | Inline Images | `![alt](url)` | `inlineImage` | N/A | Inline images within text flow |
 | Inline Math | `$...$` | `inlineMath` | Parent block | LaTeX math rendered within the text flow |
+| Spoiler | `||text||` | `spoiler` | Parent block | Text concealed behind animated particle overlay, tap to reveal. Can wrap inline text or entire blocks (e.g. a full paragraph) |
 
 > **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
 

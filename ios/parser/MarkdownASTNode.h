@@ -26,7 +26,8 @@ typedef NS_ENUM(NSInteger, MarkdownNodeType) {
   MarkdownNodeTypeTableHeaderCell,
   MarkdownNodeTypeTableCell,
   MarkdownNodeTypeLatexMathInline,
-  MarkdownNodeTypeLatexMathDisplay
+  MarkdownNodeTypeLatexMathDisplay,
+  MarkdownNodeTypeSpoiler
 };
 
 @interface MarkdownASTNode : NSObject

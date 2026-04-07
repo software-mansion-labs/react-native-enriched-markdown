@@ -6,6 +6,8 @@
 #import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
+#import "ENRMSpoilerOverlayManager.h"
+#import "ENRMSpoilerTapUtils.h"
 #import "ENRMTailFadeInAnimator.h"
 #import "ENRMUIKit.h"
 #import "EditMenuUtils.h"
@@ -83,6 +85,8 @@ using namespace facebook::react;
 
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
+
+  ENRMSpoilerOverlayManager *_spoilerManager;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -396,15 +400,20 @@ using namespace facebook::react;
                                         actualCharacterRange:NULL];
 
   // When bounds width is zero (recycled view not yet laid out), skip layout
-  // and measurement — didMoveToWindow will handle it once the view has real
+  // and measurement — layoutSubviews will handle it once the view has real
   // bounds. Measuring with width=0 produces a bogus single-line measurement
   // that corrupts the height sent to Yoga.
+  [self ensureSpoilerManager];
+  [_spoilerManager setNeedsUpdate];
+
   if (self.bounds.size.width > 0) {
     [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
     ENRMSetNeedsDisplay(_textView);
 #if !TARGET_OS_OSX
     [self setNeedsLayout];
 #endif
+
+    [_spoilerManager updateIfNeeded];
 
     CGSize measured = [self measureSize:self.bounds.size.width];
     if (needsHeightUpdate(measured, self.bounds)) {
@@ -424,6 +433,21 @@ using namespace facebook::react;
     _previousTextLength = attributedText.length;
   }
 }
+
+- (void)ensureSpoilerManager
+{
+  if (!_spoilerManager) {
+    _spoilerManager = [[ENRMSpoilerOverlayManager alloc] initWithTextView:_textView config:_config];
+  }
+}
+
+#if !TARGET_OS_OSX
+- (void)layoutSubviews
+{
+  [super layoutSubviews];
+  [_spoilerManager updateIfNeeded];
+}
+#endif
 
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
@@ -488,7 +512,6 @@ using namespace facebook::react;
     _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;
   }
-
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
@@ -525,6 +548,9 @@ using namespace facebook::react;
   if (self.window && _renderedMarkdown != nil) {
     _textView.hidden = NO;
     ENRMRefreshTextViewAfterWindowAttach(_textView, self.bounds);
+
+    [self ensureSpoilerManager];
+    [_spoilerManager updateOverlays];
 
     CGSize measured = [self measureSize:self.bounds.size.width];
     if (needsHeightUpdate(measured, self.bounds)) {
@@ -567,6 +593,10 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
             }
           },
           ^(NSString *updatedMarkdown) { [self renderMarkdownContent:updatedMarkdown]; })) {
+    return;
+  }
+
+  if (handleSpoilerTap(textView, recognizer, _spoilerManager)) {
     return;
   }
 

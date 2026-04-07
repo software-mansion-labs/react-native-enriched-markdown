@@ -23,6 +23,9 @@ class SpanStyleCache(
   val codeFontFamily: String = style.codeStyle.fontFamily
   val codeFontSize: Float = style.codeStyle.fontSize
   val codeColor: Int = style.codeStyle.color
+  val spoilerParticleColor: Int = style.spoilerStyle.particleColor
+  val spoilerParticleDensity: Float = style.spoilerStyle.particleDensity
+  val spoilerParticleSpeed: Float = style.spoilerStyle.particleSpeed
 
   private fun buildColorsToPreserve(style: StyleConfig): IntArray {
     val paragraphColor = style.paragraphStyle.color

@@ -50,6 +50,7 @@
     "lint-kotlin": "cd apps/example/android && ./gradlew :react-native-enriched-markdown:ktlintCheck",
     "lint-kotlin:fix": "cd apps/example/android && ./gradlew :react-native-enriched-markdown:ktlintFormat",
     "clean": "del-cli android/build apps/example/android/build apps/example/android/app/build apps/example/ios/build apps/macos-example/macos/build lib",
+    "sync-md4c": "bash scripts/fetch-md4c.sh",
     "prepare": "bob build",
     "release": "release-it --only-version"
   },

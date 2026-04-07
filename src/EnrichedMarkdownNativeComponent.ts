@@ -137,6 +137,12 @@ interface InlineMathStyleInternal {
   color: ColorValue;
 }
 
+interface SpoilerStyleInternal {
+  particleColor: ColorValue;
+  particleDensity: CodegenTypes.Float;
+  particleSpeed: CodegenTypes.Float;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -161,6 +167,7 @@ export interface MarkdownStyleInternal {
   taskList: TaskListStyleInternal;
   math: MathStyleInternal;
   inlineMath: InlineMathStyleInternal;
+  spoiler: SpoilerStyleInternal;
 }
 
 export interface LinkPressEvent {

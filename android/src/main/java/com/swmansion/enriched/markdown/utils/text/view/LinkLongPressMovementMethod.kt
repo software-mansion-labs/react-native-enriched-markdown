@@ -8,7 +8,11 @@ import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.widget.TextView
+import com.swmansion.enriched.markdown.EnrichedMarkdownInternalText
+import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.SpoilerSpan
+import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import kotlin.math.abs
 
 /**
@@ -50,7 +54,19 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
         }
       }
 
-      MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+      MotionEvent.ACTION_UP -> {
+        cancelLongPress()
+        isLinkTouchActive = false
+        if (widget.hasSelection()) {
+          Selection.removeSelection(buffer)
+        }
+        if (handleSpoilerTap(widget, buffer, event)) {
+          Selection.removeSelection(buffer)
+          return true
+        }
+      }
+
+      MotionEvent.ACTION_CANCEL -> {
         cancelLongPress()
         isLinkTouchActive = false
         if (widget.hasSelection()) {
@@ -98,21 +114,87 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
     longPressRunnable = null
   }
 
+  private fun charOffsetAt(
+    widget: TextView,
+    event: MotionEvent,
+  ): Int? {
+    val x = event.x.toInt() - widget.totalPaddingLeft + widget.scrollX
+    val y = event.y.toInt() - widget.totalPaddingTop + widget.scrollY
+    val layout = widget.layout ?: return null
+    return layout.getOffsetForHorizontal(layout.getLineForVertical(y), x.toFloat())
+  }
+
   private fun findLinkSpan(
     widget: TextView,
     buffer: Spannable,
     event: MotionEvent,
   ): LinkSpan? {
-    // Adjust coordinates for padding and scroll
-    val x = event.x.toInt() - widget.totalPaddingLeft + widget.scrollX
-    val y = event.y.toInt() - widget.totalPaddingTop + widget.scrollY
-
-    val layout = widget.layout ?: return null
-    val line = layout.getLineForVertical(y)
-    val offset = layout.getOffsetForHorizontal(line, x.toFloat())
-
-    // Ensure the touch is within the character bounds
+    val offset = charOffsetAt(widget, event) ?: return null
     return buffer.getSpans(offset, offset, LinkSpan::class.java).firstOrNull()
+  }
+
+  private fun handleSpoilerTap(
+    widget: TextView,
+    buffer: Spannable,
+    event: MotionEvent,
+  ): Boolean {
+    val offset = charOffsetAt(widget, event) ?: return false
+    val tappedSpan =
+      buffer
+        .getSpans(offset, offset, SpoilerSpan::class.java)
+        .firstOrNull { !it.revealed && !it.revealing } ?: return false
+
+    val drawer = getOverlayDrawer(widget) ?: return false
+    val spans = expandContiguousSpoilers(buffer, tappedSpan)
+    val remaining = intArrayOf(spans.size)
+
+    for (span in spans) {
+      drawer.revealSpan(span, buffer) {
+        remaining[0]--
+        if (remaining[0] <= 0) widget.invalidate()
+      }
+    }
+    widget.invalidate()
+    return true
+  }
+
+  private fun getOverlayDrawer(widget: TextView): SpoilerOverlayDrawer? =
+    when (widget) {
+      is EnrichedMarkdownText -> widget.spoilerOverlayDrawer
+      is EnrichedMarkdownInternalText -> widget.spoilerOverlayDrawer
+      else -> null
+    }
+
+  /**
+   * Collects all SpoilerSpans whose ranges overlap or touch [seed]'s range,
+   * then transitively expands to include their neighbours.
+   */
+  private fun expandContiguousSpoilers(
+    buffer: Spannable,
+    seed: SpoilerSpan,
+  ): List<SpoilerSpan> {
+    val all = buffer.getSpans(0, buffer.length, SpoilerSpan::class.java)
+    if (all.size <= 1) return listOf(seed)
+
+    val result = mutableSetOf(seed)
+    var lo = buffer.getSpanStart(seed)
+    var hi = buffer.getSpanEnd(seed)
+    var changed = true
+    while (changed) {
+      changed = false
+      for (span in all) {
+        if (span in result) continue
+        val s = buffer.getSpanStart(span)
+        val e = buffer.getSpanEnd(span)
+        if (e >= lo && s <= hi) {
+          result.add(span)
+          if (s < lo) lo = s
+          if (e > hi) hi = e
+          changed = true
+        }
+      }
+    }
+    return result.sortedBy { buffer.getSpanStart(it) }
   }
 
   companion object {

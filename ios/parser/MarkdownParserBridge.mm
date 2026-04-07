@@ -92,6 +92,9 @@ static MarkdownASTNode *convertCppASTToObjC(std::shared_ptr<Markdown::MarkdownAS
     case Markdown::NodeType::LatexMathDisplay:
       objcType = MarkdownNodeTypeLatexMathDisplay;
       break;
+    case Markdown::NodeType::Spoiler:
+      objcType = MarkdownNodeTypeSpoiler;
+      break;
   }
 
   MarkdownASTNode *objcNode = [[MarkdownASTNode alloc] initWithType:objcType];

@@ -1,23 +1,15 @@
 #import "LinkTapUtils.h"
+#import "ENRMSpoilerTapUtils.h"
+#import "ENRMTextHitTest.h"
 
 NSString *_Nullable linkURLAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer)
 {
-  NSLayoutManager *layoutManager = textView.layoutManager;
-  CGPoint location = [recognizer locationInView:textView];
-  location.x -= textView.textContainerInset.left;
-  location.y -= textView.textContainerInset.top;
-
-  NSUInteger characterIndex = [layoutManager characterIndexForPoint:location
-                                                    inTextContainer:textView.textContainer
-                           fractionOfDistanceBetweenInsertionPoints:NULL];
+  NSUInteger characterIndex = ENRMCharacterIndexForTap(textView, recognizer);
+  if (characterIndex == NSNotFound)
+    return nil;
 
   NSAttributedString *attrText = ENRMGetAttributedText(textView);
-  if (characterIndex < attrText.length) {
-    NSRange range;
-    return [attrText attribute:@"linkURL" atIndex:characterIndex effectiveRange:&range];
-  }
-
-  return nil;
+  return [attrText attribute:@"linkURL" atIndex:characterIndex effectiveRange:NULL];
 }
 
 NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange characterRange)
@@ -31,18 +23,10 @@ NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange chara
 
 BOOL isPointOnInteractiveElement(ENRMPlatformTextView *textView, CGPoint point)
 {
-  NSLayoutManager *layoutManager = textView.layoutManager;
-  CGPoint adjusted = CGPointMake(point.x - textView.textContainerInset.left, point.y - textView.textContainerInset.top);
-
-  NSUInteger charIndex = [layoutManager characterIndexForPoint:adjusted
-                                               inTextContainer:textView.textContainer
-                      fractionOfDistanceBetweenInsertionPoints:NULL];
-
-  NSAttributedString *attrText = ENRMGetAttributedText(textView);
-  if (charIndex >= attrText.length) {
+  NSUInteger charIndex = ENRMCharacterIndexAtPoint(textView, point);
+  if (charIndex == NSNotFound)
     return NO;
-  }
 
-  NSDictionary *attrs = [attrText attributesAtIndex:charIndex effectiveRange:NULL];
-  return attrs[@"linkURL"] != nil || [attrs[@"TaskItem"] boolValue];
+  NSDictionary *attrs = [ENRMGetAttributedText(textView) attributesAtIndex:charIndex effectiveRange:NULL];
+  return attrs[@"linkURL"] != nil || [attrs[@"TaskItem"] boolValue] || attrs[SpoilerAttributeName] != nil;
 }

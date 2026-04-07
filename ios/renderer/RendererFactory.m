@@ -10,6 +10,7 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathInlineRenderer.h"
 #endif
+#import "ENRMSpoilerRenderer.h"
 #import "HeadingRenderer.h"
 #import "LinkRenderer.h"
 #import "ListItemRenderer.h"
@@ -103,6 +104,8 @@
     case MarkdownNodeTypeLatexMathInline:
       return [[ENRMMathInlineRenderer alloc] initWithRendererFactory:self config:_config];
 #endif
+    case MarkdownNodeTypeSpoiler:
+      return [[ENRMSpoilerRenderer alloc] initWithRendererFactory:self config:_config];
     default:
       return nil;
   }

@@ -2,6 +2,7 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Canvas
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
@@ -76,6 +78,8 @@ class EnrichedMarkdownText
     private var streamingAnimation: Boolean = false
     private var previousTextLength: Int = 0
     private var fadeAnimator: TailFadeInAnimator? = null
+    var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
+      private set
 
     init {
       setupAsMarkdownTextView(accessibilityHelper)
@@ -232,6 +236,8 @@ class EnrichedMarkdownText
         span.registerTextView(this)
       }
 
+      spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer)
+
       layoutManager.invalidateLayout()
       accessibilityHelper.invalidateAccessibilityItems()
 
@@ -274,6 +280,21 @@ class EnrichedMarkdownText
 
     fun clearActiveImageSpans() {
       renderer.clearActiveImageSpans()
+    }
+
+    override fun onDetachedFromWindow() {
+      stopSpoilerAnimations()
+      super.onDetachedFromWindow()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+      super.onDraw(canvas)
+      spoilerOverlayDrawer?.draw(canvas)
+    }
+
+    private fun stopSpoilerAnimations() {
+      spoilerOverlayDrawer?.stop()
+      spoilerOverlayDrawer = null
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

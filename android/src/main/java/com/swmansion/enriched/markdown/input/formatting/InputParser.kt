@@ -19,7 +19,7 @@ object InputParser {
     }
 
     val completed = InputRemend.complete(markdown)
-    val flags = Md4cFlags(underline = true)
+    val flags = Md4cFlags(underline = true, permissiveAutolinks = false)
     val ast = Parser.shared.parseMarkdown(completed, flags) ?: return ParseResult(markdown, emptyList())
 
     val plainText = StringBuilder()
@@ -39,7 +39,7 @@ object InputParser {
     val styleType = nodeTypeToStyleType(node.type)
 
     if (styleType != null) {
-      val url = if (styleType == StyleType.LINK) node.getAttribute("href") else null
+      val url = if (styleType == StyleType.LINK) node.getAttribute("url") else null
       activeStyles.addLast(ActiveStyle(styleType, plainText.length, url))
     }
 

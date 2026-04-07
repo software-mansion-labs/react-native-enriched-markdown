@@ -25,10 +25,42 @@
     return nil;
   }
 
-  UIAction *formatAction = [UIAction actionWithTitle:@"Format"
-                                               image:[UIImage systemImageNamed:@"textformat"]
-                                          identifier:@"com.enrichedmarkdown.format"
-                                             handler:^(__kindof UIAction *action) { [self showFormatBar]; }];
+  __weak EnrichedMarkdownInput *weakSelf = self;
+
+  static const struct {
+    NSString *title;
+    NSString *icon;
+    ENRMInputStyleType styleType;
+  } kFormatItems[] = {
+      // TODO: Localize titles with NSLocalizedString.
+      {@"Bold", @"bold", ENRMInputStyleTypeStrong},
+      {@"Italic", @"italic", ENRMInputStyleTypeEmphasis},
+      {@"Underline", @"underline", ENRMInputStyleTypeUnderline},
+      {@"Strikethrough", @"strikethrough", ENRMInputStyleTypeStrikethrough},
+      {@"Link", @"link", ENRMInputStyleTypeLink},
+  };
+  static const NSUInteger kFormatItemCount = sizeof(kFormatItems) / sizeof(kFormatItems[0]);
+
+  NSMutableArray<UIAction *> *formatActions = [NSMutableArray arrayWithCapacity:kFormatItemCount];
+  for (NSUInteger i = 0; i < kFormatItemCount; i++) {
+    ENRMInputStyleType styleType = kFormatItems[i].styleType;
+    UIAction *action = [UIAction actionWithTitle:kFormatItems[i].title
+                                           image:[UIImage systemImageNamed:kFormatItems[i].icon]
+                                      identifier:nil
+                                         handler:^(__kindof UIAction *_) {
+                                           if (styleType == ENRMInputStyleTypeLink) {
+                                             [weakSelf showLinkPrompt];
+                                           } else {
+                                             [weakSelf toggleInlineStyle:styleType];
+                                           }
+                                         }];
+    [formatActions addObject:action];
+  }
+  UIMenu *formatMenu = [UIMenu menuWithTitle:@"Format"
+                                       image:[UIImage systemImageNamed:@"textformat"]
+                                  identifier:@"com.enrichedmarkdown.format"
+                                     options:0
+                                    children:formatActions];
 
   UIAction *copyMarkdownAction =
       [UIAction actionWithTitle:@"Copy as Markdown"
@@ -38,7 +70,6 @@
 
   NSArray<NSString *> *customItemTexts = [self contextMenuItemTexts];
   NSArray<NSString *> *customItemIcons = [self contextMenuItemIcons];
-  __weak EnrichedMarkdownInput *weakSelf = self;
   NSMutableArray<UIMenuElement *> *allActions = [NSMutableArray arrayWithCapacity:customItemTexts.count];
   [customItemTexts enumerateObjectsUsingBlock:^(NSString *itemText, NSUInteger index, BOOL *_) {
     NSString *iconName = index < customItemIcons.count ? customItemIcons[index] : nil;
@@ -59,7 +90,7 @@
       break;
     }
   }
-  [systemActions insertObject:formatAction atIndex:insertIndex];
+  [systemActions insertObject:formatMenu atIndex:insertIndex];
   [systemActions insertObject:copyMarkdownAction atIndex:insertIndex + 1];
   [allActions addObjectsFromArray:systemActions];
 

@@ -7,9 +7,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   Alert,
 } from 'react-native';
+import type { HostInstance } from 'react-native';
 import {
   EnrichedMarkdownInput,
   EnrichedMarkdownText,
@@ -160,8 +160,19 @@ export default function InputScreen() {
     []
   );
 
+  const containerRef = useRef<HostInstance | null>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  const measureContainer = useCallback(() => {
+    containerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y));
+  }, []);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View
+      style={styles.container}
+      ref={containerRef}
+      onLayout={measureContainer}
+    >
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>JD</Text>
@@ -175,7 +186,7 @@ export default function InputScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={keyboardOffset}
       >
         <ScrollView
           ref={scrollRef}
@@ -302,7 +313,7 @@ export default function InputScreen() {
         onClose={() => setLinkModalVisible(false)}
         onSubmit={handleLinkSubmit}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -311,7 +322,7 @@ const OWN_BUBBLE = '#DCFCE7';
 const OTHER_BUBBLE = '#FFFFFF';
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: '#E8F4F8',
   },

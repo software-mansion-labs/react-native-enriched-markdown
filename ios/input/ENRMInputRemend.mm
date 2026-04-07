@@ -42,9 +42,15 @@ NSString *ENRMInputRemendComplete(NSString *markdown)
 
     // Link URL parentheses are a special two-character transition from "]("
     if (c == ']' && !inLinkParen && i + 1 < length && [markdown characterAtIndex:i + 1] == '(') {
-      // Pop "[" from stack if present — the bracket pair is now consumed
-      if (stack.count > 0 && [stack.lastObject isEqualToString:@"["]) {
-        [stack removeLastObject];
+      NSUInteger bracketIndex = NSNotFound;
+      for (NSUInteger idx = stack.count; idx > 0; idx--) {
+        if ([stack[idx - 1] isEqualToString:@"["]) {
+          bracketIndex = idx - 1;
+          break;
+        }
+      }
+      if (bracketIndex != NSNotFound) {
+        [stack removeObjectsInRange:NSMakeRange(bracketIndex, stack.count - bracketIndex)];
       }
       inLinkParen = YES;
       i += 2;

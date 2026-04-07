@@ -462,6 +462,7 @@ using namespace facebook::react;
 
   [_formattingStore setRanges:parsed.formattingRanges];
   _lastTextLength = parsed.plainText.length;
+  _lastSelectedRange = _textView.selectedRange;
   [self applyFormatting];
   [self updatePlaceholderVisibility];
 

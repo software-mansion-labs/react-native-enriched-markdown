@@ -270,7 +270,7 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
     }
 
     NSUInteger contentStart = mapByteOffset(byteMap, spanInfo.contentStartByteOffset, context.bufferLength);
-    NSUInteger contentEnd = mapByteOffset(byteMap, spanInfo.contentEndByteOffset, context.originalLength);
+    NSUInteger contentEnd = mapByteOffset(byteMap, spanInfo.contentEndByteOffset, context.bufferLength);
     styledRange.contentRange = NSMakeRange(contentStart, contentEnd - contentStart);
 
     NSUInteger openStart = mapByteOffset(byteMap, spanInfo.openingDelimiterByteOffset, context.bufferLength);

@@ -184,6 +184,20 @@ static int onText(MD_TEXTTYPE, const MD_CHAR *text, MD_SIZE size, void *userdata
     return 0;
   }
   auto *context = static_cast<ParseContext *>(userdata);
+
+  // md4c passes pointers outside the input buffer for synthetic tokens
+  // (e.g. MD_TEXT_SOFTBR, MD_TEXT_BR use a string literal "\n").
+  // Pointer arithmetic against context->buffer would underflow, corrupting offsets.
+  //
+  // TODO: Skipping out-of-buffer tokens means lastTextEnd doesn't advance past
+  // newlines. Fine for inline spans, but if block-level input formatting is
+  // added later, openingDelimiterByteOffset will include newline chars in the
+  // syntax range. See the related TODO above onEnterBlock.
+  bool insideBuffer = (text >= context->buffer && text < context->buffer + context->bufferLength);
+  if (!insideBuffer) {
+    return 0;
+  }
+
   size_t textStart = text - context->buffer;
   size_t textEnd = textStart + size;
 

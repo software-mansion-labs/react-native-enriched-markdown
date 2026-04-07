@@ -48,6 +48,11 @@ object InputRemend {
         continue
       }
 
+      if (inLinkParen) {
+        i++
+        continue
+      }
+
       var matched = false
       for (pair in DELIMITER_PAIRS) {
         val openLen = pair.open.length

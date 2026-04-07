@@ -19,7 +19,7 @@ object InputParser {
     }
 
     val completed = InputRemend.complete(markdown)
-    val flags = Md4cFlags(underline = true)
+    val flags = Md4cFlags(underline = true, permissiveAutolinks = false)
     val ast = Parser.shared.parseMarkdown(completed, flags) ?: return ParseResult(markdown, emptyList())
 
     val plainText = StringBuilder()

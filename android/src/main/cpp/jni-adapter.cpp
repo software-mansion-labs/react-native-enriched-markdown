@@ -204,6 +204,10 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
         if (latexMathField) {
           md4cFlags.latexMath = env->GetBooleanField(flags, latexMathField) == JNI_TRUE;
         }
+        jfieldID permissiveAutolinksField = env->GetFieldID(flagsClass, "permissiveAutolinks", "Z");
+        if (permissiveAutolinksField) {
+          md4cFlags.permissiveAutolinks = env->GetBooleanField(flags, permissiveAutolinksField) == JNI_TRUE;
+        }
         env->DeleteLocalRef(flagsClass);
       }
     }

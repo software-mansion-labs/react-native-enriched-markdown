@@ -57,6 +57,11 @@ NSString *ENRMInputRemendComplete(NSString *markdown)
       continue;
     }
 
+    if (inLinkParen) {
+      i++;
+      continue;
+    }
+
     BOOL matched = NO;
     for (NSUInteger p = 0; p < kDelimiterPairCount; p++) {
       ENRMDelimiterPair pair = kDelimiterPairs[p];

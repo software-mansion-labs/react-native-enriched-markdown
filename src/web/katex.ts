@@ -12,19 +12,20 @@ export interface KaTeXInstance {
 
 let katexLoadPromise: Promise<KaTeXInstance | null> | null = null;
 
-/**
- * Lazily loads KaTeX on first call and caches the result for subsequent calls.
- * Resolves to null if katex is not installed (optional peer dependency).
- */
+/** Lazily loads KaTeX. Resolves to null if not installed. */
 export function loadKaTeX(): Promise<KaTeXInstance | null> {
   if (!katexLoadPromise) {
-    katexLoadPromise = import('katex')
-      .then((module) => {
-        const instance = module.default ?? module;
-        if (typeof instance?.renderToString !== 'function') return null;
-        return instance as KaTeXInstance;
-      })
-      .catch(() => null);
+    let instance: KaTeXInstance | null = null;
+    try {
+      const mod = require('katex');
+      const candidate = (mod?.default ?? mod) as KaTeXInstance | null;
+      if (typeof candidate?.renderToString === 'function') {
+        instance = candidate;
+      }
+    } catch {
+      // katex not installed — math rendering will be skipped
+    }
+    katexLoadPromise = Promise.resolve(instance);
   }
   return katexLoadPromise;
 }

@@ -5,8 +5,8 @@ import {
   useMemo,
   type CSSProperties,
 } from 'react';
-import type { EnrichedMarkdownTextProps } from '../types/MarkdownTextProps';
-import { normalizeMarkdownStyle } from '../normalizeMarkdownStyle';
+import type { EnrichedMarkdownTextProps } from '../types/MarkdownTextProps.web';
+import { normalizeMarkdownStyle } from '../normalizeMarkdownStyle.web';
 import {
   zeroTrailingMargins,
   parseErrorFallbackStyle,

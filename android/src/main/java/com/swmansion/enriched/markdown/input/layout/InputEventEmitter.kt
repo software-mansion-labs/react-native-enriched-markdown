@@ -20,6 +20,8 @@ class InputEventEmitter(
   private val view: EnrichedMarkdownInputView,
 ) {
   private var prevState: Map<StyleType, Boolean> = emptyMap()
+  private var prevUnorderedListState = false
+  private var prevOrderedListState = false
 
   fun emitChangeText() {
     val plainText = view.text?.toString() ?: ""
@@ -44,8 +46,15 @@ class InputEventEmitter(
         isStyleEffectivelyActive(style, pos)
       }
 
-    if (current == prevState) return
+    // Detect if cursor is in a list
+    val (isUnorderedList, isOrderedList) = detectCurrentListState(pos)
+
+    // Check if state has changed
+    if (current == prevState && isUnorderedList == prevUnorderedListState && isOrderedList == prevOrderedListState) return
+
     prevState = current
+    prevUnorderedListState = isUnorderedList
+    prevOrderedListState = isOrderedList
 
     dispatch(
       OnChangeStateEvent(
@@ -56,6 +65,8 @@ class InputEventEmitter(
         current[StyleType.UNDERLINE] ?: false,
         current[StyleType.STRIKETHROUGH] ?: false,
         current[StyleType.LINK] ?: false,
+        isUnorderedList,
+        isOrderedList,
       ),
     )
   }
@@ -123,6 +134,36 @@ class InputEventEmitter(
         !view.pendingStyleRemovals.contains(style) &&
           view.formattingStore.isStyleActive(style, pos)
       )
+
+  private fun detectCurrentListState(pos: Int): Pair<Boolean, Boolean> {
+    val text = view.text?.toString() ?: return Pair(false, false)
+    if (pos == 0) return Pair(false, false)
+
+    // Find the start of the current line
+    var lineStart = pos - 1
+    while (lineStart >= 0 && text[lineStart] != '\n') {
+      lineStart--
+    }
+    lineStart++ // Move past the newline
+
+    // Find the end of the current line
+    var lineEnd = pos
+    while (lineEnd < text.length && text[lineEnd] != '\n') {
+      lineEnd++
+    }
+
+    val currentLine = text.substring(lineStart, lineEnd)
+
+    // Check for unordered list: ^[-*+]\s+
+    val unorderedPattern = Regex("""^[\s]*[-*+]\s+""")
+    val isUnorderedList = unorderedPattern.containsMatchIn(currentLine)
+
+    // Check for ordered list: ^\d+\.\s+
+    val orderedPattern = Regex("""^[\s]*\d+\.\s+""")
+    val isOrderedList = orderedPattern.containsMatchIn(currentLine)
+
+    return Pair(isUnorderedList, isOrderedList)
+  }
 
   private fun serializeToMarkdown(): String {
     val plainText = view.text?.toString() ?: ""

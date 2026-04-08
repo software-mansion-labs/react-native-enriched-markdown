@@ -64,7 +64,7 @@ using namespace facebook::react;
   NSRange _preEditSelectedRange;
 
   struct {
-    BOOL bold, italic, underline, strikethrough, link, initialized;
+    BOOL bold, italic, underline, strikethrough, link, unorderedList, orderedList, initialized;
   } _prevState;
 
 #if TARGET_OS_OSX
@@ -936,9 +936,15 @@ using namespace facebook::react;
   BOOL strikethroughActive = [self isEffectiveStyleActive:ENRMInputStyleTypeStrikethrough atPosition:cursor];
   BOOL linkActive = [self isEffectiveStyleActive:ENRMInputStyleTypeLink atPosition:cursor];
 
+  // Detect list state
+  BOOL unorderedListActive = NO;
+  BOOL orderedListActive = NO;
+  [self detectListStateAtPosition:cursor unorderedList:&unorderedListActive orderedList:&orderedListActive];
+
   if (_prevState.initialized && _prevState.bold == boldActive && _prevState.italic == italicActive &&
       _prevState.underline == underlineActive && _prevState.strikethrough == strikethroughActive &&
-      _prevState.link == linkActive) {
+      _prevState.link == linkActive && _prevState.unorderedList == unorderedListActive &&
+      _prevState.orderedList == orderedListActive) {
     return;
   }
 
@@ -947,6 +953,8 @@ using namespace facebook::react;
   _prevState.underline = underlineActive;
   _prevState.strikethrough = strikethroughActive;
   _prevState.link = linkActive;
+  _prevState.unorderedList = unorderedListActive;
+  _prevState.orderedList = orderedListActive;
   _prevState.initialized = YES;
 
   emitter->onChangeState({
@@ -955,6 +963,8 @@ using namespace facebook::react;
       .underline = {.isActive = underlineActive},
       .strikethrough = {.isActive = strikethroughActive},
       .link = {.isActive = linkActive},
+      .unorderedList = {.isActive = unorderedListActive},
+      .orderedList = {.isActive = orderedListActive},
   });
 }
 
@@ -966,6 +976,57 @@ using namespace facebook::react;
 - (NSArray<NSString *> *)contextMenuItemIcons
 {
   return _contextMenuItemIcons ?: @[];
+}
+
+- (void)detectListStateAtPosition:(NSUInteger)position
+                    unorderedList:(BOOL *)unorderedList
+                      orderedList:(BOOL *)orderedList
+{
+  *unorderedList = NO;
+  *orderedList = NO;
+
+  NSString *text = _textView.textStorage.string;
+  if (position == 0 || text.length == 0) {
+    return;
+  }
+
+  // Find the start of the current line
+  NSUInteger lineStart = position - 1;
+  while (lineStart > 0 && [text characterAtIndex:lineStart - 1] != '\n') {
+    lineStart--;
+  }
+
+  // Find the end of the current line
+  NSUInteger lineEnd = position;
+  while (lineEnd < text.length && [text characterAtIndex:lineEnd] != '\n') {
+    lineEnd++;
+  }
+
+  NSString *currentLine = [text substringWithRange:NSMakeRange(lineStart, lineEnd - lineStart)];
+
+  // Check for unordered list: ^[\s]*[-*+]\s+
+  NSError *unorderedError = nil;
+  NSRegularExpression *unorderedRegex = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]*[-*+]\\s+"
+                                                                                  options:0
+                                                                                    error:&unorderedError];
+  NSArray *unorderedMatches = [unorderedRegex matchesInString:currentLine
+                                                      options:0
+                                                        range:NSMakeRange(0, currentLine.length)];
+  if (unorderedMatches.count > 0) {
+    *unorderedList = YES;
+  }
+
+  // Check for ordered list: ^\d+\.\s+
+  NSError *orderedError = nil;
+  NSRegularExpression *orderedRegex = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]*\\d+\\.\\s+"
+                                                                                options:0
+                                                                                  error:&orderedError];
+  NSArray *orderedMatches = [orderedRegex matchesInString:currentLine
+                                                  options:0
+                                                    range:NSMakeRange(0, currentLine.length)];
+  if (orderedMatches.count > 0) {
+    *orderedList = YES;
+  }
 }
 
 - (void)emitContextMenuItemPress:(NSString *)itemText
@@ -1042,6 +1103,82 @@ using namespace facebook::react;
 
 #pragma mark - Text edit tracking
 
+- (void)handleAutoListContinuationWithText:(NSString *)currentText
+                              editLocation:(NSUInteger)editLocation
+                            insertedLength:(NSUInteger)insertedLength
+{
+  // Only handle single newline insertion
+  if (insertedLength != 1 || editLocation >= currentText.length ||
+      [currentText characterAtIndex:editLocation] != '\n') {
+    return;
+  }
+
+  // Find the previous line
+  NSUInteger prevLineEnd = editLocation; // This is where the newline was inserted
+  if (prevLineEnd == 0) {
+    return;
+  }
+
+  // Move back to find the start of the previous line
+  NSUInteger prevLineStart = prevLineEnd - 1;
+  while (prevLineStart > 0 && [currentText characterAtIndex:prevLineStart - 1] != '\n') {
+    prevLineStart--;
+  }
+
+  // Extract the previous line
+  NSString *prevLine = [currentText substringWithRange:NSMakeRange(prevLineStart, prevLineEnd - prevLineStart)];
+
+  // Check for unordered list marker: ^[-*+]\s+
+  NSError *unorderedError = nil;
+  NSRegularExpression *unorderedRegex = [NSRegularExpression regularExpressionWithPattern:@"^(\\s*)[-*+]\\s+"
+                                                                                  options:0
+                                                                                    error:&unorderedError];
+  NSArray *unorderedMatches = [unorderedRegex matchesInString:prevLine options:0 range:NSMakeRange(0, prevLine.length)];
+
+  if (unorderedMatches.count > 0) {
+    NSTextCheckingResult *match = unorderedMatches[0];
+    NSRange captureRange = [match rangeAtIndex:1]; // Capture group 1 is the indentation
+    NSString *indentStr = [prevLine substringWithRange:captureRange];
+
+    // Insert the list marker
+    NSString *marker = [indentStr stringByAppendingString:@"- "];
+    [_textView.textStorage replaceCharactersInRange:NSMakeRange(editLocation + 1, 0) withString:marker];
+
+    // Move cursor to after the inserted marker
+    _textView.selectedRange = NSMakeRange(editLocation + 1 + marker.length, 0);
+    _lastTextLength = currentText.length + marker.length;
+    [_formattingStore adjustForEditAtLocation:editLocation + 1 deletedLength:0 insertedLength:marker.length];
+
+    return;
+  }
+
+  // Check for ordered list marker: ^\d+\.\s+
+  NSError *orderedError = nil;
+  NSRegularExpression *orderedRegex = [NSRegularExpression regularExpressionWithPattern:@"^(\\s*)(\\d+)\\.\\s+"
+                                                                                options:0
+                                                                                  error:&orderedError];
+  NSArray *orderedMatches = [orderedRegex matchesInString:prevLine options:0 range:NSMakeRange(0, prevLine.length)];
+
+  if (orderedMatches.count > 0) {
+    NSTextCheckingResult *match = orderedMatches[0];
+    NSRange indentRange = [match rangeAtIndex:1]; // Capture group 1 is the indentation
+    NSRange numberRange = [match rangeAtIndex:2]; // Capture group 2 is the number
+
+    NSString *indentStr = [prevLine substringWithRange:indentRange];
+    NSString *numberStr = [prevLine substringWithRange:numberRange];
+    NSInteger nextNumber = numberStr.integerValue + 1;
+
+    // Insert the next list number with marker
+    NSString *marker = [NSString stringWithFormat:@"%@%ld. ", indentStr, (long)nextNumber];
+    [_textView.textStorage replaceCharactersInRange:NSMakeRange(editLocation + 1, 0) withString:marker];
+
+    // Move cursor to after the inserted marker
+    _textView.selectedRange = NSMakeRange(editLocation + 1 + marker.length, 0);
+    _lastTextLength = currentText.length + marker.length;
+    [_formattingStore adjustForEditAtLocation:editLocation + 1 deletedLength:0 insertedLength:marker.length];
+  }
+}
+
 - (void)handleTextChanged
 {
   if (ENRMHasMarkedText(_textView)) {
@@ -1075,6 +1212,11 @@ using namespace facebook::react;
   }
 
   [_formattingStore adjustForEditAtLocation:editLocation deletedLength:deletedLength insertedLength:insertedLength];
+
+  // Auto-continue lists when a newline is added
+  [self handleAutoListContinuationWithText:ENRMGetPlainText(_textView)
+                              editLocation:editLocation
+                            insertedLength:insertedLength];
 
   if (insertedLength > 0) {
     NSRange insertedRange = NSMakeRange(editLocation, insertedLength);

@@ -57,7 +57,7 @@ const INITIAL_MESSAGES: Message[] = [
     id: 5,
     markdown:
       'Try using lists:\n- Unordered item 1\n- Unordered item 2\n\n1. Ordered item 1\n2. Ordered item 2',
-    isOwn: false,
+    isOwn: true,
     time: '10:54',
   },
 ];

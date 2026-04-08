@@ -12,6 +12,8 @@ class OnChangeStateEvent(
   private val isUnderline: Boolean,
   private val isStrikethrough: Boolean,
   private val isLink: Boolean,
+  private val isUnorderedList: Boolean,
+  private val isOrderedList: Boolean,
 ) : Event<OnChangeStateEvent>(surfaceId, viewId) {
   override fun getEventName(): String = EVENT_NAME
 
@@ -36,6 +38,14 @@ class OnChangeStateEvent(
       putMap(
         "link",
         Arguments.createMap().apply { putBoolean("isActive", isLink) },
+      )
+      putMap(
+        "unorderedList",
+        Arguments.createMap().apply { putBoolean("isActive", isUnorderedList) },
+      )
+      putMap(
+        "orderedList",
+        Arguments.createMap().apply { putBoolean("isActive", isOrderedList) },
       )
     }
 

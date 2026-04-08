@@ -209,6 +209,9 @@ class EnrichedMarkdownInputView(
 
     isProcessingTextChange = true
     try {
+      // Auto-continue lists when a newline is added
+      handleAutoListContinuation(currentText, editStart, insertedLength)
+
       formattingStore.adjustForEdit(editStart, deletedLength, insertedLength)
       applyPendingStyles(editStart, insertedLength)
       applyFormatting()
@@ -478,6 +481,78 @@ class EnrichedMarkdownInputView(
     } finally {
       isProcessingTextChange = false
     }
+  }
+
+  private fun handleAutoListContinuation(
+    currentText: String,
+    editStart: Int,
+    insertedLength: Int,
+  ) {
+    val editable = text ?: return
+
+    // Only process if a newline was inserted
+    if (insertedLength == 0 || insertedLength > 1) return
+    if (editStart >= currentText.length || currentText[editStart] != '\n') return
+
+    // Find the previous line
+    var prevLineEnd = editStart - 1
+    if (prevLineEnd < 0) return
+
+    var prevLineStart = prevLineEnd
+    while (prevLineStart > 0 && currentText[prevLineStart - 1] != '\n') {
+      prevLineStart--
+    }
+
+    val prevLineText = currentText.substring(prevLineStart, prevLineEnd + 1)
+    val trimmedPrevLine = prevLineText.trimStart()
+    val indent = prevLineText.length - trimmedPrevLine.length
+    val indentStr = prevLineText.substring(0, indent)
+
+    // Check if previous line is a list item
+    val unorderedPattern = Regex("""^[-*+]\s+""")
+    val orderedPattern = Regex("""^(\d+)\.\s+""")
+
+    val isUnorderedList = unorderedPattern.containsMatchIn(trimmedPrevLine)
+    val isOrderedList = orderedPattern.containsMatchIn(trimmedPrevLine)
+
+    if (!isUnorderedList && !isOrderedList) return
+
+    val currentLineStart = editStart + 1
+    val currentLineEnd =
+      if (currentLineStart < currentText.length) {
+        currentText.indexOf('\n', currentLineStart).let { if (it == -1) currentText.length else it }
+      } else {
+        currentText.length
+      }
+
+    val currentLine =
+      if (currentLineStart < currentText.length) {
+        currentText.substring(currentLineStart, currentLineEnd)
+      } else {
+        ""
+      }
+
+    // Only continue if current line is empty
+    if (currentLine.isNotBlank()) return
+
+    val continuationMarker =
+      when {
+        isUnorderedList -> {
+          indentStr + "- "
+        }
+
+        else -> {
+          val match = orderedPattern.find(trimmedPrevLine)
+          val prevNum = match?.groupValues?.get(1)?.toIntOrNull() ?: 0
+          val nextNum = prevNum + 1
+          indentStr + "$nextNum. "
+        }
+      }
+
+    editable.insert(currentLineStart, continuationMarker)
+    formattingStore.adjustForEdit(currentLineStart, 0, continuationMarker.length)
+    // Move cursor to end of marker
+    setSelection(currentLineStart + continuationMarker.length)
   }
 
   fun setContextMenuItems(items: List<String>) {

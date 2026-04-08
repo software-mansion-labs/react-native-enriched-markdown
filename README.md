@@ -2,11 +2,12 @@
 
 # react-native-enriched-markdown
 
-`react-native-enriched-markdown` is a powerful React Native library that renders Markdown content as native text and provides a rich text input with Markdown output. It supports iOS, Android, and macOS, and requires the New Architecture (Fabric).
+`react-native-enriched-markdown` is a powerful React Native library that renders Markdown content as native text and provides a rich text input with Markdown output. It supports iOS, Android, macOS, and Web, and requires the New Architecture (Fabric) for native platforms.
 
 ### EnrichedMarkdownText
 
 - ⚡ Fully native text rendering (no WebView)
+- 🌐 Web support via [react-native-web](https://necolas.github.io/react-native-web/) + [md4c](https://github.com/mity/md4c) compiled to WebAssembly
 - 🎯 High-performance Markdown parsing with [md4c](https://github.com/mity/md4c)
 - 📐 CommonMark standard compliant
 - 📊 GitHub Flavored Markdown (GFM)
@@ -18,7 +19,7 @@
 - 🔗 Interactive link handling
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
-- 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android)
+- 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android, semantic HTML on web)
 - 🔄 Full RTL (right-to-left) support including text, lists, blockquotes, tables, and task lists
 
 ### EnrichedMarkdownInput
@@ -58,6 +59,7 @@ We can help you build your next dream product –
   - [Other Events](docs/INPUT.md#other-events)
   - [Customizing Styles](docs/INPUT.md#customizing-enrichedmarkdowninput--styles)
 - [API Reference](#api-reference)
+- [Web Support](docs/WEB.md)
 - [macOS Support](docs/MACOS.md)
 - [Contributing](#contributing)
 - [Future Plans](#future-plans)
@@ -65,14 +67,32 @@ We can help you build your next dream product –
 
 ## Prerequisites
 
-- Supports iOS, Android, and macOS platforms
+**Native (iOS / Android / macOS)**
 - Requires [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page)
 - Supported React Native releases: `0.81`, `0.82`, `0.83`, and `0.84`
 - macOS support via [react-native-macos](https://github.com/microsoft/react-native-macos) `0.81+`
 
+**Web**
+- Requires [`react-native-web`](https://necolas.github.io/react-native-web/) and Metro (or another bundler with `.web.tsx` platform resolution)
+- No New Architecture requirement — the web renderer runs entirely in JavaScript via WebAssembly
+- Only `EnrichedMarkdownText` is supported on web (`EnrichedMarkdownInput` is native-only)
+- LaTeX math requires the optional [`katex`](https://katex.org/) peer dependency
+
 ## Installation
 
-### Bare React Native app
+### Web
+
+No steps beyond having `react-native-web` configured. For LaTeX math, install the optional peer dependency:
+
+```sh
+npm install katex
+# or
+yarn add katex
+```
+
+See [Web Support](docs/WEB.md) for full setup details, supported features, and prop behaviour.
+
+### Bare React Native app (iOS / Android)
 
 #### 1. Install the library
 
@@ -142,6 +162,10 @@ See [EnrichedMarkdownInput](docs/INPUT.md) for detailed documentation on usage e
 
 See the [API Reference](docs/API_REFERENCE.md) for a detailed overview of all the props, methods, and events available.
 
+## Web Support
+
+See [Web Support](docs/WEB.md) for details on supported features, web-specific prop behaviour, and known limitations.
+
 ## macOS Support
 
 `react-native-enriched-markdown` supports macOS via [react-native-macos](https://github.com/microsoft/react-native-macos). See [macOS Support](docs/MACOS.md) for details on macOS-specific features, known limitations, and the example app.
@@ -151,8 +175,9 @@ See the [API Reference](docs/API_REFERENCE.md) for a detailed overview of all th
 We're actively working on expanding the capabilities of `react-native-enriched-markdown`. Here's what's on the roadmap:
 
 - `EnrichedMarkdownInput`: headings, lists, blockquotes, code blocks, mentions, inline images
-- Web implementation via `react-native-web`
+- `EnrichedMarkdownInput` web support
 - macOS: block math rendering, VoiceOver accessibility, tail fade-in animation
+- Web: streaming animation, configurable link `target`, copy options (Copy as Markdown, multi-format clipboard)
 
 ## Contributing
 

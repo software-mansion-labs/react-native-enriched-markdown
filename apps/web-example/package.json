@@ -1,0 +1,26 @@
+{
+  "name": "react-native-enriched-markdown-web-example",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "build:web": "expo export --platform web"
+  },
+  "dependencies": {
+    "expo": "~55.0.0",
+    "katex": "^0.16.44",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.84.1",
+    "react-native-enriched-markdown": "*",
+    "react-native-web": "~0.19.13"
+  },
+  "devDependencies": {
+    "@expo/metro-runtime": "~5.0.0",
+    "@types/react": "^19.2.0",
+    "babel-preset-expo": "~55.0.13",
+    "typescript": "^5.9.2"
+  }
+}

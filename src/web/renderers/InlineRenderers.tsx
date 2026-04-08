@@ -1,0 +1,106 @@
+import type { MouseEvent } from 'react';
+import type { RendererProps, RendererMap } from '../types';
+import { extractNodeText } from '../utils';
+import { KaTeXRenderer } from './KaTeXRenderer';
+
+function TextRenderer({ node }: RendererProps) {
+  return <>{node.content ?? ''}</>;
+}
+
+function LineBreakRenderer(_props: RendererProps) {
+  return <br />;
+}
+
+function StrongRenderer({ node, styles, renderChildren }: RendererProps) {
+  return <strong style={styles.strong}>{renderChildren(node)}</strong>;
+}
+
+function EmphasisRenderer({ node, styles, renderChildren }: RendererProps) {
+  return <em style={styles.emphasis}>{renderChildren(node)}</em>;
+}
+
+function StrikethroughRenderer({
+  node,
+  styles,
+  renderChildren,
+}: RendererProps) {
+  return <s style={styles.strikethrough}>{renderChildren(node)}</s>;
+}
+
+function UnderlineRenderer({ node, styles, renderChildren }: RendererProps) {
+  return <u style={styles.underline}>{renderChildren(node)}</u>;
+}
+
+function CodeRenderer({ node, styles, renderChildren }: RendererProps) {
+  return (
+    <code style={styles.code}>{node.content ?? renderChildren(node)}</code>
+  );
+}
+
+function LinkRenderer({
+  node,
+  styles,
+  callbacks,
+  renderChildren,
+}: RendererProps) {
+  const url = node.attributes?.url;
+
+  if (!url) return <>{renderChildren(node)}</>;
+
+  const handleClick = (event: MouseEvent) => {
+    if (callbacks.onLinkPress) {
+      event.preventDefault();
+      callbacks.onLinkPress({ url });
+    }
+  };
+
+  const handleContextMenu = (event: MouseEvent) => {
+    if (callbacks.onLinkLongPress) {
+      event.preventDefault();
+      callbacks.onLinkLongPress({ url });
+    }
+  };
+
+  return (
+    <a
+      href={url}
+      style={styles.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={handleClick}
+      onContextMenu={handleContextMenu}
+    >
+      {renderChildren(node)}
+    </a>
+  );
+}
+
+function LatexMathInlineRenderer({
+  node,
+  styles,
+  capabilities,
+}: RendererProps) {
+  const content = extractNodeText(node);
+
+  return (
+    <KaTeXRenderer
+      content={content}
+      katex={capabilities.katex}
+      displayMode={false}
+      style={styles.mathInline}
+      fallbackTag="code"
+    />
+  );
+}
+
+export const inlineRenderers: RendererMap = {
+  Text: TextRenderer,
+  LineBreak: LineBreakRenderer,
+  Strong: StrongRenderer,
+  Emphasis: EmphasisRenderer,
+  Strikethrough: StrikethroughRenderer,
+  Underline: UnderlineRenderer,
+  Code: CodeRenderer,
+  Link: LinkRenderer,
+  LatexMathInline: LatexMathInlineRenderer,
+};

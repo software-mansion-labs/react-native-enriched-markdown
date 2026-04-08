@@ -1,14 +1,15 @@
-export { default as EnrichedMarkdownText } from './EnrichedMarkdownText';
+export { default as EnrichedMarkdownText } from './native/EnrichedMarkdownText';
 export type {
   EnrichedMarkdownTextProps,
   MarkdownStyle,
   Md4cFlags,
-} from './EnrichedMarkdownText';
+  ContextMenuItem as TextContextMenuItem,
+} from './native/EnrichedMarkdownText';
 export type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
-} from './EnrichedMarkdownTextNativeComponent';
+} from './types/events';
 
 export { EnrichedMarkdownInput } from './EnrichedMarkdownInput';
 export type {
@@ -19,5 +20,3 @@ export type {
   ContextMenuItem,
   OnLinkDetected,
 } from './EnrichedMarkdownInput';
-
-export type { ContextMenuItem as TextContextMenuItem } from './EnrichedMarkdownText';

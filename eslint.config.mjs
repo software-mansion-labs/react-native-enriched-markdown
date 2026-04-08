@@ -24,6 +24,11 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['node_modules/', 'lib/'],
+    ignores: [
+      'node_modules/',
+      'lib/',
+      // Emscripten-generated WASM glue — not human-authored
+      'src/web/wasm/md4c.js',
+    ],
   },
 ]);

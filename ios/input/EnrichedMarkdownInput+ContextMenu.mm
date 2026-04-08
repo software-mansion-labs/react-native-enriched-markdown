@@ -37,6 +37,7 @@
       {@"Italic", @"italic", ENRMInputStyleTypeEmphasis},
       {@"Underline", @"underline", ENRMInputStyleTypeUnderline},
       {@"Strikethrough", @"strikethrough", ENRMInputStyleTypeStrikethrough},
+      {@"Spoiler", @"eye.slash", ENRMInputStyleTypeSpoiler},
       {@"Link", @"link", ENRMInputStyleTypeLink},
   };
   static const NSUInteger kFormatItemCount = sizeof(kFormatItems) / sizeof(kFormatItems[0]);
@@ -130,6 +131,7 @@
       {@"Italic", @selector(toggleItalic), @"i", NSEventModifierFlagCommand},
       {@"Underline", @selector(toggleUnderline), @"u", NSEventModifierFlagCommand},
       {@"Strikethrough", @selector(toggleStrikethrough), @"", 0},
+      {@"Spoiler", @selector(toggleSpoiler), @"", 0},
       {@"Link", @selector(showLinkPrompt), @"", 0},
   };
 

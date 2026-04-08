@@ -64,7 +64,7 @@ using namespace facebook::react;
   NSRange _preEditSelectedRange;
 
   struct {
-    BOOL bold, italic, underline, strikethrough, link, initialized;
+    BOOL bold, italic, underline, strikethrough, spoiler, link, initialized;
   } _prevState;
 
 #if TARGET_OS_OSX
@@ -593,6 +593,11 @@ using namespace facebook::react;
   [self toggleInlineStyle:ENRMInputStyleTypeStrikethrough];
 }
 
+- (void)toggleSpoiler
+{
+  [self toggleInlineStyle:ENRMInputStyleTypeSpoiler];
+}
+
 - (void)toggleInlineStyle:(ENRMInputStyleType)styleType
 {
   id<ENRMStyleHandler> handler = [_formatter handlerForStyleType:styleType];
@@ -851,11 +856,12 @@ using namespace facebook::react;
   BOOL italicActive = [self isEffectiveStyleActive:ENRMInputStyleTypeEmphasis atPosition:cursor];
   BOOL underlineActive = [self isEffectiveStyleActive:ENRMInputStyleTypeUnderline atPosition:cursor];
   BOOL strikethroughActive = [self isEffectiveStyleActive:ENRMInputStyleTypeStrikethrough atPosition:cursor];
+  BOOL spoilerActive = [self isEffectiveStyleActive:ENRMInputStyleTypeSpoiler atPosition:cursor];
   BOOL linkActive = [self isEffectiveStyleActive:ENRMInputStyleTypeLink atPosition:cursor];
 
   if (_prevState.initialized && _prevState.bold == boldActive && _prevState.italic == italicActive &&
       _prevState.underline == underlineActive && _prevState.strikethrough == strikethroughActive &&
-      _prevState.link == linkActive) {
+      _prevState.spoiler == spoilerActive && _prevState.link == linkActive) {
     return;
   }
 
@@ -863,6 +869,7 @@ using namespace facebook::react;
   _prevState.italic = italicActive;
   _prevState.underline = underlineActive;
   _prevState.strikethrough = strikethroughActive;
+  _prevState.spoiler = spoilerActive;
   _prevState.link = linkActive;
   _prevState.initialized = YES;
 
@@ -871,6 +878,7 @@ using namespace facebook::react;
       .italic = {.isActive = italicActive},
       .underline = {.isActive = underlineActive},
       .strikethrough = {.isActive = strikethroughActive},
+      .spoiler = {.isActive = spoilerActive},
       .link = {.isActive = linkActive},
   });
 }
@@ -907,6 +915,7 @@ using namespace facebook::react;
   BOOL italicActive = isActive(ENRMInputStyleTypeEmphasis);
   BOOL underlineActive = isActive(ENRMInputStyleTypeUnderline);
   BOOL strikethroughActive = isActive(ENRMInputStyleTypeStrikethrough);
+  BOOL spoilerActive = isActive(ENRMInputStyleTypeSpoiler);
   BOOL linkActive = isActive(ENRMInputStyleTypeLink);
 
   eventEmitter->onContextMenuItemPress({
@@ -920,6 +929,7 @@ using namespace facebook::react;
               .italic = {.isActive = italicActive},
               .underline = {.isActive = underlineActive},
               .strikethrough = {.isActive = strikethroughActive},
+              .spoiler = {.isActive = spoilerActive},
               .link = {.isActive = linkActive},
           },
   });

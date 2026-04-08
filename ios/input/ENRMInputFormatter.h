@@ -23,6 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, nullable) RCTUIColor *linkColor;
 @property (nonatomic, assign) BOOL linkUnderline;
 
+/// Spoiler
+@property (nonatomic, strong, nullable) RCTUIColor *spoilerColor;
+@property (nonatomic, strong, nullable) RCTUIColor *spoilerBackgroundColor;
+
 - (UIFont *)fontForTraits:(UIFontDescriptorSymbolicTraits)traits;
 - (void)invalidateFontCache;
 

@@ -172,6 +172,7 @@ class InputContextMenu(
         "Italic" to StyleType.ITALIC,
         "Underline" to StyleType.UNDERLINE,
         "Strikethrough" to StyleType.STRIKETHROUGH,
+        "Spoiler" to StyleType.SPOILER,
         "Link" to StyleType.LINK,
       )
   }

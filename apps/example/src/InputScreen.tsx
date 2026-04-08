@@ -49,6 +49,13 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: 4,
     markdown:
+      'You can hide text with ||spoiler tags|| too — great for surprises!',
+    isOwn: false,
+    time: '10:53',
+  },
+  {
+    id: 5,
+    markdown:
       'The toolbar above the input lets you toggle formatting at the cursor too.',
     isOwn: true,
     time: '10:53',
@@ -59,7 +66,7 @@ const MARKDOWN_STYLE = {
   link: { color: '#2563EB', underline: true },
 };
 
-let nextId = 5;
+let nextId = 6;
 
 export default function InputScreen() {
   const inputRef = useRef<EnrichedMarkdownInputInstance>(null);
@@ -145,6 +152,7 @@ export default function InputScreen() {
             styleState.italic.isActive && 'italic',
             styleState.underline.isActive && 'underline',
             styleState.strikethrough.isActive && 'strikethrough',
+            styleState.spoiler.isActive && 'spoiler',
             styleState.link.isActive && 'link',
           ]
             .filter(Boolean)
@@ -241,6 +249,11 @@ export default function InputScreen() {
                 label: 'S',
                 style: 'strikethrough',
                 action: 'toggleStrikethrough',
+              },
+              {
+                label: '||',
+                style: 'spoiler',
+                action: 'toggleSpoiler',
               },
             ] as const
           ).map(({ label, style, action }) => (

@@ -111,8 +111,8 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
                     // paragraph style (padding, LTR indent). Overwriting would add list
                     // markers ("2.") inside the code block.
                     NSNumber *isCodeBlock = [output attribute:CodeBlockAttributeName
-                                                     atIndex:range.location
-                                              effectiveRange:nil];
+                                                      atIndex:range.location
+                                               effectiveRange:nil];
                     if ([isCodeBlock boolValue]) {
                       return;
                     }
@@ -175,8 +175,8 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
 
                     // Skip code block ranges — preserve CodeBlockRenderer styles.
                     NSNumber *isCodeBlock = [output attribute:CodeBlockAttributeName
-                                                     atIndex:segmentRange.location
-                                              effectiveRange:nil];
+                                                      atIndex:segmentRange.location
+                                               effectiveRange:nil];
                     if ([isCodeBlock boolValue]) {
                       return;
                     }

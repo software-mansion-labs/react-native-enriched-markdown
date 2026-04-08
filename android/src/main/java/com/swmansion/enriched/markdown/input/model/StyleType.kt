@@ -6,4 +6,5 @@ enum class StyleType {
   UNDERLINE,
   STRIKETHROUGH,
   LINK,
+  SPOILER,
 }

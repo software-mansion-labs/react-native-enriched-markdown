@@ -55,6 +55,7 @@ class InputEventEmitter(
         current[StyleType.ITALIC] ?: false,
         current[StyleType.UNDERLINE] ?: false,
         current[StyleType.STRIKETHROUGH] ?: false,
+        current[StyleType.SPOILER] ?: false,
         current[StyleType.LINK] ?: false,
       ),
     )
@@ -109,6 +110,7 @@ class InputEventEmitter(
         isItalic = isActive(StyleType.ITALIC),
         isUnderline = isActive(StyleType.UNDERLINE),
         isStrikethrough = isActive(StyleType.STRIKETHROUGH),
+        isSpoiler = isActive(StyleType.SPOILER),
         isLink = isActive(StyleType.LINK),
       ),
     )

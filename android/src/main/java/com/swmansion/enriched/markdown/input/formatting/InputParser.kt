@@ -69,6 +69,7 @@ object InputParser {
       NodeType.Underline -> StyleType.UNDERLINE
       NodeType.Strikethrough -> StyleType.STRIKETHROUGH
       NodeType.Link -> StyleType.LINK
+      NodeType.Spoiler -> StyleType.SPOILER
       else -> null
     }
 

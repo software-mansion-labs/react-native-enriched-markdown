@@ -11,6 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)toggleItalic;
 - (void)toggleUnderline;
 - (void)toggleStrikethrough;
+- (void)toggleSpoiler;
 - (void)toggleInlineStyle:(ENRMInputStyleType)type;
 - (void)showLinkPrompt;
 

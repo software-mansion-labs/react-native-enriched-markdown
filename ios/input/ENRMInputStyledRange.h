@@ -10,6 +10,7 @@ typedef NS_ENUM(NSInteger, ENRMInputStyleType) {
   ENRMInputStyleTypeUnderline,
   ENRMInputStyleTypeStrikethrough,
   ENRMInputStyleTypeLink,
+  ENRMInputStyleTypeSpoiler,
 };
 
 @interface ENRMInputStyledRange : NSObject

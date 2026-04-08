@@ -337,6 +337,10 @@ class EnrichedMarkdownInputManager :
     view?.toggleInlineStyle(StyleType.STRIKETHROUGH)
   }
 
+  override fun toggleSpoiler(view: EnrichedMarkdownInputView?) {
+    view?.toggleInlineStyle(StyleType.SPOILER)
+  }
+
   override fun setLink(
     view: EnrichedMarkdownInputView?,
     url: String?,

@@ -91,5 +91,15 @@ BOOL applyInputStyleProps(ENRMInputFormatterStyle *style, const InputProps &newP
     changed = YES;
   }
 
+  if (newProps.markdownStyle.spoiler.color != oldProps.markdownStyle.spoiler.color) {
+    style.spoilerColor = RCTUIColorFromSharedColor(newProps.markdownStyle.spoiler.color);
+    changed = YES;
+  }
+
+  if (newProps.markdownStyle.spoiler.backgroundColor != oldProps.markdownStyle.spoiler.backgroundColor) {
+    style.spoilerBackgroundColor = RCTUIColorFromSharedColor(newProps.markdownStyle.spoiler.backgroundColor);
+    changed = YES;
+  }
+
   return changed;
 }

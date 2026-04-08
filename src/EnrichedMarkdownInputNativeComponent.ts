@@ -19,6 +19,10 @@ interface MarkdownInputStyleInternal {
     color: ColorValue;
     underline: boolean;
   };
+  spoiler: {
+    color: ColorValue;
+    backgroundColor: ColorValue;
+  };
 }
 
 interface TargetedEvent {
@@ -43,6 +47,7 @@ export interface OnChangeStateEvent {
   italic: { isActive: boolean };
   underline: { isActive: boolean };
   strikethrough: { isActive: boolean };
+  spoiler: { isActive: boolean };
   link: { isActive: boolean };
 }
 
@@ -81,6 +86,7 @@ export interface OnContextMenuItemPressEvent {
     italic: { isActive: boolean };
     underline: { isActive: boolean };
     strikethrough: { isActive: boolean };
+    spoiler: { isActive: boolean };
     link: { isActive: boolean };
   };
 }
@@ -191,6 +197,7 @@ interface NativeCommands {
   toggleItalic: (viewRef: React.ElementRef<ComponentType>) => void;
   toggleUnderline: (viewRef: React.ElementRef<ComponentType>) => void;
   toggleStrikethrough: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleSpoiler: (viewRef: React.ElementRef<ComponentType>) => void;
   setLink: (viewRef: React.ElementRef<ComponentType>, url: string) => void;
   insertLink: (
     viewRef: React.ElementRef<ComponentType>,
@@ -214,6 +221,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'toggleItalic',
     'toggleUnderline',
     'toggleStrikethrough',
+    'toggleSpoiler',
     'setLink',
     'insertLink',
     'removeLink',

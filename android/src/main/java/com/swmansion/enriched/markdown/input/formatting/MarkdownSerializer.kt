@@ -59,6 +59,7 @@ object MarkdownSerializer {
       StyleType.UNDERLINE -> "_"
       StyleType.STRIKETHROUGH -> "~~"
       StyleType.LINK -> "["
+      StyleType.SPOILER -> "||"
     }
 
   private fun closingDelimiter(
@@ -71,6 +72,7 @@ object MarkdownSerializer {
       StyleType.UNDERLINE -> "_"
       StyleType.STRIKETHROUGH -> "~~"
       StyleType.LINK -> "](${url ?: ""})"
+      StyleType.SPOILER -> "||"
     }
 
   // Lower value = outermost wrapper. Font styles wrap around structural styles (link).
@@ -80,7 +82,8 @@ object MarkdownSerializer {
       StyleType.BOLD -> 1
       StyleType.UNDERLINE -> 2
       StyleType.STRIKETHROUGH -> 3
-      StyleType.LINK -> 4
+      StyleType.SPOILER -> 4
+      StyleType.LINK -> 5
     }
 
   private data class BoundaryEvent(

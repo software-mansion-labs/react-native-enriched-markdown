@@ -2,6 +2,7 @@
 #import "ENRMBoldStyleHandler.h"
 #import "ENRMItalicStyleHandler.h"
 #import "ENRMLinkStyleHandler.h"
+#import "ENRMSpoilerStyleHandler.h"
 #import "ENRMStrikethroughStyleHandler.h"
 #import "ENRMStyleHandler.h"
 #import "ENRMUnderlineStyleHandler.h"
@@ -30,6 +31,8 @@
   copy.italicColor = _italicColor;
   copy.linkColor = _linkColor;
   copy.linkUnderline = _linkUnderline;
+  copy.spoilerColor = _spoilerColor;
+  copy.spoilerBackgroundColor = _spoilerBackgroundColor;
   return copy;
 }
 
@@ -83,6 +86,7 @@
       [[ENRMUnderlineStyleHandler alloc] init],
       [[ENRMStrikethroughStyleHandler alloc] init],
       [[ENRMLinkStyleHandler alloc] init],
+      [[ENRMSpoilerStyleHandler alloc] init],
     ];
     NSMutableDictionary<NSNumber *, id<ENRMStyleHandler>> *map = [NSMutableDictionary dictionary];
     for (id<ENRMStyleHandler> handler in handlers) {
@@ -117,6 +121,7 @@
   [textStorage addAttribute:NSForegroundColorAttributeName value:style.baseTextColor range:fullTextRange];
   [textStorage removeAttribute:NSUnderlineStyleAttributeName range:fullTextRange];
   [textStorage removeAttribute:NSStrikethroughStyleAttributeName range:fullTextRange];
+  [textStorage removeAttribute:NSBackgroundColorAttributeName range:fullTextRange];
 
   UIFontDescriptorSymbolicTraits *traitMap =
       (UIFontDescriptorSymbolicTraits *)calloc(textLength, sizeof(UIFontDescriptorSymbolicTraits));

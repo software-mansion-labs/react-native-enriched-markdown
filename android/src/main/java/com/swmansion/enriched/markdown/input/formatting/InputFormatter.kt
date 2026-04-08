@@ -8,6 +8,7 @@ import com.swmansion.enriched.markdown.input.model.StyleType
 import com.swmansion.enriched.markdown.input.styles.BoldStyleHandler
 import com.swmansion.enriched.markdown.input.styles.ItalicStyleHandler
 import com.swmansion.enriched.markdown.input.styles.LinkStyleHandler
+import com.swmansion.enriched.markdown.input.styles.SpoilerStyleHandler
 import com.swmansion.enriched.markdown.input.styles.StrikethroughStyleHandler
 import com.swmansion.enriched.markdown.input.styles.StyleHandler
 import com.swmansion.enriched.markdown.input.styles.UnderlineStyleHandler
@@ -26,6 +27,7 @@ class InputFormatter {
       StyleType.UNDERLINE to UnderlineStyleHandler(),
       StyleType.STRIKETHROUGH to StrikethroughStyleHandler(),
       StyleType.LINK to LinkStyleHandler(),
+      StyleType.SPOILER to SpoilerStyleHandler(),
     )
 
   private var style: InputFormatterStyle? = null

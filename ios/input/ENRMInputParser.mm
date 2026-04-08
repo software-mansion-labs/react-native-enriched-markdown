@@ -25,7 +25,7 @@ struct SpanTypeMapping {
 static const SpanTypeMapping kSupportedSpans[] = {
     {MD_SPAN_STRONG, ENRMInputStyleTypeStrong}, {MD_SPAN_EM, ENRMInputStyleTypeEmphasis},
     {MD_SPAN_U, ENRMInputStyleTypeUnderline},   {MD_SPAN_DEL, ENRMInputStyleTypeStrikethrough},
-    {MD_SPAN_A, ENRMInputStyleTypeLink},
+    {MD_SPAN_A, ENRMInputStyleTypeLink},        {MD_SPAN_SPOILER, ENRMInputStyleTypeSpoiler},
 };
 static const size_t kSupportedSpanCount = sizeof(kSupportedSpans) / sizeof(kSupportedSpans[0]);
 
@@ -96,10 +96,8 @@ static inline NSUInteger mapByteOffset(const std::vector<NSUInteger> &map, size_
 }
 
 static const size_t kClosingDelimiterByteLength[] = {
-    [ENRMInputStyleTypeStrong] = 2,
-    [ENRMInputStyleTypeEmphasis] = 1,
-    [ENRMInputStyleTypeUnderline] = 1,
-    [ENRMInputStyleTypeStrikethrough] = 2,
+    [ENRMInputStyleTypeStrong] = 2,        [ENRMInputStyleTypeEmphasis] = 1, [ENRMInputStyleTypeUnderline] = 1,
+    [ENRMInputStyleTypeStrikethrough] = 2, [ENRMInputStyleTypeSpoiler] = 2,
 };
 
 static size_t closingDelimiterEndByte(const InlineSpanInfo &span, const char *utf8, size_t bufferLength)
@@ -224,7 +222,7 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
 
   MD_PARSER parser = {
       .abi_version = 0,
-      .flags = MD_FLAG_NOHTML | MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH,
+      .flags = MD_FLAG_NOHTML | MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH | MD_FLAG_SPOILER,
       .enter_block = onEnterBlock,
       .leave_block = onLeaveBlock,
       .enter_span = onEnterSpan,

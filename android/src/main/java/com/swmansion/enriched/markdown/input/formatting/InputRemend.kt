@@ -13,6 +13,7 @@ object InputRemend {
       DelimiterPair("*", "*", true),
       DelimiterPair("_", "_", true),
       DelimiterPair("~~", "~~", true),
+      DelimiterPair("||", "||", true),
       DelimiterPair("`", "`", true),
       DelimiterPair("[", "]", false),
     )

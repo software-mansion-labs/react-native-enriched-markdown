@@ -5,4 +5,6 @@ data class InputFormatterStyle(
   val italicColor: Int?,
   val linkColor: Int,
   val linkUnderline: Boolean,
+  val spoilerColor: Int,
+  val spoilerBackgroundColor: Int,
 )

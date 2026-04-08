@@ -42,6 +42,10 @@ export interface MarkdownInputStyle {
     color?: string;
     underline?: boolean;
   };
+  spoiler?: {
+    color?: string;
+    backgroundColor?: string;
+  };
 }
 
 export interface StyleState {
@@ -49,6 +53,7 @@ export interface StyleState {
   italic: { isActive: boolean };
   underline: { isActive: boolean };
   strikethrough: { isActive: boolean };
+  spoiler: { isActive: boolean };
   link: { isActive: boolean };
 }
 
@@ -75,6 +80,7 @@ export interface EnrichedMarkdownInputInstance {
   toggleItalic: () => void;
   toggleUnderline: () => void;
   toggleStrikethrough: () => void;
+  toggleSpoiler: () => void;
   setLink: (url: string) => void;
   insertLink: (text: string, url: string) => void;
   removeLink: () => void;
@@ -220,8 +226,16 @@ export const EnrichedMarkdownInput = ({
 
   const handleChangeState = useCallback(
     (e: NativeSyntheticEvent<OnChangeStateEvent>) => {
-      const { bold, italic, underline, strikethrough, link } = e.nativeEvent;
-      onChangeState?.({ bold, italic, underline, strikethrough, link });
+      const { bold, italic, underline, strikethrough, spoiler, link } =
+        e.nativeEvent;
+      onChangeState?.({
+        bold,
+        italic,
+        underline,
+        strikethrough,
+        spoiler,
+        link,
+      });
     },
     [onChangeState]
   );
@@ -284,6 +298,7 @@ export const EnrichedMarkdownInput = ({
       toggleItalic: () => Commands.toggleItalic(commandRef),
       toggleUnderline: () => Commands.toggleUnderline(commandRef),
       toggleStrikethrough: () => Commands.toggleStrikethrough(commandRef),
+      toggleSpoiler: () => Commands.toggleSpoiler(commandRef),
       setLink: (url) => Commands.setLink(commandRef, url),
       insertLink: (text, url) => Commands.insertLink(commandRef, text, url),
       removeLink: () => Commands.removeLink(commandRef),

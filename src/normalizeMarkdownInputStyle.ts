@@ -12,12 +12,18 @@ interface MarkdownInputStyleInternal {
     color: ColorValue;
     underline: boolean;
   };
+  spoiler: {
+    color: ColorValue;
+    backgroundColor: ColorValue;
+  };
 }
 
 const normalizeColor = (color: string | undefined): ColorValue | undefined =>
   color ? processColor(color) : undefined;
 
 const DEFAULT_LINK_COLOR = '#2563EB';
+const DEFAULT_SPOILER_COLOR = '#374151';
+const DEFAULT_SPOILER_BG_COLOR = '#E5E7EB';
 
 const defaultInternal: MarkdownInputStyleInternal = Object.freeze({
   strong: {
@@ -29,6 +35,10 @@ const defaultInternal: MarkdownInputStyleInternal = Object.freeze({
   link: {
     color: processColor(DEFAULT_LINK_COLOR)!,
     underline: true,
+  },
+  spoiler: {
+    color: processColor(DEFAULT_SPOILER_COLOR)!,
+    backgroundColor: processColor(DEFAULT_SPOILER_BG_COLOR)!,
   },
 });
 
@@ -56,6 +66,13 @@ export const normalizeMarkdownInputStyle = (
     link: {
       color: normalizeColor(style.link?.color) ?? defaultInternal.link.color,
       underline: style.link?.underline ?? defaultInternal.link.underline,
+    },
+    spoiler: {
+      color:
+        normalizeColor(style.spoiler?.color) ?? defaultInternal.spoiler.color,
+      backgroundColor:
+        normalizeColor(style.spoiler?.backgroundColor) ??
+        defaultInternal.spoiler.backgroundColor,
     },
   };
 

@@ -7,7 +7,8 @@ typedef struct {
 } ENRMDelimiterPair;
 
 static const ENRMDelimiterPair kDelimiterPairs[] = {
-    {@"**", @"**", YES}, {@"*", @"*", YES}, {@"_", @"_", YES}, {@"~~", @"~~", YES}, {@"`", @"`", YES}, {@"[", @"]", NO},
+    {@"**", @"**", YES}, {@"*", @"*", YES}, {@"_", @"_", YES}, {@"~~", @"~~", YES},
+    {@"||", @"||", YES}, {@"`", @"`", YES}, {@"[", @"]", NO},
 };
 static const NSUInteger kDelimiterPairCount = sizeof(kDelimiterPairs) / sizeof(kDelimiterPairs[0]);
 

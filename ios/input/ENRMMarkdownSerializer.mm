@@ -13,6 +13,8 @@ static NSString *openingDelimiterForType(ENRMInputStyleType type)
       return @"~~";
     case ENRMInputStyleTypeLink:
       return @"[";
+    case ENRMInputStyleTypeSpoiler:
+      return @"||";
     default:
       return @"";
   }
@@ -31,6 +33,8 @@ static NSString *closingDelimiterForType(ENRMInputStyleType type, NSString *url)
       return @"~~";
     case ENRMInputStyleTypeLink:
       return [NSString stringWithFormat:@"](%@)", url ?: @""];
+    case ENRMInputStyleTypeSpoiler:
+      return @"||";
     default:
       return @"";
   }
@@ -48,8 +52,10 @@ static int nestingPriorityForType(ENRMInputStyleType type)
       return 2;
     case ENRMInputStyleTypeStrikethrough:
       return 3;
-    case ENRMInputStyleTypeLink:
+    case ENRMInputStyleTypeSpoiler:
       return 4;
+    case ENRMInputStyleTypeLink:
+      return 5;
     default:
       return 99;
   }

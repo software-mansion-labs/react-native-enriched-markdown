@@ -65,6 +65,14 @@ Each call toggles the style within the current text selection. They are being to
 
 Styles are also available through the built-in native format bar that appears on text selection, and through the system context menu.
 
+## Lists
+
+Supported lists:
+- Ordered lists (numbered)
+- Unordered lists (bullet points)
+
+Each of the lists can be toggled the same way as the inline styles. A `toggle` function is provided for both list types. Toggling a list or having the cursor on a list sets the `isActive` property of the `StyleState` of the list type to `true`, otherwise it is set to `false`.
+
 ## Links
 
 Links are a piece of text with a URL attributed to it. They can be managed by calling methods on the input ref:

@@ -75,6 +75,8 @@ export interface EnrichedMarkdownInputInstance {
   toggleItalic: () => void;
   toggleUnderline: () => void;
   toggleStrikethrough: () => void;
+  toggleUnorderedList: () => void;
+  toggleOrderedList: () => void;
   setLink: (url: string) => void;
   insertLink: (text: string, url: string) => void;
   removeLink: () => void;
@@ -284,6 +286,8 @@ export const EnrichedMarkdownInput = ({
       toggleItalic: () => Commands.toggleItalic(commandRef),
       toggleUnderline: () => Commands.toggleUnderline(commandRef),
       toggleStrikethrough: () => Commands.toggleStrikethrough(commandRef),
+      toggleUnorderedList: () => Commands.toggleUnorderedList(commandRef),
+      toggleOrderedList: () => Commands.toggleOrderedList(commandRef),
       setLink: (url) => Commands.setLink(commandRef, url),
       insertLink: (text, url) => Commands.insertLink(commandRef, text, url),
       removeLink: () => Commands.removeLink(commandRef),

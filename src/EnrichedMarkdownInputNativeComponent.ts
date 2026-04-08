@@ -191,6 +191,8 @@ interface NativeCommands {
   toggleItalic: (viewRef: React.ElementRef<ComponentType>) => void;
   toggleUnderline: (viewRef: React.ElementRef<ComponentType>) => void;
   toggleStrikethrough: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleUnorderedList: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleOrderedList: (viewRef: React.ElementRef<ComponentType>) => void;
   setLink: (viewRef: React.ElementRef<ComponentType>, url: string) => void;
   insertLink: (
     viewRef: React.ElementRef<ComponentType>,
@@ -214,6 +216,8 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'toggleItalic',
     'toggleUnderline',
     'toggleStrikethrough',
+    'toggleUnorderedList',
+    'toggleOrderedList',
     'setLink',
     'insertLink',
     'removeLink',

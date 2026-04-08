@@ -360,6 +360,14 @@ class EnrichedMarkdownInputManager :
     view?.removeLinkAtCursor()
   }
 
+  override fun toggleUnorderedList(view: EnrichedMarkdownInputView?) {
+    view?.toggleUnorderedList()
+  }
+
+  override fun toggleOrderedList(view: EnrichedMarkdownInputView?) {
+    view?.toggleOrderedList()
+  }
+
   override fun requestMarkdown(
     view: EnrichedMarkdownInputView?,
     requestId: Int,

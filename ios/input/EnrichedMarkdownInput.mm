@@ -702,6 +702,89 @@ using namespace facebook::react;
   [self emitFormattingChanged];
 }
 
+- (void)toggleUnorderedList
+{
+  [self toggleListMarkerWithUnordered:YES];
+}
+
+- (void)toggleOrderedList
+{
+  [self toggleListMarkerWithUnordered:NO];
+}
+
+- (void)toggleListMarkerWithUnordered:(BOOL)unordered
+{
+  NSString *text = [self plainText];
+  NSUInteger pos = _textView.selectedRange.location;
+
+  // Find line start
+  NSUInteger lineStart = pos;
+  while (lineStart > 0 && [text characterAtIndex:lineStart - 1] != '\n') {
+    lineStart--;
+  }
+
+  // Find line end
+  NSUInteger lineEnd = pos;
+  while (lineEnd < text.length && [text characterAtIndex:lineEnd] != '\n') {
+    lineEnd++;
+  }
+
+  NSString *lineText = [text substringWithRange:NSMakeRange(lineStart, lineEnd - lineStart)];
+  NSString *trimmed = [lineText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+  NSUInteger indentLength = lineText.length - trimmed.length;
+  NSString *indent = [lineText substringToIndex:indentLength];
+
+  // Check for existing markers
+  NSRegularExpression *unorderedRegex = [NSRegularExpression regularExpressionWithPattern:@"^[-*+]\\s+"
+                                                                                  options:0
+                                                                                    error:nil];
+  NSRegularExpression *orderedRegex = [NSRegularExpression regularExpressionWithPattern:@"^\\d+\\.\\s+"
+                                                                                options:0
+                                                                                  error:nil];
+
+  NSRange matchRange = NSMakeRange(0, trimmed.length);
+  BOOL isUnorderedList = [unorderedRegex numberOfMatchesInString:trimmed options:0 range:matchRange] > 0;
+  BOOL isOrderedList = [orderedRegex numberOfMatchesInString:trimmed options:0 range:matchRange] > 0;
+
+  NSString *newLine;
+
+  // Remove marker if same type is active
+  if (unordered && isUnorderedList) {
+    NSString *withoutMarker = [unorderedRegex stringByReplacingMatchesInString:trimmed
+                                                                       options:0
+                                                                         range:matchRange
+                                                                  withTemplate:@""];
+    newLine = [indent stringByAppendingString:withoutMarker];
+  } else if (!unordered && isOrderedList) {
+    NSString *withoutMarker = [orderedRegex stringByReplacingMatchesInString:trimmed
+                                                                     options:0
+                                                                       range:matchRange
+                                                                withTemplate:@""];
+    newLine = [indent stringByAppendingString:withoutMarker];
+  } else if (unordered && isOrderedList) {
+    // Replace ordered with unordered
+    NSString *withoutMarker = [orderedRegex stringByReplacingMatchesInString:trimmed
+                                                                     options:0
+                                                                       range:matchRange
+                                                                withTemplate:@""];
+    newLine = [indent stringByAppendingString:[@"- " stringByAppendingString:withoutMarker]];
+  } else if (!unordered && isUnorderedList) {
+    // Replace unordered with ordered
+    NSString *withoutMarker = [unorderedRegex stringByReplacingMatchesInString:trimmed
+                                                                       options:0
+                                                                         range:matchRange
+                                                                  withTemplate:@""];
+    newLine = [indent stringByAppendingString:[@"1. " stringByAppendingString:withoutMarker]];
+  } else {
+    // Add marker
+    NSString *marker = unordered ? @"- " : @"1. ";
+    newLine = [indent stringByAppendingString:[marker stringByAppendingString:trimmed]];
+  }
+
+  NSRange replaceRange = NSMakeRange(lineStart, lineEnd - lineStart);
+  [_textView replaceCharactersInRange:replaceRange withString:newLine];
+}
+
 - (void)showLinkPrompt
 {
   NSUInteger cursor = _textView.selectedRange.location;

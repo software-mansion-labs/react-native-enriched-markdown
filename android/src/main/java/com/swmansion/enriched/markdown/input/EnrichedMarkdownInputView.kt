@@ -398,6 +398,88 @@ class EnrichedMarkdownInputView(
     applyFormattingAndEmit()
   }
 
+  fun toggleUnorderedList() {
+    toggleListMarker(unordered = true)
+  }
+
+  fun toggleOrderedList() {
+    toggleListMarker(unordered = false)
+  }
+
+  private fun toggleListMarker(unordered: Boolean) {
+    val editable = text ?: return
+    val pos = selectionStart
+
+    // Find line start and end
+    var lineStart = pos
+    while (lineStart > 0 && editable[lineStart - 1] != '\n') {
+      lineStart--
+    }
+
+    var lineEnd = pos
+    while (lineEnd < editable.length && editable[lineEnd] != '\n') {
+      lineEnd++
+    }
+
+    val lineText = editable.substring(lineStart, lineEnd)
+    val trimmedLine = lineText.trimStart()
+    val indent = lineText.length - trimmedLine.length
+    val indentStr = lineText.substring(0, indent)
+
+    // Check for existing list marker
+    val unorderedPattern = Regex("""^[-*+]\s+""")
+    val orderedPattern = Regex("""^\d+\.\s+""")
+
+    val isUnorderedList = unorderedPattern.containsMatchIn(trimmedLine)
+    val isOrderedList = orderedPattern.containsMatchIn(trimmedLine)
+
+    isProcessingTextChange = true
+    try {
+      when {
+        // Remove marker if same type is active
+        unordered && isUnorderedList -> {
+          val newLine = indentStr + trimmedLine.replaceFirst(unorderedPattern, "")
+          editable.replace(lineStart, lineEnd, newLine)
+          formattingStore.adjustForEdit(lineStart, lineEnd - lineStart, newLine.length)
+        }
+
+        !unordered && isOrderedList -> {
+          val newLine = indentStr + trimmedLine.replaceFirst(orderedPattern, "")
+          editable.replace(lineStart, lineEnd, newLine)
+          formattingStore.adjustForEdit(lineStart, lineEnd - lineStart, newLine.length)
+        }
+
+        // Replace marker if different type is active
+        unordered && isOrderedList -> {
+          val newLine = indentStr + trimmedLine.replaceFirst(orderedPattern, "- ")
+          editable.replace(lineStart, lineEnd, newLine)
+          formattingStore.adjustForEdit(lineStart, lineEnd - lineStart, newLine.length)
+        }
+
+        !unordered && isUnorderedList -> {
+          val newLine = indentStr + trimmedLine.replaceFirst(unorderedPattern, "1. ")
+          editable.replace(lineStart, lineEnd, newLine)
+          formattingStore.adjustForEdit(lineStart, lineEnd - lineStart, newLine.length)
+        }
+
+        // Add marker
+        else -> {
+          val marker = if (unordered) "- " else "1. "
+          val newLine = indentStr + marker + trimmedLine
+          editable.replace(lineStart, lineEnd, newLine)
+          formattingStore.adjustForEdit(lineStart, lineEnd - lineStart, newLine.length)
+        }
+      }
+
+      autoLinkDetector.clearAutoLinkInRange(editable, lineStart, lineEnd)
+      lastProcessedText = editable.toString()
+      applyFormattingAndEmit()
+      eventEmitter.emitChangeText()
+    } finally {
+      isProcessingTextChange = false
+    }
+  }
+
   fun setContextMenuItems(items: List<String>) {
     contextMenu.setContextMenuItems(items)
   }

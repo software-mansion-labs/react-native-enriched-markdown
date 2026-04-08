@@ -1,10 +1,4 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  type CSSProperties,
-} from 'react';
+import { useState, useEffect, useMemo, type CSSProperties } from 'react';
 import type { EnrichedMarkdownTextProps } from '../types/MarkdownTextProps.web';
 import { normalizeMarkdownStyle } from '../normalizeMarkdownStyle.web';
 import {
@@ -43,10 +37,9 @@ export const EnrichedMarkdownText = ({
 
   const { underline = false, latexMath = true } = md4cFlags;
 
-  const parseIdRef = useRef(0);
-
   useEffect(() => {
-    const parseId = ++parseIdRef.current;
+    let cancelled = false;
+
     const katexPromise = latexMath ? loadKaTeX() : Promise.resolve(null);
 
     Promise.all([
@@ -54,7 +47,7 @@ export const EnrichedMarkdownText = ({
       katexPromise,
     ])
       .then(([result, katexInstance]) => {
-        if (parseIdRef.current === parseId) {
+        if (!cancelled) {
           indexTaskItems(result);
           markInlineImages(result);
 
@@ -64,7 +57,7 @@ export const EnrichedMarkdownText = ({
         }
       })
       .catch((error) => {
-        if (parseIdRef.current === parseId) {
+        if (!cancelled) {
           if (__DEV__) {
             console.error('[EnrichedMarkdownText] Parse failed:', error);
           }
@@ -76,7 +69,7 @@ export const EnrichedMarkdownText = ({
       });
 
     return () => {
-      parseIdRef.current++;
+      cancelled = true;
     };
   }, [markdown, underline, latexMath]);
 

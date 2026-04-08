@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { extractNodeText } from '../utils';
 import type { RendererProps, RendererMap, ASTNode, NodeType } from '../types';
 import { listItemStyle, checkedTaskTextStyle } from '../styles';
@@ -51,6 +51,10 @@ function ListItemRenderer({
   const initialChecked = node.attributes?.taskChecked === 'true';
   const taskText = isTask ? extractNodeText(node) : '';
   const [isChecked, setIsChecked] = useState(initialChecked);
+
+  useEffect(() => {
+    setIsChecked(initialChecked);
+  }, [initialChecked]);
 
   const handleChange = () => {
     const taskIndex = node.attributes?.taskIndex;

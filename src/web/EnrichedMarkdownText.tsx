@@ -30,6 +30,7 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   selectable = true,
   dir,
+  ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
     () => normalizeMarkdownStyle(markdownStyle),
@@ -73,6 +74,10 @@ export const EnrichedMarkdownText = ({
           setKatex(null);
         }
       });
+
+    return () => {
+      parseIdRef.current++;
+    };
   }, [markdown, underline, latexMath]);
 
   const callbacks = useMemo<RendererCallbacks>(
@@ -109,7 +114,7 @@ export const EnrichedMarkdownText = ({
 
   if (parseError) {
     return (
-      <div style={wrapperStyle} dir={dir}>
+      <div style={wrapperStyle} dir={dir} {...rest}>
         <pre style={parseErrorFallbackStyle}>{markdown}</pre>
       </div>
     );
@@ -121,10 +126,10 @@ export const EnrichedMarkdownText = ({
   const lastIdx = children.length - 1;
 
   return (
-    <div style={wrapperStyle} dir={dir}>
+    <div style={wrapperStyle} dir={dir} {...rest}>
       {children.map((child, index) => (
         <RenderNode
-          key={index}
+          key={`${child.type}-${index}`}
           node={child}
           style={index === lastIdx ? lastChildStyle : normalizedStyle}
           styles={index === lastIdx ? lastChildStyles : styles}

@@ -23,7 +23,11 @@ function initializeParser(): Promise<ParseFn> {
           'number',
           'number',
         ])
-      ) as Promise<ParseFn>;
+      )
+      .catch((error) => {
+        parserPromise = null;
+        throw error;
+      }) as Promise<ParseFn>;
   }
   return parserPromise;
 }

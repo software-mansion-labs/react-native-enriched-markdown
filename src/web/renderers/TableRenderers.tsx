@@ -19,7 +19,7 @@ function TableBodyRenderer({ node, style, renderChildren }: RendererProps) {
   return (
     <tbody>
       {node.children?.map((rowNode, rowIndex) => (
-        <tr key={rowIndex} style={tableBodyRowStyle(style, rowIndex)}>
+        <tr key={`row-${rowIndex}`} style={tableBodyRowStyle(style, rowIndex)}>
           {renderChildren(rowNode)}
         </tr>
       ))}

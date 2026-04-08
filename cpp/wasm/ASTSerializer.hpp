@@ -5,8 +5,6 @@
 
 namespace Markdown {
 
-// Serializes a MarkdownASTNode tree to a compact JSON string.
-// Only non-empty fields are emitted: content, attributes, children.
 class ASTSerializer {
 public:
   static std::string serialize(const MarkdownASTNode &node);

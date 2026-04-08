@@ -61,6 +61,7 @@ BOOL handleSpoilerTap(ENRMPlatformTextView *textView, ENRMTapRecognizer *recogni
 
   [textStorage beginEditing];
   [textStorage removeAttribute:SpoilerAttributeName range:fullRange];
+  ENRMRestoreSpoilerTextColors(textStorage, fullRange);
   [textStorage endEditing];
 
   [spoilerManager removeOverlaysForCharRange:fullRange];

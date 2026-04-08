@@ -12,6 +12,7 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
 #endif
+#import "ENRMSpoilerOverlayView.h"
 #import "ENRMSpoilerTapUtils.h"
 #import "EnrichedMarkdownInternalText.h"
 #import "FontScaleObserver.h"
@@ -142,6 +143,8 @@ using namespace facebook::react;
 
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
+
+  ENRMSpoilerMode _spoilerMode;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -527,6 +530,7 @@ using namespace facebook::react;
 - (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment
 {
   EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
+  view.spoilerMode = _spoilerMode;
   view.allowTrailingMargin = _allowTrailingMargin;
   view.lastElementMarginBottom = segment.lastElementMarginBottom;
   view.accessibilityInfo = segment.accessibilityInfo;
@@ -685,6 +689,16 @@ using namespace facebook::react;
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
     _contextMenuItemIcons = ENRMContextMenuIconsFromItems(newViewProps.contextMenuItems);
+  }
+
+  if (newViewProps.spoilerMode != oldViewProps.spoilerMode) {
+    NSString *modeStr = [[NSString alloc] initWithUTF8String:newViewProps.spoilerMode.c_str()];
+    _spoilerMode = ENRMSpoilerModeFromString(modeStr);
+    for (RCTUIView *segment in _segmentViews) {
+      if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+        ((EnrichedMarkdownInternalText *)segment).spoilerMode = _spoilerMode;
+      }
+    }
   }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {

@@ -138,9 +138,10 @@ interface InlineMathStyleInternal {
 }
 
 interface SpoilerStyleInternal {
-  particleColor: ColorValue;
+  color: ColorValue;
   particleDensity: CodegenTypes.Float;
   particleSpeed: CodegenTypes.Float;
+  solidBorderRadius: CodegenTypes.Float;
 }
 
 export interface MarkdownStyleInternal {
@@ -295,6 +296,13 @@ export interface NativeProps extends ViewProps {
    * @default false
    */
   streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
+  /**
+   * Controls how spoiler text is displayed before being revealed.
+   * - 'particles' (default): animated particle overlay.
+   * - 'solid': opaque rectangle covering the text.
+   * @default 'particles'
+   */
+  spoilerMode?: CodegenTypes.WithDefault<string, 'particles'>;
 
   /**
    * Custom items to show in the text selection context menu.

@@ -375,6 +375,7 @@ Styles for spoiler text (`||hidden text||`). Spoiler text is concealed behind an
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `particleColor` | `string` | Color of the animated particles that conceal the text |
-| `particleDensity` | `number` | Density of the particle field (higher = more particles). Default: `8` |
-| `particleSpeed` | `number` | Speed of particle movement. Default: `20` |
+| `color` | `string` | Color used by all presets for the spoiler overlay |
+| `particles.density` | `number` | Density of the particle field (higher = more particles). Default: `8` |
+| `particles.speed` | `number` | Speed of particle movement. Default: `20` |
+| `solid` | `object` | Reserved for future solid-preset properties |

@@ -17,6 +17,7 @@ import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
+import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListTapUtils
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
@@ -160,6 +161,14 @@ class EnrichedMarkdownTextManager :
     streamingAnimation: Boolean,
   ) {
     view?.setStreamingAnimation(streamingAnimation)
+  }
+
+  @ReactProp(name = "spoilerMode")
+  override fun setSpoilerMode(
+    view: EnrichedMarkdownText?,
+    mode: String?,
+  ) {
+    view?.spoilerMode = SpoilerMode.fromString(mode)
   }
 
   @ReactProp(name = "contextMenuItems")

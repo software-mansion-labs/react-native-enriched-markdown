@@ -149,7 +149,7 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
     val remaining = intArrayOf(spans.size)
 
     for (span in spans) {
-      drawer.revealSpan(span, buffer) {
+      drawer.revealSpan(span) {
         remaining[0]--
         if (remaining[0] <= 0) widget.invalidate()
       }

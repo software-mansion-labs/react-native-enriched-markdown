@@ -16,6 +16,7 @@ import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
@@ -80,6 +81,7 @@ class EnrichedMarkdownText
     private var fadeAnimator: TailFadeInAnimator? = null
     var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
       private set
+    var spoilerMode: SpoilerMode = SpoilerMode.PARTICLES
 
     init {
       setupAsMarkdownTextView(accessibilityHelper)
@@ -236,7 +238,7 @@ class EnrichedMarkdownText
         span.registerTextView(this)
       }
 
-      spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer)
+      spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer, spoilerMode)
 
       layoutManager.invalidateLayout()
       accessibilityHelper.invalidateAccessibilityItems()

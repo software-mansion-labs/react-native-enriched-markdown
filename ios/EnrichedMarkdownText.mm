@@ -403,7 +403,6 @@ using namespace facebook::react;
   // and measurement — layoutSubviews will handle it once the view has real
   // bounds. Measuring with width=0 produces a bogus single-line measurement
   // that corrupts the height sent to Yoga.
-  [self ensureSpoilerManager];
   [_spoilerManager setNeedsUpdate];
 
   if (self.bounds.size.width > 0) {
@@ -434,13 +433,6 @@ using namespace facebook::react;
   }
 }
 
-- (void)ensureSpoilerManager
-{
-  if (!_spoilerManager) {
-    _spoilerManager = [[ENRMSpoilerOverlayManager alloc] initWithTextView:_textView config:_config];
-  }
-}
-
 #if !TARGET_OS_OSX
 - (void)layoutSubviews
 {
@@ -459,6 +451,7 @@ using namespace facebook::react;
   if (_config == nil) {
     _config = [[StyleConfig alloc] init];
     [_config setFontScaleMultiplier:_fontScaleObserver.effectiveFontScale];
+    _spoilerManager = [[ENRMSpoilerOverlayManager alloc] initWithTextView:_textView config:_config];
   }
 
   stylePropChanged = applyMarkdownStyleToConfig(_config, newViewProps.markdownStyle, oldViewProps.markdownStyle);
@@ -533,6 +526,11 @@ using namespace facebook::react;
     }
   }
 
+  if (newViewProps.spoilerMode != oldViewProps.spoilerMode) {
+    NSString *modeStr = [[NSString alloc] initWithUTF8String:newViewProps.spoilerMode.c_str()];
+    _spoilerManager.spoilerMode = ENRMSpoilerModeFromString(modeStr);
+  }
+
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
@@ -549,8 +547,8 @@ using namespace facebook::react;
     _textView.hidden = NO;
     ENRMRefreshTextViewAfterWindowAttach(_textView, self.bounds);
 
-    [self ensureSpoilerManager];
-    [_spoilerManager updateOverlays];
+    [_spoilerManager setNeedsUpdate];
+    [_spoilerManager updateIfNeeded];
 
     CGSize measured = [self measureSize:self.bounds.size.width];
     if (needsHeightUpdate(measured, self.bounds)) {

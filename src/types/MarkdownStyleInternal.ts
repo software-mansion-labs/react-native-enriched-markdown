@@ -138,9 +138,10 @@ interface InlineMathStyleInternal {
 }
 
 interface SpoilerStyleInternal {
-  particleColor: string;
+  color: string;
   particleDensity: number;
   particleSpeed: number;
+  solidBorderRadius: number;
 }
 
 export interface MarkdownStyleInternal {

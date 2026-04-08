@@ -16,6 +16,7 @@ import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.spans.ImageSpan
+import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
@@ -77,6 +78,14 @@ class EnrichedMarkdown
     private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
+    var spoilerMode: SpoilerMode = SpoilerMode.PARTICLES
+      set(value) {
+        if (field == value) return
+        field = value
+        segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
+          it.spoilerMode = value
+        }
+      }
 
     fun setMarkdownContent(markdown: String) {
       if (currentMarkdown == markdown) return
@@ -268,6 +277,7 @@ class EnrichedMarkdown
 
     private fun createTextView(segment: RenderSegment.Text) =
       EnrichedMarkdownInternalText(context).apply {
+        spoilerMode = this@EnrichedMarkdown.spoilerMode
         setIsSelectable(selectable)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && segment.needsJustify) {
           justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD

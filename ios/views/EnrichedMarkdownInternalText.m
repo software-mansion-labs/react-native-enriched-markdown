@@ -54,6 +54,7 @@
   [self setupLayoutManager];
 
   _spoilerManager = [[ENRMSpoilerOverlayManager alloc] initWithTextView:_textView config:_config];
+  _spoilerManager.spoilerMode = _spoilerMode;
 }
 
 - (void)setupLayoutManager
@@ -66,6 +67,12 @@
       [layoutManager setValue:_config forKey:@"config"];
     }
   }
+}
+
+- (void)setSpoilerMode:(ENRMSpoilerMode)spoilerMode
+{
+  _spoilerMode = spoilerMode;
+  _spoilerManager.spoilerMode = spoilerMode;
 }
 
 - (void)applyAttributedText:(NSMutableAttributedString *)text context:(RenderContext *)context

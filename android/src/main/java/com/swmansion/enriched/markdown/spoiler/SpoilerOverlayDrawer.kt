@@ -3,20 +3,18 @@ package com.swmansion.enriched.markdown.spoiler
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.drawable.ColorDrawable
 import android.text.Spanned
 import android.widget.TextView
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
+import com.swmansion.enriched.markdown.styles.SpoilerStyle
 import java.lang.ref.WeakReference
 
 /**
- * Draws an opaque background + particles over each line-segment of every
- * unrevealed [SpoilerSpan] in a [TextView]. Called from the host view's
- * `onDraw` after `super.onDraw`.
+ * Coordinates spoiler overlay drawing for a [TextView].
+ * Delegates the actual rendering and reveal logic to a [SpoilerStrategy]
+ * selected by [spoilerMode].
  *
- * During reveal the background and particles fade together, exposing the
- * text rendered by `super.onDraw` underneath. Once fully revealed the span
- * is skipped entirely.
+ * Called from the host view's `onDraw` after `super.onDraw`.
  */
 class SpoilerOverlayDrawer(
   textView: TextView,
@@ -24,162 +22,124 @@ class SpoilerOverlayDrawer(
   private val textViewReference = WeakReference(textView)
   val animator = SpoilerAnimator(textView)
 
-  private data class SegmentKey(
-    val spanIdentity: Int,
-    val line: Int,
-  )
+  private var strategy: SpoilerStrategy = createStrategy(SpoilerMode.PARTICLES)
+  private var currentMode: SpoilerMode = SpoilerMode.PARTICLES
 
-  private val segments = mutableMapOf<SegmentKey, SpoilerParticleDrawable>()
   private val activeKeys = mutableSetOf<SegmentKey>()
-  private val backgroundPaint = Paint()
 
-  private var particleColor = 0
-  private var particleDensity = 0f
-  private var particleSpeed = 0f
+  private var cachedStyle: SpoilerStyle? = null
+
+  var spoilerMode: SpoilerMode
+    get() = currentMode
+    set(value) {
+      if (currentMode == value) return
+      strategy.stop()
+      currentMode = value
+      strategy = createStrategy(value)
+      cachedStyle?.let { strategy.applyStyle(it) }
+      textViewReference.get()?.invalidate()
+    }
 
   // ── Public API ────────────────────────────────────────────────────
 
-  fun registerSpans(text: CharSequence) {
-    if (text !is Spanned) return
-    val spans = text.getSpans(0, text.length, SpoilerSpan::class.java)
+  fun registerSpans(spans: Array<SpoilerSpan>) {
     if (spans.isEmpty()) return
     val first = spans[0]
-    particleColor = first.styleCache.spoilerParticleColor
-    particleDensity = first.styleCache.spoilerParticleDensity
-    particleSpeed = first.styleCache.spoilerParticleSpeed
+    val style =
+      SpoilerStyle(
+        first.styleCache.spoilerColor,
+        first.styleCache.spoilerParticleDensity,
+        first.styleCache.spoilerParticleSpeed,
+        first.styleCache.spoilerSolidBorderRadius,
+      )
+    cachedStyle = style
+    strategy.applyStyle(style)
   }
 
   fun draw(canvas: Canvas) {
-    val textView = textViewReference.get() ?: return
-    val layout = textView.layout ?: return
-    val text = textView.text as? Spanned ?: return
-    val spans = text.getSpans(0, text.length, SpoilerSpan::class.java)
-    if (spans.isEmpty()) return
-
-    val paddingLeft = textView.totalPaddingLeft.toFloat()
-    val paddingTop = textView.totalPaddingTop.toFloat()
-    val backgroundColor = resolveBackgroundColor(textView)
-    val fontMetrics = layout.paint.fontMetrics
+    val ctx = buildContext() ?: return
 
     activeKeys.clear()
 
-    for (span in spans) {
+    for (span in ctx.spans) {
       if (span.revealed) continue
-      val spanStart = text.getSpanStart(span)
-      val spanEnd = text.getSpanEnd(span)
+      val spanStart = ctx.text.getSpanStart(span)
+      val spanEnd = ctx.text.getSpanEnd(span)
       if (spanStart < 0 || spanEnd < 0 || spanStart >= spanEnd) continue
 
       val spanIdentity = System.identityHashCode(span)
-      val firstLine = layout.getLineForOffset(spanStart)
-      val lastLine = layout.getLineForOffset(spanEnd)
+      val firstLine = ctx.layout.getLineForOffset(spanStart)
+      val lastLine = ctx.layout.getLineForOffset(spanEnd)
 
       for (line in firstLine..lastLine) {
-        val segmentStart = maxOf(spanStart, layout.getLineStart(line))
-        val segmentEnd = minOf(spanEnd, layout.getLineEnd(line))
+        val segmentStart = maxOf(spanStart, ctx.layout.getLineStart(line))
+        val segmentEnd = minOf(spanEnd, ctx.layout.getLineEnd(line))
         if (segmentStart >= segmentEnd) continue
 
-        val rect = computeSegmentRect(layout, line, segmentStart, segmentEnd, fontMetrics, paddingLeft, paddingTop) ?: continue
+        val rect =
+          computeSegmentRect(
+            ctx.layout,
+            line,
+            segmentStart,
+            segmentEnd,
+            ctx.fontMetrics,
+            ctx.paddingLeft,
+            ctx.paddingTop,
+          ) ?: continue
         val key = SegmentKey(spanIdentity, line)
         activeKeys.add(key)
 
-        val drawable =
-          segments.getOrPut(key) {
-            SpoilerParticleDrawable(particleColor, particleDensity, particleSpeed)
-              .also { animator.register(it) }
-          }
-        drawable.setSize(rect.width, rect.height)
-
-        backgroundPaint.color = colorWithAlpha(backgroundColor, drawable.overallAlpha)
-        canvas.drawRect(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height, backgroundPaint)
-        drawable.draw(canvas, rect.left, rect.top)
+        strategy.drawSegment(canvas, ctx, key, rect)
       }
     }
 
-    removeStaleSegments()
+    strategy.pruneStaleSegments(activeKeys)
   }
 
   fun revealSpan(
     span: SpoilerSpan,
-    text: Spanned,
     onAllComplete: () -> Unit,
   ) {
-    val spanIdentity = System.identityHashCode(span)
-    val keys = segments.keys.filter { it.spanIdentity == spanIdentity }
-
-    if (keys.isEmpty()) {
-      finalizeReveal(span)
+    val ctx = buildContext()
+    if (ctx == null) {
+      span.markRevealed()
       onAllComplete()
       return
     }
-
-    val remainingCount = intArrayOf(keys.size)
-    for (key in keys) {
-      segments[key]?.startReveal {
-        remainingCount[0]--
-        if (remainingCount[0] <= 0) {
-          keys.forEach { segmentKey -> segments.remove(segmentKey)?.let { animator.unregister(it) } }
-          finalizeReveal(span)
-          onAllComplete()
-        }
-      }
-    }
     span.markRevealing()
-    animator.ensureRunning()
+    strategy.revealSpan(span, ctx) {
+      span.markRevealed()
+      textViewReference.get()?.invalidate()
+      onAllComplete()
+    }
   }
 
   fun stop() {
     animator.stop()
-    segments.clear()
-    activeKeys.clear()
+    strategy.stop()
   }
 
   // ── Internal helpers ──────────────────────────────────────────────
 
-  private data class Rect(
-    val left: Float,
-    val top: Float,
-    val width: Float,
-    val height: Float,
-  )
-
-  private fun computeSegmentRect(
-    layout: android.text.Layout,
-    line: Int,
-    segmentStart: Int,
-    segmentEnd: Int,
-    fontMetrics: Paint.FontMetrics,
-    paddingLeft: Float,
-    paddingTop: Float,
-  ): Rect? {
-    val startHorizontal = layout.getPrimaryHorizontal(segmentStart)
-    val endHorizontal =
-      if (segmentEnd >= layout.getLineEnd(line)) {
-        layout.getLineRight(line)
-      } else {
-        layout.getPrimaryHorizontal(segmentEnd)
-      }
-    val baseline = layout.getLineBaseline(line).toFloat()
-
-    val left = minOf(startHorizontal, endHorizontal) + paddingLeft
-    val right = maxOf(startHorizontal, endHorizontal) + paddingLeft
-    val top = baseline + fontMetrics.ascent + paddingTop
-    val bottom = baseline + fontMetrics.descent + paddingTop
-    val width = right - left
-    val height = bottom - top
-    return if (width > 0 && height > 0) Rect(left, top, width, height) else null
+  private fun buildContext(): SpoilerDrawContext? {
+    val textView = textViewReference.get() ?: return null
+    val layout = textView.layout ?: return null
+    val text = textView.text as? Spanned ?: return null
+    val spans = text.getSpans(0, text.length, SpoilerSpan::class.java)
+    if (spans.isEmpty()) return null
+    return SpoilerDrawContext(
+      textView = textView,
+      layout = layout,
+      text = text,
+      spans = spans,
+      paddingLeft = textView.totalPaddingLeft.toFloat(),
+      paddingTop = textView.totalPaddingTop.toFloat(),
+      fontMetrics = layout.paint.fontMetrics,
+      backgroundColor = SpoilerDrawContext.resolveBackgroundColor(textView),
+    )
   }
 
-  private fun removeStaleSegments() {
-    val staleKeys = segments.keys - activeKeys
-    for (key in staleKeys) {
-      segments.remove(key)?.let { animator.unregister(it) }
-    }
-  }
-
-  private fun finalizeReveal(span: SpoilerSpan) {
-    span.markRevealed()
-    textViewReference.get()?.invalidate()
-  }
+  private fun createStrategy(mode: SpoilerMode): SpoilerStrategy = mode.createStrategy(animator)
 
   companion object {
     /**
@@ -193,12 +153,14 @@ class SpoilerOverlayDrawer(
       textView: TextView,
       styledText: CharSequence,
       existing: SpoilerOverlayDrawer?,
+      spoilerMode: SpoilerMode = SpoilerMode.PARTICLES,
     ): SpoilerOverlayDrawer? {
       if (styledText !is Spanned) return tearDown(existing)
       val spans = styledText.getSpans(0, styledText.length, SpoilerSpan::class.java)
       if (spans.isEmpty()) return tearDown(existing)
       val drawer = existing ?: SpoilerOverlayDrawer(textView)
-      drawer.registerSpans(styledText)
+      drawer.spoilerMode = spoilerMode
+      drawer.registerSpans(spans)
       return drawer
     }
 
@@ -207,18 +169,42 @@ class SpoilerOverlayDrawer(
       return null
     }
 
-    private fun resolveBackgroundColor(textView: TextView): Int {
-      var view: android.view.View? = textView
-      while (view != null) {
-        val background = view.background
-        if (background is ColorDrawable && Color.alpha(background.color) > 0) return background.color
-        val parent = view.parent
-        view = if (parent is android.view.View) parent else null
-      }
-      return Color.WHITE
+    /**
+     * Computes the pixel rectangle for a text segment within a line.
+     * Shared by all strategies.
+     */
+    internal fun computeSegmentRect(
+      layout: android.text.Layout,
+      line: Int,
+      segmentStart: Int,
+      segmentEnd: Int,
+      fontMetrics: Paint.FontMetrics,
+      paddingLeft: Float,
+      paddingTop: Float,
+    ): SegmentRect? {
+      val startHorizontal = layout.getPrimaryHorizontal(segmentStart)
+      val endHorizontal =
+        if (segmentEnd >= layout.getLineEnd(line)) {
+          layout.getLineRight(line)
+        } else {
+          layout.getPrimaryHorizontal(segmentEnd)
+        }
+      val baseline = layout.getLineBaseline(line).toFloat()
+
+      val left = minOf(startHorizontal, endHorizontal) + paddingLeft
+      val right = maxOf(startHorizontal, endHorizontal) + paddingLeft
+      val top = baseline + fontMetrics.ascent + paddingTop
+      val bottom = baseline + fontMetrics.descent + paddingTop
+      val width = right - left
+      val height = bottom - top
+      return if (width > 0 && height > 0) SegmentRect(left, top, width, height) else null
     }
 
-    private fun colorWithAlpha(
+    /**
+     * Returns a color with the given alpha multiplied in.
+     * Shared by all strategies.
+     */
+    internal fun colorWithAlpha(
       color: Int,
       alpha: Float,
     ): Int {
@@ -227,3 +213,10 @@ class SpoilerOverlayDrawer(
     }
   }
 }
+
+data class SegmentRect(
+  val left: Float,
+  val top: Float,
+  val width: Float,
+  val height: Float,
+)

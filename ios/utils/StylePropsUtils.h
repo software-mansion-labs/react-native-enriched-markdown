@@ -1043,9 +1043,9 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   // ── Spoiler ─────────────────────────────────────────────────────────────
 
-  if (newStyle.spoiler.particleColor != oldStyle.spoiler.particleColor) {
-    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.spoiler.particleColor);
-    [config setSpoilerParticleColor:color];
+  if (newStyle.spoiler.color != oldStyle.spoiler.color) {
+    RCTUIColor *color = RCTUIColorFromSharedColor(newStyle.spoiler.color);
+    [config setSpoilerColor:color];
     changed = YES;
   }
 
@@ -1056,6 +1056,11 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
 
   if (newStyle.spoiler.particleSpeed != oldStyle.spoiler.particleSpeed) {
     [config setSpoilerParticleSpeed:newStyle.spoiler.particleSpeed];
+    changed = YES;
+  }
+
+  if (newStyle.spoiler.solidBorderRadius != oldStyle.spoiler.solidBorderRadius) {
+    [config setSpoilerSolidBorderRadius:newStyle.spoiler.solidBorderRadius];
     changed = YES;
   }
 

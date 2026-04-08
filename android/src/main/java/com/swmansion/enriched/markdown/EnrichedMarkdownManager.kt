@@ -17,6 +17,7 @@ import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
+import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
 
@@ -140,6 +141,14 @@ class EnrichedMarkdownManager :
   ) {
     // TODO: Add streaming animation support for github flavor.
     // Currently only supported with flavor="commonmark" (single TextView).
+  }
+
+  @ReactProp(name = "spoilerMode")
+  override fun setSpoilerMode(
+    view: EnrichedMarkdown?,
+    mode: String?,
+  ) {
+    view?.spoilerMode = SpoilerMode.fromString(mode)
   }
 
   @ReactProp(name = "contextMenuItems")

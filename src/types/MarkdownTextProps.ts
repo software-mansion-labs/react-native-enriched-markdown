@@ -134,6 +134,17 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    */
   streamingAnimation?: boolean;
   /**
+   * Controls how spoiler text is displayed before being revealed.
+   * - `'particles'` (default): animated particle overlay (CAEmitterLayer on iOS,
+   *   Choreographer-driven Canvas particles on Android).
+   * - `'solid'`: opaque rectangle covering the text (Discord-style).
+   *
+   * Both modes support tap-to-reveal.
+   * @default 'particles'
+   * @platform ios, android
+   */
+  spoilerMode?: 'particles' | 'solid';
+  /**
    * Custom items to show in the text selection context menu.
    * Each item requires a `text` label and an `onPress` callback.
    * Items with `visible: false` are hidden from the menu.

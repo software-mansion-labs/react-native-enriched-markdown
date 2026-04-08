@@ -1,5 +1,6 @@
 #pragma once
 #import "ENRMContextMenuTextView+macOS.h"
+#import "ENRMSpoilerOverlayView.h"
 #import "ENRMUIKit.h"
 #import "LinkTapUtils.h"
 #import "StyleConfig.h"
@@ -21,6 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, readonly) ENRMPlatformTextView *textView;
 @property (nonatomic, readonly) ENRMSpoilerOverlayManager *spoilerManager;
+@property (nonatomic) ENRMSpoilerMode spoilerMode;
 
 @property (nonatomic, strong, nullable) AccessibilityInfo *accessibilityInfo;
 

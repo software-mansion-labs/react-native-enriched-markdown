@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
@@ -41,6 +42,7 @@ class EnrichedMarkdownInternalText
 
     var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
       private set
+    var spoilerMode: SpoilerMode = SpoilerMode.PARTICLES
     private var contextMenuItemTexts: List<String> = emptyList()
     private var onContextMenuItemPress: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
 
@@ -63,7 +65,7 @@ class EnrichedMarkdownInternalText
         movementMethod = LinkLongPressMovementMethod.createInstance()
       }
 
-      spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer)
+      spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer, spoilerMode)
       accessibilityHelper.invalidateAccessibilityItems()
     }
 

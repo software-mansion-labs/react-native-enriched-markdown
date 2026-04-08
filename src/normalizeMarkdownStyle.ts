@@ -5,6 +5,7 @@ import type {
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
+import { flattenSpoilerStyle, isStyleEqual } from './styleUtils';
 
 // On native, processColor converts hex strings to ARGB integers the renderer
 // expects. On web, CSS accepts hex strings natively — no conversion needed.
@@ -232,9 +233,10 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     checkedStrikethrough: false,
   },
   spoiler: {
-    particleColor: normalizeColor('#374151')!,
+    color: normalizeColor('#374151')!,
     particleDensity: 8,
     particleSpeed: 20,
+    solidBorderRadius: 4,
   },
 });
 
@@ -245,17 +247,7 @@ const structuralCache: {
 }[] = [];
 const LRU_MAX = 8;
 
-const isStyleEqual = (a: MarkdownStyle, b: MarkdownStyle): boolean => {
-  const keys = Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyle)[];
-  return keys.every((key) => {
-    const subA = a[key],
-      subB = b[key];
-    if (subA === subB) return true;
-    if (!subA || !subB) return false;
-    const subKeys = Object.keys(subA) as (keyof typeof subA)[];
-    return subKeys.every((k) => subA[k] === subB[k]);
-  });
-};
+const styleReferenceKeys = Object.keys(DEFAULT_NORMALIZED_STYLE);
 
 export const normalizeMarkdownStyle = (
   style: MarkdownStyle
@@ -267,7 +259,7 @@ export const normalizeMarkdownStyle = (
   if (refHit) return refHit;
 
   const structIdx = structuralCache.findIndex((e) =>
-    isStyleEqual(e.style, style)
+    isStyleEqual(e.style, style, styleReferenceKeys)
   );
   if (structIdx !== -1) {
     const entry = structuralCache.splice(structIdx, 1)[0]!;
@@ -280,9 +272,13 @@ export const normalizeMarkdownStyle = (
   (
     Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyleInternal)[]
   ).forEach((key) => {
+    const userValue =
+      key === 'spoiler'
+        ? flattenSpoilerStyle(style.spoiler)
+        : (style[key] as unknown as Record<string, unknown> | undefined);
     result[key] = mergeSubStyle(
       DEFAULT_NORMALIZED_STYLE[key] as unknown as Record<string, unknown>,
-      style[key] as unknown as Record<string, unknown> | undefined
+      userValue as Record<string, unknown> | undefined
     );
   });
 

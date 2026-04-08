@@ -45,17 +45,15 @@ class SpoilerAnimator(
         lastFrameTime = currentTimeMs
 
         isIterating = true
-        var hasActiveDrawables = false
         for (drawable in drawables) {
           drawable.update(deltaTime, currentTimeMs)
-          if (drawable.hasActiveParticles()) hasActiveDrawables = true
         }
         isIterating = false
         drainPendingRemovals()
 
         textView.invalidate()
 
-        if (hasActiveDrawables || drawables.isNotEmpty()) {
+        if (drawables.isNotEmpty()) {
           Choreographer.getInstance().postFrameCallback(this)
         } else {
           running = false
@@ -87,6 +85,8 @@ class SpoilerAnimator(
   fun stop() {
     running = false
     Choreographer.getInstance().removeFrameCallback(frameCallback)
+    drawables.clear()
+    pendingRemovals.clear()
   }
 
   private fun drainPendingRemovals() {

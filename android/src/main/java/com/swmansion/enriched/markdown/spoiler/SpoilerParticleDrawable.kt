@@ -99,7 +99,7 @@ class SpoilerParticleDrawable(
     if (isRevealing) {
       if (revealStartTime < 0L) revealStartTime = currentTimeMs
       val progress = ((currentTimeMs - revealStartTime).toFloat() / REVEAL_DURATION_MS).coerceIn(0f, 1f)
-      overallAlpha = (1f - progress) * (1f - progress) // quadratic ease-out
+      overallAlpha = (1f - progress) * (1f - progress)
 
       if (progress >= 1f) {
         revealFinished = true
@@ -137,8 +137,6 @@ class SpoilerParticleDrawable(
     canvas.restore()
   }
 
-  fun hasActiveParticles(): Boolean = !revealFinished
-
   // ── Internal ──────────────────────────────────────────────────────
 
   private fun updateAndCompact(deltaTime: Float) {
@@ -163,6 +161,7 @@ class SpoilerParticleDrawable(
   /**
    * Pre-populates particles at various ages so the field looks fully established
    * on the very first frame, matching iOS CAEmitterLayer which renders immediately.
+   * Uses 30 simulated frames (~0.5s) which is sufficient for visual coverage.
    */
   private fun seedInitialParticles() {
     val frameDeltaTime = 16f / 1000f
@@ -219,7 +218,7 @@ class SpoilerParticleDrawable(
 
   // ── Constants ─────────────────────────────────────────────────────
 
-  private data class DotType(
+  private class DotType(
     val lifetime: Float,
     val velocity: Float,
     val scale: Float,
@@ -232,7 +231,7 @@ class SpoilerParticleDrawable(
     private const val REVEAL_DURATION_MS = 450L
     private const val REVEAL_VELOCITY_MULTIPLIER = 10f
     private const val REVEAL_ALPHA_SPEED_MULTIPLIER = 6f
-    private const val SEED_FRAMES = 60
+    private const val SEED_FRAMES = 30
     private const val INITIAL_CAPACITY = 64
     private val TWO_PI = (Math.PI * 2).toFloat()
 

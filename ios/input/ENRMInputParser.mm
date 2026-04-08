@@ -184,6 +184,20 @@ static int onText(MD_TEXTTYPE, const MD_CHAR *text, MD_SIZE size, void *userdata
     return 0;
   }
   auto *context = static_cast<ParseContext *>(userdata);
+
+  // md4c passes pointers outside the input buffer for synthetic tokens
+  // (e.g. MD_TEXT_SOFTBR, MD_TEXT_BR use a string literal "\n").
+  // Pointer arithmetic against context->buffer would underflow, corrupting offsets.
+  //
+  // TODO: Skipping out-of-buffer tokens means lastTextEnd doesn't advance past
+  // newlines. Fine for inline spans, but if block-level input formatting is
+  // added later, openingDelimiterByteOffset will include newline chars in the
+  // syntax range. See the related TODO above onEnterBlock.
+  bool insideBuffer = (text >= context->buffer && text < context->buffer + context->bufferLength);
+  if (!insideBuffer) {
+    return 0;
+  }
+
   size_t textStart = text - context->buffer;
   size_t textEnd = textStart + size;
 
@@ -210,7 +224,7 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
 
   MD_PARSER parser = {
       .abi_version = 0,
-      .flags = MD_FLAG_NOHTML | MD_FLAG_PERMISSIVEAUTOLINKS | MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH,
+      .flags = MD_FLAG_NOHTML | MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH,
       .enter_block = onEnterBlock,
       .leave_block = onLeaveBlock,
       .enter_span = onEnterSpan,
@@ -256,7 +270,7 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
     }
 
     NSUInteger contentStart = mapByteOffset(byteMap, spanInfo.contentStartByteOffset, context.bufferLength);
-    NSUInteger contentEnd = mapByteOffset(byteMap, spanInfo.contentEndByteOffset, context.originalLength);
+    NSUInteger contentEnd = mapByteOffset(byteMap, spanInfo.contentEndByteOffset, context.bufferLength);
     styledRange.contentRange = NSMakeRange(contentStart, contentEnd - contentStart);
 
     NSUInteger openStart = mapByteOffset(byteMap, spanInfo.openingDelimiterByteOffset, context.bufferLength);

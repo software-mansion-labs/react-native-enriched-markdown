@@ -34,8 +34,9 @@ object InputRemend {
       }
 
       if (c == ']' && !inLinkParen && i + 1 < length && markdown[i + 1] == '(') {
-        if (stack.isNotEmpty() && stack.last() == "[") {
-          stack.removeAt(stack.lastIndex)
+        val bracketIndex = stack.lastIndexOf("[")
+        if (bracketIndex != -1) {
+          stack.subList(bracketIndex, stack.size).clear()
         }
         inLinkParen = true
         i += 2
@@ -44,6 +45,11 @@ object InputRemend {
 
       if (inLinkParen && c == ')') {
         inLinkParen = false
+        i++
+        continue
+      }
+
+      if (inLinkParen) {
         i++
         continue
       }

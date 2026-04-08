@@ -103,9 +103,11 @@ static NSArray<ENRMFormattingRange *> *splitRangesAtParagraphBreaks(NSArray<ENRM
 {
   NSMutableArray<ENRMFormattingRange *> *result = [NSMutableArray arrayWithCapacity:ranges.count];
 
+  NSUInteger textLength = text.length;
+
   for (ENRMFormattingRange *formattingRange in ranges) {
-    NSUInteger rangeStart = formattingRange.range.location;
-    NSUInteger rangeEnd = NSMaxRange(formattingRange.range);
+    NSUInteger rangeStart = MIN(formattingRange.range.location, textLength);
+    NSUInteger rangeEnd = MIN(NSMaxRange(formattingRange.range), textLength);
 
     NSUInteger segStart = rangeStart;
     while (segStart < rangeEnd) {
@@ -154,8 +156,8 @@ static NSArray<ENRMFormattingRange *> *splitRangesAtParagraphBreaks(NSArray<ENRM
   NSCharacterSet *ws = whitespaceSet();
   NSUInteger eventIndex = 0;
   for (ENRMFormattingRange *formattingRange in splitRanges) {
-    NSUInteger start = formattingRange.range.location;
-    NSUInteger end = NSMaxRange(formattingRange.range);
+    NSUInteger start = MIN(formattingRange.range.location, textLength);
+    NSUInteger end = MIN(NSMaxRange(formattingRange.range), textLength);
 
     while (start < end && [ws characterIsMember:[text characterAtIndex:start]]) {
       start++;

@@ -1,0 +1,83 @@
+import type { CSSProperties, HTMLAttributes } from 'react';
+import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
+import type {
+  LinkPressEvent,
+  LinkLongPressEvent,
+  TaskListItemPressEvent,
+} from './events';
+
+export interface EnrichedMarkdownTextProps
+  extends Omit<HTMLAttributes<HTMLDivElement>, 'style' | 'dir'> {
+  /**
+   * Markdown content to render.
+   * @platform ios, android, web
+   */
+  markdown: string;
+  /**
+   * Style configuration for markdown elements.
+   * @platform ios, android, web
+   */
+  markdownStyle?: MarkdownStyle;
+  /**
+   * Style for the container view.
+   * @platform ios, android, web
+   */
+  containerStyle?: CSSProperties;
+  /**
+   * MD4C parser flags configuration.
+   * Controls how the markdown parser interprets certain syntax.
+   * @platform ios, android, web
+   */
+  md4cFlags?: Md4cFlags;
+  /**
+   * Callback fired when a link is pressed.
+   * Receives the link URL directly.
+   * @platform ios, android, web
+   */
+  onLinkPress?: (event: LinkPressEvent) => void;
+  /**
+   * Callback fired when a link is long pressed.
+   * Receives the link URL directly.
+   * - iOS: When provided, automatically disables the system link preview
+   *   (unless `enableLinkPreview` is explicitly set to `true`).
+   * - Android: Handles long press gestures on links.
+   * - Web: Mapped to the `contextmenu` event (right-click).
+   * @platform ios, android, web
+   */
+  onLinkLongPress?: (event: LinkLongPressEvent) => void;
+  /**
+   * Callback fired when a task list checkbox is tapped.
+   *
+   * The checkbox is toggled on the native side automatically.
+   * Receives the 0-based task index, the new checked state (after toggling),
+   * and the item's plain text.
+   *
+   * Only fires when `flavor="github"` (GFM task lists require GitHub flavor).
+   * @platform ios, android, web
+   */
+  onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
+  /**
+   * Controls text selection.
+   * - iOS: Controls text selection and link previews on long press.
+   * - Android: Controls text selection.
+   * - Web: Applies `user-select: none` when `false`.
+   * @default true
+   * @platform ios, android, web
+   */
+  selectable?: boolean;
+  /**
+   * When false (default), removes trailing margin from the last element to
+   * eliminate bottom spacing.
+   * When true, keeps the trailing margin from the last element's marginBottom style.
+   * @default false
+   * @platform ios, android, web
+   */
+  allowTrailingMargin?: boolean;
+  /**
+   * Sets the text direction on the root container.
+   * Useful for RTL languages — CSS logical properties in the renderers
+   * automatically flip blockquote borders, list indentation, etc.
+   * @platform web
+   */
+  dir?: 'ltr' | 'rtl' | 'auto';
+}

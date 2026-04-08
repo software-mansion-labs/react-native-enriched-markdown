@@ -53,13 +53,20 @@ const INITIAL_MESSAGES: Message[] = [
     isOwn: true,
     time: '10:53',
   },
+  {
+    id: 5,
+    markdown:
+      'Try using lists:\n- Unordered item 1\n- Unordered item 2\n\n1. Ordered item 1\n2. Ordered item 2',
+    isOwn: false,
+    time: '10:54',
+  },
 ];
 
 const MARKDOWN_STYLE = {
   link: { color: '#2563EB', underline: true },
 };
 
-let nextId = 5;
+let nextId = 6;
 
 export default function InputScreen() {
   const inputRef = useRef<EnrichedMarkdownInputInstance>(null);
@@ -146,6 +153,8 @@ export default function InputScreen() {
             styleState.underline.isActive && 'underline',
             styleState.strikethrough.isActive && 'strikethrough',
             styleState.link.isActive && 'link',
+            styleState.unorderedList.isActive && 'unordered list',
+            styleState.orderedList.isActive && 'ordered list',
           ]
             .filter(Boolean)
             .join(', ');
@@ -241,6 +250,16 @@ export default function InputScreen() {
                 label: 'S',
                 style: 'strikethrough',
                 action: 'toggleStrikethrough',
+              },
+              {
+                label: '•',
+                style: 'unorderedList',
+                action: 'toggleUnorderedList',
+              },
+              {
+                label: '1.',
+                style: 'orderedList',
+                action: 'toggleOrderedList',
               },
             ] as const
           ).map(({ label, style, action }) => (

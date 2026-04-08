@@ -50,6 +50,8 @@ export interface StyleState {
   underline: { isActive: boolean };
   strikethrough: { isActive: boolean };
   link: { isActive: boolean };
+  unorderedList: { isActive: boolean };
+  orderedList: { isActive: boolean };
 }
 
 export interface ContextMenuItem {
@@ -207,7 +209,56 @@ export const EnrichedMarkdownInput = ({
 
   const handleChangeMarkdown = useCallback(
     (e: NativeSyntheticEvent<OnChangeMarkdownEvent>) => {
-      onChangeMarkdown?.(e.nativeEvent.value);
+      const markdown = e.nativeEvent.value;
+
+      // Auto-continue lists: when pressing Enter on a list item, add the next marker
+      const lines = markdown.split('\n');
+      const currentLineIndex = lines.length - 1;
+
+      if (
+        currentLineIndex > 0 &&
+        lines[currentLineIndex] !== undefined &&
+        lines[currentLineIndex - 1] !== undefined
+      ) {
+        const currentLine = lines[currentLineIndex]!;
+        const previousLine = lines[currentLineIndex - 1]!;
+
+        // If current line is empty and previous line is a list item
+        const unorderedMatch = previousLine.match(/^\s*[-*]\s+.+$/);
+        const orderedMatch = previousLine.match(/^\s*\d+\.\s+.+$/);
+
+        if (currentLine.trim() === '' && (unorderedMatch || orderedMatch)) {
+          if (unorderedMatch) {
+            // Continue unordered list
+            const indent = previousLine.match(/^\s*/)?.[0] || '';
+            lines[currentLineIndex] = indent + '- ';
+            if (nativeRef.current) {
+              Commands.setValue(
+                nativeRef.current as Parameters<
+                  (typeof Commands)['setValue']
+                >[0],
+                lines.join('\n')
+              );
+            }
+          } else if (orderedMatch) {
+            // Continue ordered list with incremented number
+            const indent = previousLine.match(/^\s*/)?.[0] || '';
+            const numMatch = previousLine.match(/\d+/);
+            const nextNum = (numMatch ? parseInt(numMatch[0], 10) : 0) + 1;
+            lines[currentLineIndex] = indent + `${nextNum}. `;
+            if (nativeRef.current) {
+              Commands.setValue(
+                nativeRef.current as Parameters<
+                  (typeof Commands)['setValue']
+                >[0],
+                lines.join('\n')
+              );
+            }
+          }
+        }
+      }
+
+      onChangeMarkdown?.(markdown);
     },
     [onChangeMarkdown]
   );
@@ -222,8 +273,24 @@ export const EnrichedMarkdownInput = ({
 
   const handleChangeState = useCallback(
     (e: NativeSyntheticEvent<OnChangeStateEvent>) => {
-      const { bold, italic, underline, strikethrough, link } = e.nativeEvent;
-      onChangeState?.({ bold, italic, underline, strikethrough, link });
+      const {
+        bold,
+        italic,
+        underline,
+        strikethrough,
+        link,
+        unorderedList,
+        orderedList,
+      } = e.nativeEvent;
+      onChangeState?.({
+        bold,
+        italic,
+        underline,
+        strikethrough,
+        link,
+        unorderedList: unorderedList || { isActive: false },
+        orderedList: orderedList || { isActive: false },
+      });
     },
     [onChangeState]
   );

@@ -44,6 +44,8 @@ export interface OnChangeStateEvent {
   underline: { isActive: boolean };
   strikethrough: { isActive: boolean };
   link: { isActive: boolean };
+  unorderedList: { isActive: boolean };
+  orderedList: { isActive: boolean };
 }
 
 export interface OnRequestMarkdownResultEvent {
@@ -82,6 +84,8 @@ export interface OnContextMenuItemPressEvent {
     underline: { isActive: boolean };
     strikethrough: { isActive: boolean };
     link: { isActive: boolean };
+    unorderedList: { isActive: boolean };
+    orderedList: { isActive: boolean };
   };
 }
 

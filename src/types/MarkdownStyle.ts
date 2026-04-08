@@ -149,6 +149,22 @@ interface InlineMathStyle {
   color?: string;
 }
 
+interface SpoilerStyle {
+  /** Color of the animated particles that conceal the text. */
+  particleColor?: string;
+  /**
+   * Number of particles per 100x100pt area.
+   * Higher values = denser, more opaque concealment.
+   * @default 8
+   */
+  particleDensity?: number;
+  /**
+   * Base speed of particle drift in points per second.
+   * @default 20
+   */
+  particleSpeed?: number;
+}
+
 export interface MarkdownStyle {
   paragraph?: ParagraphStyle;
   h1?: HeadingStyle;
@@ -173,6 +189,7 @@ export interface MarkdownStyle {
   taskList?: TaskListStyle;
   math?: MathStyle;
   inlineMath?: InlineMathStyle;
+  spoiler?: SpoilerStyle;
 }
 
 /**

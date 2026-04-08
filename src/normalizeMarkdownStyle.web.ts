@@ -186,6 +186,12 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     checkedTextColor: '#000000',
     checkedStrikethrough: false,
   },
+  // Spoiler rendering is not supported on web yet — defaults kept for type compatibility.
+  spoiler: {
+    particleColor: '#374151',
+    particleDensity: 8,
+    particleSpeed: 20,
+  },
 });
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();

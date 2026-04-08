@@ -378,4 +378,4 @@ Styles for spoiler text (`||hidden text||`). Spoiler text is concealed behind an
 | `color` | `string` | Color used by all presets for the spoiler overlay |
 | `particles.density` | `number` | Density of the particle field (higher = more particles). Default: `8` |
 | `particles.speed` | `number` | Speed of particle movement. Default: `20` |
-| `solid` | `object` | Reserved for future solid-preset properties |
+| `solid.borderRadius` | `number` | Corner radius of the solid spoiler overlay rectangles. Default: `4` |

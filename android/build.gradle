@@ -15,10 +15,6 @@ buildscript {
   }
 }
 
-plugins {
-  id "org.jlleitschuh.gradle.ktlint" version "14.0.1"
-}
-
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply plugin: "com.facebook.react"
@@ -91,20 +87,6 @@ dependencies {
     implementation("com.github.gregcockroft:AndroidMath:v1.1.0") {
       exclude group: 'com.google.guava', module: 'guava'
     }
-  }
-}
-
-ktlint {
-  version = "1.8.0"
-  debug = false
-  verbose = true
-  android = true
-  outputToConsole = true
-  ignoreFailures = false
-  enableExperimentalRules = false
-  filter {
-    exclude("**/build/**")
-    exclude("**/generated/**")
   }
 }
 

@@ -18,4 +18,27 @@ buildscript {
     }
 }
 
+plugins {
+    id "org.jlleitschuh.gradle.ktlint" version "14.0.1" apply false
+}
+
 apply plugin: "com.facebook.react.rootproject"
+
+subprojects { subproject ->
+    if (subproject.name == "react-native-enriched-markdown") {
+        subproject.apply plugin: "org.jlleitschuh.gradle.ktlint"
+        subproject.ktlint {
+            version = "1.8.0"
+            debug = false
+            verbose = true
+            android = true
+            outputToConsole = true
+            ignoreFailures = false
+            enableExperimentalRules = false
+            filter {
+                exclude("**/build/**")
+                exclude("**/generated/**")
+            }
+        }
+    }
+}

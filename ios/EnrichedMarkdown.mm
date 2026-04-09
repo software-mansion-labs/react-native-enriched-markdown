@@ -1,9 +1,8 @@
 #import "EnrichedMarkdown.h"
-#import "AccessibilityInfo.h"
-#import "AttributedRenderer.h"
 #import "ContextMenuUtils.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
+#import "ENRMTextRenderer.h"
 #import "ENRMUIKit.h"
 #import "EditMenuUtils.h"
 
@@ -25,7 +24,6 @@
 #import "MarkdownAccessibilityElementBuilder.h"
 #import "MarkdownExtractor.h"
 #import "ParagraphStyleUtils.h"
-#import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import "StylePropsUtils.h"
@@ -90,32 +88,6 @@ using namespace facebook::react;
 }
 @end
 #endif
-
-@interface EMRenderedTextSegment : NSObject
-@property (nonatomic, strong) NSMutableAttributedString *attributedText;
-@property (nonatomic, strong) RenderContext *context;
-@property (nonatomic, strong) AccessibilityInfo *accessibilityInfo;
-@property (nonatomic, assign) CGFloat lastElementMarginBottom;
-+ (instancetype)withAttributedText:(NSMutableAttributedString *)text
-                           context:(RenderContext *)context
-                 accessibilityInfo:(AccessibilityInfo *)info
-           lastElementMarginBottom:(CGFloat)marginBottom;
-@end
-
-@implementation EMRenderedTextSegment
-+ (instancetype)withAttributedText:(NSMutableAttributedString *)text
-                           context:(RenderContext *)context
-                 accessibilityInfo:(AccessibilityInfo *)info
-           lastElementMarginBottom:(CGFloat)marginBottom
-{
-  EMRenderedTextSegment *segment = [[EMRenderedTextSegment alloc] init];
-  segment.attributedText = text;
-  segment.context = context;
-  segment.accessibilityInfo = info;
-  segment.lastElementMarginBottom = marginBottom;
-  return segment;
-}
-@end
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
 @end
@@ -363,11 +335,11 @@ using namespace facebook::react;
 
     for (id segment in segments) {
       if ([segment isKindOfClass:[EMTextSegment class]]) {
-        EMRenderedTextSegment *rendered = [self renderTextSegment:(EMTextSegment *)segment
-                                                           config:config
-                                              allowTrailingMargin:allowTrailingMargin
-                                                 allowFontScaling:allowFontScaling
-                                            maxFontSizeMultiplier:maxFontSizeMultiplier];
+        ENRMRenderResult *rendered = [self renderTextSegment:(EMTextSegment *)segment
+                                                      config:config
+                                         allowTrailingMargin:allowTrailingMargin
+                                            allowFontScaling:allowFontScaling
+                                       maxFontSizeMultiplier:maxFontSizeMultiplier];
         [renderedSegments addObject:rendered];
       } else if ([segment isKindOfClass:[EMTableSegment class]]) {
         [renderedSegments addObject:segment];
@@ -401,11 +373,11 @@ using namespace facebook::react;
 
   for (id segment in segments) {
     if ([segment isKindOfClass:[EMTextSegment class]]) {
-      EMRenderedTextSegment *rendered = [self renderTextSegment:(EMTextSegment *)segment
-                                                         config:_config
-                                            allowTrailingMargin:_allowTrailingMargin
-                                               allowFontScaling:_fontScaleObserver.allowFontScaling
-                                          maxFontSizeMultiplier:_maxFontSizeMultiplier];
+      ENRMRenderResult *rendered = [self renderTextSegment:(EMTextSegment *)segment
+                                                    config:_config
+                                       allowTrailingMargin:_allowTrailingMargin
+                                          allowFontScaling:_fontScaleObserver.allowFontScaling
+                                     maxFontSizeMultiplier:_maxFontSizeMultiplier];
       [renderedSegments addObject:rendered];
     } else if ([segment isKindOfClass:[EMTableSegment class]]) {
       [renderedSegments addObject:segment];
@@ -442,8 +414,8 @@ using namespace facebook::react;
   }
 
   for (id segment in renderedSegments) {
-    if ([segment isKindOfClass:[EMRenderedTextSegment class]]) {
-      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment];
+    if ([segment isKindOfClass:[ENRMRenderResult class]]) {
+      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(ENRMRenderResult *)segment];
       [_segmentViews addObject:view];
       [self addSubview:view];
     } else if ([segment isKindOfClass:[EMTableSegment class]]) {
@@ -471,8 +443,8 @@ using namespace facebook::react;
   [_segmentViews removeAllObjects];
 
   for (id segment in renderedSegments) {
-    if ([segment isKindOfClass:[EMRenderedTextSegment class]]) {
-      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment];
+    if ([segment isKindOfClass:[ENRMRenderResult class]]) {
+      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(ENRMRenderResult *)segment];
       [_segmentViews addObject:view];
       [self addSubview:view];
     } else if ([segment isKindOfClass:[EMTableSegment class]]) {
@@ -501,34 +473,17 @@ using namespace facebook::react;
   }
 }
 
-- (EMRenderedTextSegment *)renderTextSegment:(EMTextSegment *)textSegment
-                                      config:(StyleConfig *)config
-                         allowTrailingMargin:(BOOL)allowTrailingMargin
-                            allowFontScaling:(BOOL)allowFontScaling
-                       maxFontSizeMultiplier:(CGFloat)maxFontSizeMultiplier
+- (ENRMRenderResult *)renderTextSegment:(EMTextSegment *)textSegment
+                                 config:(StyleConfig *)config
+                    allowTrailingMargin:(BOOL)allowTrailingMargin
+                       allowFontScaling:(BOOL)allowFontScaling
+                  maxFontSizeMultiplier:(CGFloat)maxFontSizeMultiplier
 {
-  MarkdownASTNode *temporaryRoot = [[MarkdownASTNode alloc] initWithType:MarkdownNodeTypeDocument];
-  for (MarkdownASTNode *node in textSegment.nodes) {
-    [temporaryRoot addChild:node];
-  }
-
-  AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:config];
-  [renderer setAllowTrailingMargin:allowTrailingMargin];
-  RenderContext *context = [RenderContext new];
-  context.allowFontScaling = allowFontScaling;
-  context.maxFontSizeMultiplier = maxFontSizeMultiplier;
-  NSMutableAttributedString *attributedText = [renderer renderRoot:temporaryRoot context:context];
-
-  CGFloat lastMarginBottom = [renderer getLastElementMarginBottom];
-  AccessibilityInfo *accessibilityInfo = [AccessibilityInfo infoFromContext:context];
-
-  return [EMRenderedTextSegment withAttributedText:attributedText
-                                           context:context
-                                 accessibilityInfo:accessibilityInfo
-                           lastElementMarginBottom:lastMarginBottom];
+  return ENRMRenderASTNodes(textSegment.nodes, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
+                            currentWritingDirection());
 }
 
-- (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(EMRenderedTextSegment *)segment
+- (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(ENRMRenderResult *)segment
 {
   EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
   view.spoilerMode = _spoilerMode;

@@ -1,6 +1,4 @@
 #import "EnrichedMarkdownText.h"
-#import "AccessibilityInfo.h"
-#import "AttributedRenderer.h"
 #import "CodeBlockBackground.h"
 #import "ContextMenuUtils.h"
 #import "ENRMContextMenuTextView+macOS.h"
@@ -9,6 +7,7 @@
 #import "ENRMSpoilerOverlayManager.h"
 #import "ENRMSpoilerTapUtils.h"
 #import "ENRMTailFadeInAnimator.h"
+#import "ENRMTextRenderer.h"
 #import "ENRMTextViewSetup.h"
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
@@ -19,7 +18,6 @@
 #import "MarkdownAccessibilityElementBuilder.h"
 #import "MarkdownExtractor.h"
 #import "ParagraphStyleUtils.h"
-#import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "StylePropsUtils.h"
 #import "TaskListTapUtils.h"
@@ -259,29 +257,18 @@ using namespace facebook::react;
       return;
     }
 
-    AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:config];
-    [renderer setAllowTrailingMargin:allowTrailingMargin];
-    RenderContext *context = [RenderContext new];
-    context.allowFontScaling = allowFontScaling;
-    context.maxFontSizeMultiplier = maxFontSizeMultiplier;
-    context.writingDirection = writingDirection;
-    NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
-
-    CGFloat lastElementMarginBottom = [renderer getLastElementMarginBottom];
-
-    [context applyLinkAttributesToString:attributedText];
-
-    AccessibilityInfo *accessibilityInfo = [AccessibilityInfo infoFromContext:context];
+    ENRMRenderResult *result = ENRMRenderASTNodes(ast.children, config, allowTrailingMargin, allowFontScaling,
+                                                  maxFontSizeMultiplier, writingDirection);
 
     dispatch_async(dispatch_get_main_queue(), ^{
       if (renderId != self->_currentRenderId) {
         return;
       }
 
-      self->_lastElementMarginBottom = lastElementMarginBottom;
-      self->_accessibilityInfo = accessibilityInfo;
+      self->_lastElementMarginBottom = result.lastElementMarginBottom;
+      self->_accessibilityInfo = result.accessibilityInfo;
 
-      [self applyRenderedText:attributedText];
+      [self applyRenderedText:result.attributedText];
     });
   });
 }
@@ -293,21 +280,14 @@ using namespace facebook::react;
     return nil;
   }
 
-  AttributedRenderer *renderer = [[AttributedRenderer alloc] initWithConfig:_config];
-  [renderer setAllowTrailingMargin:_allowTrailingMargin];
-  RenderContext *context = [RenderContext new];
-  context.allowFontScaling = _fontScaleObserver.allowFontScaling;
-  context.maxFontSizeMultiplier = _maxFontSizeMultiplier;
-  context.writingDirection = currentWritingDirection();
-  NSMutableAttributedString *attributedText = [renderer renderRoot:ast context:context];
+  ENRMRenderResult *result =
+      ENRMRenderASTNodes(ast.children, _config, _allowTrailingMargin, _fontScaleObserver.allowFontScaling,
+                         _maxFontSizeMultiplier, currentWritingDirection());
 
-  _lastElementMarginBottom = [renderer getLastElementMarginBottom];
+  _lastElementMarginBottom = result.lastElementMarginBottom;
+  _accessibilityInfo = result.accessibilityInfo;
 
-  [context applyLinkAttributesToString:attributedText];
-
-  _accessibilityInfo = [AccessibilityInfo infoFromContext:context];
-
-  return attributedText;
+  return result.attributedText;
 }
 
 /// Synchronous rendering for mock view measurement (no UI updates needed).

@@ -1,10 +1,8 @@
 #import "EnrichedMarkdownInternalText.h"
-#import "AccessibilityInfo.h"
 #import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMSpoilerOverlayManager.h"
 #import "ENRMTextViewSetup.h"
 #import "MarkdownAccessibilityElementBuilder.h"
-#import "RenderContext.h"
 #import "RuntimeKeys.h"
 #include <TargetConditionals.h>
 
@@ -65,8 +63,6 @@
 
 - (void)applyAttributedText:(NSMutableAttributedString *)text context:(RenderContext *)context
 {
-  [context applyLinkAttributesToString:text];
-
   NSLayoutManager *layoutManager = _textView.layoutManager;
   if ([layoutManager isKindOfClass:[TextViewLayoutManager class]]) {
     [layoutManager setValue:_config forKey:@"config"];

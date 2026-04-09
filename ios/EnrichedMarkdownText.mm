@@ -9,12 +9,11 @@
 #import "ENRMSpoilerOverlayManager.h"
 #import "ENRMSpoilerTapUtils.h"
 #import "ENRMTailFadeInAnimator.h"
-#import "ENRMUIKit.h"
+#import "ENRMTextViewSetup.h"
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
 #import "HeightUpdateUtils.h"
-#import "LastElementUtils.h"
 #import "LinkTapUtils.h"
 #import "MarkdownASTNode.h"
 #import "MarkdownAccessibilityElementBuilder.h"
@@ -22,12 +21,8 @@
 #import "ParagraphStyleUtils.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
-#import "StyleConfig.h"
 #import "StylePropsUtils.h"
 #import "TaskListTapUtils.h"
-#import "TextViewLayoutManager.h"
-#import <React/RCTUtils.h>
-#import <objc/runtime.h>
 
 #import <ReactNativeEnrichedMarkdown/EnrichedMarkdownTextComponentDescriptor.h>
 #import <ReactNativeEnrichedMarkdown/EventEmitters.h>
@@ -98,35 +93,12 @@ using namespace facebook::react;
 
 - (CGSize)measureSize:(CGFloat)maxWidth
 {
-  NSAttributedString *text = ENRMGetAttributedText(_textView);
-  CGFloat defaultHeight = UIFontLineHeight([UIFont systemFontOfSize:16.0]);
-
-  if (text.length == 0) {
+  CGSize size = ENRMMeasureMarkdownText(_textView, maxWidth, _config, _allowTrailingMargin, _lastElementMarginBottom);
+  if (CGSizeEqualToSize(size, CGSizeZero)) {
+    CGFloat defaultHeight = UIFontLineHeight([UIFont systemFontOfSize:16.0]);
     return CGSizeMake(maxWidth, defaultHeight);
   }
-
-  ENRMTextLayoutResult layout = ENRMMeasureTextLayout(_textView, maxWidth);
-
-  CGFloat measuredWidth = layout.usedRect.size.width;
-  CGFloat measuredHeight = layout.usedRect.size.height;
-
-  if (!CGRectIsEmpty(layout.extraLineFragmentRect)) {
-    measuredHeight -= layout.extraLineFragmentRect.size.height;
-  }
-
-  // Code block's bottom padding is a spacer \n with minimumLineHeight = codeBlockPadding.
-  // The layout manager may not size it accurately, so add the padding explicitly.
-  if (isLastElementCodeBlock(text)) {
-    measuredHeight += [_config codeBlockPadding];
-  }
-
-  if (_allowTrailingMargin && _lastElementMarginBottom > 0) {
-    measuredHeight += _lastElementMarginBottom;
-  }
-
-  // Round to pixel boundaries to match React Native's <Text> measurement
-  CGFloat scale = RCTScreenScale();
-  return CGSizeMake(ceil(measuredWidth * scale) / scale, ceil(measuredHeight * scale) / scale);
+  return size;
 }
 
 - (BOOL)hasRenderedMarkdown:(NSString *)markdown
@@ -250,28 +222,15 @@ using namespace facebook::react;
 
 - (void)willRemoveSubview:(RCTUIView *)subview
 {
-  if (subview == _textView && _textView.layoutManager != nil) {
-    NSLayoutManager *layoutManager = _textView.layoutManager;
-    if ([object_getClass(layoutManager) isEqual:[TextViewLayoutManager class]]) {
-      [layoutManager setValue:nil forKey:@"config"];
-      object_setClass(layoutManager, [NSLayoutManager class]);
-    }
+  if (subview == _textView) {
+    ENRMDetachLayoutManager(_textView);
   }
   [super willRemoveSubview:subview];
 }
 
 - (void)setupLayoutManager
 {
-  // Custom layout manager handles drawing for code blocks, blockquotes, etc.
-  NSLayoutManager *layoutManager = _textView.layoutManager;
-  if (layoutManager != nil) {
-    layoutManager.allowsNonContiguousLayout = NO; // workaround for onScroll issue
-    object_setClass(layoutManager, [TextViewLayoutManager class]);
-
-    if (_config != nil) {
-      [layoutManager setValue:_config forKey:@"config"];
-    }
-  }
+  ENRMAttachLayoutManager(_textView, _config);
 }
 
 - (void)renderMarkdownContent:(NSString *)markdownString

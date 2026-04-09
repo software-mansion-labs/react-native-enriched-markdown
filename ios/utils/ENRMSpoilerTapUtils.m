@@ -5,8 +5,7 @@
 NSString *const SpoilerAttributeName = @"Spoiler";
 NSString *const SpoilerOriginalColorAttributeName = @"SpoilerOriginalColor";
 
-/// Expands outward from `index` to find the full contiguous spoiler range,
-/// even when internal formatting splits the attribute into multiple runs.
+// Expands outward because internal formatting can split the attribute into multiple runs.
 static NSRange expandSpoilerRange(NSTextStorage *textStorage, NSUInteger index)
 {
   NSRange run;

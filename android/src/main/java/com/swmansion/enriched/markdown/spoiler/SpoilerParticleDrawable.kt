@@ -9,29 +9,19 @@ import kotlin.math.max
 import kotlin.math.sin
 import kotlin.random.Random
 
-/**
- * Canvas-based particle system matching iOS CAEmitterLayer behavior.
- * Uses a flat FloatArray (struct-of-arrays) to avoid GC pressure.
- * Does NOT own a Choreographer — the host [SpoilerAnimator] drives updates.
- */
+// Uses a flat FloatArray (struct-of-arrays) to avoid GC pressure.
 class SpoilerParticleDrawable(
   particleColor: Int,
   particleDensity: Float,
   particleSpeed: Float,
 ) {
-  // ── Particle data (struct-of-arrays) ──────────────────────────────
-
   private var particleData = FloatArray(INITIAL_CAPACITY * STRIDE)
   private var particleCount = 0
-
-  // ── Drawing ───────────────────────────────────────────────────────
 
   private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
   private val colorRed = Color.red(particleColor)
   private val colorGreen = Color.green(particleColor)
   private val colorBlue = Color.blue(particleColor)
-
-  // ── Geometry & birth rates ────────────────────────────────────────
 
   private var width = 0f
   private var height = 0f
@@ -43,8 +33,6 @@ class SpoilerParticleDrawable(
   private val densityFactor = particleDensity / SpoilerStyle.DEFAULT_PARTICLE_DENSITY
   private val speedFactor = particleSpeed / SpoilerStyle.DEFAULT_PARTICLE_SPEED
 
-  // ── Reveal state ──────────────────────────────────────────────────
-
   private var isRevealing = false
   private var revealStartTime = -1L
   private var revealCallback: (() -> Unit)? = null
@@ -53,8 +41,6 @@ class SpoilerParticleDrawable(
     private set
   var revealFinished = false
     private set
-
-  // ── Public API ────────────────────────────────────────────────────
 
   fun setSize(
     newWidth: Float,
@@ -137,8 +123,6 @@ class SpoilerParticleDrawable(
     canvas.restore()
   }
 
-  // ── Internal ──────────────────────────────────────────────────────
-
   private fun updateAndCompact(deltaTime: Float) {
     var writeIndex = 0
     for (readIndex in 0 until particleCount) {
@@ -158,11 +142,8 @@ class SpoilerParticleDrawable(
     particleCount = writeIndex
   }
 
-  /**
-   * Pre-populates particles at various ages so the field looks fully established
-   * on the very first frame, matching iOS CAEmitterLayer which renders immediately.
-   * Uses 30 simulated frames (~0.5s) which is sufficient for visual coverage.
-   */
+  // Pre-populates particles so the field looks established on the first frame,
+  // matching iOS CAEmitterLayer which renders immediately.
   private fun seedInitialParticles() {
     val frameDeltaTime = 16f / 1000f
     repeat(SEED_FRAMES) {
@@ -216,8 +197,6 @@ class SpoilerParticleDrawable(
     particleData = particleData.copyOf((particleData.size * 2).coerceAtLeast(requiredLength))
   }
 
-  // ── Constants ─────────────────────────────────────────────────────
-
   private class DotType(
     val lifetime: Float,
     val velocity: Float,
@@ -243,7 +222,6 @@ class SpoilerParticleDrawable(
     private val PRIMARY_DOT = DotType(lifetime = 1.6f, velocity = 8f, scale = 0.25f, alphaSpeed = -0.25f, densityFactor = 0.013f)
     private val SECONDARY_DOT = DotType(lifetime = 1.2f, velocity = 12f, scale = 0.18f, alphaSpeed = -0.3f, densityFactor = 0.007f)
 
-    // Struct-of-arrays field indices
     private const val POSITION_X = 0
     private const val POSITION_Y = 1
     private const val VELOCITY_X = 2

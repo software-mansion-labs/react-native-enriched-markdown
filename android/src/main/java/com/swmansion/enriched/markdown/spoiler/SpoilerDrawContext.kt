@@ -9,10 +9,6 @@ import android.widget.TextView
 import com.facebook.react.uimanager.BackgroundStyleApplicator
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
 
-/**
- * Shared context passed to [SpoilerStrategy.drawSegment] and [SpoilerStrategy.revealSpan].
- * Avoids each strategy needing its own reference to the TextView.
- */
 class SpoilerDrawContext(
   val textView: TextView,
   val layout: Layout,

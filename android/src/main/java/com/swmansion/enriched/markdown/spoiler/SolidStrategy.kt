@@ -7,10 +7,6 @@ import android.os.SystemClock
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
 import com.swmansion.enriched.markdown.styles.SpoilerStyle
 
-/**
- * Draws an opaque solid rectangle over unrevealed spoiler spans (Discord-style).
- * On reveal, the rectangle fades out with a quadratic ease-out curve.
- */
 class SolidStrategy : SpoilerStrategy {
   private class SegmentState(
     var alpha: Float = 1f,

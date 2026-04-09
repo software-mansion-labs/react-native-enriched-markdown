@@ -9,13 +9,6 @@ import com.swmansion.enriched.markdown.spans.SpoilerSpan
 import com.swmansion.enriched.markdown.styles.SpoilerStyle
 import java.lang.ref.WeakReference
 
-/**
- * Coordinates spoiler overlay drawing for a [TextView].
- * Delegates the actual rendering and reveal logic to a [SpoilerStrategy]
- * selected by [spoilerMode].
- *
- * Called from the host view's `onDraw` after `super.onDraw`.
- */
 class SpoilerOverlayDrawer(
   textView: TextView,
 ) {
@@ -39,8 +32,6 @@ class SpoilerOverlayDrawer(
       cachedStyle?.let { strategy.applyStyle(it) }
       textViewReference.get()?.invalidate()
     }
-
-  // ── Public API ────────────────────────────────────────────────────
 
   fun registerSpans(spans: Array<SpoilerSpan>) {
     if (spans.isEmpty()) return
@@ -119,8 +110,6 @@ class SpoilerOverlayDrawer(
     strategy.stop()
   }
 
-  // ── Internal helpers ──────────────────────────────────────────────
-
   private fun buildContext(): SpoilerDrawContext? {
     val textView = textViewReference.get() ?: return null
     val layout = textView.layout ?: return null
@@ -142,13 +131,6 @@ class SpoilerOverlayDrawer(
   private fun createStrategy(mode: SpoilerMode): SpoilerStrategy = mode.createStrategy(animator)
 
   companion object {
-    /**
-     * Shared setup logic used by both [com.swmansion.enriched.markdown.EnrichedMarkdownText]
-     * and [com.swmansion.enriched.markdown.EnrichedMarkdownInternalText].
-     *
-     * Returns the drawer to keep (may be a new instance or the existing one),
-     * or `null` if there are no spoiler spans.
-     */
     fun setupIfNeeded(
       textView: TextView,
       styledText: CharSequence,
@@ -169,10 +151,6 @@ class SpoilerOverlayDrawer(
       return null
     }
 
-    /**
-     * Computes the pixel rectangle for a text segment within a line.
-     * Shared by all strategies.
-     */
     internal fun computeSegmentRect(
       layout: android.text.Layout,
       line: Int,
@@ -200,10 +178,6 @@ class SpoilerOverlayDrawer(
       return if (width > 0 && height > 0) SegmentRect(left, top, width, height) else null
     }
 
-    /**
-     * Returns a color with the given alpha multiplied in.
-     * Shared by all strategies.
-     */
     internal fun colorWithAlpha(
       color: Int,
       alpha: Float,

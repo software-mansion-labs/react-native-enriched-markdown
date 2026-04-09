@@ -7,7 +7,6 @@ static const CGFloat kDotImageSize = 6.0;
 static const CGFloat kRevealVelocityMultiplier = 10.0;
 static const CGFloat kRevealAlphaSpeedMultiplier = 6.0;
 
-// Particle cell tuning — two dot types with different visual characteristics.
 static const CGFloat kDot1BirthRateMin = 3.0;
 static const CGFloat kDot1BirthRatePerArea = 0.013;
 static const CGFloat kDot1Lifetime = 1.6;

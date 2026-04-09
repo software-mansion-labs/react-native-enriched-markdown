@@ -4,11 +4,6 @@ import android.view.Choreographer
 import android.widget.TextView
 import java.lang.ref.WeakReference
 
-/**
- * Drives all [SpoilerParticleDrawable] instances for a single TextView with one
- * Choreographer callback, collapsing per-drawable invalidation into a single
- * update-all → invalidate-once cycle per frame.
- */
 class SpoilerAnimator(
   textView: TextView,
 ) {
@@ -17,10 +12,7 @@ class SpoilerAnimator(
   private var running = false
   private var lastFrameTime = 0L
 
-  /**
-   * Drawables queued for removal while [doFrame] iterates [drawables].
-   * Drained immediately after the iteration to avoid ConcurrentModificationException.
-   */
+  // Deferred removals to avoid ConcurrentModificationException during iteration.
   private val pendingRemovals = mutableListOf<SpoilerParticleDrawable>()
   private var isIterating = false
 

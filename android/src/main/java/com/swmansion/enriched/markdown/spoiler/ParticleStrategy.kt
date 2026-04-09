@@ -5,10 +5,6 @@ import android.graphics.Paint
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
 import com.swmansion.enriched.markdown.styles.SpoilerStyle
 
-/**
- * Draws animated particles over unrevealed spoiler spans.
- * On reveal, particles scatter outward and the overlay fades.
- */
 class ParticleStrategy(
   private val animator: SpoilerAnimator,
 ) : SpoilerStrategy {

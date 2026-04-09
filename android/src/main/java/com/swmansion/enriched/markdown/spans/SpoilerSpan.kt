@@ -5,11 +5,6 @@ import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.renderer.SpanStyleCache
 
-/**
- * Marks a text region as a spoiler. Text is hidden by the opaque background
- * painted by SpoilerOverlayDrawer, not by this span. On reveal, the overlay
- * fades away and text becomes visible naturally.
- */
 class SpoilerSpan(
   val styleCache: SpanStyleCache,
   val blockStyle: BlockStyle,

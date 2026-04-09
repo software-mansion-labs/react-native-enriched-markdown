@@ -19,6 +19,8 @@ import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
+import com.swmansion.enriched.markdown.utils.common.MarkdownSegment
+import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
@@ -199,38 +201,11 @@ class EnrichedMarkdown
             }
 
           val processedSegments =
-            splitASTIntoSegments(ast).map { segmentNode ->
-              when (segmentNode) {
-                is MarkdownASTNode -> {
-                  when (segmentNode.type) {
-                    MarkdownASTNode.NodeType.Table -> {
-                      RenderSegment.Table(segmentNode)
-                    }
-
-                    MarkdownASTNode.NodeType.LatexMathDisplay -> {
-                      val latex =
-                        if (segmentNode.children.isNotEmpty()) {
-                          segmentNode.children.first().content
-                        } else {
-                          segmentNode.content
-                        }
-                      RenderSegment.Math(latex)
-                    }
-
-                    else -> {
-                      renderTextSegment(listOf(segmentNode), style)
-                    }
-                  }
-                }
-
-                is List<*> -> {
-                  @Suppress("UNCHECKED_CAST")
-                  renderTextSegment(segmentNode as List<MarkdownASTNode>, style)
-                }
-
-                else -> {
-                  throw IllegalArgumentException("Unknown segment type")
-                }
+            splitASTIntoSegments(ast).map { segment ->
+              when (segment) {
+                is MarkdownSegment.Text -> renderTextSegment(segment.nodes, style)
+                is MarkdownSegment.Table -> RenderSegment.Table(segment.node)
+                is MarkdownSegment.Math -> RenderSegment.Math(segment.latex)
               }
             }
 
@@ -322,32 +297,6 @@ class EnrichedMarkdown
       } catch (_: Exception) {
         android.view.View(context)
       }
-    }
-
-    private fun splitASTIntoSegments(root: MarkdownASTNode): List<Any> {
-      val segments = mutableListOf<Any>()
-      val currentTextBuffer = mutableListOf<MarkdownASTNode>()
-
-      fun flushTextBuffer() {
-        if (currentTextBuffer.isNotEmpty()) {
-          segments.add(currentTextBuffer.toList())
-          currentTextBuffer.clear()
-        }
-      }
-
-      root.children.forEach { child ->
-        if (child.type == MarkdownASTNode.NodeType.Table) {
-          flushTextBuffer()
-          segments.add(child)
-        } else if (child.type == MarkdownASTNode.NodeType.LatexMathDisplay) {
-          flushTextBuffer()
-          segments.add(child)
-        } else {
-          currentTextBuffer.add(child)
-        }
-      }
-      flushTextBuffer()
-      return segments
     }
 
     private fun postToMain(

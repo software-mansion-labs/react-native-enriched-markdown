@@ -173,23 +173,23 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
     buffer: Spannable,
     seed: SpoilerSpan,
   ): List<SpoilerSpan> {
-    val all = buffer.getSpans(0, buffer.length, SpoilerSpan::class.java)
-    if (all.size <= 1) return listOf(seed)
+    val allSpans = buffer.getSpans(0, buffer.length, SpoilerSpan::class.java)
+    if (allSpans.size <= 1) return listOf(seed)
 
     val result = mutableSetOf(seed)
-    var lo = buffer.getSpanStart(seed)
-    var hi = buffer.getSpanEnd(seed)
+    var rangeStart = buffer.getSpanStart(seed)
+    var rangeEnd = buffer.getSpanEnd(seed)
     var changed = true
     while (changed) {
       changed = false
-      for (span in all) {
+      for (span in allSpans) {
         if (span in result) continue
-        val s = buffer.getSpanStart(span)
-        val e = buffer.getSpanEnd(span)
-        if (e >= lo && s <= hi) {
+        val spanStart = buffer.getSpanStart(span)
+        val spanEnd = buffer.getSpanEnd(span)
+        if (spanEnd >= rangeStart && spanStart <= rangeEnd) {
           result.add(span)
-          if (s < lo) lo = s
-          if (e > hi) hi = e
+          if (spanStart < rangeStart) rangeStart = spanStart
+          if (spanEnd > rangeEnd) rangeEnd = spanEnd
           changed = true
         }
       }

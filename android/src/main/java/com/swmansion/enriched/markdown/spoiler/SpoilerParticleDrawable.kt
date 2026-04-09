@@ -207,7 +207,6 @@ class SpoilerParticleDrawable(
 
   companion object {
     private const val DOT_RADIUS = 3f
-    private const val REVEAL_DURATION_MS = 450L
     private const val REVEAL_VELOCITY_MULTIPLIER = 10f
     private const val REVEAL_ALPHA_SPEED_MULTIPLIER = 6f
     private const val SEED_FRAMES = 30

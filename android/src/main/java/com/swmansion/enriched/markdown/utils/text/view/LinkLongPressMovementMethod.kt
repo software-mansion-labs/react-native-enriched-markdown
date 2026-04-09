@@ -8,17 +8,11 @@ import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.widget.TextView
-import com.swmansion.enriched.markdown.EnrichedMarkdownInternalText
-import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
-import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
+import com.swmansion.enriched.markdown.spoiler.SpoilerCapable
 import kotlin.math.abs
 
-/**
- * Custom MovementMethod that handles both link clicks and long presses.
- * Extends LinkMovementMethod to maintain click functionality while adding long press support.
- */
 class LinkLongPressMovementMethod : LinkMovementMethod() {
   private val handler = Handler(Looper.getMainLooper())
   private var longPressRunnable: Runnable? = null
@@ -144,7 +138,7 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
         .getSpans(offset, offset, SpoilerSpan::class.java)
         .firstOrNull { !it.revealed && !it.revealing } ?: return false
 
-    val drawer = getOverlayDrawer(widget) ?: return false
+    val drawer = (widget as? SpoilerCapable)?.spoilerOverlayDrawer ?: return false
     val spans = expandContiguousSpoilers(buffer, tappedSpan)
     val remaining = intArrayOf(spans.size)
 
@@ -158,17 +152,6 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
     return true
   }
 
-  private fun getOverlayDrawer(widget: TextView): SpoilerOverlayDrawer? =
-    when (widget) {
-      is EnrichedMarkdownText -> widget.spoilerOverlayDrawer
-      is EnrichedMarkdownInternalText -> widget.spoilerOverlayDrawer
-      else -> null
-    }
-
-  /**
-   * Collects all SpoilerSpans whose ranges overlap or touch [seed]'s range,
-   * then transitively expands to include their neighbours.
-   */
   private fun expandContiguousSpoilers(
     buffer: Spannable,
     seed: SpoilerSpan,

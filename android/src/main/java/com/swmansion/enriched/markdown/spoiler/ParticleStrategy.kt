@@ -34,7 +34,7 @@ class ParticleStrategy(
       }
     drawable.setSize(rect.width, rect.height)
 
-    backgroundPaint.color = SpoilerOverlayDrawer.colorWithAlpha(context.backgroundColor, drawable.overallAlpha)
+    backgroundPaint.color = colorWithAlpha(context.backgroundColor, drawable.overallAlpha)
     canvas.drawRect(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height, backgroundPaint)
     drawable.draw(canvas, rect.left, rect.top)
   }

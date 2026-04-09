@@ -16,6 +16,7 @@ import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spoiler.SpoilerCapable
 import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import com.swmansion.enriched.markdown.styles.StyleConfig
@@ -41,7 +42,8 @@ class EnrichedMarkdownText
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-  ) : AppCompatTextView(context, attrs, defStyleAttr) {
+  ) : AppCompatTextView(context, attrs, defStyleAttr),
+    SpoilerCapable {
     private val parser = Parser.shared
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
@@ -79,7 +81,7 @@ class EnrichedMarkdownText
     private var streamingAnimation: Boolean = false
     private var previousTextLength: Int = 0
     private var fadeAnimator: TailFadeInAnimator? = null
-    var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
+    override var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
       private set
     var spoilerMode: SpoilerMode = SpoilerMode.PARTICLES
 

@@ -1,5 +1,6 @@
 #pragma once
 #import "ENRMContextMenuTextView+macOS.h"
+#import "ENRMSpoilerCapable.h"
 #import "ENRMSpoilerOverlayView.h"
 #import "ENRMUIKit.h"
 #import "LinkTapUtils.h"
@@ -11,7 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EnrichedMarkdownInternalText : RCTUIView
+@interface EnrichedMarkdownInternalText : RCTUIView <ENRMSpoilerCapable>
 
 - (instancetype)initWithConfig:(StyleConfig *)config;
 

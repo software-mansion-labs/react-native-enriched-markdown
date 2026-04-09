@@ -12,6 +12,7 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
 #endif
+#import "ENRMSpoilerCapable.h"
 #import "ENRMSpoilerOverlayView.h"
 #import "ENRMSpoilerTapUtils.h"
 #import "EnrichedMarkdownInternalText.h"
@@ -794,10 +795,10 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   }
 
   for (RCTUIView *segment in _segmentViews) {
-    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
-      EnrichedMarkdownInternalText *textSeg = (EnrichedMarkdownInternalText *)segment;
-      if (textSeg.textView == textView) {
-        if (handleSpoilerTap(textView, recognizer, textSeg.spoilerManager))
+    if ([segment conformsToProtocol:@protocol(ENRMSpoilerCapable)]) {
+      id<ENRMSpoilerCapable> spoilerSegment = (id<ENRMSpoilerCapable>)segment;
+      if (spoilerSegment.textView == textView) {
+        if (handleSpoilerTap(textView, recognizer, spoilerSegment.spoilerManager))
           return;
         break;
       }

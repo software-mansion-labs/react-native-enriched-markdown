@@ -3,7 +3,6 @@ package com.swmansion.enriched.markdown.spoiler
 import android.graphics.Canvas
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
 import com.swmansion.enriched.markdown.styles.SpoilerStyle
-import java.util.concurrent.atomic.AtomicInteger
 
 interface SpoilerStrategy {
   fun applyStyle(style: SpoilerStyle)
@@ -41,10 +40,11 @@ fun revealSegments(
     return
   }
 
-  val remaining = AtomicInteger(keys.size)
+  val remaining = intArrayOf(keys.size)
   for (key in keys) {
     onSegment(key) {
-      if (remaining.decrementAndGet() <= 0) {
+      remaining[0]--
+      if (remaining[0] <= 0) {
         cleanup(keys)
         onAllComplete()
       }

@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.spoiler.SpoilerCapable
 import com.swmansion.enriched.markdown.spoiler.SpoilerMode
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
@@ -25,7 +26,8 @@ class EnrichedMarkdownInternalText
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
   ) : AppCompatTextView(context, attrs, defStyleAttr),
-    BlockSegmentView {
+    BlockSegmentView,
+    SpoilerCapable {
     private val accessibilityHelper = MarkdownAccessibilityHelper(this)
 
     var lastElementMarginBottom: Float = 0f
@@ -40,7 +42,7 @@ class EnrichedMarkdownInternalText
 
     override val segmentMarginBottom: Int get() = lastElementMarginBottom.toInt()
 
-    var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
+    override var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
       private set
     var spoilerMode: SpoilerMode = SpoilerMode.PARTICLES
     private var contextMenuItemTexts: List<String> = emptyList()

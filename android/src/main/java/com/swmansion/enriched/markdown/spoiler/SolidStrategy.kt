@@ -52,7 +52,7 @@ class SolidStrategy : SpoilerStrategy {
     }
 
     if (!state.revealFinished) {
-      solidPaint.color = SpoilerOverlayDrawer.colorWithAlpha(this.color, state.alpha)
+      solidPaint.color = colorWithAlpha(this.color, state.alpha)
       rectF.set(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height)
       canvas.drawRoundRect(rectF, borderRadius, borderRadius, solidPaint)
     }
@@ -91,9 +91,5 @@ class SolidStrategy : SpoilerStrategy {
 
   override fun stop() {
     segments.clear()
-  }
-
-  companion object {
-    private const val REVEAL_DURATION_MS = 450L
   }
 }

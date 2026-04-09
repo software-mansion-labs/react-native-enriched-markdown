@@ -2,16 +2,11 @@
 #import "AccessibilityInfo.h"
 #import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMSpoilerOverlayManager.h"
-#import "ENRMUIKit.h"
-#import "LastElementUtils.h"
+#import "ENRMTextViewSetup.h"
 #import "MarkdownAccessibilityElementBuilder.h"
 #import "RenderContext.h"
 #import "RuntimeKeys.h"
-#import "StyleConfig.h"
-#import "TextViewLayoutManager.h"
-#import <React/RCTUtils.h>
 #include <TargetConditionals.h>
-#import <objc/runtime.h>
 
 @implementation EnrichedMarkdownInternalText {
   ENRMPlatformTextView *_textView;
@@ -59,14 +54,7 @@
 
 - (void)setupLayoutManager
 {
-  NSLayoutManager *layoutManager = _textView.layoutManager;
-  if (layoutManager != nil) {
-    layoutManager.allowsNonContiguousLayout = NO;
-    object_setClass(layoutManager, [TextViewLayoutManager class]);
-    if (_config != nil) {
-      [layoutManager setValue:_config forKey:@"config"];
-    }
-  }
+  ENRMAttachLayoutManager(_textView, _config);
 }
 
 - (void)setSpoilerMode:(ENRMSpoilerMode)spoilerMode
@@ -108,30 +96,7 @@
 
 - (CGSize)measureSize:(CGFloat)maxWidth
 {
-  NSAttributedString *text = ENRMGetAttributedText(_textView);
-  if (text.length == 0) {
-    return CGSizeZero;
-  }
-
-  ENRMTextLayoutResult layout = ENRMMeasureTextLayout(_textView, maxWidth);
-
-  CGFloat measuredHeight = layout.usedRect.size.height;
-  CGFloat measuredWidth = layout.usedRect.size.width;
-
-  if (!CGRectIsEmpty(layout.extraLineFragmentRect)) {
-    measuredHeight -= layout.extraLineFragmentRect.size.height;
-  }
-
-  if (isLastElementCodeBlock(text)) {
-    measuredHeight += [_config codeBlockPadding];
-  }
-
-  if (_allowTrailingMargin && _lastElementMarginBottom > 0) {
-    measuredHeight += _lastElementMarginBottom;
-  }
-
-  CGFloat scale = RCTScreenScale();
-  return CGSizeMake(ceil(measuredWidth * scale) / scale, ceil(measuredHeight * scale) / scale);
+  return ENRMMeasureMarkdownText(_textView, maxWidth, _config, _allowTrailingMargin, _lastElementMarginBottom);
 }
 
 - (void)layoutSubviews

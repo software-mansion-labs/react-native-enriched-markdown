@@ -169,6 +169,16 @@ class EnrichedMarkdownInputView(
 
   override fun performClick(): Boolean = super.performClick()
 
+  // In auto-grow mode (scrollEnabled=false) TextView's internal bringPointIntoView
+  // scrolls content before Fabric has resized the view, causing a visible flicker.
+  override fun scrollTo(
+    x: Int,
+    y: Int,
+  ) {
+    if (!scrollEnabled) return
+    super.scrollTo(x, y)
+  }
+
   override fun canScrollVertically(direction: Int): Boolean = scrollEnabled && super.canScrollVertically(direction)
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled && super.canScrollHorizontally(direction)

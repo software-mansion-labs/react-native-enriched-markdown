@@ -116,8 +116,8 @@ class InputEventEmitter(
     return CaretRect(
       x = rawX / density,
       y = rawY / density,
-      w = 2f / density,
-      h = (rawBottom - rawY) / density,
+      width = 2f / density,
+      height = (rawBottom - rawY) / density,
     )
   }
 

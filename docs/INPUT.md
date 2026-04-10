@@ -133,7 +133,7 @@ A push-based callback that fires whenever the caret moves (typing, selection cha
 <EnrichedMarkdownInput
   scrollEnabled={false}
   onCaretRectChange={(rect) => {
-    console.log(rect); // { x, y, width, height } in dp, relative to input top-left
+    console.log(rect);
   }}
 />
 ```
@@ -144,7 +144,6 @@ An imperative, pull-based method for one-off queries. Returns a Promise that res
 
 ```tsx
 const rect = await ref.current?.getCaretRect();
-// { x: 24.5, y: 140.2, width: 1, height: 18.3 }
 ```
 
 ## Style Detection

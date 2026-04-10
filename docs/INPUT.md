@@ -121,6 +121,32 @@ The callback fires only for newly detected links — not for links that were alr
 
 When a manual link is applied (via `setLink` or `insertLink`) over an auto-detected link, the auto-detected link is replaced by the manual one. Auto-link detection skips ranges that already contain a manual link.
 
+## Caret Position Tracking
+
+`EnrichedMarkdownInput` can report the caret's pixel position relative to the input, which is useful when the input is embedded in a scrollable container with `scrollEnabled={false}` and you need to keep the caret visible.
+
+### `onCaretRectChange`
+
+A push-based callback that fires whenever the caret moves (typing, selection change, content reflow). The native side diffs the caret rect before emitting, so redundant events are suppressed automatically.
+
+```tsx
+<EnrichedMarkdownInput
+  scrollEnabled={false}
+  onCaretRectChange={(rect) => {
+    console.log(rect); // { x, y, width, height } in dp, relative to input top-left
+  }}
+/>
+```
+
+### `getCaretRect()`
+
+An imperative, pull-based method for one-off queries. Returns a Promise that resolves with the current caret rect.
+
+```tsx
+const rect = await ref.current?.getCaretRect();
+// { x: 24.5, y: 140.2, width: 1, height: 18.3 }
+```
+
 ## Style Detection
 
 All of the above styles can be detected with the use of [onChangeState](API_REFERENCE.md#onchangestate) callback payload.

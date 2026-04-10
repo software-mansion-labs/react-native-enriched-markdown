@@ -381,6 +381,38 @@ interface StyleState {
 }
 ```
 
+### `onCaretRectChange`
+
+Fires when the caret's pixel position changes (typing, selection change, content reflow). The rect is relative to the input's top-left corner, in density-independent pixels. The native side diffs the rect before emitting, so redundant events are suppressed.
+
+| Type                              | Default Value | Platform |
+| --------------------------------- | ------------- | -------- |
+| `(rect: CaretRect) => void`      | -             | Both     |
+
+**`CaretRect` shape:**
+
+```ts
+interface CaretRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+```
+
+All values are in density-independent pixels, relative to the input's top-left corner.
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownInput
+  scrollEnabled={false}
+  onCaretRectChange={(rect) => {
+    console.log('Caret at:', rect.x, rect.y);
+  }}
+/>
+```
+
 ### `onFocus`
 
 Fires when the input gains focus.
@@ -473,6 +505,10 @@ Sets the input content from a Markdown string. Parses the Markdown and applies f
 ### `getMarkdown(): Promise<string>`
 
 Returns a Promise that resolves with the current Markdown content. The async nature is due to the native bridge — the request is sent to the native side and the result is returned via an event.
+
+### `getCaretRect(): Promise<CaretRect>`
+
+Returns a Promise that resolves with the current caret's pixel position relative to the input. Useful for one-off queries; for continuous tracking, prefer `onCaretRectChange`.
 
 ### `setSelection(start: number, end: number)`
 

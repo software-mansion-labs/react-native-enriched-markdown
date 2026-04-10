@@ -15,6 +15,7 @@ import com.facebook.react.viewmanagers.EnrichedMarkdownInputManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownInputManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.input.autolink.LinkRegexConfig
+import com.swmansion.enriched.markdown.input.events.OnCaretRectChangeEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeStateEvent
@@ -23,6 +24,7 @@ import com.swmansion.enriched.markdown.input.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
 import com.swmansion.enriched.markdown.input.events.OnLinkDetectedEvent
+import com.swmansion.enriched.markdown.input.events.OnRequestCaretRectResultEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
 import com.swmansion.enriched.markdown.input.layout.InputMeasurementStore
 import com.swmansion.enriched.markdown.input.model.StyleType
@@ -83,6 +85,8 @@ class EnrichedMarkdownInputManager :
       OnChangeSelectionEvent.EVENT_NAME,
       OnChangeStateEvent.EVENT_NAME,
       OnRequestMarkdownResultEvent.EVENT_NAME,
+      OnRequestCaretRectResultEvent.EVENT_NAME,
+      OnCaretRectChangeEvent.EVENT_NAME,
       OnInputFocusEvent.EVENT_NAME,
       OnInputBlurEvent.EVENT_NAME,
       OnContextMenuItemPressEvent.EVENT_NAME,
@@ -369,6 +373,13 @@ class EnrichedMarkdownInputManager :
     requestId: Int,
   ) {
     view?.eventEmitter?.emitRequestMarkdownResult(requestId)
+  }
+
+  override fun requestCaretRect(
+    view: EnrichedMarkdownInputView?,
+    requestId: Int,
+  ) {
+    view?.eventEmitter?.emitRequestCaretRectResult(requestId)
   }
 
   companion object {

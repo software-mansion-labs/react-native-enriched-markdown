@@ -56,6 +56,21 @@ export interface OnRequestMarkdownResultEvent {
   markdown: string;
 }
 
+export interface OnRequestCaretRectResultEvent {
+  requestId: CodegenTypes.Int32;
+  x: CodegenTypes.Double;
+  y: CodegenTypes.Double;
+  width: CodegenTypes.Double;
+  height: CodegenTypes.Double;
+}
+
+export interface OnCaretRectChangeEvent {
+  x: CodegenTypes.Double;
+  y: CodegenTypes.Double;
+  width: CodegenTypes.Double;
+  height: CodegenTypes.Double;
+}
+
 export interface LinkNativeRegex {
   pattern: string;
   caseInsensitive: boolean;
@@ -175,6 +190,8 @@ export interface NativeProps extends ViewProps {
   onInputFocus?: CodegenTypes.DirectEventHandler<TargetedEvent>;
   onInputBlur?: CodegenTypes.DirectEventHandler<TargetedEvent>;
   onRequestMarkdownResult?: CodegenTypes.DirectEventHandler<OnRequestMarkdownResultEvent>;
+  onRequestCaretRectResult?: CodegenTypes.DirectEventHandler<OnRequestCaretRectResultEvent>;
+  onCaretRectChange?: CodegenTypes.DirectEventHandler<OnCaretRectChangeEvent>;
   onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
   onLinkDetected?: CodegenTypes.DirectEventHandler<OnLinkDetected>;
 }
@@ -209,6 +226,10 @@ interface NativeCommands {
     viewRef: React.ElementRef<ComponentType>,
     requestId: CodegenTypes.Int32
   ) => void;
+  requestCaretRect: (
+    viewRef: React.ElementRef<ComponentType>,
+    requestId: CodegenTypes.Int32
+  ) => void;
 }
 
 export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
@@ -226,6 +247,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'insertLink',
     'removeLink',
     'requestMarkdown',
+    'requestCaretRect',
   ],
 });
 

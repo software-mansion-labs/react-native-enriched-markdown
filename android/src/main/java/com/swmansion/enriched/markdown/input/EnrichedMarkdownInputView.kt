@@ -221,6 +221,7 @@ class EnrichedMarkdownInputView(
       forceScrollToSelection()
       eventEmitter.emitChangeText()
       if (emitMarkdown) eventEmitter.emitChangeMarkdown()
+      eventEmitter.emitCaretRectChangeIfNeeded()
       isTextChanging = false
       didTextChangeRecently = true
       lastProcessedText = currentText
@@ -247,6 +248,7 @@ class EnrichedMarkdownInputView(
 
     eventEmitter.emitSelection(selStart, selEnd)
     eventEmitter.emitState()
+    eventEmitter.emitCaretRectChangeIfNeeded()
   }
 
   private fun applyPendingStyles(

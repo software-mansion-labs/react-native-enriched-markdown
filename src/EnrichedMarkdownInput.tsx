@@ -14,6 +14,8 @@ import EnrichedMarkdownInputNativeComponent, {
   type OnChangeSelectionEvent,
   type OnChangeStateEvent,
   type OnRequestMarkdownResultEvent,
+  type OnRequestCaretRectResultEvent,
+  type OnCaretRectChangeEvent,
   type OnContextMenuItemPressEvent,
   type OnLinkDetected,
 } from './EnrichedMarkdownInputNativeComponent';
@@ -68,6 +70,13 @@ export interface ContextMenuItem {
   visible?: boolean;
 }
 
+export interface CaretRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface EnrichedMarkdownInputInstance {
   focus: () => void;
   blur: () => void;
@@ -85,6 +94,7 @@ export interface EnrichedMarkdownInputInstance {
   insertLink: (text: string, url: string) => void;
   removeLink: () => void;
   getMarkdown: () => Promise<string>;
+  getCaretRect: () => Promise<CaretRect>;
 }
 
 export interface EnrichedMarkdownInputProps {
@@ -105,6 +115,7 @@ export interface EnrichedMarkdownInputProps {
   onChangeMarkdown?: (markdown: string) => void;
   onChangeSelection?: (selection: { start: number; end: number }) => void;
   onChangeState?: (state: StyleState) => void;
+  onCaretRectChange?: (rect: CaretRect) => void;
   onLinkDetected?: (event: OnLinkDetected) => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -112,8 +123,8 @@ export interface EnrichedMarkdownInputProps {
   linkRegex?: RegExp | null;
 }
 
-type MarkdownRequest = {
-  resolve: (markdown: string) => void;
+type PendingRequest<T> = {
+  resolve: (value: T) => void;
   reject: (error: Error) => void;
 };
 
@@ -144,6 +155,7 @@ export const EnrichedMarkdownInput = ({
   onChangeMarkdown,
   onChangeSelection,
   onChangeState,
+  onCaretRectChange,
   onLinkDetected,
   onFocus,
   onBlur,
@@ -153,7 +165,10 @@ export const EnrichedMarkdownInput = ({
   const nativeRef = useRef<NativeRef | null>(null);
 
   const nextRequestId = useRef(1);
-  const pendingRequests = useRef(new Map<number, MarkdownRequest>());
+  const pendingRequests = useRef(new Map<number, PendingRequest<string>>());
+  const pendingCaretRectRequests = useRef(
+    new Map<number, PendingRequest<CaretRect>>()
+  );
 
   const contextMenuCallbacksRef = useRef<
     Map<string, ContextMenuItem['onPress']>
@@ -179,11 +194,13 @@ export const EnrichedMarkdownInput = ({
 
   useEffect(() => {
     const pending = pendingRequests.current;
+    const pendingCaretRect = pendingCaretRectRequests.current;
     return () => {
-      pending.forEach(({ reject }) => {
-        reject(new Error('Component unmounted'));
-      });
+      const err = new Error('Component unmounted');
+      pending.forEach(({ reject }) => reject(err));
       pending.clear();
+      pendingCaretRect.forEach(({ reject }) => reject(err));
+      pendingCaretRect.clear();
     };
   }, []);
 
@@ -240,6 +257,14 @@ export const EnrichedMarkdownInput = ({
     [onChangeState]
   );
 
+  const handleCaretRectChange = useCallback(
+    (e: NativeSyntheticEvent<OnCaretRectChangeEvent>) => {
+      const { x, y, width, height } = e.nativeEvent;
+      onCaretRectChange?.({ x, y, width, height });
+    },
+    [onCaretRectChange]
+  );
+
   const handleFocus = useCallback(() => {
     onFocus?.();
   }, [onFocus]);
@@ -256,6 +281,18 @@ export const EnrichedMarkdownInput = ({
 
       pending.resolve(markdown);
       pendingRequests.current.delete(requestId);
+    },
+    []
+  );
+
+  const handleRequestCaretRectResult = useCallback(
+    (e: NativeSyntheticEvent<OnRequestCaretRectResultEvent>) => {
+      const { requestId, x, y, width, height } = e.nativeEvent;
+      const pending = pendingCaretRectRequests.current.get(requestId);
+      if (!pending) return;
+
+      pending.resolve({ x, y, width, height });
+      pendingCaretRectRequests.current.delete(requestId);
     },
     []
   );
@@ -308,6 +345,15 @@ export const EnrichedMarkdownInput = ({
           pendingRequests.current.set(requestId, { resolve, reject });
           Commands.requestMarkdown(commandRef, requestId);
         }),
+      getCaretRect: () =>
+        new Promise<CaretRect>((resolve, reject) => {
+          const requestId = nextRequestId.current++;
+          pendingCaretRectRequests.current.set(requestId, {
+            resolve,
+            reject,
+          });
+          Commands.requestCaretRect(commandRef, requestId);
+        }),
     };
   });
 
@@ -338,6 +384,12 @@ export const EnrichedMarkdownInput = ({
       onInputBlur={handleBlur as NativeProps['onInputBlur']}
       onRequestMarkdownResult={
         handleRequestMarkdownResult as NativeProps['onRequestMarkdownResult']
+      }
+      onRequestCaretRectResult={
+        handleRequestCaretRectResult as NativeProps['onRequestCaretRectResult']
+      }
+      onCaretRectChange={
+        handleCaretRectChange as NativeProps['onCaretRectChange']
       }
       contextMenuItems={nativeContextMenuItems}
       onContextMenuItemPress={

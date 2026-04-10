@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.Event
 import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.events.OnCaretRectChangeEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeStateEvent
@@ -12,14 +13,17 @@ import com.swmansion.enriched.markdown.input.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.input.events.OnInputBlurEvent
 import com.swmansion.enriched.markdown.input.events.OnInputFocusEvent
 import com.swmansion.enriched.markdown.input.events.OnLinkDetectedEvent
+import com.swmansion.enriched.markdown.input.events.OnRequestCaretRectResultEvent
 import com.swmansion.enriched.markdown.input.events.OnRequestMarkdownResultEvent
 import com.swmansion.enriched.markdown.input.formatting.MarkdownSerializer
+import com.swmansion.enriched.markdown.input.model.CaretRect
 import com.swmansion.enriched.markdown.input.model.StyleType
 
 class InputEventEmitter(
   private val view: EnrichedMarkdownInputView,
 ) {
   private var prevState: Map<StyleType, Boolean> = emptyMap()
+  private var prevCaretRect: CaretRect? = null
 
   fun emitChangeText() {
     val plainText = view.text?.toString() ?: ""
@@ -80,6 +84,41 @@ class InputEventEmitter(
 
   fun emitRequestMarkdownResult(requestId: Int) {
     dispatch(OnRequestMarkdownResultEvent(surfaceId(), view.id, requestId, serializeToMarkdown()))
+  }
+
+  fun emitRequestCaretRectResult(requestId: Int) {
+    val rect = computeCaretRect()
+    dispatch(OnRequestCaretRectResultEvent(surfaceId(), view.id, requestId, rect))
+  }
+
+  fun emitCaretRectChangeIfNeeded() {
+    val rect = computeCaretRect()
+    if (rect == prevCaretRect) return
+
+    prevCaretRect = rect
+    dispatch(OnCaretRectChangeEvent(surfaceId(), view.id, rect))
+  }
+
+  private fun computeCaretRect(): CaretRect {
+    val textLayout = view.layout
+    val cursorOffset = view.selectionStart
+
+    if (textLayout == null || cursorOffset < 0) {
+      return CaretRect(0f, 0f, 0f, 0f)
+    }
+
+    val line = textLayout.getLineForOffset(cursorOffset)
+    val rawX = textLayout.getPrimaryHorizontal(cursorOffset) + view.paddingLeft
+    val rawY = (textLayout.getLineTop(line) + view.paddingTop).toFloat()
+    val rawBottom = (textLayout.getLineBottom(line) + view.paddingTop).toFloat()
+    val density = view.resources.displayMetrics.density
+
+    return CaretRect(
+      x = rawX / density,
+      y = rawY / density,
+      w = 2f / density,
+      h = (rawBottom - rawY) / density,
+    )
   }
 
   fun emitContextMenuItemPress(

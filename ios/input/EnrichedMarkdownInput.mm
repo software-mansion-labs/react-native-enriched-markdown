@@ -67,6 +67,8 @@ using namespace facebook::react;
     BOOL bold, italic, underline, strikethrough, spoiler, link, initialized;
   } _prevState;
 
+  std::optional<CGRect> _prevCaretRect;
+
 #if TARGET_OS_OSX
   NSScrollView *_scrollView;
 #endif
@@ -761,6 +763,44 @@ using namespace facebook::react;
   });
 }
 
+- (CGRect)computeCaretRect
+{
+  CGRect caretRect = CGRectZero;
+#if !TARGET_OS_OSX
+  UITextRange *selectedRange = _textView.selectedTextRange;
+  if (selectedRange != nil) {
+    caretRect = [_textView caretRectForPosition:selectedRange.start];
+  }
+#else
+  NSRange selection = _textView.selectedRange;
+  if (selection.location != NSNotFound) {
+    NSRange glyphRange = [_textView.layoutManager glyphRangeForCharacterRange:NSMakeRange(selection.location, 0)
+                                                         actualCharacterRange:NULL];
+    caretRect = [_textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:_textView.textContainer];
+    caretRect.origin.x += _textView.textContainerInset.width;
+    caretRect.origin.y += _textView.textContainerInset.height;
+  }
+#endif
+  return caretRect;
+}
+
+- (void)requestCaretRect:(NSInteger)requestId
+{
+  auto emitter = [self getEventEmitter];
+  if (emitter == nullptr) {
+    return;
+  }
+
+  CGRect caretRect = [self computeCaretRect];
+  emitter->onRequestCaretRectResult({
+      .requestId = static_cast<int>(requestId),
+      .x = caretRect.origin.x,
+      .y = caretRect.origin.y,
+      .width = caretRect.size.width,
+      .height = caretRect.size.height,
+  });
+}
+
 - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
 {
   RCTEnrichedMarkdownInputHandleCommand(self, commandName, args);
@@ -880,6 +920,29 @@ using namespace facebook::react;
       .strikethrough = {.isActive = strikethroughActive},
       .spoiler = {.isActive = spoilerActive},
       .link = {.isActive = linkActive},
+  });
+}
+
+- (void)emitCaretRectChangeIfNeeded
+{
+  auto emitter = [self getEventEmitter];
+  if (emitter == nullptr) {
+    return;
+  }
+
+  CGRect caretRect = [self computeCaretRect];
+
+  if (_prevCaretRect.has_value() && CGRectEqualToRect(_prevCaretRect.value(), caretRect)) {
+    return;
+  }
+
+  _prevCaretRect = caretRect;
+
+  emitter->onCaretRectChange({
+      .x = caretRect.origin.x,
+      .y = caretRect.origin.y,
+      .width = caretRect.size.width,
+      .height = caretRect.size.height,
   });
 }
 
@@ -1036,6 +1099,7 @@ using namespace facebook::react;
   [self emitOnChangeText];
   [self emitOnChangeSelection];
   [self emitFormattingChanged];
+  [self emitCaretRectChangeIfNeeded];
   [self requestHeightUpdate];
   [self scheduleRelayoutIfNeeded];
 }
@@ -1139,6 +1203,7 @@ using namespace facebook::react;
 
   [self emitOnChangeSelection];
   [self emitOnChangeState];
+  [self emitCaretRectChangeIfNeeded];
 }
 
 #else
@@ -1209,6 +1274,7 @@ using namespace facebook::react;
 
   [self emitOnChangeSelection];
   [self emitOnChangeState];
+  [self emitCaretRectChangeIfNeeded];
 }
 
 // @required stubs for RCTBackedTextInputDelegate — RCTUITextView's internal adapter

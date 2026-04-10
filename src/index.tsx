@@ -19,4 +19,5 @@ export type {
   StyleState,
   ContextMenuItem,
   OnLinkDetected,
+  CaretRect,
 } from './EnrichedMarkdownInput';

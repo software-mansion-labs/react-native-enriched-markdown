@@ -58,6 +58,7 @@ Supported styles:
 - italic
 - underline
 - strikethrough
+- spoiler
 
 Each of the styles can be toggled the same way as in the example from [usage section](#usage); call a proper `toggle` function on the component ref.
 
@@ -182,3 +183,5 @@ Available style properties:
 - `em.color` — text color for italic text (defaults to the input's text color).
 - `link.color` — text color for links (defaults to `#2563EB`).
 - `link.underline` — whether links are underlined (defaults to `true`).
+- `spoiler.color` — text color for spoiler text.
+- `spoiler.backgroundColor` — background color for spoiler text.

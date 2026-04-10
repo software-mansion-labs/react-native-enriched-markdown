@@ -37,6 +37,8 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Inline Math | `$...$` | `inlineMath` | Parent block | LaTeX math rendered within the text flow |
 | Spoiler | `||text||` | `spoiler` | Parent block | Text concealed behind animated particle overlay, tap to reveal. Can wrap inline text or entire blocks (e.g. a full paragraph) |
 
+> **Note:** Spoiler syntax (`||text||`) is always enabled. Any double-pipe delimiters in your content will be parsed as spoilers — for example, `a || b || c` would render `b` as a spoiler span rather than plain text.
+
 > **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
 
 ### Nested Lists Example

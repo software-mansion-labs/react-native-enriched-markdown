@@ -183,6 +183,11 @@ The library provides sensible default styles for all Markdown elements out of th
     inlineMath: {
       color: '#1F2937',
     },
+    spoiler: {
+      color: '#6B7280',
+      particles: { density: 10, speed: 25 },
+      solid: { borderRadius: 6 },
+    },
   }}
 />
 ```

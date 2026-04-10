@@ -168,6 +168,27 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table supp
 > - **`'commonmark'`**: All Markdown content is rendered as a single TextView. Selecting text will select all content in the view.
 > - **`'github'`**: The Markdown AST is split into segments. Consecutive text blocks (paragraphs, headings, lists, etc.) are grouped into separate TextView segments, while tables are rendered as separate table views. This allows for granular text selection within each segment and enables interactive table features (horizontal scrolling, context menus). Text selection cannot span across segments.
 
+### `streamingAnimation`
+
+When `true`, newly appended content fades in during streaming updates. Only the tail (new characters beyond the previous content) is animated. Recommended for LLM streaming use cases with `flavor="commonmark"`.
+
+| Type      | Default Value | Platform |
+| --------- | ------------- | -------- |
+| `boolean` | `false`       | Both     |
+
+### `spoilerMode`
+
+Controls how spoiler text (`||hidden text||`) is displayed before being revealed.
+
+| Type                          | Default Value | Platform |
+| ----------------------------- | ------------- | -------- |
+| `'particles' \| 'solid'`     | `'particles'` | Both     |
+
+- **`'particles'`**: Animated particle overlay (CAEmitterLayer on iOS, Choreographer-driven Canvas particles on Android).
+- **`'solid'`**: Opaque rectangle covering the text (Discord-style).
+
+Both modes support tap-to-reveal.
+
 ### `contextMenuItems`
 
 Custom items to add to the text selection context menu. Items appear before the system actions (Copy, etc.). Items with `visible: false` are hidden from the menu.
@@ -326,6 +347,8 @@ Style configuration for formatted text in the input.
 - `em.color` — text color for italic text (defaults to the input's text color).
 - `link.color` — text color for links (defaults to `#2563EB`).
 - `link.underline` — whether links are underlined (defaults to `true`).
+- `spoiler.color` — text color for spoiler text.
+- `spoiler.backgroundColor` — background color for spoiler text.
 
 ### `style`
 
@@ -377,6 +400,7 @@ interface StyleState {
   italic: { isActive: boolean };
   underline: { isActive: boolean };
   strikethrough: { isActive: boolean };
+  spoiler: { isActive: boolean };
   link: { isActive: boolean };
 }
 ```
@@ -463,6 +487,7 @@ interface ContextMenuItem {
       italic: { isActive: boolean };
       underline: { isActive: boolean };
       strikethrough: { isActive: boolean };
+      spoiler: { isActive: boolean };
       link: { isActive: boolean };
     };
   }) => void;
@@ -529,6 +554,10 @@ Toggles underline on the current selection or cursor.
 ### `toggleStrikethrough()`
 
 Toggles strikethrough on the current selection or cursor.
+
+### `toggleSpoiler()`
+
+Toggles spoiler on the current selection or cursor.
 
 ### `setLink(url: string)`
 

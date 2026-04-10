@@ -32,9 +32,6 @@
 - 🔗 Auto-link detection with customizable regex
 - 🔄 Smart copy/paste with Markdown preservation
 - 🎨 Customizable bold, italic, and link colors
-
-> **Note:** Spoiler syntax (`||text||`) is always enabled. Any double-pipe delimiters in your content will be parsed as spoilers — for example, `a || b || c` would render `b` as a spoiler span rather than plain text.
-
 Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
 We can help you build your next dream product –
 [Hire us](https://swmansion.com/contact/projects?utm_source=react-native-enriched-markdown&utm_medium=readme).

@@ -143,7 +143,7 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @default 'particles'
    * @platform ios, android
    */
-  spoilerMode?: 'particles' | 'solid';
+  spoilerOverlay?: 'particles' | 'solid';
   /**
    * Custom items to show in the text selection context menu.
    * Each item requires a `text` label and an `onPress` callback.

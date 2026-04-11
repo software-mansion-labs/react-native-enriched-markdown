@@ -13,14 +13,14 @@ class SpoilerOverlayDrawer(
   private val textViewReference = WeakReference(textView)
   val animator = SpoilerAnimator(textView)
 
-  private var strategy: SpoilerStrategy = createStrategy(SpoilerMode.PARTICLES)
-  private var currentMode: SpoilerMode = SpoilerMode.PARTICLES
+  private var strategy: SpoilerStrategy = createStrategy(SpoilerOverlay.PARTICLES)
+  private var currentMode: SpoilerOverlay = SpoilerOverlay.PARTICLES
 
   private val activeKeys = mutableSetOf<SegmentKey>()
 
   private var cachedStyle: SpoilerStyle? = null
 
-  var spoilerMode: SpoilerMode
+  var spoilerOverlay: SpoilerOverlay
     get() = currentMode
     set(value) {
       if (currentMode == value) return
@@ -126,20 +126,20 @@ class SpoilerOverlayDrawer(
     )
   }
 
-  private fun createStrategy(mode: SpoilerMode): SpoilerStrategy = mode.createStrategy(animator)
+  private fun createStrategy(mode: SpoilerOverlay): SpoilerStrategy = mode.createStrategy(animator)
 
   companion object {
     fun setupIfNeeded(
       textView: TextView,
       styledText: CharSequence,
       existing: SpoilerOverlayDrawer?,
-      spoilerMode: SpoilerMode = SpoilerMode.PARTICLES,
+      spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES,
     ): SpoilerOverlayDrawer? {
       if (styledText !is Spanned) return tearDown(existing)
       val spans = styledText.getSpans(0, styledText.length, SpoilerSpan::class.java)
       if (spans.isEmpty()) return tearDown(existing)
       val drawer = existing ?: SpoilerOverlayDrawer(textView)
-      drawer.spoilerMode = spoilerMode
+      drawer.spoilerOverlay = spoilerOverlay
       drawer.registerSpans(spans)
       return drawer
     }

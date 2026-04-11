@@ -174,9 +174,9 @@ interface SpoilerSolidStyle {
 interface SpoilerStyle {
   /** Color used by all presets for the spoiler overlay. */
   color?: string;
-  /** Particle-preset tuning (only applies when spoilerMode='particles'). */
+  /** Particle-preset tuning (only applies when spoilerOverlay='particles'). */
   particles?: SpoilerParticlesStyle;
-  /** Solid-preset tuning (only applies when spoilerMode='solid'). */
+  /** Solid-preset tuning (only applies when spoilerOverlay='solid'). */
   solid?: SpoilerSolidStyle;
 }
 

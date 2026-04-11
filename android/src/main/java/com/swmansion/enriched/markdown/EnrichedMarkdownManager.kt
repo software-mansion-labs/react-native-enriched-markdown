@@ -11,7 +11,7 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EnrichedMarkdownManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownManagerInterface
 import com.facebook.yoga.YogaMeasureMode
-import com.swmansion.enriched.markdown.spoiler.SpoilerMode
+import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
 import com.swmansion.enriched.markdown.utils.common.emitContextMenuItemPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkLongPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkPress
@@ -129,12 +129,12 @@ class EnrichedMarkdownManager :
     // Currently only supported with flavor="commonmark" (single TextView).
   }
 
-  @ReactProp(name = "spoilerMode")
-  override fun setSpoilerMode(
+  @ReactProp(name = "spoilerOverlay")
+  override fun setSpoilerOverlay(
     view: EnrichedMarkdown?,
     mode: String?,
   ) {
-    view?.spoilerMode = SpoilerMode.fromString(mode)
+    view?.spoilerOverlay = SpoilerOverlay.fromString(mode)
   }
 
   @ReactProp(name = "contextMenuItems")

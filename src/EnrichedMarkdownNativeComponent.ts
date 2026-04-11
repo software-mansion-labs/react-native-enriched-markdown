@@ -302,7 +302,7 @@ export interface NativeProps extends ViewProps {
    * - 'solid': opaque rectangle covering the text.
    * @default 'particles'
    */
-  spoilerMode?: CodegenTypes.WithDefault<string, 'particles'>;
+  spoilerOverlay?: CodegenTypes.WithDefault<string, 'particles'>;
 
   /**
    * Custom items to show in the text selection context menu.

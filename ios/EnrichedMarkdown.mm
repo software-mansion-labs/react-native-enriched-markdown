@@ -117,7 +117,7 @@ using namespace facebook::react;
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
 
-  ENRMSpoilerMode _spoilerMode;
+  ENRMSpoilerOverlay _spoilerOverlay;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -486,7 +486,7 @@ using namespace facebook::react;
 - (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(ENRMRenderResult *)segment
 {
   EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
-  view.spoilerMode = _spoilerMode;
+  view.spoilerOverlay = _spoilerOverlay;
   view.allowTrailingMargin = _allowTrailingMargin;
   view.lastElementMarginBottom = segment.lastElementMarginBottom;
   view.accessibilityInfo = segment.accessibilityInfo;
@@ -647,12 +647,12 @@ using namespace facebook::react;
     _contextMenuItemIcons = ENRMContextMenuIconsFromItems(newViewProps.contextMenuItems);
   }
 
-  if (newViewProps.spoilerMode != oldViewProps.spoilerMode) {
-    NSString *modeStr = [[NSString alloc] initWithUTF8String:newViewProps.spoilerMode.c_str()];
-    _spoilerMode = ENRMSpoilerModeFromString(modeStr);
+  if (newViewProps.spoilerOverlay != oldViewProps.spoilerOverlay) {
+    NSString *modeStr = [[NSString alloc] initWithUTF8String:newViewProps.spoilerOverlay.c_str()];
+    _spoilerOverlay = ENRMSpoilerOverlayFromString(modeStr);
     for (RCTUIView *segment in _segmentViews) {
       if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
-        ((EnrichedMarkdownInternalText *)segment).spoilerMode = _spoilerMode;
+        ((EnrichedMarkdownInternalText *)segment).spoilerOverlay = _spoilerOverlay;
       }
     }
   }

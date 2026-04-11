@@ -3,7 +3,6 @@ package com.swmansion.enriched.markdown.spoiler
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import com.swmansion.enriched.markdown.styles.SpoilerStyle
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
@@ -30,8 +29,8 @@ class SpoilerParticleDrawable(
   private var accumulatedPrimaryBirths = 0f
   private var accumulatedSecondaryBirths = 0f
 
-  private val densityFactor = particleDensity / SpoilerStyle.DEFAULT_PARTICLE_DENSITY
-  private val speedFactor = particleSpeed / SpoilerStyle.DEFAULT_PARTICLE_SPEED
+  private val densityFactor = particleDensity / BASE_PARTICLE_DENSITY
+  private val speedFactor = particleSpeed / BASE_PARTICLE_SPEED
 
   private var isRevealing = false
   private var revealStartTime = -1L
@@ -231,5 +230,8 @@ class SpoilerParticleDrawable(
     private const val PARTICLE_LIFETIME = 7
     private const val PARTICLE_AGE = 8
     private const val STRIDE = 9
+
+    private const val BASE_PARTICLE_DENSITY = 8f
+    private const val BASE_PARTICLE_SPEED = 20f
   }
 }

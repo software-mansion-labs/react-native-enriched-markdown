@@ -4,20 +4,12 @@ import type {
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
-import { flattenSpoilerStyle, isStyleEqual } from './styleUtils';
+import { isStyleEqual, mergeSubStyle } from './styleUtils';
 
 const SYSTEM_FONT =
   'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 const MONOSPACE_FONT =
   'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace';
-
-function mergeSubStyle<T extends Record<string, unknown>>(
-  defaultStyle: T,
-  userStyle?: Partial<T>
-): T {
-  if (!userStyle) return defaultStyle;
-  return { ...defaultStyle, ...userStyle };
-}
 
 const defaultTextColor = '#1F2937';
 const defaultHeadingColor = '#111827';
@@ -190,9 +182,8 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
   // Spoiler rendering is not supported on web yet — defaults kept for type compatibility.
   spoiler: {
     color: '#374151',
-    particleDensity: 8,
-    particleSpeed: 20,
-    solidBorderRadius: 4,
+    particles: { density: 8, speed: 20 },
+    solid: { borderRadius: 4 },
   },
 });
 
@@ -228,10 +219,9 @@ export const normalizeMarkdownStyle = (
   (
     Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyleInternal)[]
   ).forEach((key) => {
-    const userValue =
-      key === 'spoiler'
-        ? flattenSpoilerStyle(style.spoiler)
-        : (style[key] as unknown as Record<string, unknown> | undefined);
+    const userValue = style[key] as unknown as
+      | Record<string, unknown>
+      | undefined;
     result[key] = mergeSubStyle(
       DEFAULT_NORMALIZED_STYLE[key] as unknown as Record<string, unknown>,
       userValue as Record<string, unknown> | undefined

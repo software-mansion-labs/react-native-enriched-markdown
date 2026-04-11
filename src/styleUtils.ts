@@ -1,21 +1,44 @@
+import { Platform, processColor, type ColorValue } from 'react-native';
 import type { MarkdownStyle } from './types/MarkdownStyle';
-import type { MarkdownStyleInternal } from './types/MarkdownStyleInternal';
 
-export function flattenSpoilerStyle(
-  userSpoiler: MarkdownStyle['spoiler']
-): Partial<MarkdownStyleInternal['spoiler']> | undefined {
-  if (!userSpoiler) return undefined;
-  const flat: Record<string, unknown> = {};
-  if (userSpoiler.color !== undefined) flat.color = userSpoiler.color;
-  if (userSpoiler.particles?.density !== undefined)
-    flat.particleDensity = userSpoiler.particles.density;
-  if (userSpoiler.particles?.speed !== undefined)
-    flat.particleSpeed = userSpoiler.particles.speed;
-  if (userSpoiler.solid?.borderRadius !== undefined)
-    flat.solidBorderRadius = userSpoiler.solid.borderRadius;
-  return Object.keys(flat).length > 0
-    ? (flat as Partial<MarkdownStyleInternal['spoiler']>)
-    : undefined;
+export const normalizeColor = (
+  color: string | undefined
+): ColorValue | undefined => {
+  if (!color) return undefined;
+  if (Platform.OS === 'web') return color;
+  return processColor(color) ?? undefined;
+};
+
+export function mergeSubStyle<T extends Record<string, unknown>>(
+  defaultStyle: T,
+  userStyle?: Partial<T>
+): T {
+  if (!userStyle) return defaultStyle;
+  const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
+  for (const key in result) {
+    const defaultValue = defaultStyle[key];
+    const userValue = userStyle[key];
+    if (
+      typeof defaultValue === 'object' &&
+      defaultValue !== null &&
+      !Array.isArray(defaultValue) &&
+      typeof userValue === 'object' &&
+      userValue !== null &&
+      !Array.isArray(userValue)
+    ) {
+      result[key] = {
+        ...(defaultValue as Record<string, unknown>),
+        ...(userValue as Record<string, unknown>),
+      };
+    }
+    if (
+      key.toLowerCase().includes('color') &&
+      typeof result[key] === 'string'
+    ) {
+      result[key] = normalizeColor(result[key] as string);
+    }
+  }
+  return result as T;
 }
 
 function isSubStyleEqual(

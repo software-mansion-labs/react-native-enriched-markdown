@@ -1049,18 +1049,18 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
-  if (newStyle.spoiler.particleDensity != oldStyle.spoiler.particleDensity) {
-    [config setSpoilerParticleDensity:newStyle.spoiler.particleDensity];
+  if (newStyle.spoiler.particles.density != oldStyle.spoiler.particles.density) {
+    [config setSpoilerParticleDensity:newStyle.spoiler.particles.density];
     changed = YES;
   }
 
-  if (newStyle.spoiler.particleSpeed != oldStyle.spoiler.particleSpeed) {
-    [config setSpoilerParticleSpeed:newStyle.spoiler.particleSpeed];
+  if (newStyle.spoiler.particles.speed != oldStyle.spoiler.particles.speed) {
+    [config setSpoilerParticleSpeed:newStyle.spoiler.particles.speed];
     changed = YES;
   }
 
-  if (newStyle.spoiler.solidBorderRadius != oldStyle.spoiler.solidBorderRadius) {
-    [config setSpoilerSolidBorderRadius:newStyle.spoiler.solidBorderRadius];
+  if (newStyle.spoiler.solid.borderRadius != oldStyle.spoiler.solid.borderRadius) {
+    [config setSpoilerSolidBorderRadius:newStyle.spoiler.solid.borderRadius];
     changed = YES;
   }
 

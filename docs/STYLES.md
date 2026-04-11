@@ -376,7 +376,7 @@ Styles for inline LaTeX math (`$...$`). Inline math is rendered within the surro
 
 ### Spoiler-specific
 
-Styles for spoiler text (`||hidden text||`). Spoiler text is concealed behind an animated particle overlay until the user taps to reveal it.
+Styles for spoiler text (`||hidden text||`). Spoiler text is concealed behind an overlay (controlled by the `spoilerOverlay` prop) until the user taps to reveal it.
 
 | Property | Type | Description |
 |----------|------|-------------|

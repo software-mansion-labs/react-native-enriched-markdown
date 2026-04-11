@@ -1,25 +1,11 @@
-import { Platform, processColor } from 'react-native';
+import { Platform } from 'react-native';
 import type { MarkdownStyle } from './types/MarkdownStyle';
 import type {
   BlockTextAlign,
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
-import { flattenSpoilerStyle, isStyleEqual } from './styleUtils';
-
-// On native, processColor converts hex strings to ARGB integers the renderer
-// expects. On web, CSS accepts hex strings natively — no conversion needed.
-// MarkdownStyleInternal types colors as `string`; native consumers
-// (EnrichedMarkdownTextNativeComponent) accept `ColorValue` (string | number)
-// at runtime, so the ARGB integers processColor produces are handled correctly.
-export const normalizeColor = (
-  color: string | undefined
-): string | undefined =>
-  color
-    ? Platform.OS === 'web'
-      ? color
-      : ((processColor(color) ?? undefined) as string | undefined)
-    : undefined;
+import { isStyleEqual, normalizeColor, mergeSubStyle } from './styleUtils';
 
 const getSystemFont = (): string =>
   Platform.select({
@@ -36,25 +22,6 @@ const getMonospaceFont = (): string =>
     web: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace',
     default: 'monospace',
   })!;
-
-function mergeSubStyle<T extends Record<string, unknown>>(
-  defaultStyle: T,
-  userStyle?: Partial<T>
-): T {
-  if (!userStyle) return defaultStyle;
-  const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
-  // Normalize any user-supplied color strings. On web this is a no-op (CSS
-  // accepts hex strings); on native it converts them to ARGB integers.
-  for (const key in result) {
-    if (
-      key.toLowerCase().includes('color') &&
-      typeof result[key] === 'string'
-    ) {
-      result[key] = normalizeColor(result[key] as string);
-    }
-  }
-  return result as T;
-}
 
 const defaultTextColor = normalizeColor('#1F2937')!;
 const defaultHeadingColor = normalizeColor('#111827')!;
@@ -75,7 +42,7 @@ const baseHeader: {
   textAlign: 'auto',
 };
 
-const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
+const DEFAULT_NORMALIZED_STYLE = Object.freeze({
   paragraph: {
     fontSize: 16,
     fontFamily: getSystemFont(),
@@ -234,11 +201,10 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
   },
   spoiler: {
     color: normalizeColor('#374151')!,
-    particleDensity: 8,
-    particleSpeed: 20,
-    solidBorderRadius: 4,
+    particles: { density: 8, speed: 20 },
+    solid: { borderRadius: 4 },
   },
-});
+}) as MarkdownStyleInternal;
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();
 const structuralCache: {
@@ -272,10 +238,9 @@ export const normalizeMarkdownStyle = (
   (
     Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyleInternal)[]
   ).forEach((key) => {
-    const userValue =
-      key === 'spoiler'
-        ? flattenSpoilerStyle(style.spoiler)
-        : (style[key] as unknown as Record<string, unknown> | undefined);
+    const userValue = style[key] as unknown as
+      | Record<string, unknown>
+      | undefined;
     result[key] = mergeSubStyle(
       DEFAULT_NORMALIZED_STYLE[key] as unknown as Record<string, unknown>,
       userValue as Record<string, unknown> | undefined

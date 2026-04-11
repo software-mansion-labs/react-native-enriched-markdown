@@ -4,38 +4,12 @@ import type {
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
-import { isStyleEqual } from './styleUtils';
+import { isStyleEqual, mergeSubStyle } from './styleUtils';
 
 const SYSTEM_FONT =
   'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 const MONOSPACE_FONT =
   'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace';
-
-function mergeSubStyle<T extends Record<string, unknown>>(
-  defaultStyle: T,
-  userStyle?: Partial<T>
-): T {
-  if (!userStyle) return defaultStyle;
-  const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
-  for (const key in result) {
-    const defaultValue = defaultStyle[key];
-    const userValue = userStyle[key];
-    if (
-      typeof defaultValue === 'object' &&
-      defaultValue !== null &&
-      !Array.isArray(defaultValue) &&
-      typeof userValue === 'object' &&
-      userValue !== null &&
-      !Array.isArray(userValue)
-    ) {
-      result[key] = {
-        ...(defaultValue as Record<string, unknown>),
-        ...(userValue as Record<string, unknown>),
-      };
-    }
-  }
-  return result as T;
-}
 
 const defaultTextColor = '#1F2937';
 const defaultHeadingColor = '#111827';

@@ -1,9 +1,45 @@
-import { processColor, type ColorValue } from 'react-native';
+import { Platform, processColor, type ColorValue } from 'react-native';
 import type { MarkdownStyle } from './types/MarkdownStyle';
 
 export const normalizeColor = (
   color: string | undefined
-): ColorValue | undefined => (color ? processColor(color) : undefined);
+): ColorValue | undefined => {
+  if (!color) return undefined;
+  if (Platform.OS === 'web') return color;
+  return processColor(color) ?? undefined;
+};
+
+export function mergeSubStyle<T extends Record<string, unknown>>(
+  defaultStyle: T,
+  userStyle?: Partial<T>
+): T {
+  if (!userStyle) return defaultStyle;
+  const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
+  for (const key in result) {
+    const defaultValue = defaultStyle[key];
+    const userValue = userStyle[key];
+    if (
+      typeof defaultValue === 'object' &&
+      defaultValue !== null &&
+      !Array.isArray(defaultValue) &&
+      typeof userValue === 'object' &&
+      userValue !== null &&
+      !Array.isArray(userValue)
+    ) {
+      result[key] = {
+        ...(defaultValue as Record<string, unknown>),
+        ...(userValue as Record<string, unknown>),
+      };
+    }
+    if (
+      key.toLowerCase().includes('color') &&
+      typeof result[key] === 'string'
+    ) {
+      result[key] = normalizeColor(result[key] as string);
+    }
+  }
+  return result as T;
+}
 
 function isSubStyleEqual(
   a: Record<string, unknown>,

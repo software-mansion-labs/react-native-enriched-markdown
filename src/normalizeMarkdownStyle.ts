@@ -5,7 +5,7 @@ import type {
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
-import { isStyleEqual, normalizeColor } from './styleUtils';
+import { isStyleEqual, normalizeColor, mergeSubStyle } from './styleUtils';
 
 const getSystemFont = (): string =>
   Platform.select({
@@ -22,38 +22,6 @@ const getMonospaceFont = (): string =>
     web: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace',
     default: 'monospace',
   })!;
-
-function mergeSubStyle<T extends Record<string, unknown>>(
-  defaultStyle: T,
-  userStyle?: Partial<T>
-): T {
-  if (!userStyle) return defaultStyle;
-  const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
-  for (const key in result) {
-    const defaultValue = defaultStyle[key];
-    const userValue = userStyle[key];
-    if (
-      typeof defaultValue === 'object' &&
-      defaultValue !== null &&
-      !Array.isArray(defaultValue) &&
-      typeof userValue === 'object' &&
-      userValue !== null &&
-      !Array.isArray(userValue)
-    ) {
-      result[key] = {
-        ...(defaultValue as Record<string, unknown>),
-        ...(userValue as Record<string, unknown>),
-      };
-    }
-    if (
-      key.toLowerCase().includes('color') &&
-      typeof result[key] === 'string'
-    ) {
-      result[key] = normalizeColor(result[key] as string);
-    }
-  }
-  return result as T;
-}
 
 const defaultTextColor = normalizeColor('#1F2937')!;
 const defaultHeadingColor = normalizeColor('#111827')!;

@@ -5,11 +5,7 @@ import type {
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
-import {
-  mergeSpoilerDefaults,
-  isStyleEqual,
-  normalizeColor,
-} from './styleUtils';
+import { isStyleEqual, normalizeColor } from './styleUtils';
 
 const getSystemFont = (): string =>
   Platform.select({
@@ -33,9 +29,22 @@ function mergeSubStyle<T extends Record<string, unknown>>(
 ): T {
   if (!userStyle) return defaultStyle;
   const result: Record<string, unknown> = { ...defaultStyle, ...userStyle };
-  // Normalize any user-supplied color strings. On web this is a no-op (CSS
-  // accepts hex strings); on native it converts them to ARGB integers.
   for (const key in result) {
+    const defaultValue = defaultStyle[key];
+    const userValue = userStyle[key];
+    if (
+      typeof defaultValue === 'object' &&
+      defaultValue !== null &&
+      !Array.isArray(defaultValue) &&
+      typeof userValue === 'object' &&
+      userValue !== null &&
+      !Array.isArray(userValue)
+    ) {
+      result[key] = {
+        ...(defaultValue as Record<string, unknown>),
+        ...(userValue as Record<string, unknown>),
+      };
+    }
     if (
       key.toLowerCase().includes('color') &&
       typeof result[key] === 'string'
@@ -227,7 +236,7 @@ const DEFAULT_NORMALIZED_STYLE = Object.freeze({
     particles: { density: 8, speed: 20 },
     solid: { borderRadius: 4 },
   },
-} as MarkdownStyleInternal);
+}) as MarkdownStyleInternal;
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();
 const structuralCache: {
@@ -261,13 +270,6 @@ export const normalizeMarkdownStyle = (
   (
     Object.keys(DEFAULT_NORMALIZED_STYLE) as (keyof MarkdownStyleInternal)[]
   ).forEach((key) => {
-    if (key === 'spoiler') {
-      (result as Record<string, unknown>)[key] = mergeSpoilerDefaults(
-        style.spoiler,
-        DEFAULT_NORMALIZED_STYLE.spoiler
-      );
-      return;
-    }
     const userValue = style[key] as unknown as
       | Record<string, unknown>
       | undefined;

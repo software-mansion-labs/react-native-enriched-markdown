@@ -137,11 +137,19 @@ interface InlineMathStyleInternal {
   color: string;
 }
 
+interface SpoilerParticlesStyleInternal {
+  density: number;
+  speed: number;
+}
+
+interface SpoilerSolidStyleInternal {
+  borderRadius: number;
+}
+
 interface SpoilerStyleInternal {
   color: string;
-  particleDensity: number;
-  particleSpeed: number;
-  solidBorderRadius: number;
+  particles: SpoilerParticlesStyleInternal;
+  solid: SpoilerSolidStyleInternal;
 }
 
 export interface MarkdownStyleInternal {

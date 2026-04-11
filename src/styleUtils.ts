@@ -1,21 +1,20 @@
 import type { MarkdownStyle } from './types/MarkdownStyle';
 import type { MarkdownStyleInternal } from './types/MarkdownStyleInternal';
 
-export function flattenSpoilerStyle(
-  userSpoiler: MarkdownStyle['spoiler']
-): Partial<MarkdownStyleInternal['spoiler']> | undefined {
-  if (!userSpoiler) return undefined;
-  const flat: Record<string, unknown> = {};
-  if (userSpoiler.color !== undefined) flat.color = userSpoiler.color;
-  if (userSpoiler.particles?.density !== undefined)
-    flat.particleDensity = userSpoiler.particles.density;
-  if (userSpoiler.particles?.speed !== undefined)
-    flat.particleSpeed = userSpoiler.particles.speed;
-  if (userSpoiler.solid?.borderRadius !== undefined)
-    flat.solidBorderRadius = userSpoiler.solid.borderRadius;
-  return Object.keys(flat).length > 0
-    ? (flat as Partial<MarkdownStyleInternal['spoiler']>)
-    : undefined;
+export function mergeSpoilerDefaults(
+  user: MarkdownStyle['spoiler'],
+  defaults: MarkdownStyleInternal['spoiler']
+): MarkdownStyleInternal['spoiler'] {
+  return {
+    color: user?.color ?? defaults.color,
+    particles: {
+      density: user?.particles?.density ?? defaults.particles.density,
+      speed: user?.particles?.speed ?? defaults.particles.speed,
+    },
+    solid: {
+      borderRadius: user?.solid?.borderRadius ?? defaults.solid.borderRadius,
+    },
+  };
 }
 
 function isSubStyleEqual(

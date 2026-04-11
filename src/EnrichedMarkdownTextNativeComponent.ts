@@ -137,11 +137,19 @@ interface InlineMathStyleInternal {
   color: ColorValue;
 }
 
+interface SpoilerParticlesStyleInternal {
+  density: CodegenTypes.Float;
+  speed: CodegenTypes.Float;
+}
+
+interface SpoilerSolidStyleInternal {
+  borderRadius: CodegenTypes.Float;
+}
+
 interface SpoilerStyleInternal {
   color: ColorValue;
-  particleDensity: CodegenTypes.Float;
-  particleSpeed: CodegenTypes.Float;
-  solidBorderRadius: CodegenTypes.Float;
+  particles: SpoilerParticlesStyleInternal;
+  solid: SpoilerSolidStyleInternal;
 }
 
 export interface MarkdownStyleInternal {

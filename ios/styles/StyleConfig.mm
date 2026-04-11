@@ -255,9 +255,6 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _tableFontNeedsRecreation = YES;
   _tableHeaderFontNeedsRecreation = YES;
   _linkUnderline = YES;
-  _spoilerParticleDensity = 8.0;
-  _spoilerParticleSpeed = 20.0;
-  _spoilerSolidBorderRadius = 4.0;
   return self;
 }
 

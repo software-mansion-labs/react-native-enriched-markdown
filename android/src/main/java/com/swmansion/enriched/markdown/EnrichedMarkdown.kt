@@ -16,7 +16,7 @@ import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.spans.ImageSpan
-import com.swmansion.enriched.markdown.spoiler.SpoilerMode
+import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.MarkdownSegment
@@ -80,12 +80,12 @@ class EnrichedMarkdown
     private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
-    var spoilerMode: SpoilerMode = SpoilerMode.PARTICLES
+    var spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES
       set(value) {
         if (field == value) return
         field = value
         segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
-          it.spoilerMode = value
+          it.spoilerOverlay = value
         }
       }
 
@@ -252,7 +252,7 @@ class EnrichedMarkdown
 
     private fun createTextView(segment: RenderSegment.Text) =
       EnrichedMarkdownInternalText(context).apply {
-        spoilerMode = this@EnrichedMarkdown.spoilerMode
+        spoilerOverlay = this@EnrichedMarkdown.spoilerOverlay
         setIsSelectable(selectable)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && segment.needsJustify) {
           justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD

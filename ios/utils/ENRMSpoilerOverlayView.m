@@ -5,12 +5,12 @@
 
 static const NSTimeInterval kRevealDuration = 0.45;
 
-ENRMSpoilerMode ENRMSpoilerModeFromString(NSString *string)
+ENRMSpoilerOverlay ENRMSpoilerOverlayFromString(NSString *string)
 {
   if ([string isEqualToString:@"solid"]) {
-    return ENRMSpoilerModeSolid;
+    return ENRMSpoilerOverlaySolid;
   }
-  return ENRMSpoilerModeParticles;
+  return ENRMSpoilerOverlayParticles;
 }
 
 @implementation ENRMSpoilerOverlayView
@@ -128,14 +128,14 @@ ENRMSpoilerMode ENRMSpoilerModeFromString(NSString *string)
 
 #pragma mark - Factory
 
-+ (ENRMSpoilerOverlayView *)overlayWithMode:(ENRMSpoilerMode)mode
++ (ENRMSpoilerOverlayView *)overlayWithMode:(ENRMSpoilerOverlay)mode
                                      config:(StyleConfig *)config
                                   charRange:(NSRange)charRange
 {
   switch (mode) {
-    case ENRMSpoilerModeSolid:
+    case ENRMSpoilerOverlaySolid:
       return [[ENRMSolidOverlayView alloc] initWithConfig:config charRange:charRange];
-    case ENRMSpoilerModeParticles:
+    case ENRMSpoilerOverlayParticles:
     default:
       return [[ENRMParticleOverlayView alloc] initWithConfig:config charRange:charRange];
   }

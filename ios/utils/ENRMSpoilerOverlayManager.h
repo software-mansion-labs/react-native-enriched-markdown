@@ -7,7 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ENRMSpoilerOverlayManager : NSObject
 
-@property (nonatomic) ENRMSpoilerMode spoilerMode;
+@property (nonatomic) ENRMSpoilerOverlay spoilerOverlay;
 
 - (instancetype)initWithTextView:(ENRMPlatformTextView *)textView config:(StyleConfig *)config;
 

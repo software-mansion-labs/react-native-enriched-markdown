@@ -16,11 +16,11 @@ static NSString *overlayKey(NSRange charRange, CGRect frame)
   BOOL _needsUpdate;
 }
 
-- (void)setSpoilerMode:(ENRMSpoilerMode)spoilerMode
+- (void)setSpoilerOverlay:(ENRMSpoilerOverlay)spoilerOverlay
 {
-  if (_spoilerMode == spoilerMode)
+  if (_spoilerOverlay == spoilerOverlay)
     return;
-  _spoilerMode = spoilerMode;
+  _spoilerOverlay = spoilerOverlay;
   [self rebuildOverlays];
 }
 
@@ -156,7 +156,7 @@ static NSString *overlayKey(NSRange charRange, CGRect frame)
                                                  return;
 
                                                ENRMSpoilerOverlayView *overlay =
-                                                   [ENRMSpoilerOverlayView overlayWithMode:self->_spoilerMode
+                                                   [ENRMSpoilerOverlayView overlayWithMode:self->_spoilerOverlay
                                                                                     config:self->_config
                                                                                  charRange:charRange];
                                                overlay.frame = frame;

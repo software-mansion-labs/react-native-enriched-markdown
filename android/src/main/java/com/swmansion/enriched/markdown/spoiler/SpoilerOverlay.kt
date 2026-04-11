@@ -1,6 +1,6 @@
 package com.swmansion.enriched.markdown.spoiler
 
-enum class SpoilerMode(
+enum class SpoilerOverlay(
   internal val createStrategy: (SpoilerAnimator) -> SpoilerStrategy,
 ) {
   PARTICLES({ animator -> ParticleStrategy(animator) }),
@@ -8,7 +8,7 @@ enum class SpoilerMode(
   ;
 
   companion object {
-    fun fromString(value: String?): SpoilerMode =
+    fun fromString(value: String?): SpoilerOverlay =
       when (value) {
         "solid" -> SOLID
         else -> PARTICLES

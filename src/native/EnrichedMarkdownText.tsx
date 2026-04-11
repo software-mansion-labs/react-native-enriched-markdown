@@ -40,7 +40,7 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   flavor = 'commonmark',
   streamingAnimation = false,
-  spoilerMode = 'particles',
+  spoilerOverlay = 'particles',
   contextMenuItems,
   ...rest
 }: EnrichedMarkdownTextProps) => {
@@ -133,7 +133,7 @@ export const EnrichedMarkdownText = ({
     maxFontSizeMultiplier,
     allowTrailingMargin,
     streamingAnimation,
-    spoilerMode,
+    spoilerOverlay,
     style: containerStyle,
     contextMenuItems: nativeContextMenuItems,
     onContextMenuItemPress: handleContextMenuItemPress,

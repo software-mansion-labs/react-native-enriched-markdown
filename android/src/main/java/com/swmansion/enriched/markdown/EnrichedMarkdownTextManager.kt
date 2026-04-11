@@ -11,7 +11,7 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownTextManagerInterface
 import com.facebook.yoga.YogaMeasureMode
-import com.swmansion.enriched.markdown.spoiler.SpoilerMode
+import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
 import com.swmansion.enriched.markdown.utils.common.emitContextMenuItemPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkLongPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkPress
@@ -148,12 +148,12 @@ class EnrichedMarkdownTextManager :
     view?.setStreamingAnimation(streamingAnimation)
   }
 
-  @ReactProp(name = "spoilerMode")
-  override fun setSpoilerMode(
+  @ReactProp(name = "spoilerOverlay")
+  override fun setSpoilerOverlay(
     view: EnrichedMarkdownText?,
     mode: String?,
   ) {
-    view?.spoilerMode = SpoilerMode.fromString(mode)
+    view?.spoilerOverlay = SpoilerOverlay.fromString(mode)
   }
 
   @ReactProp(name = "contextMenuItems")

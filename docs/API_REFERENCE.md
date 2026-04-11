@@ -176,7 +176,7 @@ When `true`, newly appended content fades in during streaming updates. Only the 
 | --------- | ------------- | -------- |
 | `boolean` | `false`       | Both     |
 
-### `spoilerMode`
+### `spoilerOverlay`
 
 Controls how spoiler text (`||hidden text||`) is displayed before being revealed.
 

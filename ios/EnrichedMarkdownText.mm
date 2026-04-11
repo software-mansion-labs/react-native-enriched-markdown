@@ -465,9 +465,9 @@ using namespace facebook::react;
     }
   }
 
-  if (newViewProps.spoilerMode != oldViewProps.spoilerMode) {
-    NSString *modeStr = [[NSString alloc] initWithUTF8String:newViewProps.spoilerMode.c_str()];
-    _spoilerManager.spoilerMode = ENRMSpoilerModeFromString(modeStr);
+  if (newViewProps.spoilerOverlay != oldViewProps.spoilerOverlay) {
+    NSString *modeStr = [[NSString alloc] initWithUTF8String:newViewProps.spoilerOverlay.c_str()];
+    _spoilerManager.spoilerOverlay = ENRMSpoilerOverlayFromString(modeStr);
   }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {

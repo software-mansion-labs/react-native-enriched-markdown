@@ -2,16 +2,16 @@
 #import "ENRMUIKit.h"
 #import "StyleConfig.h"
 
-typedef NS_ENUM(NSInteger, ENRMSpoilerMode) {
-  ENRMSpoilerModeParticles = 0,
-  ENRMSpoilerModeSolid,
+typedef NS_ENUM(NSInteger, ENRMSpoilerOverlay) {
+  ENRMSpoilerOverlayParticles = 0,
+  ENRMSpoilerOverlaySolid,
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-ENRMSpoilerMode ENRMSpoilerModeFromString(NSString *_Nullable string);
+ENRMSpoilerOverlay ENRMSpoilerOverlayFromString(NSString *_Nullable string);
 
 #ifdef __cplusplus
 }
@@ -40,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)didLayoutOverlay;
 - (void)prepareRevealAnimation;
 
-+ (ENRMSpoilerOverlayView *)overlayWithMode:(ENRMSpoilerMode)mode
++ (ENRMSpoilerOverlayView *)overlayWithMode:(ENRMSpoilerOverlay)mode
                                      config:(StyleConfig *)config
                                   charRange:(NSRange)charRange;
 

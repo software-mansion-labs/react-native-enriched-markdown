@@ -1,25 +1,15 @@
-import { Platform, processColor } from 'react-native';
+import { Platform } from 'react-native';
 import type { MarkdownStyle } from './types/MarkdownStyle';
 import type {
   BlockTextAlign,
   EmphasisFontStyle,
   MarkdownStyleInternal,
 } from './types/MarkdownStyleInternal';
-import { mergeSpoilerDefaults, isStyleEqual } from './styleUtils';
-
-// On native, processColor converts hex strings to ARGB integers the renderer
-// expects. On web, CSS accepts hex strings natively — no conversion needed.
-// MarkdownStyleInternal types colors as `string`; native consumers
-// (EnrichedMarkdownTextNativeComponent) accept `ColorValue` (string | number)
-// at runtime, so the ARGB integers processColor produces are handled correctly.
-export const normalizeColor = (
-  color: string | undefined
-): string | undefined =>
-  color
-    ? Platform.OS === 'web'
-      ? color
-      : ((processColor(color) ?? undefined) as string | undefined)
-    : undefined;
+import {
+  mergeSpoilerDefaults,
+  isStyleEqual,
+  normalizeColor,
+} from './styleUtils';
 
 const getSystemFont = (): string =>
   Platform.select({
@@ -75,7 +65,7 @@ const baseHeader: {
   textAlign: 'auto',
 };
 
-const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
+const DEFAULT_NORMALIZED_STYLE = Object.freeze({
   paragraph: {
     fontSize: 16,
     fontFamily: getSystemFont(),
@@ -237,7 +227,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     particles: { density: 8, speed: 20 },
     solid: { borderRadius: 4 },
   },
-});
+} as MarkdownStyleInternal);
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();
 const structuralCache: {

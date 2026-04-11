@@ -1,12 +1,17 @@
+import { processColor, type ColorValue } from 'react-native';
 import type { MarkdownStyle } from './types/MarkdownStyle';
 import type { MarkdownStyleInternal } from './types/MarkdownStyleInternal';
+
+export const normalizeColor = (
+  color: string | undefined
+): ColorValue | undefined => (color ? processColor(color) : undefined);
 
 export function mergeSpoilerDefaults(
   user: MarkdownStyle['spoiler'],
   defaults: MarkdownStyleInternal['spoiler']
 ): MarkdownStyleInternal['spoiler'] {
   return {
-    color: user?.color ?? defaults.color,
+    color: (normalizeColor(user?.color) as string) ?? defaults.color,
     particles: {
       density: user?.particles?.density ?? defaults.particles.density,
       speed: user?.particles?.speed ?? defaults.particles.speed,

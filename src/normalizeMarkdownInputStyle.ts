@@ -1,5 +1,6 @@
 import { processColor, type ColorValue } from 'react-native';
 import type { MarkdownInputStyle } from './EnrichedMarkdownInput';
+import { normalizeColor } from './styleUtils';
 
 interface MarkdownInputStyleInternal {
   strong: {
@@ -17,9 +18,6 @@ interface MarkdownInputStyleInternal {
     backgroundColor: ColorValue;
   };
 }
-
-const normalizeColor = (color: string | undefined): ColorValue | undefined =>
-  color ? processColor(color) : undefined;
 
 const DEFAULT_LINK_COLOR = '#2563EB';
 const DEFAULT_SPOILER_COLOR = '#374151';

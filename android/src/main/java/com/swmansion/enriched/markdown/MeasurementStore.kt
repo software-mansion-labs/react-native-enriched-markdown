@@ -12,7 +12,6 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
-import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
@@ -21,7 +20,8 @@ import com.swmansion.enriched.markdown.spans.MathMetrics
 import com.swmansion.enriched.markdown.spans.MathRenderMode
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
-import com.swmansion.enriched.markdown.utils.common.MarkdownSegment
+import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
+import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.common.getMapOrNull
 import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
@@ -307,12 +307,13 @@ object MeasurementStore {
 
       val style = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
       val segments = splitASTIntoSegments(ast)
+      val renderedSegments = MarkdownSegmentRenderer.render(segments, style, context, null, null)
 
       val mathHeightByIndex = HashMap<Int, Float>()
       val mathSegmentIndices = mutableListOf<Int>()
       val mathRequests = mutableListOf<MathMeasureRequest>()
-      for ((i, segment) in segments.withIndex()) {
-        if (segment is MarkdownSegment.Math) {
+      for ((i, segment) in renderedSegments.withIndex()) {
+        if (segment is RenderedSegment.Math) {
           mathSegmentIndices.add(i)
           mathRequests.add(
             MathMeasureRequest(
@@ -333,33 +334,30 @@ object MeasurementStore {
       }
 
       val widthPx = width.toInt().coerceAtLeast(1)
-      val lastIndex = segments.lastIndex
+      val lastIndex = renderedSegments.lastIndex
       var totalHeightPx = 0f
       var maxContentWidthPx = 0f
 
-      for ((index, segment) in segments.withIndex()) {
+      for ((index, segment) in renderedSegments.withIndex()) {
         val isLastSegment = index == lastIndex
         val includeBottomMargin = if (isLastSegment) allowTrailingMargin else true
 
         when (segment) {
-          is MarkdownSegment.Text -> {
-            val segmentRenderer = Renderer().apply { configure(style, context) }
-            val tempDoc = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = segment.nodes)
-            val styledText = segmentRenderer.renderDocument(tempDoc, null)
-            styledText.replaceMathSpansWithPlaceholders(context)
+          is RenderedSegment.Text -> {
+            segment.styledText.replaceMathSpansWithPlaceholders(context)
 
-            val layout = createStaticLayout(styledText, fontSize, widthPx)
+            val layout = createStaticLayout(segment.styledText, fontSize, widthPx)
             totalHeightPx += layout.height
 
             val segmentMaxLineWidth = (0 until layout.lineCount).maxOfOrNull { layout.getLineWidth(it) } ?: 0f
             maxContentWidthPx = maxOf(maxContentWidthPx, ceil(segmentMaxLineWidth))
 
             if (includeBottomMargin) {
-              totalHeightPx += segmentRenderer.getLastElementMarginBottom()
+              totalHeightPx += segment.lastElementMarginBottom
             }
           }
 
-          is MarkdownSegment.Table -> {
+          is RenderedSegment.Table -> {
             totalHeightPx += style.tableStyle.marginTop
             totalHeightPx += TableContainerView.measureTableNodeHeight(segment.node, style, context)
             maxContentWidthPx = width
@@ -368,7 +366,7 @@ object MeasurementStore {
             }
           }
 
-          is MarkdownSegment.Math -> {
+          is RenderedSegment.Math -> {
             totalHeightPx += style.mathStyle.marginTop
             totalHeightPx += mathHeightByIndex[index] ?: 0f
             maxContentWidthPx = width

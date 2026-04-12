@@ -5,21 +5,18 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.text.SpannableString
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
-import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
-import com.swmansion.enriched.markdown.renderer.Renderer
-import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
-import com.swmansion.enriched.markdown.utils.common.MarkdownSegment
+import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
+import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
@@ -27,23 +24,6 @@ import com.swmansion.enriched.markdown.views.BlockSegmentView
 import com.swmansion.enriched.markdown.views.TableContainerView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
-private sealed interface RenderSegment {
-  data class Text(
-    val styledText: SpannableString,
-    val imageSpans: List<ImageSpan>,
-    val needsJustify: Boolean,
-    val lastElementMarginBottom: Float,
-  ) : RenderSegment
-
-  data class Table(
-    val node: MarkdownASTNode,
-  ) : RenderSegment
-
-  data class Math(
-    val latex: String,
-  ) : RenderSegment
-}
 
 class EnrichedMarkdown
   @JvmOverloads
@@ -200,16 +180,17 @@ class EnrichedMarkdown
               return@execute
             }
 
-          val processedSegments =
-            splitASTIntoSegments(ast).map { segment ->
-              when (segment) {
-                is MarkdownSegment.Text -> renderTextSegment(segment.nodes, style)
-                is MarkdownSegment.Table -> RenderSegment.Table(segment.node)
-                is MarkdownSegment.Math -> RenderSegment.Math(segment.latex)
-              }
-            }
+          val segments = splitASTIntoSegments(ast)
+          val renderedSegments =
+            MarkdownSegmentRenderer.render(
+              segments,
+              style,
+              context,
+              onLinkPressCallback,
+              onLinkLongPressCallback,
+            )
 
-          postToMain(renderId) { applyRenderedSegments(processedSegments, style) }
+          postToMain(renderId) { applyRenderedSegments(renderedSegments, style) }
         } catch (e: Exception) {
           Log.e(TAG, "Render failed", e)
           postToMain(renderId) { clearSegments() }
@@ -217,32 +198,17 @@ class EnrichedMarkdown
       }
     }
 
-    private fun renderTextSegment(
-      nodes: List<MarkdownASTNode>,
-      style: StyleConfig,
-    ): RenderSegment.Text {
-      val documentWrapper = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = nodes)
-      val renderer = Renderer().apply { configure(style, context) }
-
-      return RenderSegment.Text(
-        styledText = renderer.renderDocument(documentWrapper, onLinkPressCallback, onLinkLongPressCallback),
-        imageSpans = renderer.getCollectedImageSpans().toList(),
-        needsJustify = style.needsJustify,
-        lastElementMarginBottom = renderer.getLastElementMarginBottom(),
-      )
-    }
-
     private fun applyRenderedSegments(
-      renderedSegments: List<RenderSegment>,
+      renderedSegments: List<RenderedSegment>,
       style: StyleConfig,
     ) {
       clearSegments()
       renderedSegments.forEach { segment ->
         val view =
           when (segment) {
-            is RenderSegment.Text -> createTextView(segment)
-            is RenderSegment.Table -> createTableView(segment, style)
-            is RenderSegment.Math -> createMathView(segment, style)
+            is RenderedSegment.Text -> createTextView(segment)
+            is RenderedSegment.Table -> createTableView(segment, style)
+            is RenderedSegment.Math -> createMathView(segment, style)
           }
         segmentViews.add(view)
         addView(view)
@@ -250,7 +216,7 @@ class EnrichedMarkdown
       layoutSegments()
     }
 
-    private fun createTextView(segment: RenderSegment.Text) =
+    private fun createTextView(segment: RenderedSegment.Text) =
       EnrichedMarkdownInternalText(context).apply {
         spoilerOverlay = this@EnrichedMarkdown.spoilerOverlay
         setIsSelectable(selectable)
@@ -271,7 +237,7 @@ class EnrichedMarkdown
       }
 
     private fun createTableView(
-      segment: RenderSegment.Table,
+      segment: RenderedSegment.Table,
       style: StyleConfig,
     ) = TableContainerView(context, style).apply {
       allowFontScaling = this@EnrichedMarkdown.allowFontScaling
@@ -282,7 +248,7 @@ class EnrichedMarkdown
     }
 
     private fun createMathView(
-      segment: RenderSegment.Math,
+      segment: RenderedSegment.Math,
       style: StyleConfig,
     ): android.view.View {
       if (!FeatureFlags.IS_MATH_ENABLED) return android.view.View(context)

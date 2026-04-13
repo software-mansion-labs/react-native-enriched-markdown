@@ -25,7 +25,8 @@ object InputParser {
     val plainText = StringBuilder()
     val ranges = mutableListOf<FormattingRange>()
 
-    walkNode(ast, plainText, ranges, ArrayDeque())
+    walkNode(ast, plainText, ranges, ArrayDeque(), null)
+    trimTrailingInjectedParagraphSeparator(plainText)
 
     return ParseResult(plainText.toString(), ranges)
   }
@@ -35,7 +36,10 @@ object InputParser {
     plainText: StringBuilder,
     ranges: MutableList<FormattingRange>,
     activeStyles: ArrayDeque<ActiveStyle>,
+    parentType: NodeType?,
   ) {
+    appendStructuralPrefixIfNeeded(node, parentType, plainText)
+
     val styleType = nodeTypeToStyleType(node.type)
 
     if (styleType != null) {
@@ -50,7 +54,7 @@ object InputParser {
     }
 
     for (child in node.children) {
-      walkNode(child, plainText, ranges, activeStyles)
+      walkNode(child, plainText, ranges, activeStyles, node.type)
     }
 
     if (styleType != null) {
@@ -60,7 +64,82 @@ object InputParser {
         ranges.add(FormattingRange(styleType, activeStyle.startPosition, end, activeStyle.url))
       }
     }
+
+    if (node.type.isBlockBoundary()) {
+      appendParagraphSeparator(plainText)
+    }
   }
+
+  private fun appendStructuralPrefixIfNeeded(
+    node: MarkdownASTNode,
+    parentType: NodeType?,
+    plainText: StringBuilder,
+  ) {
+    when (node.type) {
+      NodeType.Heading -> {
+        ensureBlockStart(plainText)
+        val level = node.getAttribute("level")?.toIntOrNull()?.coerceIn(1, 6) ?: 1
+        plainText.append("#".repeat(level)).append(' ')
+      }
+      NodeType.ListItem -> {
+        if (plainText.isNotEmpty() && plainText.last() != '\n') plainText.append('\n')
+        val isTask = node.getAttribute("isTask") == "true"
+        val taskChecked = node.getAttribute("taskChecked") == "true"
+        val marker =
+          if (isTask) {
+            if (taskChecked) "- [x] " else "- [ ] "
+          } else if (parentType == NodeType.OrderedList) {
+            "1. "
+          } else {
+            "- "
+          }
+        plainText.append(marker)
+      }
+      NodeType.Blockquote -> {
+        ensureBlockStart(plainText)
+        plainText.append("> ")
+      }
+      else -> Unit
+    }
+  }
+
+  private fun ensureBlockStart(plainText: StringBuilder) {
+    if (plainText.isEmpty()) return
+    val length = plainText.length
+    val hasDoubleBreak = length >= 2 && plainText[length - 1] == '\n' && plainText[length - 2] == '\n'
+    if (!hasDoubleBreak) {
+      if (plainText[length - 1] != '\n') plainText.append('\n')
+      plainText.append('\n')
+    }
+  }
+
+  private fun appendParagraphSeparator(plainText: StringBuilder) {
+    if (plainText.isEmpty()) return
+    val length = plainText.length
+    val hasDoubleBreak = length >= 2 && plainText[length - 1] == '\n' && plainText[length - 2] == '\n'
+    if (hasDoubleBreak) return
+    if (plainText[length - 1] != '\n') {
+      plainText.append('\n')
+    }
+    plainText.append('\n')
+  }
+
+  private fun trimTrailingInjectedParagraphSeparator(plainText: StringBuilder) {
+    val length = plainText.length
+    if (length >= 2 && plainText[length - 1] == '\n' && plainText[length - 2] == '\n') {
+      plainText.setLength(length - 2)
+    }
+  }
+
+  private fun NodeType.isBlockBoundary(): Boolean =
+    this == NodeType.Paragraph ||
+      this == NodeType.Heading ||
+      this == NodeType.Blockquote ||
+      this == NodeType.ListItem ||
+      this == NodeType.CodeBlock ||
+      this == NodeType.ThematicBreak ||
+      this == NodeType.Table ||
+      this == NodeType.LatexMathDisplay
 
   private fun nodeTypeToStyleType(nodeType: NodeType): StyleType? =
     when (nodeType) {

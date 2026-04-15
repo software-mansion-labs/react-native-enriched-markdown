@@ -20,7 +20,7 @@ Plain text paragraphs without inline links or images are announced as a single V
 | **List items** | Position announced (e.g., "bullet point", "list item 1") | Position announced |
 | **Nested lists** | Proper depth handling | "Nested" prefix for deeper items |
 
-## Platform-Specific Features
+## Architecture
 
 ### iOS (VoiceOver)
 
@@ -86,6 +86,7 @@ List items are announced with their position and type:
 - iOS: Proper depth handling with semantic structure
 - Android: "Nested" prefix is added for items at deeper levels (e.g., "nested bullet point", "nested list item 1")
 
-## Known Issues
+## Known Limitations
 
-- **Blockquote border with inline links (iOS):** When a blockquote contains inline links, the background/border may break at link boundaries instead of spanning the full line. This is a cosmetic limitation of `NSAttributedString` drawing separate background rects per attribute run and will be addressed in a future update.
+- **Android:** TalkBack focus highlights for multi-line text segments may appear wider than the actual text due to platform limitations.
+- **iOS:** Blockquote backgrounds may break at link boundaries instead of spanning the full line. This will be addressed in a future release.

@@ -5,9 +5,9 @@ import android.os.Build
 import android.view.textclassifier.TextClassifier
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
-import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 
-fun AppCompatTextView.setupAsMarkdownTextView(accessibilityHelper: MarkdownAccessibilityHelper) {
+fun AccessibleMarkdownTextView.setupAsMarkdownTextView() {
   setBackgroundColor(Color.TRANSPARENT)
   includeFontPadding = false
   movementMethod = LinkLongPressMovementMethod.createInstance()

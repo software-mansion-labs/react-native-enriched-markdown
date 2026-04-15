@@ -2,11 +2,11 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.graphics.Canvas
+import android.os.Build
 import android.text.Layout
 import android.util.AttributeSet
 import android.view.MotionEvent
-import androidx.appcompat.widget.AppCompatTextView
-import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 import com.swmansion.enriched.markdown.spoiler.SpoilerCapable
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlayDrawer
@@ -25,11 +25,9 @@ class EnrichedMarkdownInternalText
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-  ) : AppCompatTextView(context, attrs, defStyleAttr),
+  ) : AccessibleMarkdownTextView(context, attrs, defStyleAttr),
     BlockSegmentView,
     SpoilerCapable {
-    private val accessibilityHelper = MarkdownAccessibilityHelper(this)
-
     var lastElementMarginBottom: Float = 0f
 
     private val checkboxTouchHelper = CheckboxTouchHelper(this)
@@ -49,7 +47,7 @@ class EnrichedMarkdownInternalText
     private var onContextMenuItemPress: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
 
     init {
-      setupAsMarkdownTextView(accessibilityHelper)
+      setupAsMarkdownTextView()
       customSelectionActionModeCallback =
         createSelectionActionModeCallback(
           this,
@@ -109,7 +107,7 @@ class EnrichedMarkdownInternalText
     }
 
     fun setJustificationMode(needsJustify: Boolean) {
-      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         justificationMode =
           if (needsJustify) {
             Layout.JUSTIFICATION_MODE_INTER_WORD

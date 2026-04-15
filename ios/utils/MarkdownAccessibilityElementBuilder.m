@@ -4,6 +4,8 @@
 
 typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, ElementTypeImage };
 
+static const CGFloat kFocusRectPadding = 2.0;
+
 @implementation MarkdownAccessibilityElementBuilder
 
 #if !TARGET_OS_OSX
@@ -142,40 +144,44 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
                                          isLinked:(BOOL)linked
                                           heading:(NSInteger)level
                                          listInfo:(NSDictionary *)listInfo
-                                             view:(UITextView *)tv
-                                        container:(id)c
+                                             view:(UITextView *)textView
+                                        container:(id)container
 {
-  UIAccessibilityElement *el = [[UIAccessibilityElement alloc] initWithAccessibilityContainer:c];
-  el.accessibilityLabel = (type == ElementTypeImage && text.length == 0) ? NSLocalizedString(@"Image", @"") : text;
-  el.accessibilityFrameInContainerSpace = [self frameForRange:range inTextView:tv container:c];
+  UIAccessibilityElement *element = [[UIAccessibilityElement alloc] initWithAccessibilityContainer:container];
+  element.accessibilityLabel = (type == ElementTypeImage && text.length == 0) ? NSLocalizedString(@"Image", @"") : text;
+
+  UIBezierPath *path = [self accessibilityPathForRange:range inTextView:textView];
+  if (path) {
+    element.accessibilityPath = path;
+  } else {
+    element.accessibilityFrameInContainerSpace = [self frameForRange:range inTextView:textView container:container];
+  }
 
   NSMutableArray *values = [NSMutableArray array];
 
   if (type == ElementTypeImage) {
-    el.accessibilityTraits =
+    element.accessibilityTraits =
         linked ? (UIAccessibilityTraitImage | UIAccessibilityTraitLink) : UIAccessibilityTraitImage;
   } else if (type == ElementTypeLink) {
-    el.accessibilityTraits = UIAccessibilityTraitLink;
+    element.accessibilityTraits = UIAccessibilityTraitLink;
   } else if (level > 0) {
-    el.accessibilityTraits = UIAccessibilityTraitHeader;
+    element.accessibilityTraits = UIAccessibilityTraitHeader;
     [values addObject:[NSString stringWithFormat:NSLocalizedString(@"heading level %ld", @""), (long)level]];
   }
 
-  if (el.accessibilityTraits & UIAccessibilityTraitLink) {
-    el.accessibilityHint = NSLocalizedString(@"Tap to open link", @"");
+  if (element.accessibilityTraits & UIAccessibilityTraitLink) {
+    element.accessibilityHint = NSLocalizedString(@"Tap to open link", @"");
   }
 
-  // Append List Info to values if it exists
   if (listInfo && type != ElementTypeImage) {
     [values addObject:[self formatListAnnouncement:listInfo]];
   }
 
-  // Combine all values (Heading Level + List Position) into one string
   if (values.count > 0) {
-    el.accessibilityValue = [values componentsJoinedByString:@", "];
+    element.accessibilityValue = [values componentsJoinedByString:@", "];
   }
 
-  return el;
+  return element;
 }
 
 #pragma mark - Helpers
@@ -188,17 +194,77 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
              : [NSString stringWithFormat:@"%@bullet point", prefix];
 }
 
++ (NSRange)clampedRange:(NSRange)range forText:(NSString *)text
+{
+  if (text.length == 0 || range.location >= text.length)
+    return NSMakeRange(NSNotFound, 0);
+  return NSMakeRange(range.location, MIN(range.length, text.length - range.location));
+}
+
++ (NSArray<NSValue *> *)perLineRectsForGlyphRange:(NSRange)glyphRange inTextView:(UITextView *)textView
+{
+  NSLayoutManager *layoutManager = textView.layoutManager;
+  UIEdgeInsets insets = textView.textContainerInset;
+  NSMutableArray<NSValue *> *rects = [NSMutableArray array];
+
+  [layoutManager
+      enumerateLineFragmentsForGlyphRange:glyphRange
+                               usingBlock:^(CGRect lineRect, CGRect usedRect, NSTextContainer *textContainer,
+                                            NSRange lineGlyphRange, BOOL *stop) {
+                                 NSRange overlap = NSIntersectionRange(glyphRange, lineGlyphRange);
+                                 if (overlap.length == 0)
+                                   return;
+
+                                 CGFloat left = [layoutManager locationForGlyphAtIndex:overlap.location].x;
+                                 BOOL extendsToLineEnd = (NSMaxRange(overlap) == NSMaxRange(lineGlyphRange));
+                                 CGFloat right = extendsToLineEnd
+                                                     ? CGRectGetMaxX(usedRect)
+                                                     : [layoutManager locationForGlyphAtIndex:NSMaxRange(overlap)].x;
+
+                                 CGRect rect =
+                                     CGRectMake(left, CGRectGetMinY(usedRect), right - left, CGRectGetHeight(usedRect));
+                                 rect = CGRectInset(rect, -kFocusRectPadding, -kFocusRectPadding);
+                                 rect = CGRectOffset(rect, insets.left, insets.top);
+                                 [rects addObject:[NSValue valueWithCGRect:rect]];
+                               }];
+
+  return rects;
+}
+
++ (UIBezierPath *)accessibilityPathForRange:(NSRange)range inTextView:(UITextView *)textView
+{
+  NSRange clamped = [self clampedRange:range forText:textView.attributedText.string];
+  if (clamped.location == NSNotFound)
+    return nil;
+
+  NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:clamped actualCharacterRange:NULL];
+  NSArray<NSValue *> *lineRects = [self perLineRectsForGlyphRange:glyphRange inTextView:textView];
+  if (lineRects.count <= 1)
+    return nil;
+
+  UIWindow *window = textView.window;
+  if (!window)
+    return nil;
+
+  id<UICoordinateSpace> screenSpace = window.screen.coordinateSpace;
+  UIBezierPath *path = [UIBezierPath bezierPath];
+  for (NSValue *value in lineRects) {
+    CGRect screenRect = [textView convertRect:CGRectIntegral(value.CGRectValue) toCoordinateSpace:screenSpace];
+    [path appendPath:[UIBezierPath bezierPathWithRect:screenRect]];
+  }
+  return path;
+}
+
 + (CGRect)frameForRange:(NSRange)range inTextView:(UITextView *)textView container:(id)container
 {
-  NSUInteger textLength = textView.attributedText.string.length;
-  if (textLength == 0 || range.location >= textLength) {
+  NSRange clamped = [self clampedRange:range forText:textView.attributedText.string];
+  if (clamped.location == NSNotFound)
     return CGRectZero;
-  }
-  NSRange clamped = NSMakeRange(range.location, MIN(range.length, textLength - range.location));
 
   NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:clamped actualCharacterRange:NULL];
   CGRect rect = [textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:textView.textContainer];
-  rect = CGRectOffset(CGRectInset(rect, -2, -2), textView.textContainerInset.left, textView.textContainerInset.top);
+  rect = CGRectInset(rect, -kFocusRectPadding, -kFocusRectPadding);
+  rect = CGRectOffset(rect, textView.textContainerInset.left, textView.textContainerInset.top);
   return [(UIView *)container convertRect:CGRectIntegral(rect) fromView:textView];
 }
 
@@ -231,8 +297,8 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
     NSRange imgRange = [info.imageRanges[i] rangeValue];
     if (NSIntersectionRange(range, imgRange).length > 0) {
       BOOL linked = NO;
-      for (NSValue *val in info.linkRanges)
-        if (NSIntersectionRange(imgRange, val.rangeValue).length > 0) {
+      for (NSValue *linkRange in info.linkRanges)
+        if (NSIntersectionRange(imgRange, linkRange.rangeValue).length > 0) {
           linked = YES;
           break;
         }
@@ -264,53 +330,57 @@ typedef NS_ENUM(NSInteger, ElementType) { ElementTypeText, ElementTypeLink, Elem
 
 #pragma mark - Rotors
 
-+ (NSArray *)filterElements:(NSArray *)els withTrait:(UIAccessibilityTraits)trait
++ (NSArray *)filterElements:(NSArray *)elements withTrait:(UIAccessibilityTraits)trait
 {
-  return [els filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(UIAccessibilityElement *el, id b) {
-                return (el.accessibilityTraits & trait) != 0;
-              }]];
+  return [elements
+      filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(UIAccessibilityElement *element, id bindings) {
+        return (element.accessibilityTraits & trait) != 0;
+      }]];
 }
 
-+ (UIAccessibilityCustomRotor *)createRotorWithName:(NSString *)name elements:(NSArray *)els
++ (UIAccessibilityCustomRotor *)createRotorWithName:(NSString *)name elements:(NSArray *)elements
 {
   return [[UIAccessibilityCustomRotor alloc]
          initWithName:name
-      itemSearchBlock:^UIAccessibilityCustomRotorItemResult *(UIAccessibilityCustomRotorSearchPredicate *p) {
-        if (els.count == 0)
+      itemSearchBlock:^UIAccessibilityCustomRotorItemResult *(UIAccessibilityCustomRotorSearchPredicate *predicate) {
+        if (elements.count == 0)
           return nil;
-        NSInteger idx = p.currentItem.targetElement ? [els indexOfObject:p.currentItem.targetElement] : NSNotFound;
-        NSInteger next = (p.searchDirection == UIAccessibilityCustomRotorDirectionNext)
-                             ? (idx == NSNotFound ? 0 : idx + 1)
-                             : (idx == NSNotFound ? els.count - 1 : idx - 1);
-        return (next >= 0 && next < els.count)
-                   ? [[UIAccessibilityCustomRotorItemResult alloc] initWithTargetElement:els[next] targetRange:nil]
+        NSInteger currentIndex = predicate.currentItem.targetElement
+                                     ? [elements indexOfObject:predicate.currentItem.targetElement]
+                                     : NSNotFound;
+        NSInteger nextIndex = (predicate.searchDirection == UIAccessibilityCustomRotorDirectionNext)
+                                  ? (currentIndex == NSNotFound ? 0 : currentIndex + 1)
+                                  : (currentIndex == NSNotFound ? (NSInteger)elements.count - 1 : currentIndex - 1);
+        return (nextIndex >= 0 && nextIndex < (NSInteger)elements.count)
+                   ? [[UIAccessibilityCustomRotorItemResult alloc] initWithTargetElement:elements[nextIndex]
+                                                                             targetRange:nil]
                    : nil;
       }];
 }
 
-+ (NSArray<UIAccessibilityElement *> *)filterHeadingElements:(NSArray *)els
++ (NSArray<UIAccessibilityElement *> *)filterHeadingElements:(NSArray *)elements
 {
-  return [self filterElements:els withTrait:UIAccessibilityTraitHeader];
+  return [self filterElements:elements withTrait:UIAccessibilityTraitHeader];
 }
-+ (NSArray<UIAccessibilityElement *> *)filterLinkElements:(NSArray *)els
++ (NSArray<UIAccessibilityElement *> *)filterLinkElements:(NSArray *)elements
 {
-  return [self filterElements:els withTrait:UIAccessibilityTraitLink];
+  return [self filterElements:elements withTrait:UIAccessibilityTraitLink];
 }
-+ (NSArray<UIAccessibilityElement *> *)filterImageElements:(NSArray *)els
++ (NSArray<UIAccessibilityElement *> *)filterImageElements:(NSArray *)elements
 {
-  return [self filterElements:els withTrait:UIAccessibilityTraitImage];
+  return [self filterElements:elements withTrait:UIAccessibilityTraitImage];
 }
-+ (UIAccessibilityCustomRotor *)createHeadingRotorWithElements:(NSArray *)els
++ (UIAccessibilityCustomRotor *)createHeadingRotorWithElements:(NSArray *)elements
 {
-  return [self createRotorWithName:NSLocalizedString(@"Headings", @"") elements:els];
+  return [self createRotorWithName:NSLocalizedString(@"Headings", @"") elements:elements];
 }
-+ (UIAccessibilityCustomRotor *)createLinkRotorWithElements:(NSArray *)els
++ (UIAccessibilityCustomRotor *)createLinkRotorWithElements:(NSArray *)elements
 {
-  return [self createRotorWithName:NSLocalizedString(@"Links", @"") elements:els];
+  return [self createRotorWithName:NSLocalizedString(@"Links", @"") elements:elements];
 }
-+ (UIAccessibilityCustomRotor *)createImageRotorWithElements:(NSArray *)els
++ (UIAccessibilityCustomRotor *)createImageRotorWithElements:(NSArray *)elements
 {
-  return [self createRotorWithName:NSLocalizedString(@"Images", @"") elements:els];
+  return [self createRotorWithName:NSLocalizedString(@"Images", @"") elements:elements];
 }
 
 + (NSArray<UIAccessibilityCustomRotor *> *)buildRotorsFromElements:(NSArray<UIAccessibilityElement *> *)elements

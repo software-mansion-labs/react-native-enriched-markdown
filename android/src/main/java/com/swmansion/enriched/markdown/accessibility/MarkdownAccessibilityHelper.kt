@@ -3,7 +3,10 @@ package com.swmansion.enriched.markdown.accessibility
 import android.graphics.Rect
 import android.os.Bundle
 import android.text.Spanned
+import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.customview.widget.ExploreByTouchHelper
 import com.swmansion.enriched.markdown.spans.BaseListSpan
@@ -11,20 +14,24 @@ import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
-import com.swmansion.enriched.markdown.spans.UnorderedListSpan
 
 class MarkdownAccessibilityHelper(
   private val textView: TextView,
 ) : ExploreByTouchHelper(textView) {
-  private var accessibilityItems: List<AccessibilityItem> = emptyList()
+  private var items: List<AccessibilityItem> = emptyList()
   private var needsRebuild = false
   private var lastLayoutHashCode = 0
+  private var pendingLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
   data class AccessibilityItem(
     val id: Int,
     val text: String,
+    /** Full character range — used for hit-testing so there are no gaps between items. */
     val start: Int,
     val end: Int,
+    /** Trimmed character range — used for bounds calculation to avoid whitespace offsets. */
+    val visibleStart: Int = start,
+    val visibleEnd: Int = end,
     val headingLevel: Int = 0,
     val linkUrl: String? = null,
     val listInfo: ListItemInfo? = null,
@@ -52,116 +59,188 @@ class MarkdownAccessibilityHelper(
 
   fun invalidateAccessibilityItems() {
     needsRebuild = true
-    rebuildIfNeeded()
-    invalidateRoot()
+    if (textView.layout != null) {
+      rebuildIfNeeded()
+      invalidateRoot()
+    } else {
+      schedulePostLayoutRebuild()
+    }
+  }
+
+  private fun schedulePostLayoutRebuild() {
+    if (pendingLayoutListener != null) return
+    val observer = textView.viewTreeObserver
+    if (!observer.isAlive) return
+    val listener =
+      ViewTreeObserver.OnGlobalLayoutListener {
+        removePendingLayoutListener()
+        if (needsRebuild) {
+          rebuildIfNeeded()
+          invalidateRoot()
+        }
+      }
+    pendingLayoutListener = listener
+    observer.addOnGlobalLayoutListener(listener)
+  }
+
+  private fun removePendingLayoutListener() {
+    val listener = pendingLayoutListener ?: return
+    pendingLayoutListener = null
+    val observer = textView.viewTreeObserver
+    if (observer.isAlive) {
+      observer.removeOnGlobalLayoutListener(listener)
+    }
+  }
+
+  /**
+   * When virtual children exist, prevent the host TextView from appearing as a
+   * standalone focusable element in TalkBack's swipe order. Without this,
+   * `setTextIsSelectable(true)` keeps the view focusable and TalkBack reads
+   * the entire text as one element before entering the virtual hierarchy.
+   */
+  private fun updateHostFocusability() {
+    val hasVirtualChildren = items.isNotEmpty()
+    ViewCompat.setScreenReaderFocusable(textView, !hasVirtualChildren)
+    textView.importantForAccessibility =
+      if (hasVirtualChildren) View.IMPORTANT_FOR_ACCESSIBILITY_YES else View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
   }
 
   private fun rebuildIfNeeded() {
     val layout = textView.layout ?: return
     if (needsRebuild || lastLayoutHashCode != layout.hashCode()) {
-      accessibilityItems = buildAccessibilityItems()
+      items = buildItems()
       needsRebuild = false
       lastLayoutHashCode = layout.hashCode()
+      updateHostFocusability()
     }
   }
 
-  private fun buildAccessibilityItems(): List<AccessibilityItem> {
+  private fun buildItems(): List<AccessibilityItem> {
     val spanned = textView.text as? Spanned ?: return emptyList()
     if (spanned.isEmpty()) return emptyList()
 
-    val items = mutableListOf<AccessibilityItem>()
+    val text = spanned.toString()
+    val result = mutableListOf<AccessibilityItem>()
     var nextId = 0
+    val semanticSpans = collectSemanticSpans(spanned)
 
-    // Consolidated span collection using functional mapping
-    val semanticSpans =
-      (
-        spanned.getSpans(0, spanned.length, HeadingSpan::class.java).map {
-          SpanRange(spanned.getSpanStart(it), spanned.getSpanEnd(it), headingLevel = it.level)
+    var paraStart = 0
+    while (paraStart < text.length) {
+      val newlineIdx = text.indexOf('\n', paraStart)
+      val paraEnd = if (newlineIdx == -1) text.length else newlineIdx + 1
+      val trimmed = text.substring(paraStart, paraEnd).trim()
+
+      if (trimmed.isNotEmpty()) {
+        val spansInParagraph = semanticSpans.filter { it.start < paraEnd && it.end > paraStart }
+
+        if (spansInParagraph.isEmpty()) {
+          result.add(
+            createTextItem(nextId++, trimmed, paraStart, paraEnd, text, spanned),
+          )
+        } else {
+          nextId = addSegmentedItems(result, spanned, text, paraStart, paraEnd, spansInParagraph, nextId)
+        }
+      }
+      paraStart = paraEnd
+    }
+
+    return result.ifEmpty { listOf(AccessibilityItem(0, text.trim(), 0, spanned.length)) }
+  }
+
+  private fun collectSemanticSpans(spanned: Spanned): List<SpanRange> =
+    (
+      spanned.getSpans(0, spanned.length, HeadingSpan::class.java).map {
+        SpanRange(spanned.getSpanStart(it), spanned.getSpanEnd(it), headingLevel = it.level)
+      } +
+        spanned.getSpans(0, spanned.length, LinkSpan::class.java).map {
+          SpanRange(spanned.getSpanStart(it), spanned.getSpanEnd(it), linkUrl = it.url)
         } +
-          spanned.getSpans(0, spanned.length, LinkSpan::class.java).map {
-            SpanRange(spanned.getSpanStart(it), spanned.getSpanEnd(it), linkUrl = it.url)
-          } +
-          spanned.getSpans(0, spanned.length, ImageSpan::class.java).map {
-            SpanRange(spanned.getSpanStart(it), spanned.getSpanEnd(it), imageAltText = it.altText)
-          }
-      ).sortedBy { it.start }
+        spanned.getSpans(0, spanned.length, ImageSpan::class.java).map {
+          SpanRange(spanned.getSpanStart(it), spanned.getSpanEnd(it), imageAltText = it.altText)
+        }
+    ).sortedBy { it.start }
 
-    var currentPos = 0
-    for (span in semanticSpans) {
-      if (span.start < currentPos) continue
-
-      if (currentPos < span.start) {
-        nextId = addTextSegments(items, spanned, currentPos, span.start, nextId)
-      }
-
-      val content = span.imageAltText?.ifEmpty { "Image" } ?: spanned.substring(span.start, span.end).trim()
-
-      if (content.isNotEmpty()) {
-        val listContext =
-          if (span.headingLevel > 0 || span.imageAltText != null) {
-            null
-          } else {
-            getListInfoAt(spanned, span.start, span.linkUrl == null)
-          }
-        items.add(
-          AccessibilityItem(
-            nextId++,
-            content,
-            span.start,
-            span.end,
-            span.headingLevel,
-            span.linkUrl,
-            listContext,
-            span.imageAltText,
-          ),
-        )
-      }
-      currentPos = span.end
-    }
-
-    if (currentPos < spanned.length) addTextSegments(items, spanned, currentPos, spanned.length, nextId)
-    return items.ifEmpty { listOf(AccessibilityItem(0, spanned.toString().trim(), 0, spanned.length)) }
-  }
-
-  private fun getListInfoAt(
-    spanned: Spanned,
-    position: Int,
-    requireStart: Boolean,
-  ): ListItemInfo? {
-    val deepest = spanned.getSpans(position, position + 1, BaseListSpan::class.java).maxByOrNull { it.depth } ?: return null
-    if (requireStart) {
-      val start = spanned.getSpanStart(deepest)
-      val firstChar = (start until minOf(start + 10, spanned.length)).firstOrNull { !spanned[it].isWhitespace() } ?: start
-      if (position > firstChar + 1) return null
-    }
-    return ListItemInfo(deepest is OrderedListSpan, (deepest as? OrderedListSpan)?.itemNumber ?: 0, deepest.depth)
-  }
-
-  private fun addTextSegments(
+  private fun addSegmentedItems(
     items: MutableList<AccessibilityItem>,
     spanned: Spanned,
-    start: Int,
-    end: Int,
+    text: String,
+    paraStart: Int,
+    paraEnd: Int,
+    spans: List<SpanRange>,
     startId: Int,
   ): Int {
-    var cid = startId
-    val layout = textView.layout ?: return cid
-    for (line in layout.getLineForOffset(start)..layout.getLineForOffset(end)) {
-      val s = maxOf(start, layout.getLineStart(line))
-      val e = minOf(end, layout.getLineEnd(line))
-      if (s >= e) continue
+    var nextId = startId
+    var segmentPos = paraStart
 
-      val raw = spanned.substring(s, e)
-      val first = raw.indexOfFirst { !it.isWhitespace() }
-      if (first != -1) {
-        val last = raw.indexOfLast { !it.isWhitespace() }
-        val absoluteStart = s + first
-        items.add(
-          AccessibilityItem(cid++, raw.trim(), absoluteStart, s + last + 1, listInfo = getListInfoAt(spanned, absoluteStart, true)),
-        )
+    for (span in spans) {
+      if (span.start < segmentPos) continue
+
+      // Text before the span
+      if (segmentPos < span.start) {
+        val beforeText = text.substring(segmentPos, span.start).trim()
+        if (beforeText.isNotEmpty() && beforeText.any { it.isLetterOrDigit() }) {
+          items.add(createTextItem(nextId++, beforeText, segmentPos, span.start, text, spanned))
+        }
+      }
+
+      // The semantic span itself
+      val content = span.imageAltText?.ifEmpty { "Image" } ?: spanned.substring(span.start, span.end).trim()
+      if (content.isNotEmpty()) {
+        items.add(createSpanItem(nextId++, content, span, spanned))
+      }
+      segmentPos = span.end
+    }
+
+    // Text after the last span
+    if (segmentPos < paraEnd) {
+      val afterText = text.substring(segmentPos, paraEnd).trim()
+      if (afterText.isNotEmpty() && afterText.any { it.isLetterOrDigit() }) {
+        items.add(createTextItem(nextId++, afterText, segmentPos, paraEnd, text, spanned))
       }
     }
-    return cid
+
+    return nextId
+  }
+
+  private fun createTextItem(
+    id: Int,
+    label: String,
+    start: Int,
+    end: Int,
+    text: String,
+    spanned: Spanned,
+  ) = AccessibilityItem(
+    id = id,
+    text = label,
+    start = start,
+    end = end,
+    visibleStart = text.findFirstNonWhitespace(start, end),
+    visibleEnd = text.findLastNonWhitespace(start, end),
+    listInfo = getListInfoAt(spanned, start, requireStart = true),
+  )
+
+  private fun createSpanItem(
+    id: Int,
+    content: String,
+    span: SpanRange,
+    spanned: Spanned,
+  ): AccessibilityItem {
+    val listContext =
+      if (span.headingLevel > 0 || span.imageAltText != null) {
+        null
+      } else {
+        getListInfoAt(spanned, span.start, requireStart = span.linkUrl == null)
+      }
+    return AccessibilityItem(
+      id = id,
+      text = content,
+      start = span.start,
+      end = span.end,
+      headingLevel = span.headingLevel,
+      linkUrl = span.linkUrl,
+      listInfo = listContext,
+      imageAltText = span.imageAltText,
+    )
   }
 
   override fun getVirtualViewAt(
@@ -169,66 +248,55 @@ class MarkdownAccessibilityHelper(
     y: Float,
   ): Int {
     rebuildIfNeeded()
-    val offset = getOffsetForPosition(x, y)
-    return accessibilityItems
-      .filter { offset in it.start until it.end }
-      .minByOrNull {
-        when {
-          it.isLink -> 0
-          it.isImage -> 1
-          it.isHeading -> 2
-          it.isListItem -> 3
-          else -> 4
-        }
-      }?.id ?: HOST_ID
+    if (items.isEmpty()) return HOST_ID
+
+    val offset = getCharOffsetAt(x, y)
+
+    val exact =
+      items
+        .filter { offset in it.start until it.end }
+        .minByOrNull { it.hitTestPriority }
+    if (exact != null) return exact.id
+
+    return items.minByOrNull { it.distanceTo(offset) }?.id ?: HOST_ID
   }
 
   override fun getVisibleVirtualViews(ids: MutableList<Int>) {
     rebuildIfNeeded()
-    accessibilityItems.forEach { ids.add(it.id) }
+    items.forEach { ids.add(it.id) }
+  }
+
+  override fun onPopulateNodeForHost(host: AccessibilityNodeInfoCompat) {
+    super.onPopulateNodeForHost(host)
+    rebuildIfNeeded()
+    if (items.isNotEmpty()) {
+      host.isScreenReaderFocusable = false
+      host.isFocusable = false
+      // Prevent TalkBack from reading the full text when swiping onto the host.
+      // Without this, the host node retains the TextView's text and TalkBack
+      // announces it as a single element before entering the virtual children.
+      host.text = null
+      host.contentDescription = null
+    }
   }
 
   override fun onPopulateNodeForVirtualView(
     id: Int,
     node: AccessibilityNodeInfoCompat,
   ) {
-    val item = accessibilityItems.find { it.id == id } ?: return
+    val item = items.getOrNull(id)
+    if (item == null) {
+      node.contentDescription = ""
+      node.setBoundsInParent(Rect())
+      return
+    }
     node.apply {
       text = item.text
       contentDescription = item.text
       isFocusable = true
       isScreenReaderFocusable = true
-      setBoundsInParent(getBoundsForRange(item.start, item.end))
-
-      item.listInfo?.let { info ->
-        setCollectionItemInfo(
-          AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(info.itemNumber - 1, 1, 0, 1, false, false),
-        )
-      }
-
-      val prefix = if (item.listInfo?.depth ?: 0 > 0) "nested " else ""
-      val listText = if (item.listInfo?.isOrdered == true) "list item ${item.listInfo.itemNumber}" else "bullet point"
-
-      when {
-        item.isHeading -> {
-          isHeading = true
-          contentDescription = "${item.text}, heading level ${item.headingLevel}"
-        }
-
-        item.isImage -> {
-          roleDescription = "image"
-        }
-
-        item.isLink -> {
-          isClickable = true
-          addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK)
-          roleDescription = item.listInfo?.let { "link, $prefix$listText" } ?: "link"
-        }
-
-        item.isListItem -> {
-          roleDescription = "$prefix$listText"
-        }
-      }
+      setBoundsInParent(boundsForItem(item))
+      applySemantics(item)
     }
   }
 
@@ -237,43 +305,178 @@ class MarkdownAccessibilityHelper(
     action: Int,
     args: Bundle?,
   ): Boolean {
-    val item = accessibilityItems.find { it.id == id } ?: return false
+    val item = items.getOrNull(id) ?: return false
     if (action == AccessibilityNodeInfoCompat.ACTION_CLICK && item.isLink) {
-      (textView.text as? Spanned)?.getSpans(item.start, item.end, LinkSpan::class.java)?.firstOrNull()?.onClick(textView)
-        ?: return false
+      val spanned = textView.text as? Spanned ?: return false
+      val linkSpan = spanned.getSpans(item.start, item.end, LinkSpan::class.java).firstOrNull() ?: return false
+      linkSpan.onClick(textView)
       return true
     }
     return false
   }
 
-  private fun getOffsetForPosition(
-    x: Float,
-    y: Float,
-  ): Int {
-    val layout = textView.layout ?: return 0
-    return layout.getOffsetForHorizontal(layout.getLineForVertical(y.toInt()).coerceIn(0, layout.lineCount - 1), x)
+  private fun AccessibilityNodeInfoCompat.applySemantics(item: AccessibilityItem) {
+    item.listInfo?.let { info ->
+      setCollectionItemInfo(
+        AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(info.itemNumber - 1, 1, 0, 1, false, false),
+      )
+    }
+
+    when {
+      item.isHeading -> {
+        isHeading = true
+        contentDescription = "${item.text}, heading level ${item.headingLevel}"
+      }
+
+      item.isImage -> {
+        roleDescription = "image"
+      }
+
+      item.isLink -> {
+        isClickable = true
+        addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK)
+        roleDescription = item.listInfo?.let { "link, ${it.listAnnouncement}" } ?: "link"
+      }
+
+      item.isListItem -> {
+        roleDescription = item.listInfo!!.listAnnouncement
+      }
+    }
   }
 
-  private fun getBoundsForRange(
+  private val ListItemInfo.listAnnouncement: String
+    get() {
+      val prefix = if (depth > 0) "nested " else ""
+      return if (isOrdered) "${prefix}list item $itemNumber" else "${prefix}bullet point"
+    }
+
+  private fun boundsForItem(item: AccessibilityItem): Rect {
+    val layout = textView.layout ?: return Rect()
+    val vs = item.visibleStart
+    val ve = item.visibleEnd
+
+    val startLine = layout.getLineForOffset(vs)
+    val endLine = layout.getLineForOffset(maxOf(vs, ve - 1))
+
+    if (startLine == endLine) {
+      return singleLineBounds(vs, ve, startLine)
+    }
+
+    return multiLineBounds(vs, startLine, endLine)
+  }
+
+  private fun singleLineBounds(
     start: Int,
     end: Int,
+    line: Int,
   ): Rect {
-    val layout = textView.layout ?: return Rect()
-    val line = layout.getLineForOffset(start)
+    val layout = textView.layout
     val left = layout.getPrimaryHorizontal(start).toInt() + textView.paddingLeft
-    val right =
-      if (layout.getPrimaryHorizontal(end) <=
-        layout.getPrimaryHorizontal(start)
-      ) {
-        layout.getLineRight(line).toInt() + textView.paddingLeft
-      } else {
-        layout.getPrimaryHorizontal(end).toInt() + textView.paddingLeft
-      }
+    val rawRight = layout.getPrimaryHorizontal(end).toInt() + textView.paddingLeft
+    val right = if (rawRight <= left) layout.getLineRight(line).toInt() + textView.paddingLeft else rawRight
+
     return Rect(
       left,
       layout.getLineTop(line) + textView.paddingTop,
       right,
-      layout.getLineBottom(layout.getLineForOffset(end)) + textView.paddingTop,
+      layout.getLineBottom(line) + textView.paddingTop,
     )
   }
+
+  private fun multiLineBounds(
+    visibleStart: Int,
+    startLine: Int,
+    endLine: Int,
+  ): Rect {
+    val layout = textView.layout
+    val padLeft = textView.paddingLeft
+
+    val firstLineLeft = layout.getPrimaryHorizontal(visibleStart).toInt() + padLeft
+    val firstLineRight = layout.getLineRight(startLine).toInt() + padLeft
+
+    var minLeft = firstLineLeft
+    var maxRight = firstLineRight
+    for (line in (startLine + 1)..endLine) {
+      minLeft = minOf(minLeft, layout.getLineLeft(line).toInt() + padLeft)
+      maxRight = maxOf(maxRight, layout.getLineRight(line).toInt() + padLeft)
+    }
+
+    return Rect(
+      minOf(firstLineLeft, minLeft),
+      layout.getLineTop(startLine) + textView.paddingTop,
+      maxRight,
+      layout.getLineBottom(endLine) + textView.paddingTop,
+    )
+  }
+
+  private fun getCharOffsetAt(
+    x: Float,
+    y: Float,
+  ): Int {
+    val layout = textView.layout ?: return 0
+    val line = layout.getLineForVertical(y.toInt()).coerceIn(0, layout.lineCount - 1)
+    return layout.getOffsetForHorizontal(line, x)
+  }
+
+  private val AccessibilityItem.hitTestPriority: Int
+    get() =
+      when {
+        isLink -> 0
+        isImage -> 1
+        isHeading -> 2
+        isListItem -> 3
+        else -> 4
+      }
+
+  private fun AccessibilityItem.distanceTo(offset: Int): Int =
+    when {
+      offset < start -> start - offset
+      offset >= end -> offset - end + 1
+      else -> 0
+    }
+
+  private fun getListInfoAt(
+    spanned: Spanned,
+    position: Int,
+    requireStart: Boolean,
+  ): ListItemInfo? {
+    val deepest =
+      spanned
+        .getSpans(position, position + 1, BaseListSpan::class.java)
+        .maxByOrNull { it.depth } ?: return null
+
+    if (requireStart) {
+      val spanStart = spanned.getSpanStart(deepest)
+      val firstChar =
+        (spanStart until minOf(spanStart + 10, spanned.length))
+          .firstOrNull { !spanned[it].isWhitespace() } ?: spanStart
+      if (position > firstChar + 1) return null
+    }
+
+    return ListItemInfo(
+      isOrdered = deepest is OrderedListSpan,
+      itemNumber = (deepest as? OrderedListSpan)?.itemNumber ?: 0,
+      depth = deepest.depth,
+    )
+  }
+}
+
+private fun String.findFirstNonWhitespace(
+  from: Int,
+  to: Int,
+): Int {
+  for (i in from until to) {
+    if (!this[i].isWhitespace()) return i
+  }
+  return from
+}
+
+private fun String.findLastNonWhitespace(
+  from: Int,
+  to: Int,
+): Int {
+  for (i in (to - 1) downTo from) {
+    if (!this[i].isWhitespace()) return i + 1
+  }
+  return to
 }

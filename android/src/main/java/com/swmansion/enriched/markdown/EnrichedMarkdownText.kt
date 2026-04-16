@@ -10,9 +10,8 @@ import android.text.Layout
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
-import androidx.appcompat.widget.AppCompatTextView
 import com.facebook.react.bridge.ReadableMap
-import com.swmansion.enriched.markdown.accessibility.MarkdownAccessibilityHelper
+import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
@@ -42,7 +41,7 @@ class EnrichedMarkdownText
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-  ) : AppCompatTextView(context, attrs, defStyleAttr),
+  ) : AccessibleMarkdownTextView(context, attrs, defStyleAttr),
     SpoilerCapable {
     private val parser = Parser.shared
     private val renderer = Renderer()
@@ -55,9 +54,6 @@ class EnrichedMarkdownText
     private var currentRenderId = 0L
 
     val layoutManager = EnrichedMarkdownTextLayoutManager(this)
-
-    // Accessibility helper for TalkBack support
-    private val accessibilityHelper = MarkdownAccessibilityHelper(this)
 
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
@@ -86,7 +82,7 @@ class EnrichedMarkdownText
     var spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES
 
     init {
-      setupAsMarkdownTextView(accessibilityHelper)
+      setupAsMarkdownTextView()
       customSelectionActionModeCallback =
         createSelectionActionModeCallback(
           this,

@@ -777,8 +777,8 @@ using namespace facebook::react;
     NSRange glyphRange = [_textView.layoutManager glyphRangeForCharacterRange:NSMakeRange(selection.location, 0)
                                                          actualCharacterRange:NULL];
     caretRect = [_textView.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:_textView.textContainer];
-    caretRect.origin.x += _textView.textContainerInset.width;
-    caretRect.origin.y += _textView.textContainerInset.height;
+    caretRect.origin.x += _textView.textContainerInset.left;
+    caretRect.origin.y += _textView.textContainerInset.top;
   }
 #endif
   return caretRect;

@@ -1,6 +1,4 @@
 #import "LinkRenderer.h"
-#import "ENRMCitationAttachment.h"
-#import "ENRMMentionAttachment.h"
 #import "FontUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
@@ -135,33 +133,36 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
                      into:(NSMutableAttributedString *)output
                   context:(RenderContext *)context
 {
-  // Extract the child text to use as the pill label; the child nodes may be
-  // formatted text (e.g. **bold**), so we collapse to a plain string.
+  // Collapse children into a plain display string. The pill itself is rendered
+  // as inline text (not an NSTextAttachment), so native copy/paste/selection
+  // behave exactly like normal text — the "pill" look is painted by
+  // `MentionBackground` during the layout manager's draw cycle.
   NSMutableAttributedString *childBuffer = [[NSMutableAttributedString alloc] init];
   [_rendererFactory renderChildrenOfNode:node into:childBuffer context:context];
   NSString *displayText = childBuffer.string ?: @"";
+  if (displayText.length == 0)
+    return;
+
   NSString *mentionURL = stripScheme(url, kMentionScheme);
 
-  // Inherit the current text attributes (font, color) so the pill sits in the
-  // same line metrics as the surrounding paragraph if the pill label has no
-  // explicit style override.
+  // Inherit surrounding paragraph attributes so the pill text participates in
+  // the current line's metrics.
   NSDictionary *baseAttrs = output.length > 0 ? [output attributesAtIndex:output.length - 1 effectiveRange:NULL] : @{};
+  NSMutableDictionary *attrs = [NSMutableDictionary dictionaryWithDictionary:baseAttrs];
 
-  ENRMMentionAttachment *attachment = [ENRMMentionAttachment attachmentWithDisplayText:displayText
-                                                                                   url:mentionURL
-                                                                                config:_config];
-
-  NSMutableAttributedString *attachmentString =
-      [[NSMutableAttributedString attributedStringWithAttachment:attachment] mutableCopy];
-  NSRange attachmentRange = NSMakeRange(0, attachmentString.length);
-  if (baseAttrs.count > 0) {
-    [attachmentString addAttributes:baseAttrs range:attachmentRange];
+  UIFont *mentionFont = [_config mentionFont];
+  if (mentionFont) {
+    attrs[NSFontAttributeName] = mentionFont;
   }
-  [attachmentString addAttribute:ENRMMentionURLAttributeName value:mentionURL range:attachmentRange];
-  [attachmentString addAttribute:ENRMMentionTextAttributeName value:displayText range:attachmentRange];
+  RCTUIColor *mentionColor = [_config mentionColor];
+  if (mentionColor) {
+    attrs[NSForegroundColorAttributeName] = mentionColor;
+  }
+  attrs[ENRMMentionURLAttributeName] = mentionURL;
+  attrs[ENRMMentionTextAttributeName] = displayText;
 
   NSUInteger start = output.length;
-  [output appendAttributedString:attachmentString];
+  [output appendAttributedString:[[NSAttributedString alloc] initWithString:displayText attributes:attrs]];
   NSRange outputRange = NSMakeRange(start, output.length - start);
 
   [context registerMentionRange:outputRange url:mentionURL text:displayText];
@@ -174,35 +175,69 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
                       into:(NSMutableAttributedString *)output
                    context:(RenderContext *)context
 {
-  // Render children into a throwaway buffer so we can collect the label text
-  // and inherit the surrounding font (used to scale the citation glyph).
-  NSMutableAttributedString *childBuffer = [[NSMutableAttributedString alloc] init];
-  [_rendererFactory renderChildrenOfNode:node into:childBuffer context:context];
-  NSString *displayText = childBuffer.string ?: @"";
-  NSString *targetURL = stripScheme(url, kCitationScheme);
-
-  NSDictionary *baseAttrs = output.length > 0 ? [output attributesAtIndex:output.length - 1 effectiveRange:NULL] : @{};
-  UIFont *baseFont = baseAttrs[NSFontAttributeName];
-
-  ENRMCitationAttachment *attachment = [ENRMCitationAttachment attachmentWithDisplayText:displayText
-                                                                                     url:targetURL
-                                                                                baseFont:baseFont
-                                                                                  config:_config];
-
-  NSMutableAttributedString *attachmentString =
-      [[NSMutableAttributedString attributedStringWithAttachment:attachment] mutableCopy];
-  NSRange attachmentRange = NSMakeRange(0, attachmentString.length);
-  if (baseAttrs.count > 0) {
-    [attachmentString addAttributes:baseAttrs range:attachmentRange];
-  }
-  [attachmentString addAttribute:ENRMCitationURLAttributeName value:targetURL range:attachmentRange];
-  [attachmentString addAttribute:ENRMCitationTextAttributeName value:displayText range:attachmentRange];
-
   NSUInteger start = output.length;
-  [output appendAttributedString:attachmentString];
-  NSRange outputRange = NSMakeRange(start, output.length - start);
+  [_rendererFactory renderChildrenOfNode:node into:output context:context];
+  NSRange range = NSMakeRange(start, output.length - start);
+  if (range.length == 0)
+    return;
 
-  [context registerCitationRange:outputRange url:targetURL text:displayText];
+  NSString *targetURL = stripScheme(url, kCitationScheme);
+  NSString *labelText = [[output attributedSubstringFromRange:range] string] ?: @"";
+
+  CGFloat multiplier = [_config citationFontSizeMultiplier];
+  CGFloat baselineOffsetPx = [_config citationBaselineOffsetPx];
+  RCTUIColor *citationColor = [_config citationColor];
+  NSString *fontWeight = [_config citationFontWeight];
+  BOOL underline = [_config citationUnderline];
+
+  [output enumerateAttributesInRange:range
+                             options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
+                          usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
+                            NSMutableDictionary *newAttributes = [NSMutableDictionary dictionary];
+
+                            UIFont *currentFont = attrs[NSFontAttributeName];
+                            if (currentFont && multiplier > 0) {
+                              CGFloat newSize = currentFont.pointSize * multiplier;
+                              UIFont *scaled = [RCTFont updateFont:currentFont
+                                                        withFamily:nil
+                                                              size:@(newSize)
+                                                            weight:fontWeight.length > 0 ? fontWeight : nil
+                                                             style:nil
+                                                           variant:nil
+                                                   scaleMultiplier:1.0];
+                              if (scaled) {
+                                newAttributes[NSFontAttributeName] = scaled;
+
+                                CGFloat offset = baselineOffsetPx;
+                                if (offset == 0) {
+                                  offset = (currentFont.capHeight - scaled.capHeight) * 0.5;
+                                }
+                                newAttributes[NSBaselineOffsetAttributeName] = @(offset);
+                              }
+                            } else if (baselineOffsetPx != 0) {
+                              newAttributes[NSBaselineOffsetAttributeName] = @(baselineOffsetPx);
+                            }
+
+                            if (citationColor) {
+                              newAttributes[NSForegroundColorAttributeName] = citationColor;
+                            }
+
+                            if (underline) {
+                              newAttributes[NSUnderlineStyleAttributeName] = @(NSUnderlineStyleSingle);
+                              if (citationColor) {
+                                newAttributes[NSUnderlineColorAttributeName] = citationColor;
+                              }
+                            }
+
+                            if (newAttributes.count > 0) {
+                              [output addAttributes:newAttributes range:subrange];
+                            }
+                          }];
+
+  [output addAttribute:ENRMCitationURLAttributeName value:targetURL range:range];
+  [output addAttribute:ENRMCitationTextAttributeName value:labelText range:range];
+
+  [context registerCitationRange:range url:targetURL text:labelText];
 }
 
 @end

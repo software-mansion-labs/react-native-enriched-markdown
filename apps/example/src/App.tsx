@@ -11,6 +11,8 @@ import {
 import {
   EnrichedMarkdownText,
   type LinkPressEvent,
+  type CitationPressEvent,
+  type MentionPressEvent,
 } from 'react-native-enriched-markdown';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleMarkdown } from './sampleMarkdown';
@@ -63,6 +65,37 @@ export default function App() {
     ]);
   };
 
+  const handleCitationPress = (event: CitationPressEvent) => {
+    const { url } = event;
+    Alert.alert('Citation Pressed!', `You tapped on: ${url}`, [
+      {
+        text: 'Open in Browser',
+        onPress: () => {
+          Linking.openURL(url);
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const handleMentionPress = (event: MentionPressEvent) => {
+    const { url } = event;
+    Alert.alert('Mention Pressed!', `You tapped on: ${url}`, [
+      {
+        text: 'Open in Browser',
+        onPress: () => {
+          Linking.openURL(url);
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.tabs}>
@@ -91,6 +124,8 @@ export default function App() {
             flavor="github"
             markdown={sampleMarkdown}
             onLinkPress={handleLinkPress}
+            onCitationPress={handleCitationPress}
+            onMentionPress={handleMentionPress}
             markdownStyle={markdownStyle}
             contextMenuItems={contextMenuItems}
           />

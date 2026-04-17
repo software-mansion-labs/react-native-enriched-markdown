@@ -32,6 +32,14 @@ extern void *kListMarkerDrawerKey;
 // Used by TextViewLayoutManager for code block background drawing
 extern void *kCodeBlockBackgroundKey;
 
+// Key for storing MentionBackground instance on NSLayoutManager
+// Used by TextViewLayoutManager for inline mention pill drawing
+extern void *kMentionBackgroundKey;
+
+// Key for storing CitationBackground instance on NSLayoutManager
+// Used by TextViewLayoutManager for inline citation chip drawing
+extern void *kCitationBackgroundKey;
+
 // Custom attribute keys for markdown type tracking (used for Copy Markdown)
 extern NSString *const MarkdownTypeAttributeName;
 

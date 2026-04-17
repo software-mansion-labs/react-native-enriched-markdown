@@ -105,8 +105,15 @@ class MentionSpan(
 
     val pillLeft = left + min(startOffset, endOffset) - paddingH
     val pillRight = left + max(startOffset, endOffset) + paddingH
-    val pillTop = top - paddingV
-    val pillBottom = bottom + paddingV
+    // Derive vertical extent from the mention's own font metrics (not the
+    // line's `top`/`bottom`) so the pill hugs the mention text. Using the
+    // line bounds would stretch the pill to the paragraph's lineHeight,
+    // which is visibly taller than the glyph when lineHeight > natural
+    // font height (or when anything else on the line has bigger metrics).
+    val fm = localPaint.fontMetrics
+    // ascent is negative (above baseline), descent is positive (below).
+    val pillTop = baseline + fm.ascent - paddingV
+    val pillBottom = baseline + fm.descent + paddingV
     if (pillRight <= pillLeft || pillBottom <= pillTop) return
 
     rect.set(pillLeft, pillTop, pillRight, pillBottom)

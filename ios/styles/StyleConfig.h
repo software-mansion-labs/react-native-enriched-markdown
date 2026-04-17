@@ -236,6 +236,8 @@
 - (void)setListStyleBulletColor:(RCTUIColor *)newValue;
 - (CGFloat)listStyleBulletSize;
 - (void)setListStyleBulletSize:(CGFloat)newValue;
+- (CGFloat)listStyleMarkerWidth;
+- (void)setListStyleMarkerWidth:(CGFloat)newValue;
 - (RCTUIColor *)listStyleMarkerColor;
 - (void)setListStyleMarkerColor:(RCTUIColor *)newValue;
 - (NSString *)listStyleMarkerFontWeight;
@@ -249,6 +251,7 @@
 - (CGFloat)effectiveListGapWidth;
 - (CGFloat)effectiveListMarginLeftForBullet;
 - (CGFloat)effectiveListMarginLeftForNumber;
+- (CGFloat)effectiveListMarginLeftForTask;
 // Code block properties
 - (CGFloat)codeBlockFontSize;
 - (void)setCodeBlockFontSize:(CGFloat)newValue;

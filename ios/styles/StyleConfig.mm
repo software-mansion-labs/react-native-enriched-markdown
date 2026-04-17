@@ -151,6 +151,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _listStyleLineHeight;
   RCTUIColor *_listStyleBulletColor;
   CGFloat _listStyleBulletSize;
+  CGFloat _listStyleMarkerWidth;
   RCTUIColor *_listStyleMarkerColor;
   NSString *_listStyleMarkerFontWeight;
   CGFloat _listStyleGapWidth;
@@ -434,6 +435,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_listStyleLineHeight = _listStyleLineHeight;
   copy->_listStyleBulletColor = [_listStyleBulletColor copy];
   copy->_listStyleBulletSize = _listStyleBulletSize;
+  copy->_listStyleMarkerWidth = _listStyleMarkerWidth;
   copy->_listStyleMarkerColor = [_listStyleMarkerColor copy];
   copy->_listStyleMarkerFontWeight = [_listStyleMarkerFontWeight copy];
   copy->_listStyleGapWidth = _listStyleGapWidth;
@@ -1706,6 +1708,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _listStyleBulletSize = newValue;
 }
 
+- (CGFloat)listStyleMarkerWidth
+{
+  return _listStyleMarkerWidth;
+}
+
+- (void)setListStyleMarkerWidth:(CGFloat)newValue
+{
+  _listStyleMarkerWidth = newValue;
+}
+
 - (RCTUIColor *)listStyleMarkerColor
 {
   return _listStyleMarkerColor;
@@ -1786,16 +1798,30 @@ static const CGFloat kDefaultMinGap = 4.0;
 
 - (CGFloat)effectiveListMarginLeftForBullet
 {
-  // Just the minimum width needed for bullet (radius)
-  return _listStyleBulletSize / 2.0;
+  // Natural width for a bullet is the bullet radius (bulletSize / 2). The
+  // consumer-provided `markerWidth` acts as a floor so bulleted lists can
+  // line up with ordered / task lists without resizing the bullet glyph.
+  CGFloat natural = _listStyleBulletSize / 2.0;
+  return _listStyleMarkerWidth > natural ? _listStyleMarkerWidth : natural;
 }
 
 - (CGFloat)effectiveListMarginLeftForNumber
 {
-  // Reserve width for numbers up to 99 (matching Android)
+  // Reserve width for numbers up to 99 (matching Android). `markerWidth`
+  // floors the value so consumers can widen the column uniformly.
   UIFont *font = [self listMarkerFont];
-  return
+  CGFloat natural =
       [@"99." sizeWithAttributes:@{NSFontAttributeName : font ?: [UIFont systemFontOfSize:_listStyleFontSize]}].width;
+  return _listStyleMarkerWidth > natural ? _listStyleMarkerWidth : natural;
+}
+
+- (CGFloat)effectiveListMarginLeftForTask
+{
+  // Task checkbox reserves at least its own size. `markerWidth` can widen
+  // the column so task rows align with adjacent UL/OL rows. The checkbox
+  // glyph itself is still drawn at its configured size.
+  CGFloat natural = [self taskListCheckboxSize];
+  return _listStyleMarkerWidth > natural ? _listStyleMarkerWidth : natural;
 }
 
 // Code block properties

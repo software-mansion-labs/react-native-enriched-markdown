@@ -12,11 +12,17 @@ data class ListStyle(
   override val lineHeight: Float,
   val bulletColor: Int,
   val bulletSize: Float,
+  val markerWidth: Float,
   val markerColor: Int,
   val markerFontWeight: String,
   val gapWidth: Float,
   val marginLeft: Float,
 ) : BaseBlockStyle {
+
+  /** Floor `naturalWidth` by the consumer-configured `markerWidth`. */
+  fun effectiveMarkerWidth(naturalWidth: Float): Float =
+    if (markerWidth > naturalWidth) markerWidth else naturalWidth
+
   companion object {
     fun fromReadableMap(
       map: ReadableMap,
@@ -32,6 +38,13 @@ data class ListStyle(
       val lineHeight = parser.toPixelFromSP(lineHeightRaw)
       val bulletColor = parser.parseColor(map, "bulletColor")
       val bulletSize = parser.toPixelFromDIP(map.getDouble("bulletSize").toFloat())
+      val markerWidthRaw = map.getDouble("markerWidth").toFloat()
+      val markerWidth =
+        if (markerWidthRaw < 0f) {
+          -1f
+        } else {
+          parser.toPixelFromDIP(markerWidthRaw)
+        }
       val markerColor = parser.parseColor(map, "markerColor")
       val markerFontWeight = parser.parseString(map, "markerFontWeight", "normal")
       val gapWidth = parser.toPixelFromDIP(map.getDouble("gapWidth").toFloat())
@@ -47,6 +60,7 @@ data class ListStyle(
         lineHeight,
         bulletColor,
         bulletSize,
+        markerWidth,
         markerColor,
         markerFontWeight,
         gapWidth,

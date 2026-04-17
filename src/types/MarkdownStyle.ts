@@ -28,6 +28,7 @@ interface BlockquoteStyle extends BaseBlockStyle {
 interface ListStyle extends BaseBlockStyle {
   bulletColor?: string;
   bulletSize?: number;
+  markerWidth?: number;
   markerColor?: string;
   markerFontWeight?: string;
   gapWidth?: number;

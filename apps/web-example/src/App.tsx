@@ -5,6 +5,8 @@ import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  CitationPressEvent,
+  MentionPressEvent,
 } from 'react-native-enriched-markdown';
 import { sampleMarkdown } from './sampleMarkdown';
 
@@ -96,7 +98,7 @@ console.log(greet("العالم"));
 `.trim();
 
 interface EventLog {
-  kind: 'link' | 'linkLong' | 'task';
+  kind: 'link' | 'linkLong' | 'task' | 'citation' | 'mention';
   label: string;
   detail: string;
 }
@@ -105,6 +107,8 @@ const KIND_COLOR: Record<EventLog['kind'], string> = {
   link: '#2563EB',
   linkLong: '#7C3AED',
   task: '#059669',
+  citation: '#9B9BFD',
+  mention: '#2563EB',
 };
 
 export default function App() {
@@ -130,6 +134,18 @@ export default function App() {
     []
   );
 
+  const handleCitationPress = (event: CitationPressEvent) => {
+    const { url } = event;
+    setLastEvent({ kind: 'citation', label: 'onCitationPress', detail: url });
+    Linking.openURL(url);
+  };
+
+  const handleMentionPress = (event: MentionPressEvent) => {
+    const { url } = event;
+    setLastEvent({ kind: 'mention', label: 'onMentionPress', detail: url });
+    Linking.openURL(url);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -153,6 +169,8 @@ export default function App() {
           onLinkPress={onLinkPress}
           onLinkLongPress={onLinkLongPress}
           onTaskListItemPress={onTaskListItemPress}
+          onCitationPress={handleCitationPress}
+          onMentionPress={handleMentionPress}
         />
 
         <View style={styles.divider} />

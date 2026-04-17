@@ -4,23 +4,32 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
-import android.text.style.ReplacementSpan
+import android.text.Spanned
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.text.style.LineBackgroundSpan
+import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.styles.MentionStyle
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * Replaces a range of text with a rounded "pill" containing the display name.
- * Rendering is atomic — the span reports its full width (including padding and
- * border) via getSize so layout reserves enough room and the text never clips.
+ * Styles and paints the pill "chip" behind an inline mention. The mention
+ * text itself lives in the underlying Spannable as real characters, so copy,
+ * paste, selection, and accessibility all behave like ordinary text — the
+ * pill appearance is produced by this span's [LineBackgroundSpan.drawBackground]
+ * pass.
  *
- * The span exposes [url] for tap dispatching and an [isPressed] flag the
- * tap handler can toggle to drive the pressedOpacity tap-feedback animation.
+ * The span exposes [url] for tap dispatching and an [isPressed] flag the tap
+ * handler can toggle to drive the pressedOpacity feedback.
  */
 class MentionSpan(
   val url: String,
   val displayText: String,
   private val mentionStyle: MentionStyle,
   private val mentionTypeface: Typeface?,
-) : ReplacementSpan() {
+) : MetricAffectingSpan(),
+  LineBackgroundSpan {
   @Volatile
   var isPressed: Boolean = false
 
@@ -28,87 +37,84 @@ class MentionSpan(
   private val strokePaint =
     Paint(Paint.ANTI_ALIAS_FLAG).apply {
       style = Paint.Style.STROKE
-      strokeWidth = mentionStyle.borderWidth
     }
-  private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG)
+  private val rect = RectF()
 
-  private fun configureTextPaint(basePaint: Paint) {
-    textPaint.set(basePaint)
-    if (mentionStyle.fontSize > 0) {
-      textPaint.textSize = mentionStyle.fontSize
-    }
-    mentionTypeface?.let { textPaint.typeface = it }
-    textPaint.color = mentionStyle.color
+  override fun updateMeasureState(textPaint: TextPaint) {
+    applyTextStyling(textPaint)
   }
 
-  private fun contentWidth(): Float = textPaint.measureText(displayText)
-
-  override fun getSize(
-    paint: Paint,
-    text: CharSequence?,
-    start: Int,
-    end: Int,
-    fm: Paint.FontMetricsInt?,
-  ): Int {
-    configureTextPaint(paint)
-
-    val textWidth = contentWidth()
-    val totalWidth = textWidth + mentionStyle.paddingHorizontal * 2f + mentionStyle.borderWidth * 2f
-
-    if (fm != null) {
-      val metrics = textPaint.fontMetricsInt
-      val verticalInset = (mentionStyle.paddingVertical + mentionStyle.borderWidth).toInt()
-      fm.ascent = metrics.ascent - verticalInset
-      fm.top = metrics.top - verticalInset
-      fm.descent = metrics.descent + verticalInset
-      fm.bottom = metrics.bottom + verticalInset
-      fm.leading = metrics.leading
-    }
-
-    return totalWidth.toInt() + 1
+  override fun updateDrawState(tp: TextPaint) {
+    applyTextStyling(tp)
+    tp.color = mentionStyle.color
   }
 
-  override fun draw(
+  private fun applyTextStyling(paint: TextPaint) {
+    if (mentionStyle.fontSize > 0f) {
+      paint.textSize = mentionStyle.fontSize
+    }
+    if (mentionTypeface != null) {
+      paint.typeface = mentionTypeface
+    } else if (mentionStyle.fontWeight.isNotEmpty()) {
+      val base = paint.typeface ?: Typeface.DEFAULT
+      val weightStyle =
+        when (mentionStyle.fontWeight.lowercase()) {
+          "bold", "700", "800", "900" -> Typeface.BOLD
+          else -> Typeface.NORMAL
+        }
+      paint.typeface = Typeface.create(base, weightStyle)
+    }
+  }
+
+  override fun drawBackground(
     canvas: Canvas,
+    paint: Paint,
+    left: Int,
+    right: Int,
+    top: Int,
+    baseline: Int,
+    bottom: Int,
     text: CharSequence,
     start: Int,
     end: Int,
-    x: Float,
-    top: Int,
-    y: Int,
-    bottom: Int,
-    paint: Paint,
+    lineNum: Int,
   ) {
-    configureTextPaint(paint)
+    if (text !is Spanned) return
+    val spanStart = text.getSpanStart(this)
+    val spanEnd = text.getSpanEnd(this)
+    if (spanStart < 0 || spanEnd <= spanStart) return
 
-    val opacity =
-      if (isPressed) mentionStyle.pressedOpacity.coerceIn(0f, 1f) else 1f
-    val globalAlpha = (opacity * 255f).toInt().coerceIn(0, 255)
+    // Only paint on the line segment(s) the span intersects with.
+    val drawStart = max(spanStart, start)
+    val drawEnd = min(spanEnd, end)
+    if (drawStart >= drawEnd) return
 
-    val textWidth = contentWidth()
-    val pillWidth = textWidth + mentionStyle.paddingHorizontal * 2f + mentionStyle.borderWidth * 2f
-    val metrics = textPaint.fontMetricsInt
-    val textHeight = metrics.descent - metrics.ascent
-    val pillHeight = textHeight + mentionStyle.paddingVertical * 2f + mentionStyle.borderWidth * 2f
+    val opacity = if (isPressed) mentionStyle.pressedOpacity.coerceIn(0f, 1f) else 1f
 
-    // Vertically center the pill on the surrounding text line.
-    val lineTop = top.toFloat()
-    val lineBottom = bottom.toFloat()
-    val pillTop = lineTop + ((lineBottom - lineTop) - pillHeight) / 2f
-    val pillBottom = pillTop + pillHeight
+    val textPaint = (paint as? TextPaint) ?: TextPaint(paint).apply { set(paint) }
+    // LineBackgroundSpan is invoked before the glyphs are drawn, so the paint
+    // hasn't been run through updateDrawState yet; apply mention-specific
+    // styling locally so measurements here match the rendered text exactly.
+    val localPaint = TextPaint(textPaint)
+    applyTextStyling(localPaint)
 
-    val halfStroke = mentionStyle.borderWidth / 2f
-    val pillRect =
-      RectF(
-        x + halfStroke,
-        pillTop + halfStroke,
-        x + pillWidth - halfStroke,
-        pillBottom - halfStroke,
-      )
+    val startOffset = horizontalOffset(text, start, end, drawStart, localPaint)
+    val endOffset = horizontalOffset(text, start, end, drawEnd, localPaint)
+    val paddingH = mentionStyle.paddingHorizontal
+    val paddingV = mentionStyle.paddingVertical
+
+    val pillLeft = left + min(startOffset, endOffset) - paddingH
+    val pillRight = left + max(startOffset, endOffset) + paddingH
+    val pillTop = top - paddingV
+    val pillBottom = bottom + paddingV
+    if (pillRight <= pillLeft || pillBottom <= pillTop) return
+
+    rect.set(pillLeft, pillTop, pillRight, pillBottom)
+
     val radius =
-      minOf(
+      min(
         mentionStyle.borderRadius,
-        minOf(pillRect.width(), pillRect.height()) / 2f,
+        min(rect.width(), rect.height()) / 2f,
       )
 
     fillPaint.color = mentionStyle.backgroundColor
@@ -116,7 +122,7 @@ class MentionSpan(
       ((fillPaint.color ushr 24) and 0xFF).let { baseAlpha ->
         (baseAlpha * opacity).toInt().coerceIn(0, 255)
       }
-    canvas.drawRoundRect(pillRect, radius, radius, fillPaint)
+    canvas.drawRoundRect(rect, radius, radius, fillPaint)
 
     if (mentionStyle.borderWidth > 0f) {
       strokePaint.strokeWidth = mentionStyle.borderWidth
@@ -125,14 +131,20 @@ class MentionSpan(
         ((strokePaint.color ushr 24) and 0xFF).let { baseAlpha ->
           (baseAlpha * opacity).toInt().coerceIn(0, 255)
         }
-      canvas.drawRoundRect(pillRect, radius, radius, strokePaint)
+      canvas.drawRoundRect(rect, radius, radius, strokePaint)
     }
+  }
 
-    textPaint.alpha = globalAlpha
-
-    val textX = x + mentionStyle.paddingHorizontal + mentionStyle.borderWidth
-    // Baseline-align the label inside the pill.
-    val textY = pillTop + mentionStyle.paddingVertical + mentionStyle.borderWidth - metrics.ascent
-    canvas.drawText(displayText, textX, textY, textPaint)
+  private fun horizontalOffset(
+    text: CharSequence,
+    lineStart: Int,
+    lineEnd: Int,
+    index: Int,
+    paint: TextPaint,
+  ): Float {
+    if (index <= lineStart) return 0f
+    val lineText = text.subSequence(lineStart, lineEnd)
+    val layout = StaticLayout.Builder.obtain(lineText, 0, lineText.length, paint, Int.MAX_VALUE / 2).build()
+    return layout.getPrimaryHorizontal(index - lineStart)
   }
 }

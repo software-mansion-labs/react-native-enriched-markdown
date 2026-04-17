@@ -156,7 +156,7 @@ export const customMarkdownStyle: MarkdownStyle = {
   citation: {
     backgroundColor: '#EBEBFF',
     color: '#9B9BFD',
-    fontSizeMultiplier: 0.7,
+    fontSizeMultiplier: 0.5,
     baselineOffsetPx: 1.5,
     fontWeight: '',
     underline: false,

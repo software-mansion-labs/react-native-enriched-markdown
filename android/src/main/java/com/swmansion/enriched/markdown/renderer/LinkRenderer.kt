@@ -79,18 +79,18 @@ class LinkRenderer(
     onLinkLongPress: ((String) -> Unit)?,
     factory: RendererFactory,
   ) {
-    // Render children into a throwaway buffer to derive the display label.
-    // Any inline formatting (bold/italic) inside the label collapses to plain
-    // text because ReplacementSpan paints a single atomic glyph.
+    // Render children into a throwaway buffer to derive the plain display
+    // label (any inline formatting inside the mention collapses to text).
     val labelBuffer = SpannableStringBuilder()
     factory.renderChildren(node, labelBuffer, onLinkPress, onLinkLongPress)
     val displayText = labelBuffer.toString()
+    if (displayText.isEmpty()) return
 
-    // Insert a single placeholder character that ReplacementSpan will paint
-    // over; keeping it as a real character preserves cursor metrics, selection
-    // handles, and accessibility traversal.
+    // Append the displayText as real characters so copy/paste, selection, and
+    // accessibility traversal all see the mention as normal text. The pill
+    // background is painted by the MentionSpan's LineBackgroundSpan pass.
     val start = builder.length
-    builder.append(' ')
+    builder.append(displayText)
     val end = builder.length
 
     val span =

@@ -11,7 +11,7 @@ Forests cover approximately **31% of the Earth's land surface**, providing habit
 
 Forests are often called the *lungs of the Earth*. They absorb **carbon dioxide** and release oxygen through photosynthesis — a process essential for all life on our planet. A single mature tree can absorb up to \`48 pounds\` of CO₂ per year.
 
-> [@John Muir](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user) In every walk with nature, one receives far more than he seeks.
+> In every walk with nature, [@John Muir](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user) one receives far more than he seeks. [4](citation://https://www.google.com)
 >
 > — John Muir
 

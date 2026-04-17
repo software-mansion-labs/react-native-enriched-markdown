@@ -151,7 +151,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     paddingVertical: 0,
     fontFamily: 'Montserrat-Regular',
     fontSize: 14,
-    color: '#2563fb',
+    color: '#2561fB',
   },
   citation: {
     backgroundColor: '#EBEBFF',

@@ -53,6 +53,19 @@ class SpanStyleCache(
       style.taskListStyle.checkedTextColor
         .takeIf { it != 0 }
         ?.let { add(it) }
+      // Inline chip colors (mention / citation). Container spans like
+      // BaseListSpan and BlockquoteSpan overwrite text color via
+      // `applyColorPreserving(blockColor, colorsToPreserve)`. Including the
+      // chip colors here ensures the mention/citation foreground set by
+      // MentionSpan / CitationSpan survives that overwrite — otherwise the
+      // chip text falls back to the surrounding block color inside lists or
+      // blockquotes.
+      style.mentionStyle.color
+        .takeIf { it != 0 && it != paragraphColor }
+        ?.let { add(it) }
+      style.citationStyle.color
+        .takeIf { it != 0 && it != paragraphColor }
+        ?.let { add(it) }
     }.toIntArray()
   }
 

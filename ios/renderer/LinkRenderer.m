@@ -189,6 +189,7 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   RCTUIColor *citationColor = [_config citationColor];
   NSString *fontWeight = [_config citationFontWeight];
   BOOL underline = [_config citationUnderline];
+  CGFloat paddingHorizontal = [_config citationPaddingHorizontal];
 
   [output enumerateAttributesInRange:range
                              options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
@@ -236,6 +237,17 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
 
   [output addAttribute:ENRMCitationURLAttributeName value:targetURL range:range];
   [output addAttribute:ENRMCitationTextAttributeName value:labelText range:range];
+
+  // The drawn chip background extends `paddingHorizontal` beyond the glyph run
+  // on each side. Inline text doesn't reserve any advance for that visual
+  // padding, so adjacent citations (and following text) would sit right up
+  // against our glyphs, causing the drawn chips to overlap. Applying NSKern
+  // on the last character adds the missing trailing advance so consecutive
+  // chips have the same natural spacing they'd get on web via CSS padding.
+  if (paddingHorizontal > 0 && range.length > 0) {
+    NSRange lastCharRange = NSMakeRange(NSMaxRange(range) - 1, 1);
+    [output addAttribute:NSKernAttributeName value:@(paddingHorizontal * 2) range:lastCharRange];
+  }
 
   [context registerCitationRange:range url:targetURL text:labelText];
 }

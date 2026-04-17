@@ -39,6 +39,8 @@
   if (!bgColor && (!borderColor || borderWidth <= 0))
     return;
 
+  NSUInteger totalGlyphs = [layoutManager numberOfGlyphs];
+
   [textStorage
       enumerateAttribute:ENRMCitationURLAttributeName
                  inRange:NSMakeRange(0, textStorage.length)
@@ -68,10 +70,50 @@
                                                if (intersect.length == 0)
                                                  return;
 
-                                               // Horizontal extent: tight to the glyph run.
-                                               CGRect glyphRect =
-                                                   [layoutManager boundingRectForGlyphRange:intersect
-                                                                            inTextContainer:textContainer];
+                                               // Horizontal extent: compute from glyph ADVANCE positions
+                                               // (not ink bounds) so the chip hugs each digit the same
+                                               // way proportional text naturally lays out. Using
+                                               // boundingRectForGlyphRange: here would include any
+                                               // trailing kerning we added to space consecutive chips
+                                               // apart, causing them to visually overlap.
+                                               NSUInteger firstGlyph = intersect.location;
+                                               NSUInteger lastGlyph = NSMaxRange(intersect) - 1;
+
+                                               CGPoint firstLoc = [layoutManager locationForGlyphAtIndex:firstGlyph];
+                                               CGFloat chipLeftX = lineRect.origin.x + firstLoc.x;
+
+                                               CGFloat chipRightX;
+                                               NSUInteger afterLastGlyph = NSMaxRange(intersect);
+                                               BOOL canQueryNext = (afterLastGlyph < totalGlyphs) &&
+                                                                   (afterLastGlyph < NSMaxRange(lineRange));
+                                               if (canQueryNext) {
+                                                 CGPoint nextLoc =
+                                                     [layoutManager locationForGlyphAtIndex:afterLastGlyph];
+                                                 chipRightX = lineRect.origin.x + nextLoc.x;
+
+                                                 // Subtract any trailing kern we stamped on the last
+                                                 // character of the citation so the chip doesn't include
+                                                 // that spacing gap.
+                                                 NSUInteger lastCharIndex =
+                                                     [layoutManager characterIndexForGlyphAtIndex:lastGlyph];
+                                                 if (lastCharIndex < textStorage.length) {
+                                                   NSNumber *kern = [textStorage attribute:NSKernAttributeName
+                                                                                   atIndex:lastCharIndex
+                                                                            effectiveRange:NULL];
+                                                   if (kern) {
+                                                     chipRightX -= [kern doubleValue];
+                                                   }
+                                                 }
+                                               } else {
+                                                 // Last glyph on the line or last in the buffer — fall
+                                                 // back to the last glyph's ink bounding rect (trailing
+                                                 // kerning is irrelevant here since there's nothing
+                                                 // after it).
+                                                 CGRect lastRect =
+                                                     [layoutManager boundingRectForGlyphRange:NSMakeRange(lastGlyph, 1)
+                                                                              inTextContainer:textContainer];
+                                                 chipRightX = lastRect.origin.x + lastRect.size.width;
+                                               }
 
                                                // Vertical extent: derive from the citation glyphs' own
                                                // baseline + font metrics so the chip hugs the smaller
@@ -79,9 +121,7 @@
                                                // height. `locationForGlyphAtIndex:` returns the baseline
                                                // in the line fragment's coordinate system and already
                                                // accounts for NSBaselineOffsetAttributeName.
-                                               CGPoint glyphLocation =
-                                                   [layoutManager locationForGlyphAtIndex:intersect.location];
-                                               CGFloat baselineY = lineRect.origin.y + glyphLocation.y;
+                                               CGFloat baselineY = lineRect.origin.y + firstLoc.y;
 
                                                CGFloat ascent = citationFont ? citationFont.ascender : 0;
                                                // UIFont.descender is negative (points below baseline);
@@ -91,9 +131,10 @@
                                                CGFloat chipTop = baselineY - ascent - paddingV;
                                                CGFloat chipBottom = baselineY - descent + paddingV;
 
-                                               CGRect chipRect = CGRectMake(
-                                                   glyphRect.origin.x + origin.x - paddingH, chipTop + origin.y,
-                                                   glyphRect.size.width + paddingH * 2, MAX(0, chipBottom - chipTop));
+                                               CGRect chipRect =
+                                                   CGRectMake(chipLeftX + origin.x - paddingH, chipTop + origin.y,
+                                                              MAX(0, (chipRightX - chipLeftX)) + paddingH * 2,
+                                                              MAX(0, chipBottom - chipTop));
 
                                                CGFloat maxRadius = MIN(chipRect.size.width, chipRect.size.height) / 2.0;
                                                CGFloat radius = MIN(borderRadius, maxRadius);

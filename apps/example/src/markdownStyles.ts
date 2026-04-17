@@ -160,7 +160,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     baselineOffsetPx: 7,
     fontWeight: '',
     underline: false,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     paddingVertical: 2,
     borderColor: '#ddd6fe',
     borderWidth: 1,

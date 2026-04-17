@@ -4,6 +4,7 @@ import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.CitationSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.MentionSpacerSpan
 import com.swmansion.enriched.markdown.spans.MentionSpan
 import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
@@ -101,6 +102,25 @@ class LinkRenderer(
         mentionTypeface = factory.styleCache.mentionTypeface,
       )
     builder.setSpan(span, start, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+
+    // The pill background extends `paddingHorizontal` past the glyph run on
+    // each side, but the underlying inline text doesn't reserve any advance
+    // for that visual overhang. Without extra spacing, two adjacent mention
+    // pills (separated only by a space in the source markdown) visually
+    // overlap. Appending a zero-width sentinel char with a MentionSpacerSpan
+    // reserves `paddingHorizontal * 2` of advance after each mention — the
+    // Android-side equivalent of the NSKern we apply on iOS.
+    val mentionStyle = factory.styleCache.mentionStyle
+    if (mentionStyle.paddingHorizontal > 0f) {
+      val spacerStart = builder.length
+      builder.append("\u200B") // zero-width space
+      builder.setSpan(
+        MentionSpacerSpan(mentionStyle.paddingHorizontal * 2f),
+        spacerStart,
+        builder.length,
+        SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+      )
+    }
   }
 
   private fun renderCitation(

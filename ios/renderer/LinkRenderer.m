@@ -165,6 +165,18 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   [output appendAttributedString:[[NSAttributedString alloc] initWithString:displayText attributes:attrs]];
   NSRange outputRange = NSMakeRange(start, output.length - start);
 
+  // The drawn pill extends `paddingHorizontal` beyond the glyph run on each
+  // side. Inline text doesn't reserve any advance for that visual padding, so
+  // two adjacent mentions (separated only by a space) would have their pills
+  // visually overlap. Stamping NSKern on the last glyph pushes the following
+  // character away by the same amount the pill extends, matching what CSS
+  // `paddingInline` does on web.
+  CGFloat mentionPaddingH = [_config mentionPaddingHorizontal];
+  if (mentionPaddingH > 0 && outputRange.length > 0) {
+    NSRange lastCharRange = NSMakeRange(NSMaxRange(outputRange) - 1, 1);
+    [output addAttribute:NSKernAttributeName value:@(mentionPaddingH * 2) range:lastCharRange];
+  }
+
   [context registerMentionRange:outputRange url:mentionURL text:displayText];
 }
 

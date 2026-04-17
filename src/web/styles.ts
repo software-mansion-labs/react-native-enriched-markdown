@@ -262,7 +262,6 @@ function mentionStyle(style: MarkdownStyleInternal): CSSProperties {
     fontWeight: normalizeFontWeight(mention.fontWeight),
     fontSize: mention.fontSize || undefined,
     cursor: 'pointer',
-    userSelect: 'none',
     transition: 'opacity 0.12s ease-in-out',
     lineHeight: 1,
   };

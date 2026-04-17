@@ -6,6 +6,7 @@ import { KaTeXRenderer } from './KaTeXRenderer';
 const MENTION_SCHEME = 'mention://';
 const CITATION_SCHEME = 'citation://';
 const MENTION_CLASS = 'enriched-mention';
+export const CITATION_CLASS = 'enriched-citation';
 
 // The `:active` rule honors the consumer-configured `pressedOpacity` via a CSS
 // variable the mention span sets inline. Rendered as a `<style>` element so we
@@ -156,6 +157,7 @@ function CitationRenderer({
 
   return (
     <sup
+      className={CITATION_CLASS}
       style={styles.citation}
       aria-label={`Citation: ${displayText}`}
       data-citation-url={targetUrl}

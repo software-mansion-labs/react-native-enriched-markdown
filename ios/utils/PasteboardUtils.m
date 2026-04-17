@@ -1,6 +1,7 @@
 #import "PasteboardUtils.h"
 #import "ENRMImageAttachment.h"
 #import "HTMLGenerator.h"
+#import "LinkRenderer.h"
 #import "MarkdownExtractor.h"
 #import "RTFExportUtils.h"
 #import "StyleConfig.h"
@@ -53,6 +54,71 @@ static void addHTMLData(NSMutableDictionary *items, NSAttributedString *attribut
   }
 }
 
+/**
+ * Returns a copy of the attributed string with any character ranges tagged by
+ * `ENRMCitationURLAttributeName` removed entirely. Citations are reference
+ * metadata, not prose — stripping them here keeps every export flavor
+ * (plain, HTML, RTF, RTFD, markdown) consistently citation-free, so pasting
+ * into a rich-text destination like Notes or Mail no longer surfaces the
+ * citation marker.
+ */
+static NSAttributedString *attributedStringWithoutCitations(NSAttributedString *attributedString)
+{
+  NSRange fullRange = NSMakeRange(0, attributedString.length);
+  NSMutableArray<NSValue *> *rangesToRemove = [NSMutableArray array];
+
+  [attributedString enumerateAttribute:ENRMCitationURLAttributeName
+                               inRange:fullRange
+                               options:0
+                            usingBlock:^(id value, NSRange range, BOOL *stop) {
+                              if (!value || range.length == 0)
+                                return;
+                              [rangesToRemove addObject:[NSValue valueWithRange:range]];
+                            }];
+
+  if (rangesToRemove.count == 0)
+    return attributedString;
+
+  NSMutableAttributedString *mutable = [attributedString mutableCopy];
+  // Delete in reverse so earlier ranges remain valid after the edits.
+  for (NSInteger i = (NSInteger)rangesToRemove.count - 1; i >= 0; i--) {
+    NSRange range = [rangesToRemove[i] rangeValue];
+    if (NSMaxRange(range) <= mutable.length) {
+      [mutable deleteCharactersInRange:range];
+    }
+  }
+  return mutable;
+}
+
+/**
+ * Strips `[text](citation://...)` occurrences from a pre-extracted markdown
+ * string so the markdown pasteboard flavor stays consistent with the other
+ * flavors in the default Copy action.
+ */
+static NSString *markdownWithoutCitations(NSString *markdown)
+{
+  if (markdown.length == 0)
+    return markdown;
+
+  static NSRegularExpression *regex = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    // Matches a standard CommonMark link where the URL begins with `citation://`.
+    // The label body uses `[^\]]*` so it stops at the first `]` — nested
+    // brackets in citation labels aren't a supported case in our emitter.
+    regex = [NSRegularExpression regularExpressionWithPattern:@"\\[[^\\]]*\\]\\(citation://[^\\)]*\\)"
+                                                      options:0
+                                                        error:NULL];
+  });
+
+  if (!regex)
+    return markdown;
+  return [regex stringByReplacingMatchesInString:markdown
+                                         options:0
+                                           range:NSMakeRange(0, markdown.length)
+                                    withTemplate:@""];
+}
+
 #pragma mark - Public API
 
 void copyStringToPasteboard(NSString *string)
@@ -90,20 +156,29 @@ void copyAttributedStringToPasteboard(NSAttributedString *attributedString, NSSt
   if (!attributedString || attributedString.length == 0)
     return;
 
+  // Elide citations before deriving any export flavor so rich-text
+  // destinations (Notes, Mail, Pages, contenteditable, etc.) don't end up
+  // with the reference marker when the user pastes. The dedicated
+  // "Copy as Markdown" action still preserves citations for round-tripping.
+  NSAttributedString *cleaned = attributedStringWithoutCitations(attributedString);
+  if (cleaned.length == 0)
+    return;
+
   NSMutableDictionary *items = [NSMutableDictionary dictionary];
 
-  items[kUTIPlainText] = attributedString.string;
+  items[kUTIPlainText] = cleaned.string;
 
-  if (markdown.length > 0) {
-    items[kUTIMarkdown] = markdown;
+  NSString *cleanedMarkdown = markdownWithoutCitations(markdown);
+  if (cleanedMarkdown.length > 0) {
+    items[kUTIMarkdown] = cleanedMarkdown;
   }
 
   if (styleConfig) {
-    addHTMLData(items, attributedString, styleConfig);
+    addHTMLData(items, cleaned, styleConfig);
   }
 
   // RTF export requires preprocessing (backgrounds, markers, normalized spacing)
-  NSAttributedString *rtfPrepared = prepareAttributedStringForRTFExport(attributedString, styleConfig);
+  NSAttributedString *rtfPrepared = prepareAttributedStringForRTFExport(cleaned, styleConfig);
   NSRange rtfRange = NSMakeRange(0, rtfPrepared.length);
 
   addRTFDData(items, rtfPrepared, rtfRange);

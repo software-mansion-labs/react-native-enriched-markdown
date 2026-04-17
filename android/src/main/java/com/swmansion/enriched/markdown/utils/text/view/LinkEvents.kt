@@ -26,13 +26,13 @@ fun View.emitLinkLongPressEvent(url: String) {
 }
 
 fun View.emitMentionPressEvent(
-  userId: String,
+  url: String,
   text: String,
 ) {
   val reactContext = context as? ReactContext ?: return
   val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
   val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
-  dispatcher?.dispatchEvent(MentionPressEvent(surfaceId, id, userId, text))
+  dispatcher?.dispatchEvent(MentionPressEvent(surfaceId, id, url, text))
 }
 
 fun View.emitCitationPressEvent(

@@ -21,7 +21,7 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
    * is a [android.text.style.ReplacementSpan], not a [android.text.style.ClickableSpan],
    * so the standard LinkMovementMethod dispatch doesn't reach it.
    */
-  var onMentionTap: ((userId: String, text: String) -> Unit)? = null
+  var onMentionTap: ((url: String, text: String) -> Unit)? = null
 
   /** Optional callback invoked when a [CitationSpan] is tapped. */
   var onCitationTap: ((url: String, text: String) -> Unit)? = null
@@ -99,7 +99,7 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
           clearMentionPressedState(widget)
           pendingMentionTapOffset = -1
           if (stillOverMention) {
-            onMentionTap?.invoke(mention.userId, mention.displayText)
+            onMentionTap?.invoke(mention.url, mention.displayText)
             return true
           }
         }

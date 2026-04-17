@@ -16,12 +16,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ENRMMentionAttachment : NSTextAttachment
 
 @property (nonatomic, readonly, copy) NSString *displayText;
-@property (nonatomic, readonly, copy) NSString *userId;
+@property (nonatomic, readonly, copy) NSString *url;
 @property (nonatomic, readonly, strong) StyleConfig *config;
 
-+ (instancetype)attachmentWithDisplayText:(NSString *)displayText
-                                   userId:(NSString *)userId
-                                   config:(StyleConfig *)config;
++ (instancetype)attachmentWithDisplayText:(NSString *)displayText url:(NSString *)url config:(StyleConfig *)config;
 
 @end
 

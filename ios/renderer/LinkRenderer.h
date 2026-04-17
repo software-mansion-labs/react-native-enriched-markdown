@@ -7,7 +7,7 @@
  * the rendered NSAttributedString. Tap dispatching reads these to decide which
  * JS event to fire for a given character.
  */
-FOUNDATION_EXPORT NSString *const ENRMMentionUserIdAttributeName;
+FOUNDATION_EXPORT NSString *const ENRMMentionURLAttributeName;
 FOUNDATION_EXPORT NSString *const ENRMMentionTextAttributeName;
 FOUNDATION_EXPORT NSString *const ENRMCitationURLAttributeName;
 FOUNDATION_EXPORT NSString *const ENRMCitationTextAttributeName;

@@ -23,8 +23,7 @@ NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange chara
 }
 
 BOOL inlineElementAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
-                                NSString *_Nullable *_Nullable outLinkURL,
-                                NSString *_Nullable *_Nullable outMentionUserId,
+                                NSString *_Nullable *_Nullable outLinkURL, NSString *_Nullable *_Nullable outMentionURL,
                                 NSString *_Nullable *_Nullable outMentionText,
                                 NSString *_Nullable *_Nullable outCitationURL,
                                 NSString *_Nullable *_Nullable outCitationText)
@@ -36,10 +35,10 @@ BOOL inlineElementAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognize
   NSAttributedString *attrText = ENRMGetAttributedText(textView);
   NSDictionary *attrs = [attrText attributesAtIndex:characterIndex effectiveRange:NULL];
 
-  NSString *mentionUserId = attrs[ENRMMentionUserIdAttributeName];
-  if (mentionUserId) {
-    if (outMentionUserId)
-      *outMentionUserId = mentionUserId;
+  NSString *mentionURL = attrs[ENRMMentionURLAttributeName];
+  if (mentionURL) {
+    if (outMentionURL)
+      *outMentionURL = mentionURL;
     if (outMentionText)
       *outMentionText = attrs[ENRMMentionTextAttributeName] ?: @"";
     return YES;
@@ -71,7 +70,7 @@ BOOL isPointOnInteractiveElement(ENRMPlatformTextView *textView, CGPoint point)
     return NO;
 
   NSDictionary *attrs = [ENRMGetAttributedText(textView) attributesAtIndex:charIndex effectiveRange:NULL];
-  return attrs[@"linkURL"] != nil || attrs[ENRMMentionUserIdAttributeName] != nil ||
+  return attrs[@"linkURL"] != nil || attrs[ENRMMentionURLAttributeName] != nil ||
          attrs[ENRMCitationURLAttributeName] != nil || [attrs[@"TaskItem"] boolValue] ||
          attrs[SpoilerAttributeName] != nil;
 }

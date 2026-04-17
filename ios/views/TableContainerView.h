@@ -7,7 +7,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^TableLinkPressBlock)(NSString *url);
-typedef void (^TableMentionPressBlock)(NSString *userId, NSString *text);
+typedef void (^TableMentionPressBlock)(NSString *url, NSString *text);
 typedef void (^TableCitationPressBlock)(NSString *url, NSString *text);
 
 @interface TableContainerView : RCTUIView

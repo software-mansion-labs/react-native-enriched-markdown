@@ -107,12 +107,12 @@ function MentionRenderer({
   callbacks,
   node,
 }: SchemeRendererProps) {
-  const userId = url.slice(MENTION_SCHEME.length);
+  const mentionUrl = url.slice(MENTION_SCHEME.length);
   const displayText = extractNodeText(node);
 
   const handleClick = (event: MouseEvent) => {
     event.preventDefault();
-    callbacks.onMentionPress?.({ userId, text: displayText });
+    callbacks.onMentionPress?.({ url: mentionUrl, text: displayText });
   };
 
   const style = {
@@ -129,7 +129,7 @@ function MentionRenderer({
         role="button"
         tabIndex={0}
         aria-label={`Mention: ${displayText}`}
-        data-user-id={userId}
+        data-mention-url={mentionUrl}
         onClick={handleClick}
         style={style}
       >

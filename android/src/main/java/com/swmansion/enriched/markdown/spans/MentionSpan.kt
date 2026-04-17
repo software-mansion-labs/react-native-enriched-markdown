@@ -12,11 +12,11 @@ import com.swmansion.enriched.markdown.styles.MentionStyle
  * Rendering is atomic — the span reports its full width (including padding and
  * border) via getSize so layout reserves enough room and the text never clips.
  *
- * The span exposes [userId] for tap dispatching and an [isPressed] flag the
+ * The span exposes [url] for tap dispatching and an [isPressed] flag the
  * tap handler can toggle to drive the pressedOpacity tap-feedback animation.
  */
 class MentionSpan(
-  val userId: String,
+  val url: String,
   val displayText: String,
   private val mentionStyle: MentionStyle,
   private val mentionTypeface: Typeface?,

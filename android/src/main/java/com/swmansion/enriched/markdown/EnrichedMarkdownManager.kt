@@ -56,8 +56,8 @@ class EnrichedMarkdownManager :
       emitLinkLongPress(view, url)
     }
 
-    view?.setOnMentionPressCallback { userId, text ->
-      emitMentionPress(view, userId, text)
+    view?.setOnMentionPressCallback { url, text ->
+      emitMentionPress(view, url, text)
     }
 
     view?.setOnCitationPressCallback { url, text ->

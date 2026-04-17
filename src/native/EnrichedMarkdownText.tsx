@@ -132,8 +132,8 @@ export const EnrichedMarkdownText = ({
 
   const handleMentionPress = useCallback(
     (e: NativeSyntheticEvent<MentionPressEvent>) => {
-      const { userId, text } = e.nativeEvent;
-      onMentionPress?.({ userId, text });
+      const { url, text } = e.nativeEvent;
+      onMentionPress?.({ url, text });
     },
     [onMentionPress]
   );

@@ -233,7 +233,7 @@ class EnrichedMarkdownText
       val method =
         (movementMethod as? LinkLongPressMovementMethod)
           ?: LinkLongPressMovementMethod.createInstance().also { movementMethod = it }
-      method.onMentionTap = { userId, mentionText -> emitOnMentionPress(userId, mentionText) }
+      method.onMentionTap = { url, mentionText -> emitOnMentionPress(url, mentionText) }
       method.onCitationTap = { url, citationText -> emitOnCitationPress(url, citationText) }
 
       renderer.getCollectedImageSpans().forEach { span ->
@@ -271,10 +271,10 @@ class EnrichedMarkdownText
     }
 
     fun emitOnMentionPress(
-      userId: String,
+      url: String,
       text: String,
     ) {
-      emitMentionPressEvent(userId, text)
+      emitMentionPressEvent(url, text)
     }
 
     fun emitOnCitationPress(

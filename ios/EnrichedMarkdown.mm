@@ -559,7 +559,7 @@ using namespace facebook::react;
     }
   };
 
-  tableView.onMentionPress = ^(NSString *userId, NSString *text) {
+  tableView.onMentionPress = ^(NSString *url, NSString *text) {
     EnrichedMarkdown *strongSelf = weakSelf;
     if (!strongSelf)
       return;
@@ -567,7 +567,7 @@ using namespace facebook::react;
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
     if (eventEmitter) {
       eventEmitter->onMentionPress({
-          .userId = std::string([(userId ?: @"") UTF8String] ?: ""),
+          .url = std::string([(url ?: @"") UTF8String] ?: ""),
           .text = std::string([(text ?: @"") UTF8String] ?: ""),
       });
     }
@@ -789,17 +789,17 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   }
 
   NSString *linkURL = nil;
-  NSString *mentionUserId = nil;
+  NSString *mentionURL = nil;
   NSString *mentionText = nil;
   NSString *citationURL = nil;
   NSString *citationText = nil;
-  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionUserId, &mentionText, &citationURL,
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionURL, &mentionText, &citationURL,
                                  &citationText)) {
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
     if (eventEmitter) {
-      if (mentionUserId) {
+      if (mentionURL) {
         eventEmitter->onMentionPress({
-            .userId = std::string([mentionUserId UTF8String] ?: ""),
+            .url = std::string([mentionURL UTF8String] ?: ""),
             .text = std::string([(mentionText ?: @"") UTF8String] ?: ""),
         });
       } else if (citationURL) {

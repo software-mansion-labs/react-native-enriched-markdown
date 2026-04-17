@@ -18,7 +18,7 @@
     _linkRanges = [NSMutableArray array];
     _linkURLs = [NSMutableArray array];
     _mentionRanges = [NSMutableArray array];
-    _mentionUserIds = [NSMutableArray array];
+    _mentionURLs = [NSMutableArray array];
     _mentionTexts = [NSMutableArray array];
     _citationRanges = [NSMutableArray array];
     _citationURLs = [NSMutableArray array];
@@ -111,12 +111,12 @@
   [self.linkURLs addObject:url ?: @""];
 }
 
-- (void)registerMentionRange:(NSRange)range userId:(NSString *)userId text:(NSString *)text
+- (void)registerMentionRange:(NSRange)range url:(NSString *)url text:(NSString *)text
 {
   if (range.length == 0)
     return;
   [self.mentionRanges addObject:[NSValue valueWithRange:range]];
-  [self.mentionUserIds addObject:userId ?: @""];
+  [self.mentionURLs addObject:url ?: @""];
   [self.mentionTexts addObject:text ?: @""];
 }
 
@@ -268,7 +268,7 @@
   [_linkRanges removeAllObjects];
   [_linkURLs removeAllObjects];
   [_mentionRanges removeAllObjects];
-  [_mentionUserIds removeAllObjects];
+  [_mentionURLs removeAllObjects];
   [_mentionTexts removeAllObjects];
   [_citationRanges removeAllObjects];
   [_citationURLs removeAllObjects];

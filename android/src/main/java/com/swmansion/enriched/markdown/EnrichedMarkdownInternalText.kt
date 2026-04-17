@@ -38,7 +38,7 @@ class EnrichedMarkdownInternalText
         checkboxTouchHelper.onCheckboxTap = value
       }
 
-    var onMentionPressCallback: ((userId: String, text: String) -> Unit)? = null
+    var onMentionPressCallback: ((url: String, text: String) -> Unit)? = null
     var onCitationPressCallback: ((url: String, text: String) -> Unit)? = null
 
     override val segmentMarginBottom: Int get() = lastElementMarginBottom.toInt()
@@ -67,7 +67,7 @@ class EnrichedMarkdownInternalText
       val method =
         (movementMethod as? LinkLongPressMovementMethod)
           ?: LinkLongPressMovementMethod.createInstance().also { movementMethod = it }
-      method.onMentionTap = { userId, mentionText -> onMentionPressCallback?.invoke(userId, mentionText) }
+      method.onMentionTap = { url, mentionText -> onMentionPressCallback?.invoke(url, mentionText) }
       method.onCitationTap = { url, citationText -> onCitationPressCallback?.invoke(url, citationText) }
 
       spoilerOverlayDrawer = SpoilerOverlayDrawer.setupIfNeeded(this, styledText, spoilerOverlayDrawer, spoilerOverlay)

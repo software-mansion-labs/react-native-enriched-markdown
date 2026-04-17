@@ -18,8 +18,7 @@ NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange chara
 /// The out parameters are populated only when a matching element is present.
 /// Returns YES when any element was matched, NO otherwise.
 BOOL inlineElementAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
-                                NSString *_Nullable *_Nullable outLinkURL,
-                                NSString *_Nullable *_Nullable outMentionUserId,
+                                NSString *_Nullable *_Nullable outLinkURL, NSString *_Nullable *_Nullable outMentionURL,
                                 NSString *_Nullable *_Nullable outMentionText,
                                 NSString *_Nullable *_Nullable outCitationURL,
                                 NSString *_Nullable *_Nullable outCitationText);

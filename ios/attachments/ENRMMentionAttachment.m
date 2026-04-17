@@ -3,18 +3,18 @@
 
 @interface ENRMMentionAttachment ()
 @property (nonatomic, copy) NSString *displayText;
-@property (nonatomic, copy) NSString *userId;
+@property (nonatomic, copy) NSString *url;
 @property (nonatomic, strong) StyleConfig *config;
 @property (nonatomic, assign) CGSize cachedPillSize;
 @end
 
 @implementation ENRMMentionAttachment
 
-+ (instancetype)attachmentWithDisplayText:(NSString *)displayText userId:(NSString *)userId config:(StyleConfig *)config
++ (instancetype)attachmentWithDisplayText:(NSString *)displayText url:(NSString *)url config:(StyleConfig *)config
 {
   ENRMMentionAttachment *attachment = [[self alloc] init];
   attachment.displayText = displayText ?: @"";
-  attachment.userId = userId ?: @"";
+  attachment.url = url ?: @"";
   attachment.config = config;
   [attachment rebuildPillImage];
   return attachment;

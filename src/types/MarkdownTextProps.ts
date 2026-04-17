@@ -73,8 +73,8 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
   /**
    * Callback fired when an inline mention pill is pressed.
-   * Mentions are authored as `[label](mention://<userId>)` in markdown; the
-   * renderer draws them as a pill and surfaces the user id separately.
+   * Mentions are authored as `[label](mention://<id>)` in markdown; the
+   * renderer draws them as a pill and surfaces the post-scheme URL separately.
    * @platform ios, android, web
    */
   onMentionPress?: (event: MentionPressEvent) => void;

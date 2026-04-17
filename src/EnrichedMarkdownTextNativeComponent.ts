@@ -215,7 +215,7 @@ export interface LinkLongPressEvent {
 }
 
 export interface MentionPressEvent {
-  userId: string;
+  url: string;
   text: string;
 }
 
@@ -291,7 +291,7 @@ export interface NativeProps extends ViewProps {
    */
   onTaskListItemPress?: CodegenTypes.BubblingEventHandler<TaskListItemPressEvent>;
   /**
-   * Callback fired when an inline mention pill (`mention://<userId>`) is pressed.
+   * Callback fired when an inline mention pill (`mention://<id>`) is pressed.
    */
   onMentionPress?: CodegenTypes.BubblingEventHandler<MentionPressEvent>;
   /**

@@ -72,7 +72,7 @@ class LinkRenderer(
   }
 
   private fun renderMention(
-    userId: String,
+    url: String,
     node: MarkdownASTNode,
     builder: SpannableStringBuilder,
     onLinkPress: ((String) -> Unit)?,
@@ -95,7 +95,7 @@ class LinkRenderer(
 
     val span =
       MentionSpan(
-        userId = userId,
+        url = url,
         displayText = displayText,
         mentionStyle = factory.styleCache.mentionStyle,
         mentionTypeface = factory.styleCache.mentionTypeface,

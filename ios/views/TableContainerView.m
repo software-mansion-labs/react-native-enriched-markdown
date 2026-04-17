@@ -410,14 +410,14 @@
 {
   UITextView *textView = (UITextView *)recognizer.view;
   NSString *linkURL = nil;
-  NSString *mentionUserId = nil;
+  NSString *mentionURL = nil;
   NSString *mentionText = nil;
   NSString *citationURL = nil;
   NSString *citationText = nil;
-  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionUserId, &mentionText, &citationURL,
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionURL, &mentionText, &citationURL,
                                  &citationText)) {
-    if (mentionUserId && self.onMentionPress) {
-      self.onMentionPress(mentionUserId, mentionText ?: @"");
+    if (mentionURL && self.onMentionPress) {
+      self.onMentionPress(mentionURL, mentionText ?: @"");
     } else if (citationURL && self.onCitationPress) {
       self.onCitationPress(citationURL, citationText ?: @"");
     } else if (linkURL && self.onLinkPress) {

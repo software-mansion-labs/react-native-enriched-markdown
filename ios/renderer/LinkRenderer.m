@@ -7,7 +7,7 @@
 #import "StyleConfig.h"
 #import <React/RCTFont.h>
 
-NSString *const ENRMMentionUserIdAttributeName = @"ENRMMentionUserId";
+NSString *const ENRMMentionURLAttributeName = @"ENRMMentionURL";
 NSString *const ENRMMentionTextAttributeName = @"ENRMMentionText";
 NSString *const ENRMCitationURLAttributeName = @"ENRMCitationURL";
 NSString *const ENRMCitationTextAttributeName = @"ENRMCitationText";
@@ -140,7 +140,7 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   NSMutableAttributedString *childBuffer = [[NSMutableAttributedString alloc] init];
   [_rendererFactory renderChildrenOfNode:node into:childBuffer context:context];
   NSString *displayText = childBuffer.string ?: @"";
-  NSString *userId = stripScheme(url, kMentionScheme);
+  NSString *mentionURL = stripScheme(url, kMentionScheme);
 
   // Inherit the current text attributes (font, color) so the pill sits in the
   // same line metrics as the surrounding paragraph if the pill label has no
@@ -148,7 +148,7 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   NSDictionary *baseAttrs = output.length > 0 ? [output attributesAtIndex:output.length - 1 effectiveRange:NULL] : @{};
 
   ENRMMentionAttachment *attachment = [ENRMMentionAttachment attachmentWithDisplayText:displayText
-                                                                                userId:userId
+                                                                                   url:mentionURL
                                                                                 config:_config];
 
   NSMutableAttributedString *attachmentString =
@@ -157,14 +157,14 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   if (baseAttrs.count > 0) {
     [attachmentString addAttributes:baseAttrs range:attachmentRange];
   }
-  [attachmentString addAttribute:ENRMMentionUserIdAttributeName value:userId range:attachmentRange];
+  [attachmentString addAttribute:ENRMMentionURLAttributeName value:mentionURL range:attachmentRange];
   [attachmentString addAttribute:ENRMMentionTextAttributeName value:displayText range:attachmentRange];
 
   NSUInteger start = output.length;
   [output appendAttributedString:attachmentString];
   NSRange outputRange = NSMakeRange(start, output.length - start);
 
-  [context registerMentionRange:outputRange userId:userId text:displayText];
+  [context registerMentionRange:outputRange url:mentionURL text:displayText];
 }
 
 #pragma mark - Citation

@@ -138,7 +138,7 @@ class EnrichedMarkdown
       onLinkLongPressCallback = callback
     }
 
-    fun setOnMentionPressCallback(callback: ((userId: String, text: String) -> Unit)?) {
+    fun setOnMentionPressCallback(callback: ((url: String, text: String) -> Unit)?) {
       onMentionPressCallback = callback
     }
 

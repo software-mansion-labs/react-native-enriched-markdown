@@ -49,7 +49,7 @@ class TableContainerView(
   var maxFontSizeMultiplier = 0f
   var onLinkPress: ((String) -> Unit)? = null
   var onLinkLongPress: ((String) -> Unit)? = null
-  var onMentionPress: ((userId: String, text: String) -> Unit)? = null
+  var onMentionPress: ((url: String, text: String) -> Unit)? = null
   var onCitationPress: ((url: String, text: String) -> Unit)? = null
 
   private val scrollView =
@@ -209,7 +209,7 @@ class TableContainerView(
           true
         }
         (movementMethod as? LinkLongPressMovementMethod)?.apply {
-          onMentionTap = { userId, mentionText -> this@TableContainerView.onMentionPress?.invoke(userId, mentionText) }
+          onMentionTap = { url, mentionText -> this@TableContainerView.onMentionPress?.invoke(url, mentionText) }
           onCitationTap = { url, citationText -> this@TableContainerView.onCitationPress?.invoke(url, citationText) }
         }
       }

@@ -105,7 +105,7 @@ The largest terrestrial biome, spanning across **Northern Russia, Canada, and Sc
 | Forest Type | Coverage | Annual Rainfall | Biodiversity | Carbon Storage |
 |------------|----------|-----------------|--------------|----------------|
 | Tropical Rainforest [4](citation://https://www.google.com) [5](citation://https://www.google.com)  | ~7% of land | 80-400 inches | Highest (50%+ species) | High |
-| Temperate Forest | ~16% of land | 30-60 inches | Moderate | Moderate |
+| Temperate Forest [@Casper](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user) | ~16% of land | 30-60 inches | Moderate | Moderate |
 | Boreal Forest (Taiga) | ~11% of land | 15-40 inches | Lower | Highest |
 | Mediterranean Forest | ~2% of land | 20-40 inches | Moderate | Moderate [@John Muir](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user)|
 

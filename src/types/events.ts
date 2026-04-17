@@ -13,7 +13,7 @@ export interface TaskListItemPressEvent {
 }
 
 export interface MentionPressEvent {
-  userId: string;
+  url: string;
   text: string;
 }
 

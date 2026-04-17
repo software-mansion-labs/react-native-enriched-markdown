@@ -60,7 +60,7 @@ export interface EnrichedMarkdownTextProps
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
   /**
    * Callback fired when an inline mention pill is pressed.
-   * Mentions are authored as `[label](mention://<userId>)` in markdown.
+   * Mentions are authored as `[label](mention://<id>)` in markdown.
    * @platform ios, android, web
    */
   onMentionPress?: (event: MentionPressEvent) => void;

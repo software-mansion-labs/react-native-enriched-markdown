@@ -50,13 +50,13 @@ fun emitLinkLongPress(
 
 fun emitMentionPress(
   view: View,
-  userId: String,
+  url: String,
   text: String,
 ) {
   val context = view.context as com.facebook.react.bridge.ReactContext
   val surfaceId = UIManagerHelper.getSurfaceId(context)
   val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
-  eventDispatcher?.dispatchEvent(MentionPressEvent(surfaceId, view.id, userId, text))
+  eventDispatcher?.dispatchEvent(MentionPressEvent(surfaceId, view.id, url, text))
 }
 
 fun emitCitationPress(

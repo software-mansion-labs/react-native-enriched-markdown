@@ -271,6 +271,10 @@ function citationStyle(style: MarkdownStyleInternal): CSSProperties {
   const citation = style.citation;
   const hasBackground =
     !!citation.backgroundColor && citation.backgroundColor !== 'transparent';
+  const hasBorder =
+    !!citation.borderColor &&
+    citation.borderColor !== 'transparent' &&
+    citation.borderWidth > 0;
   return {
     color: citation.color,
     fontSize: `calc(1em * ${citation.fontSizeMultiplier})`,
@@ -282,10 +286,11 @@ function citationStyle(style: MarkdownStyleInternal): CSSProperties {
     textDecoration: citation.underline ? 'underline' : undefined,
     paddingInline: citation.paddingHorizontal || undefined,
     paddingBlock: citation.paddingVertical || undefined,
-    // Round the chip when a background is set; a small radius keeps inline
-    // citation markers looking like pills rather than square boxes.
+    borderStyle: hasBorder ? 'solid' : undefined,
+    borderColor: hasBorder ? citation.borderColor : undefined,
+    borderWidth: hasBorder ? citation.borderWidth : undefined,
     borderRadius:
-      hasBackground && citation.paddingHorizontal > 0 ? 999 : undefined,
+      hasBackground || hasBorder ? citation.borderRadius : undefined,
     cursor: 'pointer',
   };
 }

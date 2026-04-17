@@ -1201,5 +1201,24 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  if (newStyle.citation.borderColor != oldStyle.citation.borderColor) {
+    if (newStyle.citation.borderColor) {
+      [config setCitationBorderColor:RCTUIColorFromSharedColor(newStyle.citation.borderColor)];
+    } else {
+      [config setCitationBorderColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.citation.borderWidth != oldStyle.citation.borderWidth) {
+    [config setCitationBorderWidth:newStyle.citation.borderWidth];
+    changed = YES;
+  }
+
+  if (newStyle.citation.borderRadius != oldStyle.citation.borderRadius) {
+    [config setCitationBorderRadius:newStyle.citation.borderRadius];
+    changed = YES;
+  }
+
   return changed;
 }

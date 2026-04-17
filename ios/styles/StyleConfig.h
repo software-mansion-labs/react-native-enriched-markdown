@@ -405,5 +405,11 @@
 - (void)setCitationPaddingHorizontal:(CGFloat)newValue;
 - (CGFloat)citationPaddingVertical;
 - (void)setCitationPaddingVertical:(CGFloat)newValue;
+- (RCTUIColor *)citationBorderColor;
+- (void)setCitationBorderColor:(RCTUIColor *)newValue;
+- (CGFloat)citationBorderWidth;
+- (void)setCitationBorderWidth:(CGFloat)newValue;
+- (CGFloat)citationBorderRadius;
+- (void)setCitationBorderRadius:(CGFloat)newValue;
 
 @end

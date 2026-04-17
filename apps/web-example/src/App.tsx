@@ -171,6 +171,31 @@ export default function App() {
           onTaskListItemPress={onTaskListItemPress}
           onCitationPress={handleCitationPress}
           onMentionPress={handleMentionPress}
+          markdownStyle={{
+            mention: {
+              backgroundColor: '#EBEBFF',
+              borderColor: '#ddd6fe',
+              borderWidth: 1,
+              borderRadius: 99,
+              paddingHorizontal: 4,
+              paddingVertical: 0,
+              fontSize: 14,
+              color: '#2563fb',
+            },
+            citation: {
+              backgroundColor: '#EBEBFF',
+              color: '#9B9BFD',
+              fontSizeMultiplier: 0.5,
+              baselineOffsetPx: 7,
+              fontWeight: '',
+              underline: false,
+              paddingHorizontal: 4,
+              paddingVertical: 2,
+              borderColor: '#ddd6fe',
+              borderWidth: 1,
+              borderRadius: 99,
+            },
+          }}
         />
 
         <View style={styles.divider} />

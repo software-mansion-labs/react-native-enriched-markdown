@@ -11,6 +11,9 @@ data class CitationStyle(
   val backgroundColor: Int?,
   val paddingHorizontal: Float,
   val paddingVertical: Float,
+  val borderColor: Int?,
+  val borderWidth: Float,
+  val borderRadius: Float,
 ) {
   companion object {
     fun fromReadableMap(
@@ -25,6 +28,9 @@ data class CitationStyle(
       val backgroundColor = parser.parseOptionalColor(map, "backgroundColor")
       val paddingHorizontal = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "paddingHorizontal").toFloat())
       val paddingVertical = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "paddingVertical").toFloat())
+      val borderColor = parser.parseOptionalColor(map, "borderColor")
+      val borderWidth = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "borderWidth").toFloat())
+      val borderRadius = parser.toPixelFromDIP(parser.parseOptionalDouble(map, "borderRadius", 999.0).toFloat())
 
       return CitationStyle(
         color = color,
@@ -35,6 +41,9 @@ data class CitationStyle(
         backgroundColor = backgroundColor,
         paddingHorizontal = paddingHorizontal,
         paddingVertical = paddingVertical,
+        borderColor = borderColor,
+        borderWidth = borderWidth,
+        borderRadius = borderRadius,
       )
     }
   }

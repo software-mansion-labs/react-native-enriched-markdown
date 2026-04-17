@@ -226,6 +226,9 @@ const DEFAULT_NORMALIZED_STYLE = Object.freeze({
     backgroundColor: 'transparent',
     paddingHorizontal: 0,
     paddingVertical: 0,
+    borderColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 999,
   },
 }) as MarkdownStyleInternal;
 

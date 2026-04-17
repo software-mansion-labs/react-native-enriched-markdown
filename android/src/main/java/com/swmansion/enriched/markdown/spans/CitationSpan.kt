@@ -23,6 +23,7 @@ class CitationSpan(
   private val citationStyle: CitationStyle,
 ) : ReplacementSpan() {
   private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+  private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
   private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG)
 
   private fun configureTextPaint(basePaint: Paint) {
@@ -104,15 +105,30 @@ class CitationSpan(
     val bgTop = glyphBaseline + textAscent - paddingV
     val bgBottom = glyphBaseline + textDescent + paddingV
 
+    val maxRadius = minOf((bgBottom - bgTop) / 2f, chipWidth / 2f)
+    val radius = minOf(citationStyle.borderRadius, maxRadius)
+    val chipRect = RectF(x, bgTop, x + chipWidth, bgBottom)
+
     if (citationStyle.backgroundColor != null && citationStyle.backgroundColor != 0) {
       fillPaint.color = citationStyle.backgroundColor
-      val radius = minOf((bgBottom - bgTop) / 2f, chipWidth / 2f)
-      canvas.drawRoundRect(
-        RectF(x, bgTop, x + chipWidth, bgBottom),
-        radius,
-        radius,
-        fillPaint,
-      )
+      canvas.drawRoundRect(chipRect, radius, radius, fillPaint)
+    }
+
+    if (citationStyle.borderColor != null && citationStyle.borderColor != 0 && citationStyle.borderWidth > 0f) {
+      strokePaint.color = citationStyle.borderColor
+      strokePaint.strokeWidth = citationStyle.borderWidth
+      // Inset the stroke by half its width so the border stays inside the chip
+      // rect (matches the iOS UIBezierPath stroke).
+      val halfStroke = citationStyle.borderWidth / 2f
+      val borderRect =
+        RectF(
+          chipRect.left + halfStroke,
+          chipRect.top + halfStroke,
+          chipRect.right - halfStroke,
+          chipRect.bottom - halfStroke,
+        )
+      val borderRadius = minOf(radius, minOf(borderRect.width(), borderRect.height()) / 2f)
+      canvas.drawRoundRect(borderRect, borderRadius, borderRadius, strokePaint)
     }
 
     canvas.drawText(displayText, x + paddingH, glyphBaseline, textPaint)

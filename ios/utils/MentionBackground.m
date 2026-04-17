@@ -53,21 +53,46 @@
                 if (glyphRange.location == NSNotFound || glyphRange.length == 0)
                   return;
 
+                // Pick up the font actually applied to the mention glyphs so the
+                // pill can be sized to the mention font, not to the (possibly
+                // taller) line height.
+                UIFont *mentionFont = [textStorage attribute:NSFontAttributeName
+                                                     atIndex:range.location
+                                              effectiveRange:NULL];
+
                 [layoutManager
                     enumerateLineFragmentsForGlyphRange:glyphRange
-                                             usingBlock:^(CGRect rect, CGRect usedRect, NSTextContainer *tc,
+                                             usingBlock:^(CGRect lineRect, CGRect usedRect, NSTextContainer *tc,
                                                           NSRange lineRange, BOOL *lineStop) {
                                                NSRange intersect = NSIntersectionRange(lineRange, glyphRange);
                                                if (intersect.length == 0)
                                                  return;
 
+                                               // Horizontal extent: tight to the mention glyph run.
                                                CGRect glyphRect =
                                                    [layoutManager boundingRectForGlyphRange:intersect
                                                                             inTextContainer:textContainer];
-                                               CGRect pillRect = CGRectMake(glyphRect.origin.x + origin.x - paddingH,
-                                                                            glyphRect.origin.y + origin.y - paddingV,
-                                                                            glyphRect.size.width + paddingH * 2,
-                                                                            glyphRect.size.height + paddingV * 2);
+
+                                               // Vertical extent: derive from the mention glyphs' own
+                                               // baseline + font metrics so the pill hugs the mention
+                                               // text rather than stretching to the full line height
+                                               // (which can be taller when other inline elements on the
+                                               // line have larger metrics).
+                                               CGPoint glyphLocation =
+                                                   [layoutManager locationForGlyphAtIndex:intersect.location];
+                                               CGFloat baselineY = lineRect.origin.y + glyphLocation.y;
+
+                                               CGFloat ascent = mentionFont ? mentionFont.ascender : 0;
+                                               // UIFont.descender is negative (points below baseline);
+                                               // subtract it to move downward from the baseline.
+                                               CGFloat descent = mentionFont ? mentionFont.descender : 0;
+
+                                               CGFloat pillTop = baselineY - ascent - paddingV;
+                                               CGFloat pillBottom = baselineY - descent + paddingV;
+
+                                               CGRect pillRect = CGRectMake(
+                                                   glyphRect.origin.x + origin.x - paddingH, pillTop + origin.y,
+                                                   glyphRect.size.width + paddingH * 2, MAX(0, pillBottom - pillTop));
 
                                                CGFloat radius = MIN(
                                                    borderRadius, MIN(pillRect.size.width, pillRect.size.height) / 2.0);

@@ -249,6 +249,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   RCTUIColor *_citationBackgroundColor;
   CGFloat _citationPaddingHorizontal;
   CGFloat _citationPaddingVertical;
+  RCTUIColor *_citationBorderColor;
+  CGFloat _citationBorderWidth;
+  CGFloat _citationBorderRadius;
 }
 
 - (instancetype)init
@@ -544,6 +547,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_citationBackgroundColor = [_citationBackgroundColor copy];
   copy->_citationPaddingHorizontal = _citationPaddingHorizontal;
   copy->_citationPaddingVertical = _citationPaddingVertical;
+  copy->_citationBorderColor = [_citationBorderColor copy];
+  copy->_citationBorderWidth = _citationBorderWidth;
+  copy->_citationBorderRadius = _citationBorderRadius;
 
   return copy;
 }
@@ -2654,6 +2660,36 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setCitationPaddingVertical:(CGFloat)newValue
 {
   _citationPaddingVertical = newValue;
+}
+
+- (RCTUIColor *)citationBorderColor
+{
+  return _citationBorderColor;
+}
+
+- (void)setCitationBorderColor:(RCTUIColor *)newValue
+{
+  _citationBorderColor = newValue;
+}
+
+- (CGFloat)citationBorderWidth
+{
+  return _citationBorderWidth;
+}
+
+- (void)setCitationBorderWidth:(CGFloat)newValue
+{
+  _citationBorderWidth = newValue;
+}
+
+- (CGFloat)citationBorderRadius
+{
+  return _citationBorderRadius;
+}
+
+- (void)setCitationBorderRadius:(CGFloat)newValue
+{
+  _citationBorderRadius = newValue;
 }
 
 @end

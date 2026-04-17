@@ -175,6 +175,9 @@ interface CitationStyleInternal {
   backgroundColor: ColorValue;
   paddingHorizontal: CodegenTypes.Float;
   paddingVertical: CodegenTypes.Float;
+  borderColor: ColorValue;
+  borderWidth: CodegenTypes.Float;
+  borderRadius: CodegenTypes.Float;
 }
 
 export interface MarkdownStyleInternal {

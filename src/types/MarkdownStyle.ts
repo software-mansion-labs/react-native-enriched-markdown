@@ -226,6 +226,21 @@ interface CitationStyle {
    * @default 0
    */
   paddingVertical?: number;
+  /**
+   * Border color rendered around the citation marker. Only visible when
+   * `borderWidth` is > 0.
+   */
+  borderColor?: string;
+  /**
+   * Border width (in px) rendered around the citation marker.
+   * @default 0
+   */
+  borderWidth?: number;
+  /**
+   * Corner radius (in px) of the citation marker's background/border.
+   * Defaults to a fully-rounded pill.
+   */
+  borderRadius?: number;
 }
 
 export interface MarkdownStyle {

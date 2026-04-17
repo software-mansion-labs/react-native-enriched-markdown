@@ -175,6 +175,9 @@ interface CitationStyleInternal {
   backgroundColor: string;
   paddingHorizontal: number;
   paddingVertical: number;
+  borderColor: string;
+  borderWidth: number;
+  borderRadius: number;
 }
 
 export interface MarkdownStyleInternal {

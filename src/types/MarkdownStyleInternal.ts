@@ -152,6 +152,31 @@ interface SpoilerStyleInternal {
   solid: SpoilerSolidStyleInternal;
 }
 
+interface MentionStyleInternal {
+  color: string;
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  paddingHorizontal: number;
+  paddingVertical: number;
+  fontFamily: string;
+  fontWeight: string;
+  fontSize: number;
+  pressedOpacity: number;
+}
+
+interface CitationStyleInternal {
+  color: string;
+  fontSizeMultiplier: number;
+  baselineOffsetPx: number;
+  fontWeight: string;
+  underline: boolean;
+  backgroundColor: string;
+  paddingHorizontal: number;
+  paddingVertical: number;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -177,4 +202,6 @@ export interface MarkdownStyleInternal {
   math: MathStyleInternal;
   inlineMath: InlineMathStyleInternal;
   spoiler: SpoilerStyleInternal;
+  mention: MentionStyleInternal;
+  citation: CitationStyleInternal;
 }

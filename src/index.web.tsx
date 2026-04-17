@@ -5,4 +5,6 @@ export type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
 } from './types/events';

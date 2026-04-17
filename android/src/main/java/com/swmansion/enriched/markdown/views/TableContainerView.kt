@@ -49,6 +49,8 @@ class TableContainerView(
   var maxFontSizeMultiplier = 0f
   var onLinkPress: ((String) -> Unit)? = null
   var onLinkLongPress: ((String) -> Unit)? = null
+  var onMentionPress: ((userId: String, text: String) -> Unit)? = null
+  var onCitationPress: ((url: String, text: String) -> Unit)? = null
 
   private val scrollView =
     HorizontalScrollView(context).apply {
@@ -205,6 +207,10 @@ class TableContainerView(
         setOnLongClickListener { view ->
           showContextMenu(view)
           true
+        }
+        (movementMethod as? LinkLongPressMovementMethod)?.apply {
+          onMentionTap = { userId, mentionText -> this@TableContainerView.onMentionPress?.invoke(userId, mentionText) }
+          onCitationTap = { url, citationText -> this@TableContainerView.onCitationPress?.invoke(url, citationText) }
         }
       }
     val horizontalPadding = tableStyle.cellPaddingHorizontal

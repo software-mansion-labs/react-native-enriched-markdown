@@ -25,6 +25,12 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 @interface RenderContext : NSObject
 @property (nonatomic, strong) NSMutableArray<NSValue *> *linkRanges;
 @property (nonatomic, strong) NSMutableArray<NSString *> *linkURLs;
+@property (nonatomic, strong) NSMutableArray<NSValue *> *mentionRanges;
+@property (nonatomic, strong) NSMutableArray<NSString *> *mentionUserIds;
+@property (nonatomic, strong) NSMutableArray<NSString *> *mentionTexts;
+@property (nonatomic, strong) NSMutableArray<NSValue *> *citationRanges;
+@property (nonatomic, strong) NSMutableArray<NSString *> *citationURLs;
+@property (nonatomic, strong) NSMutableArray<NSString *> *citationTexts;
 @property (nonatomic, strong) NSMutableArray<NSValue *> *headingRanges;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *headingLevels;
 @property (nonatomic, strong) NSMutableArray<NSValue *> *imageRanges;
@@ -53,6 +59,8 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 - (NSMutableParagraphStyle *)spacerStyleWithHeight:(CGFloat)height spacing:(CGFloat)spacing;
 - (NSMutableParagraphStyle *)blockSpacerStyleWithMargin:(CGFloat)margin;
 - (void)registerLinkRange:(NSRange)range url:(NSString *)url;
+- (void)registerMentionRange:(NSRange)range userId:(NSString *)userId text:(NSString *)text;
+- (void)registerCitationRange:(NSRange)range url:(NSString *)url text:(NSString *)text;
 
 - (void)applyLinkAttributesToString:(NSMutableAttributedString *)attributedString;
 - (void)registerHeadingRange:(NSRange)range level:(NSInteger)level text:(NSString *)text;

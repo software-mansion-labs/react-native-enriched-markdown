@@ -364,5 +364,46 @@
 - (void)setSpoilerParticleSpeed:(CGFloat)newValue;
 - (CGFloat)spoilerSolidBorderRadius;
 - (void)setSpoilerSolidBorderRadius:(CGFloat)newValue;
+// Mention properties
+- (RCTUIColor *)mentionColor;
+- (void)setMentionColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)mentionBackgroundColor;
+- (void)setMentionBackgroundColor:(RCTUIColor *)newValue;
+- (RCTUIColor *)mentionBorderColor;
+- (void)setMentionBorderColor:(RCTUIColor *)newValue;
+- (CGFloat)mentionBorderWidth;
+- (void)setMentionBorderWidth:(CGFloat)newValue;
+- (CGFloat)mentionBorderRadius;
+- (void)setMentionBorderRadius:(CGFloat)newValue;
+- (CGFloat)mentionPaddingHorizontal;
+- (void)setMentionPaddingHorizontal:(CGFloat)newValue;
+- (CGFloat)mentionPaddingVertical;
+- (void)setMentionPaddingVertical:(CGFloat)newValue;
+- (NSString *)mentionFontFamily;
+- (void)setMentionFontFamily:(NSString *)newValue;
+- (NSString *)mentionFontWeight;
+- (void)setMentionFontWeight:(NSString *)newValue;
+- (CGFloat)mentionFontSize;
+- (void)setMentionFontSize:(CGFloat)newValue;
+- (CGFloat)mentionPressedOpacity;
+- (void)setMentionPressedOpacity:(CGFloat)newValue;
+- (UIFont *)mentionFont;
+// Citation properties
+- (RCTUIColor *)citationColor;
+- (void)setCitationColor:(RCTUIColor *)newValue;
+- (CGFloat)citationFontSizeMultiplier;
+- (void)setCitationFontSizeMultiplier:(CGFloat)newValue;
+- (CGFloat)citationBaselineOffsetPx;
+- (void)setCitationBaselineOffsetPx:(CGFloat)newValue;
+- (NSString *)citationFontWeight;
+- (void)setCitationFontWeight:(NSString *)newValue;
+- (BOOL)citationUnderline;
+- (void)setCitationUnderline:(BOOL)newValue;
+- (RCTUIColor *)citationBackgroundColor;
+- (void)setCitationBackgroundColor:(RCTUIColor *)newValue;
+- (CGFloat)citationPaddingHorizontal;
+- (void)setCitationPaddingHorizontal:(CGFloat)newValue;
+- (CGFloat)citationPaddingVertical;
+- (void)setCitationPaddingVertical:(CGFloat)newValue;
 
 @end

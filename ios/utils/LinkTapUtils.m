@@ -1,6 +1,7 @@
 #import "LinkTapUtils.h"
 #import "ENRMSpoilerTapUtils.h"
 #import "ENRMTextHitTest.h"
+#import "LinkRenderer.h"
 
 NSString *_Nullable linkURLAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer)
 {
@@ -21,6 +22,48 @@ NSString *_Nullable linkURLAtRange(ENRMPlatformTextView *textView, NSRange chara
   return [attrText attribute:@"linkURL" atIndex:characterRange.location effectiveRange:NULL];
 }
 
+BOOL inlineElementAtTapLocation(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
+                                NSString *_Nullable *_Nullable outLinkURL,
+                                NSString *_Nullable *_Nullable outMentionUserId,
+                                NSString *_Nullable *_Nullable outMentionText,
+                                NSString *_Nullable *_Nullable outCitationURL,
+                                NSString *_Nullable *_Nullable outCitationText)
+{
+  NSUInteger characterIndex = ENRMCharacterIndexForTap(textView, recognizer);
+  if (characterIndex == NSNotFound)
+    return NO;
+
+  NSAttributedString *attrText = ENRMGetAttributedText(textView);
+  NSDictionary *attrs = [attrText attributesAtIndex:characterIndex effectiveRange:NULL];
+
+  NSString *mentionUserId = attrs[ENRMMentionUserIdAttributeName];
+  if (mentionUserId) {
+    if (outMentionUserId)
+      *outMentionUserId = mentionUserId;
+    if (outMentionText)
+      *outMentionText = attrs[ENRMMentionTextAttributeName] ?: @"";
+    return YES;
+  }
+
+  NSString *citationURL = attrs[ENRMCitationURLAttributeName];
+  if (citationURL) {
+    if (outCitationURL)
+      *outCitationURL = citationURL;
+    if (outCitationText)
+      *outCitationText = attrs[ENRMCitationTextAttributeName] ?: @"";
+    return YES;
+  }
+
+  NSString *linkURL = attrs[@"linkURL"];
+  if (linkURL) {
+    if (outLinkURL)
+      *outLinkURL = linkURL;
+    return YES;
+  }
+
+  return NO;
+}
+
 BOOL isPointOnInteractiveElement(ENRMPlatformTextView *textView, CGPoint point)
 {
   NSUInteger charIndex = ENRMCharacterIndexAtPoint(textView, point);
@@ -28,5 +71,7 @@ BOOL isPointOnInteractiveElement(ENRMPlatformTextView *textView, CGPoint point)
     return NO;
 
   NSDictionary *attrs = [ENRMGetAttributedText(textView) attributesAtIndex:charIndex effectiveRange:NULL];
-  return attrs[@"linkURL"] != nil || [attrs[@"TaskItem"] boolValue] || attrs[SpoilerAttributeName] != nil;
+  return attrs[@"linkURL"] != nil || attrs[ENRMMentionUserIdAttributeName] != nil ||
+         attrs[ENRMCitationURLAttributeName] != nil || [attrs[@"TaskItem"] boolValue] ||
+         attrs[SpoilerAttributeName] != nil;
 }

@@ -20,6 +20,8 @@ export const EnrichedMarkdownText = ({
   onLinkPress,
   onLinkLongPress,
   onTaskListItemPress,
+  onMentionPress,
+  onCitationPress,
   allowTrailingMargin = false,
   containerStyle,
   selectable = true,
@@ -74,8 +76,20 @@ export const EnrichedMarkdownText = ({
   }, [markdown, underline, latexMath]);
 
   const callbacks = useMemo<RendererCallbacks>(
-    () => ({ onLinkPress, onLinkLongPress, onTaskListItemPress }),
-    [onLinkPress, onLinkLongPress, onTaskListItemPress]
+    () => ({
+      onLinkPress,
+      onLinkLongPress,
+      onTaskListItemPress,
+      onMentionPress,
+      onCitationPress,
+    }),
+    [
+      onLinkPress,
+      onLinkLongPress,
+      onTaskListItemPress,
+      onMentionPress,
+      onCitationPress,
+    ]
   );
 
   const capabilities = useMemo<RenderCapabilities>(() => ({ katex }), [katex]);

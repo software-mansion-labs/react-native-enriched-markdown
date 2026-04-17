@@ -7,6 +7,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^TableLinkPressBlock)(NSString *url);
+typedef void (^TableMentionPressBlock)(NSString *userId, NSString *text);
+typedef void (^TableCitationPressBlock)(NSString *url, NSString *text);
 
 @interface TableContainerView : RCTUIView
 
@@ -23,6 +25,8 @@ typedef void (^TableLinkPressBlock)(NSString *url);
 
 @property (nonatomic, copy, nullable) TableLinkPressBlock onLinkPress;
 @property (nonatomic, copy, nullable) TableLinkPressBlock onLinkLongPress;
+@property (nonatomic, copy, nullable) TableMentionPressBlock onMentionPress;
+@property (nonatomic, copy, nullable) TableCitationPressBlock onCitationPress;
 
 @property (nonatomic, assign) BOOL enableLinkPreview;
 

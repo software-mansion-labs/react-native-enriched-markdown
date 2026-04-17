@@ -409,9 +409,21 @@
 - (void)cellTextTapped:(UITapGestureRecognizer *)recognizer
 {
   UITextView *textView = (UITextView *)recognizer.view;
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url && self.onLinkPress)
-    self.onLinkPress(url);
+  NSString *linkURL = nil;
+  NSString *mentionUserId = nil;
+  NSString *mentionText = nil;
+  NSString *citationURL = nil;
+  NSString *citationText = nil;
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionUserId, &mentionText, &citationURL,
+                                 &citationText)) {
+    if (mentionUserId && self.onMentionPress) {
+      self.onMentionPress(mentionUserId, mentionText ?: @"");
+    } else if (citationURL && self.onCitationPress) {
+      self.onCitationPress(citationURL, citationText ?: @"");
+    } else if (linkURL && self.onLinkPress) {
+      self.onLinkPress(linkURL);
+    }
+  }
 }
 
 - (BOOL)textView:(UITextView *)textView

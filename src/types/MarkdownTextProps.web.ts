@@ -4,6 +4,8 @@ import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
 } from './events';
 
 export interface EnrichedMarkdownTextProps
@@ -56,6 +58,18 @@ export interface EnrichedMarkdownTextProps
    * @platform ios, android, web
    */
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
+  /**
+   * Callback fired when an inline mention pill is pressed.
+   * Mentions are authored as `[label](mention://<userId>)` in markdown.
+   * @platform ios, android, web
+   */
+  onMentionPress?: (event: MentionPressEvent) => void;
+  /**
+   * Callback fired when an inline citation is pressed.
+   * Citations are authored as `[label](citation://<url>)` in markdown.
+   * @platform ios, android, web
+   */
+  onCitationPress?: (event: CitationPressEvent) => void;
   /**
    * Controls text selection.
    * - iOS: Controls text selection and link previews on long press.

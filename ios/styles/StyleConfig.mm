@@ -226,6 +226,29 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _spoilerParticleDensity;
   CGFloat _spoilerParticleSpeed;
   CGFloat _spoilerSolidBorderRadius;
+  // Mention properties
+  RCTUIColor *_mentionColor;
+  RCTUIColor *_mentionBackgroundColor;
+  RCTUIColor *_mentionBorderColor;
+  CGFloat _mentionBorderWidth;
+  CGFloat _mentionBorderRadius;
+  CGFloat _mentionPaddingHorizontal;
+  CGFloat _mentionPaddingVertical;
+  NSString *_mentionFontFamily;
+  NSString *_mentionFontWeight;
+  CGFloat _mentionFontSize;
+  CGFloat _mentionPressedOpacity;
+  UIFont *_mentionFont;
+  BOOL _mentionFontNeedsRecreation;
+  // Citation properties
+  RCTUIColor *_citationColor;
+  CGFloat _citationFontSizeMultiplier;
+  CGFloat _citationBaselineOffsetPx;
+  NSString *_citationFontWeight;
+  BOOL _citationUnderline;
+  RCTUIColor *_citationBackgroundColor;
+  CGFloat _citationPaddingHorizontal;
+  CGFloat _citationPaddingVertical;
 }
 
 - (instancetype)init
@@ -255,6 +278,9 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _tableFontNeedsRecreation = YES;
   _tableHeaderFontNeedsRecreation = YES;
   _linkUnderline = YES;
+  _mentionFontNeedsRecreation = YES;
+  _citationFontSizeMultiplier = 0.7;
+  _mentionPressedOpacity = 0.6;
   return self;
 }
 
@@ -282,6 +308,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
     _codeBlockFontNeedsRecreation = YES;
     _blockquoteFontNeedsRecreation = YES;
     _tableFontNeedsRecreation = YES;
+    _mentionFontNeedsRecreation = YES;
   }
 }
 
@@ -316,6 +343,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
     _codeBlockFontNeedsRecreation = YES;
     _blockquoteFontNeedsRecreation = YES;
     _tableFontNeedsRecreation = YES;
+    _mentionFontNeedsRecreation = YES;
   }
 }
 
@@ -495,6 +523,27 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_spoilerParticleDensity = _spoilerParticleDensity;
   copy->_spoilerParticleSpeed = _spoilerParticleSpeed;
   copy->_spoilerSolidBorderRadius = _spoilerSolidBorderRadius;
+
+  copy->_mentionColor = [_mentionColor copy];
+  copy->_mentionBackgroundColor = [_mentionBackgroundColor copy];
+  copy->_mentionBorderColor = [_mentionBorderColor copy];
+  copy->_mentionBorderWidth = _mentionBorderWidth;
+  copy->_mentionBorderRadius = _mentionBorderRadius;
+  copy->_mentionPaddingHorizontal = _mentionPaddingHorizontal;
+  copy->_mentionPaddingVertical = _mentionPaddingVertical;
+  copy->_mentionFontFamily = [_mentionFontFamily copy];
+  copy->_mentionFontWeight = [_mentionFontWeight copy];
+  copy->_mentionFontSize = _mentionFontSize;
+  copy->_mentionPressedOpacity = _mentionPressedOpacity;
+  copy->_mentionFontNeedsRecreation = YES;
+  copy->_citationColor = [_citationColor copy];
+  copy->_citationFontSizeMultiplier = _citationFontSizeMultiplier;
+  copy->_citationBaselineOffsetPx = _citationBaselineOffsetPx;
+  copy->_citationFontWeight = [_citationFontWeight copy];
+  copy->_citationUnderline = _citationUnderline;
+  copy->_citationBackgroundColor = [_citationBackgroundColor copy];
+  copy->_citationPaddingHorizontal = _citationPaddingHorizontal;
+  copy->_citationPaddingVertical = _citationPaddingVertical;
 
   return copy;
 }
@@ -2388,6 +2437,223 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setSpoilerSolidBorderRadius:(CGFloat)newValue
 {
   _spoilerSolidBorderRadius = newValue;
+}
+
+// ── Mention ─────────────────────────────────────────────────────────────
+
+- (RCTUIColor *)mentionColor
+{
+  return _mentionColor;
+}
+
+- (void)setMentionColor:(RCTUIColor *)newValue
+{
+  _mentionColor = newValue;
+}
+
+- (RCTUIColor *)mentionBackgroundColor
+{
+  return _mentionBackgroundColor;
+}
+
+- (void)setMentionBackgroundColor:(RCTUIColor *)newValue
+{
+  _mentionBackgroundColor = newValue;
+}
+
+- (RCTUIColor *)mentionBorderColor
+{
+  return _mentionBorderColor;
+}
+
+- (void)setMentionBorderColor:(RCTUIColor *)newValue
+{
+  _mentionBorderColor = newValue;
+}
+
+- (CGFloat)mentionBorderWidth
+{
+  return _mentionBorderWidth;
+}
+
+- (void)setMentionBorderWidth:(CGFloat)newValue
+{
+  _mentionBorderWidth = newValue;
+}
+
+- (CGFloat)mentionBorderRadius
+{
+  return _mentionBorderRadius;
+}
+
+- (void)setMentionBorderRadius:(CGFloat)newValue
+{
+  _mentionBorderRadius = newValue;
+}
+
+- (CGFloat)mentionPaddingHorizontal
+{
+  return _mentionPaddingHorizontal;
+}
+
+- (void)setMentionPaddingHorizontal:(CGFloat)newValue
+{
+  _mentionPaddingHorizontal = newValue;
+}
+
+- (CGFloat)mentionPaddingVertical
+{
+  return _mentionPaddingVertical;
+}
+
+- (void)setMentionPaddingVertical:(CGFloat)newValue
+{
+  _mentionPaddingVertical = newValue;
+}
+
+- (NSString *)mentionFontFamily
+{
+  return _mentionFontFamily;
+}
+
+- (void)setMentionFontFamily:(NSString *)newValue
+{
+  _mentionFontFamily = newValue;
+  _mentionFontNeedsRecreation = YES;
+}
+
+- (NSString *)mentionFontWeight
+{
+  return _mentionFontWeight;
+}
+
+- (void)setMentionFontWeight:(NSString *)newValue
+{
+  _mentionFontWeight = newValue;
+  _mentionFontNeedsRecreation = YES;
+}
+
+- (CGFloat)mentionFontSize
+{
+  return _mentionFontSize;
+}
+
+- (void)setMentionFontSize:(CGFloat)newValue
+{
+  _mentionFontSize = newValue;
+  _mentionFontNeedsRecreation = YES;
+}
+
+- (CGFloat)mentionPressedOpacity
+{
+  return _mentionPressedOpacity;
+}
+
+- (void)setMentionPressedOpacity:(CGFloat)newValue
+{
+  _mentionPressedOpacity = newValue;
+}
+
+- (UIFont *)mentionFont
+{
+  if (_mentionFontNeedsRecreation || !_mentionFont) {
+    // Fall back to paragraph font size when mention.fontSize is 0 (inherit).
+    CGFloat size = _mentionFontSize > 0 ? _mentionFontSize : _paragraphFontSize;
+    if (size <= 0) {
+      size = 16;
+    }
+    _mentionFont = [RCTFont updateFont:nil
+                            withFamily:_mentionFontFamily
+                                  size:@(size)
+                                weight:normalizedFontWeight(_mentionFontWeight)
+                                 style:nil
+                               variant:nil
+                       scaleMultiplier:[self effectiveScaleMultiplierForFontSize:size]];
+    _mentionFontNeedsRecreation = NO;
+  }
+  return _mentionFont;
+}
+
+// ── Citation ────────────────────────────────────────────────────────────
+
+- (RCTUIColor *)citationColor
+{
+  return _citationColor;
+}
+
+- (void)setCitationColor:(RCTUIColor *)newValue
+{
+  _citationColor = newValue;
+}
+
+- (CGFloat)citationFontSizeMultiplier
+{
+  return _citationFontSizeMultiplier > 0 ? _citationFontSizeMultiplier : 0.7;
+}
+
+- (void)setCitationFontSizeMultiplier:(CGFloat)newValue
+{
+  _citationFontSizeMultiplier = newValue;
+}
+
+- (CGFloat)citationBaselineOffsetPx
+{
+  return _citationBaselineOffsetPx;
+}
+
+- (void)setCitationBaselineOffsetPx:(CGFloat)newValue
+{
+  _citationBaselineOffsetPx = newValue;
+}
+
+- (NSString *)citationFontWeight
+{
+  return _citationFontWeight;
+}
+
+- (void)setCitationFontWeight:(NSString *)newValue
+{
+  _citationFontWeight = newValue;
+}
+
+- (BOOL)citationUnderline
+{
+  return _citationUnderline;
+}
+
+- (void)setCitationUnderline:(BOOL)newValue
+{
+  _citationUnderline = newValue;
+}
+
+- (RCTUIColor *)citationBackgroundColor
+{
+  return _citationBackgroundColor;
+}
+
+- (void)setCitationBackgroundColor:(RCTUIColor *)newValue
+{
+  _citationBackgroundColor = newValue;
+}
+
+- (CGFloat)citationPaddingHorizontal
+{
+  return _citationPaddingHorizontal;
+}
+
+- (void)setCitationPaddingHorizontal:(CGFloat)newValue
+{
+  _citationPaddingHorizontal = newValue;
+}
+
+- (CGFloat)citationPaddingVertical
+{
+  return _citationPaddingVertical;
+}
+
+- (void)setCitationPaddingVertical:(CGFloat)newValue
+{
+  _citationPaddingVertical = newValue;
 }
 
 @end

@@ -244,6 +244,53 @@ function linkStyle(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
+function mentionStyle(style: MarkdownStyleInternal): CSSProperties {
+  const mention = style.mention;
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    color: mention.color,
+    backgroundColor: mention.backgroundColor,
+    borderColor: mention.borderColor,
+    borderStyle: mention.borderWidth > 0 ? 'solid' : undefined,
+    borderWidth: mention.borderWidth,
+    borderRadius: mention.borderRadius,
+    paddingInline: mention.paddingHorizontal,
+    paddingBlock: mention.paddingVertical,
+    fontFamily: normalizeFontFamily(mention.fontFamily),
+    fontWeight: normalizeFontWeight(mention.fontWeight),
+    fontSize: mention.fontSize || undefined,
+    cursor: 'pointer',
+    userSelect: 'none',
+    transition: 'opacity 0.12s ease-in-out',
+    lineHeight: 1,
+  };
+}
+
+function citationStyle(style: MarkdownStyleInternal): CSSProperties {
+  const citation = style.citation;
+  const hasBackground =
+    !!citation.backgroundColor && citation.backgroundColor !== 'transparent';
+  return {
+    color: citation.color,
+    fontSize: `calc(1em * ${citation.fontSizeMultiplier})`,
+    verticalAlign: 'baseline',
+    position: 'relative',
+    top: citation.baselineOffsetPx ? -citation.baselineOffsetPx : undefined,
+    fontWeight: normalizeFontWeight(citation.fontWeight),
+    backgroundColor: hasBackground ? citation.backgroundColor : undefined,
+    textDecoration: citation.underline ? 'underline' : undefined,
+    paddingInline: citation.paddingHorizontal || undefined,
+    paddingBlock: citation.paddingVertical || undefined,
+    // Round the chip when a background is set; a small radius keeps inline
+    // citation markers looking like pills rather than square boxes.
+    borderRadius:
+      hasBackground && citation.paddingHorizontal > 0 ? 999 : undefined,
+    cursor: 'pointer',
+  };
+}
+
 function strikethroughStyle(style: MarkdownStyleInternal): CSSProperties {
   return {
     textDecorationLine: 'line-through',
@@ -410,6 +457,9 @@ export interface Styles {
   tableHeaderCell: Record<ColumnAlign, CSSProperties>;
   tableCell: Record<ColumnAlign, CSSProperties>;
   taskCheckbox: CSSProperties;
+  mention: CSSProperties;
+  citation: CSSProperties;
+  mentionPressedOpacity: number;
 }
 
 type ColumnAlign = 'left' | 'center' | 'right' | 'default';
@@ -462,6 +512,9 @@ export function buildStyles(style: MarkdownStyleInternal): Styles {
       default: tableCellStyle(style, 'default'),
     },
     taskCheckbox: taskCheckboxStyle(style),
+    mention: mentionStyle(style),
+    citation: citationStyle(style),
+    mentionPressedOpacity: style.mention.pressedOpacity,
   };
 
   stylesStore.set(style, result);

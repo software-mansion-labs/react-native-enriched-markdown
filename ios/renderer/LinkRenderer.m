@@ -1,9 +1,19 @@
 #import "LinkRenderer.h"
+#import "ENRMCitationAttachment.h"
+#import "ENRMMentionAttachment.h"
 #import "FontUtils.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
 #import "StyleConfig.h"
 #import <React/RCTFont.h>
+
+NSString *const ENRMMentionUserIdAttributeName = @"ENRMMentionUserId";
+NSString *const ENRMMentionTextAttributeName = @"ENRMMentionText";
+NSString *const ENRMCitationURLAttributeName = @"ENRMCitationURL";
+NSString *const ENRMCitationTextAttributeName = @"ENRMCitationText";
+
+static NSString *const kMentionScheme = @"mention://";
+static NSString *const kCitationScheme = @"citation://";
 
 @implementation LinkRenderer {
   RendererFactory *_rendererFactory;
@@ -20,41 +30,76 @@
   return self;
 }
 
+#pragma mark - Scheme helpers
+
+static BOOL isMentionURL(NSString *url)
+{
+  return [url hasPrefix:kMentionScheme];
+}
+
+static BOOL isCitationURL(NSString *url)
+{
+  return [url hasPrefix:kCitationScheme];
+}
+
+static NSString *stripScheme(NSString *url, NSString *scheme)
+{
+  if ([url hasPrefix:scheme]) {
+    return [url substringFromIndex:scheme.length];
+  }
+  return url;
+}
+
 #pragma mark - Rendering
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
+  NSString *url = node.attributes[@"url"] ?: @"";
+
+  if (isMentionURL(url)) {
+    [self renderMentionNode:node url:url into:output context:context];
+    return;
+  }
+
+  if (isCitationURL(url)) {
+    [self renderCitationNode:node url:url into:output context:context];
+    return;
+  }
+
+  [self renderLinkNode:node url:url into:output context:context];
+}
+
+#pragma mark - Link (default / existing behavior)
+
+- (void)renderLinkNode:(MarkdownASTNode *)node
+                   url:(NSString *)url
+                  into:(NSMutableAttributedString *)output
+               context:(RenderContext *)context
+{
   NSUInteger start = output.length;
 
-  // 1. Render children first to establish base attributes
   [_rendererFactory renderChildrenOfNode:node into:output context:context];
 
   NSRange range = NSMakeRange(start, output.length - start);
   if (range.length == 0)
     return;
 
-  // 2. Extract configuration
-  NSString *url = node.attributes[@"url"] ?: @"";
   RCTUIColor *linkColor = [_config linkColor];
   NSNumber *underlineStyle = @([_config linkUnderline] ? NSUnderlineStyleSingle : NSUnderlineStyleNone);
   NSString *linkFontFamily = [_config linkFontFamily];
 
-  // 3. Apply core link functionality (non-destructive)
   [output addAttribute:NSLinkAttributeName value:url range:range];
 
-  // 4. Optimize visual attributes via enumeration to avoid redundant updates
   [output enumerateAttributesInRange:range
                              options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
                           usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange subrange, BOOL *stop) {
                             NSMutableDictionary *newAttributes = [NSMutableDictionary dictionary];
 
-                            // Only apply link color if the subrange isn't already colored by the link style
                             if (linkColor && ![attrs[NSForegroundColorAttributeName] isEqual:linkColor]) {
                               newAttributes[NSForegroundColorAttributeName] = linkColor;
                               newAttributes[NSUnderlineColorAttributeName] = linkColor;
                             }
 
-                            // Only update underline style if it differs from the config
                             if (![attrs[NSUnderlineStyleAttributeName] isEqual:underlineStyle]) {
                               newAttributes[NSUnderlineStyleAttributeName] = underlineStyle;
                             }
@@ -80,8 +125,84 @@
                             }
                           }];
 
-  // 5. Register for touch handling
   [context registerLinkRange:range url:url];
+}
+
+#pragma mark - Mention
+
+- (void)renderMentionNode:(MarkdownASTNode *)node
+                      url:(NSString *)url
+                     into:(NSMutableAttributedString *)output
+                  context:(RenderContext *)context
+{
+  // Extract the child text to use as the pill label; the child nodes may be
+  // formatted text (e.g. **bold**), so we collapse to a plain string.
+  NSMutableAttributedString *childBuffer = [[NSMutableAttributedString alloc] init];
+  [_rendererFactory renderChildrenOfNode:node into:childBuffer context:context];
+  NSString *displayText = childBuffer.string ?: @"";
+  NSString *userId = stripScheme(url, kMentionScheme);
+
+  // Inherit the current text attributes (font, color) so the pill sits in the
+  // same line metrics as the surrounding paragraph if the pill label has no
+  // explicit style override.
+  NSDictionary *baseAttrs = output.length > 0 ? [output attributesAtIndex:output.length - 1 effectiveRange:NULL] : @{};
+
+  ENRMMentionAttachment *attachment = [ENRMMentionAttachment attachmentWithDisplayText:displayText
+                                                                                userId:userId
+                                                                                config:_config];
+
+  NSMutableAttributedString *attachmentString =
+      [[NSMutableAttributedString attributedStringWithAttachment:attachment] mutableCopy];
+  NSRange attachmentRange = NSMakeRange(0, attachmentString.length);
+  if (baseAttrs.count > 0) {
+    [attachmentString addAttributes:baseAttrs range:attachmentRange];
+  }
+  [attachmentString addAttribute:ENRMMentionUserIdAttributeName value:userId range:attachmentRange];
+  [attachmentString addAttribute:ENRMMentionTextAttributeName value:displayText range:attachmentRange];
+
+  NSUInteger start = output.length;
+  [output appendAttributedString:attachmentString];
+  NSRange outputRange = NSMakeRange(start, output.length - start);
+
+  [context registerMentionRange:outputRange userId:userId text:displayText];
+}
+
+#pragma mark - Citation
+
+- (void)renderCitationNode:(MarkdownASTNode *)node
+                       url:(NSString *)url
+                      into:(NSMutableAttributedString *)output
+                   context:(RenderContext *)context
+{
+  // Render children into a throwaway buffer so we can collect the label text
+  // and inherit the surrounding font (used to scale the citation glyph).
+  NSMutableAttributedString *childBuffer = [[NSMutableAttributedString alloc] init];
+  [_rendererFactory renderChildrenOfNode:node into:childBuffer context:context];
+  NSString *displayText = childBuffer.string ?: @"";
+  NSString *targetURL = stripScheme(url, kCitationScheme);
+
+  NSDictionary *baseAttrs = output.length > 0 ? [output attributesAtIndex:output.length - 1 effectiveRange:NULL] : @{};
+  UIFont *baseFont = baseAttrs[NSFontAttributeName];
+
+  ENRMCitationAttachment *attachment = [ENRMCitationAttachment attachmentWithDisplayText:displayText
+                                                                                     url:targetURL
+                                                                                baseFont:baseFont
+                                                                                  config:_config];
+
+  NSMutableAttributedString *attachmentString =
+      [[NSMutableAttributedString attributedStringWithAttachment:attachment] mutableCopy];
+  NSRange attachmentRange = NSMakeRange(0, attachmentString.length);
+  if (baseAttrs.count > 0) {
+    [attachmentString addAttributes:baseAttrs range:attachmentRange];
+  }
+  [attachmentString addAttribute:ENRMCitationURLAttributeName value:targetURL range:attachmentRange];
+  [attachmentString addAttribute:ENRMCitationTextAttributeName value:displayText range:attachmentRange];
+
+  NSUInteger start = output.length;
+  [output appendAttributedString:attachmentString];
+  NSRange outputRange = NSMakeRange(start, output.length - start);
+
+  [context registerCitationRange:outputRange url:targetURL text:displayText];
 }
 
 @end

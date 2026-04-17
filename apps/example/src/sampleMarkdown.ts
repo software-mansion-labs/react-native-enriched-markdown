@@ -1,5 +1,5 @@
 export const sampleMarkdown = `
-# The Hidden World of Forest Ecosystems
+# The Hidden World of Forest Ecosystems!!
 
 Forests cover approximately **31% of the Earth's land surface**, providing habitat for countless species and playing a vital role in our planet's health. These magnificent ecosystems have existed for over *300 million years*, evolving alongside the creatures that call them home.
 
@@ -11,15 +11,15 @@ Forests cover approximately **31% of the Earth's land surface**, providing habit
 
 Forests are often called the *lungs of the Earth*. They absorb **carbon dioxide** and release oxygen through photosynthesis — a process essential for all life on our planet. A single mature tree can absorb up to \`48 pounds\` of CO₂ per year.
 
-> In every walk with nature, one receives far more than he seeks.
+> [@John Muir](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user) In every walk with nature, one receives far more than he seeks.
 >
 > — John Muir
 
 ### Key Benefits
 
-- **Climate regulation** through carbon sequestration
-- *Biodiversity* hotspots supporting millions of species
-- Natural water filtration and ***flood prevention***
+- **Climate regulation** through carbon sequestration [@Casper](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user)
+- *Biodiversity* hotspots supporting millions of species [+resume software engineer](mention://Uploads/twilio-script.py?type=file)
+- Natural water filtration and ***flood prevention*** [1](citation://https://www.google.com) [2](citation://https://www.google.com?q=123) [3](citation://https://www.google.com?q=123&abc=123) [4](citation://https://www.google.com?q=123) [5](citation://https://www.google.com?q=123) [6](citation://https://www.google.com?q=123) [7](citation://https://www.google.com?q=123) [8](citation://https://www.google.com?q=123) [9](citation://https://www.google.com?q=123) [10](citation://https://www.google.com?q=123)
 - Source of medicine, food, and raw materials
 - Soil erosion prevention and **nutrient cycling**
 - Recreation and *mental health* benefits
@@ -28,7 +28,7 @@ Forests are often called the *lungs of the Earth*. They absorb **carbon dioxide*
 
 Forests contribute over **$1.3 trillion** to the global economy annually. They provide:
 
-- Timber and *wood products*
+- Timber and *wood products* [4](citation://https://www.google.com) [5](citation://https://www.google.com) [6](citation://https://www.google.com) [7](citation://https://www.google.com) [8](citation://https://www.google.com) [9](citation://https://www.google.com) [7](citation://https://www.google.com)
 - Non-timber forest products like **nuts and berries**
 - Ecotourism opportunities
 - ***Carbon credits*** for climate mitigation
@@ -104,10 +104,10 @@ The largest terrestrial biome, spanning across **Northern Russia, Canada, and Sc
 
 | Forest Type | Coverage | Annual Rainfall | Biodiversity | Carbon Storage |
 |------------|----------|-----------------|--------------|----------------|
-| Tropical Rainforest | ~7% of land | 80-400 inches | Highest (50%+ species) | High |
+| Tropical Rainforest [4](citation://https://www.google.com) [5](citation://https://www.google.com)  | ~7% of land | 80-400 inches | Highest (50%+ species) | High |
 | Temperate Forest | ~16% of land | 30-60 inches | Moderate | Moderate |
 | Boreal Forest (Taiga) | ~11% of land | 15-40 inches | Lower | Highest |
-| Mediterranean Forest | ~2% of land | 20-40 inches | Moderate | Moderate |
+| Mediterranean Forest | ~2% of land | 20-40 inches | Moderate | Moderate [@John Muir](mention://d81546aa-5f91-408a-b6dd-628e324750bf?type=user)|
 
 ---
 
@@ -136,7 +136,7 @@ class TreeNetwork {
     this.trees = [];
     this.fungalConnections = new Map();
   }
-  
+
   connectTrees(tree1, tree2) {
     // Trees share nutrients through mycorrhizal networks
     this.fungalConnections.set(\`\${tree1.id}-\${tree2.id}\`, {
@@ -330,11 +330,11 @@ def detect_deforestation(region):
     """Monitor forest cover changes using satellite imagery"""
     current_cover = satellite_imagery.get_forest_cover(region)
     previous_cover = satellite_imagery.get_historical_cover(region, years_ago=1)
-    
+
     deforestation_rate = (previous_cover - current_cover) / previous_cover
     if deforestation_rate > 0.05:  # 5% threshold
         alert_conservation_team(region, deforestation_rate)
-    
+
     return deforestation_rate
 \`\`\`
 

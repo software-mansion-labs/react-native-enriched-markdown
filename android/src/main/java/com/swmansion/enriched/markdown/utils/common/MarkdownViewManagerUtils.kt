@@ -4,9 +4,11 @@ import android.view.View
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.UIManagerHelper
+import com.swmansion.enriched.markdown.events.CitationPressEvent
 import com.swmansion.enriched.markdown.events.ContextMenuItemPressEvent
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
+import com.swmansion.enriched.markdown.events.MentionPressEvent
 import com.swmansion.enriched.markdown.events.TaskListItemPressEvent
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 
@@ -19,6 +21,10 @@ fun markdownEventTypeConstants(): MutableMap<String, Any> {
     mapOf("registrationName" to TaskListItemPressEvent.EVENT_NAME)
   map[ContextMenuItemPressEvent.EVENT_NAME] =
     mapOf("registrationName" to ContextMenuItemPressEvent.EVENT_NAME)
+  map[MentionPressEvent.EVENT_NAME] =
+    mapOf("registrationName" to MentionPressEvent.EVENT_NAME)
+  map[CitationPressEvent.EVENT_NAME] =
+    mapOf("registrationName" to CitationPressEvent.EVENT_NAME)
   return map
 }
 
@@ -40,6 +46,28 @@ fun emitLinkLongPress(
   val surfaceId = UIManagerHelper.getSurfaceId(context)
   val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
   eventDispatcher?.dispatchEvent(LinkLongPressEvent(surfaceId, view.id, url))
+}
+
+fun emitMentionPress(
+  view: View,
+  userId: String,
+  text: String,
+) {
+  val context = view.context as com.facebook.react.bridge.ReactContext
+  val surfaceId = UIManagerHelper.getSurfaceId(context)
+  val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
+  eventDispatcher?.dispatchEvent(MentionPressEvent(surfaceId, view.id, userId, text))
+}
+
+fun emitCitationPress(
+  view: View,
+  url: String,
+  text: String,
+) {
+  val context = view.context as com.facebook.react.bridge.ReactContext
+  val surfaceId = UIManagerHelper.getSurfaceId(context)
+  val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
+  eventDispatcher?.dispatchEvent(CitationPressEvent(surfaceId, view.id, url, text))
 }
 
 fun emitTaskListItemPress(

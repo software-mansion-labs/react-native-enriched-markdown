@@ -153,6 +153,8 @@ export default function App() {
           onLinkPress={onLinkPress}
           onLinkLongPress={onLinkLongPress}
           onTaskListItemPress={onTaskListItemPress}
+          selectionColor="#DCDDFE"
+          selectionHandleColor="#5A52FA"
         />
 
         <View style={styles.divider} />

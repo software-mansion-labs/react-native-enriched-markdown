@@ -73,7 +73,7 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
 
   // currentDepth - 1 handles the horizontal offset for nested lists
   const NSInteger nestingLevel = currentDepth - 1;
-  const CGFloat baseMarkerWidth = isTask                                  ? [_config taskListCheckboxSize]
+  const CGFloat baseMarkerWidth = isTask                                  ? [_config effectiveListMarginLeftForTask]
                                   : (context.listType == ListTypeOrdered) ? [_config effectiveListMarginLeftForNumber]
                                                                           : [_config effectiveListMarginLeftForBullet];
 

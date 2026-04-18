@@ -151,6 +151,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _listStyleLineHeight;
   RCTUIColor *_listStyleBulletColor;
   CGFloat _listStyleBulletSize;
+  CGFloat _listStyleMarkerMinWidth;
   RCTUIColor *_listStyleMarkerColor;
   NSString *_listStyleMarkerFontWeight;
   CGFloat _listStyleGapWidth;
@@ -434,6 +435,7 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_listStyleLineHeight = _listStyleLineHeight;
   copy->_listStyleBulletColor = [_listStyleBulletColor copy];
   copy->_listStyleBulletSize = _listStyleBulletSize;
+  copy->_listStyleMarkerMinWidth = _listStyleMarkerMinWidth;
   copy->_listStyleMarkerColor = [_listStyleMarkerColor copy];
   copy->_listStyleMarkerFontWeight = [_listStyleMarkerFontWeight copy];
   copy->_listStyleGapWidth = _listStyleGapWidth;
@@ -1706,6 +1708,16 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _listStyleBulletSize = newValue;
 }
 
+- (CGFloat)listStyleMarkerMinWidth
+{
+  return _listStyleMarkerMinWidth;
+}
+
+- (void)setListStyleMarkerMinWidth:(CGFloat)newValue
+{
+  _listStyleMarkerMinWidth = newValue;
+}
+
 - (RCTUIColor *)listStyleMarkerColor
 {
   return _listStyleMarkerColor;
@@ -1786,16 +1798,20 @@ static const CGFloat kDefaultMinGap = 4.0;
 
 - (CGFloat)effectiveListMarginLeftForBullet
 {
-  // Just the minimum width needed for bullet (radius)
-  return _listStyleBulletSize / 2.0;
+  return MAX(_listStyleMarkerMinWidth, _listStyleBulletSize / 2.0);
 }
 
 - (CGFloat)effectiveListMarginLeftForNumber
 {
-  // Reserve width for numbers up to 99 (matching Android)
   UIFont *font = [self listMarkerFont];
-  return
+  CGFloat natural =
       [@"99." sizeWithAttributes:@{NSFontAttributeName : font ?: [UIFont systemFontOfSize:_listStyleFontSize]}].width;
+  return MAX(_listStyleMarkerMinWidth, natural);
+}
+
+- (CGFloat)effectiveListMarginLeftForTask
+{
+  return MAX(_listStyleMarkerMinWidth, [self taskListCheckboxSize]);
 }
 
 // Code block properties

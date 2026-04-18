@@ -52,7 +52,7 @@ class OrderedListSpan(
 
   override fun getMarkerWidth(): Float {
     val paint = configureMarkerPaint()
-    return paint.measureText("99.")
+    return listStyle.effectiveMarkerWidth(paint.measureText("99."))
   }
 
   var itemNumber: Int = 1

@@ -713,6 +713,11 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  if (newStyle.list.markerMinWidth != oldStyle.list.markerMinWidth) {
+    [config setListStyleMarkerMinWidth:newStyle.list.markerMinWidth];
+    changed = YES;
+  }
+
   if (newStyle.list.markerColor != oldStyle.list.markerColor) {
     RCTUIColor *markerColor = RCTUIColorFromSharedColor(newStyle.list.markerColor);
     [config setListStyleMarkerColor:markerColor];

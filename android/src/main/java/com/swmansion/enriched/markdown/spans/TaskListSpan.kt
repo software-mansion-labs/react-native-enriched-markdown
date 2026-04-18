@@ -13,7 +13,7 @@ import com.swmansion.enriched.markdown.styles.TaskListStyle
 
 class TaskListSpan(
   private val taskStyle: TaskListStyle,
-  listStyle: ListStyle,
+  private val listStyle: ListStyle,
   depth: Int,
   context: Context,
   styleCache: SpanStyleCache,
@@ -34,6 +34,7 @@ class TaskListSpan(
     gapWidth = listStyle.gapWidth,
   ) {
   private val checkboxSize = taskStyle.checkboxSize
+  private val markerColumnWidth = listStyle.effectiveMarkerWidth(checkboxSize)
   private val cornerRadius = taskStyle.checkboxBorderRadius
   private val rect = RectF()
   private val checkPath = Path()
@@ -55,7 +56,7 @@ class TaskListSpan(
       strokeJoin = Paint.Join.ROUND
     }
 
-  override fun getMarkerWidth(): Float = checkboxSize
+  override fun getMarkerWidth(): Float = markerColumnWidth
 
   override fun drawMarker(
     canvas: Canvas,
@@ -71,7 +72,10 @@ class TaskListSpan(
     val fontMetrics = paint.fontMetrics
     val capHeight = -fontMetrics.ascent * CAP_HEIGHT_RATIO
     val centerY = baseline - capHeight / HALF_DIVISOR
-    val centerX = x + (depth * marginLeft + checkboxSize / HALF_DIVISOR) * dir
+    // Right-align the checkbox inside the reserved marker column so it hugs
+    // the gap before the text. At the default (markerColumnWidth ==
+    // checkboxSize) this is identical to the previous flush-left layout.
+    val centerX = x + (depth * marginLeft + markerColumnWidth - checkboxSize / HALF_DIVISOR) * dir
     val half = checkboxSize / HALF_DIVISOR
     rect.set(centerX - half, centerY - half, centerX + half, centerY + half)
 

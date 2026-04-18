@@ -238,6 +238,7 @@ The library provides sensible default styles for all Markdown elements out of th
 |----------|------|-------------|
 | `bulletColor` | `string` | Bullet point color |
 | `bulletSize` | `number` | Bullet point size |
+| `markerMinWidth` | `number` | Minimum reserved marker column width (floors the natural width of every list type) |
 | `markerColor` | `string` | Number marker color |
 | `markerFontWeight` | `string` | Number marker font weight |
 | `gapWidth` | `number` | Gap between marker and text |

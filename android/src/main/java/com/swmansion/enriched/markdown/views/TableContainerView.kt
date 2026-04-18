@@ -61,12 +61,19 @@ class TableContainerView(
   private val gridContainer get() = scrollView.getChildAt(0) as GridContainerView
 
   private var rows: List<List<TableCellData>> = emptyList()
+  private var cellTextsForMeasure: List<List<CharSequence>> = emptyList()
   private var columnCount = 0
+
+  /** Natural widths from text measurement, before stretching to the parent width. */
+  private var naturalColumnWidths = emptyList<Float>()
+  private var naturalTotalTableWidth = 0f
+  private var naturalTotalTableHeight = 0f
   private var columnWidths = emptyList<Float>()
   private var rowHeights = emptyList<Float>()
   private var totalTableWidth = 0f
   private var totalTableHeight = 0f
   private var tableMarkdown = ""
+  private var lastStretchLayoutWidth = -1
 
   init {
     addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
@@ -94,11 +101,16 @@ class TableContainerView(
     columnCount = rows.maxOfOrNull { it.size } ?: 0
     tableMarkdown = buildMarkdownFromRows()
 
-    val (widths, heights) = computeTableDimensions(rows.map { row -> row.map { it.attributedText } }, styleConfig, context)
-    columnWidths = widths
+    cellTextsForMeasure = rows.map { row -> row.map { it.attributedText } }
+    val (widths, heights) = computeTableDimensions(cellTextsForMeasure, styleConfig, context)
+    naturalColumnWidths = widths
+    naturalTotalTableWidth = naturalColumnWidths.sum() + tableStyle.borderWidth
+    naturalTotalTableHeight = heights.sum() + tableStyle.borderWidth
+    columnWidths = naturalColumnWidths
     rowHeights = heights
-    totalTableWidth = columnWidths.sum() + tableStyle.borderWidth
-    totalTableHeight = rowHeights.sum() + tableStyle.borderWidth
+    totalTableWidth = naturalTotalTableWidth
+    totalTableHeight = naturalTotalTableHeight
+    lastStretchLayoutWidth = -1
 
     renderGrid()
   }
@@ -249,11 +261,67 @@ class TableContainerView(
   ) {
     scrollView.layout(0, 0, right - left, bottom - top)
     val viewWidth = right - left
+    if (naturalColumnWidths.isNotEmpty() && viewWidth != lastStretchLayoutWidth) {
+      lastStretchLayoutWidth = viewWidth
+      applyStretchForParentWidth(viewWidth)
+    }
     scrollView.isHorizontalScrollBarEnabled = totalTableWidth > viewWidth
 
     if (isRtl && totalTableWidth > viewWidth) {
       scrollView.scrollTo((totalTableWidth - viewWidth).toInt(), 0)
     }
+  }
+
+  /**
+   * When the table's intrinsic width is smaller than the parent, grow columns proportionally so
+   * the grid fills the available width (same idea as CSS `width: 100%` on a table).
+   */
+  private fun applyStretchForParentWidth(viewWidth: Int) {
+    if (naturalColumnWidths.isEmpty()) return
+    val targetTotal = max(naturalTotalTableWidth, viewWidth.toFloat())
+    val naturalContentWidth = naturalColumnWidths.sum()
+    if (naturalContentWidth <= 0f) return
+    val targetContentWidth = targetTotal - tableStyle.borderWidth
+    val extra = targetContentWidth - naturalContentWidth
+    val newWidths =
+      if (extra <= 0.5f) {
+        naturalColumnWidths
+      } else {
+        val stretched =
+          naturalColumnWidths
+            .map { w ->
+              w + extra * (w / naturalContentWidth)
+            }.toMutableList()
+        val drift = targetContentWidth - stretched.sum()
+        if (kotlin.math.abs(drift) > 0.01f && stretched.isNotEmpty()) {
+          val last = stretched.lastIndex
+          stretched[last] = stretched[last] + drift
+        }
+        stretched
+      }
+    if (newWidths == columnWidths) {
+      return
+    }
+    columnWidths = newWidths
+    totalTableWidth = columnWidths.sum() + tableStyle.borderWidth
+    val (horizontalPadding, verticalPadding) =
+      tableStyle.cellPaddingHorizontal * 2 to tableStyle.cellPaddingVertical * 2
+    val measurePaint =
+      TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = tableStyle.fontSize
+        typeface = styleConfig.tableTypeface
+      }
+    rowHeights =
+      computeRowHeightsForColumnWidths(
+        cellTextsForMeasure,
+        columnWidths,
+        measurePaint,
+        horizontalPadding,
+        verticalPadding,
+      )
+    totalTableHeight = rowHeights.sum() + tableStyle.borderWidth
+    renderGrid()
+    requestLayout()
   }
 
   private fun showContextMenu(anchor: View) {
@@ -337,22 +405,13 @@ class TableContainerView(
       }
 
       val rowHeights =
-        texts.map { row ->
-          row
-            .mapIndexed { colIndex, cellText ->
-              val layout =
-                StaticLayout.Builder
-                  .obtain(
-                    cellText,
-                    0,
-                    cellText.length,
-                    paint,
-                    (columnWidths[colIndex] - horizontalPadding).toInt().coerceAtLeast(1),
-                  ).setIncludePad(false)
-                  .build()
-              ceil(layout.height.toFloat()) + verticalPadding
-            }.maxOfOrNull { it } ?: 0f
-        }
+        computeRowHeightsForColumnWidths(
+          texts,
+          columnWidths.toList(),
+          paint,
+          horizontalPadding,
+          verticalPadding,
+        )
       return columnWidths.toList() to rowHeights
     }
 
@@ -479,3 +538,24 @@ class TableContainerView(
     val alignment: Layout.Alignment,
   )
 }
+
+private fun computeRowHeightsForColumnWidths(
+  texts: List<List<CharSequence>>,
+  columnWidths: List<Float>,
+  paint: TextPaint,
+  horizontalPadding: Float,
+  verticalPadding: Float,
+): List<Float> =
+  texts.map { row ->
+    row
+      .mapIndexed { colIndex, cellText ->
+        val cellWidth =
+          (columnWidths.getOrElse(colIndex) { 0f } - horizontalPadding).toInt().coerceAtLeast(1)
+        val layout =
+          StaticLayout.Builder
+            .obtain(cellText, 0, cellText.length, paint, cellWidth)
+            .setIncludePad(false)
+            .build()
+        ceil(layout.height.toFloat()) + verticalPadding
+      }.maxOfOrNull { it } ?: 0f
+  }

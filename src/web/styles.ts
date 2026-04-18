@@ -385,6 +385,8 @@ export function tableBodyRowStyle(
 function tableWrapperStyle(style: MarkdownStyleInternal): CSSProperties {
   const table = style.table;
   return {
+    width: '100%',
+    minWidth: 0,
     overflowX: 'auto',
     overflowY: 'hidden',
     marginTop: table.marginTop,

@@ -46,6 +46,10 @@
   CGFloat _borderWidth;
 
   NSString *_cachedMarkdown;
+
+  NSMutableArray<NSNumber *> *_naturalColWidths;
+  CGFloat _naturalTotalTableWidth;
+  CGFloat _lastStretchLayoutWidth;
 }
 
 - (instancetype)initWithConfig:(StyleConfig *)config
@@ -57,6 +61,7 @@
     _allowFontScaling = YES;
     _maxFontSizeMultiplier = 0;
     _enableLinkPreview = YES;
+    _lastStretchLayoutWidth = -1;
     [self setupScrollView];
   }
   return self;
@@ -244,11 +249,26 @@
     }
   }
 
+  [self recomputeRowHeightsForColumnWidths:_colWidths];
+
+  _totalTableWidth = [[_colWidths valueForKeyPath:@"@sum.self"] doubleValue] + _borderWidth;
+  _totalTableHeight = [[_rowHeights valueForKeyPath:@"@sum.self"] doubleValue] + _borderWidth;
+
+  _naturalColWidths = [_colWidths mutableCopy];
+  _naturalTotalTableWidth = _totalTableWidth;
+  _lastStretchLayoutWidth = -1;
+}
+
+- (void)recomputeRowHeightsForColumnWidths:(NSArray<NSNumber *> *)columnWidths
+{
+  const CGFloat horizontalPadding = self.config.tableCellPaddingHorizontal * 2;
+  const CGFloat verticalPadding = self.config.tableCellPaddingVertical * 2;
+
   _rowHeights = [NSMutableArray arrayWithCapacity:_rows.count];
   for (NSArray<TableCellData *> *row in _rows) {
     CGFloat maxHeight = 0;
     for (NSUInteger column = 0; column < row.count; column++) {
-      CGFloat availableWidth = [_colWidths[column] doubleValue] - horizontalPadding;
+      CGFloat availableWidth = [columnWidths[column] doubleValue] - horizontalPadding;
       CGRect boundingRect = [row[column].attributedText
           boundingRectWithSize:CGSizeMake(availableWidth, CGFLOAT_MAX)
                        options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
@@ -257,9 +277,59 @@
     }
     [_rowHeights addObject:@(maxHeight)];
   }
+}
 
+/// When the table's intrinsic width is smaller than the parent, grow columns proportionally (CSS `width: 100%` behavior).
+- (void)applyStretchIfNeededForParentWidth:(CGFloat)viewWidth
+{
+  if (_naturalColWidths.count == 0)
+    return;
+
+  CGFloat targetTotal = MAX(_naturalTotalTableWidth, viewWidth);
+  CGFloat naturalContent = [[_naturalColWidths valueForKeyPath:@"@sum.self"] doubleValue];
+  if (naturalContent <= 0)
+    return;
+
+  CGFloat targetContent = targetTotal - _borderWidth;
+  CGFloat extra = targetContent - naturalContent;
+
+  NSMutableArray<NSNumber *> *newWidths;
+  if (extra <= 0.5) {
+    newWidths = [_naturalColWidths mutableCopy];
+  } else {
+    newWidths = [NSMutableArray arrayWithCapacity:_naturalColWidths.count];
+    for (NSNumber *n in _naturalColWidths) {
+      CGFloat w = [n doubleValue];
+      CGFloat nw = w + extra * (w / naturalContent);
+      [newWidths addObject:@(nw)];
+    }
+    CGFloat sum = [[newWidths valueForKeyPath:@"@sum.self"] doubleValue];
+    CGFloat drift = targetContent - sum;
+    if (fabs(drift) > 0.01 && newWidths.count > 0) {
+      NSUInteger last = newWidths.count - 1;
+      newWidths[last] = @([newWidths[last] doubleValue] + drift);
+    }
+  }
+
+  BOOL equal = (_colWidths.count == newWidths.count);
+  if (equal) {
+    for (NSUInteger i = 0; i < newWidths.count; i++) {
+      if (fabs([newWidths[i] doubleValue] - [_colWidths[i] doubleValue]) > 0.5) {
+        equal = NO;
+        break;
+      }
+    }
+  } else {
+    equal = NO;
+  }
+  if (equal)
+    return;
+
+  _colWidths = newWidths;
+  [self recomputeRowHeightsForColumnWidths:_colWidths];
   _totalTableWidth = [[_colWidths valueForKeyPath:@"@sum.self"] doubleValue] + _borderWidth;
   _totalTableHeight = [[_rowHeights valueForKeyPath:@"@sum.self"] doubleValue] + _borderWidth;
+  [self renderGrid];
 }
 
 - (void)renderGrid
@@ -597,6 +667,11 @@
 {
   [super layoutSubviews];
   _scrollView.frame = self.bounds;
+  CGFloat layoutWidth = self.bounds.size.width;
+  if (_naturalColWidths.count > 0 && layoutWidth != _lastStretchLayoutWidth) {
+    _lastStretchLayoutWidth = layoutWidth;
+    [self applyStretchIfNeededForParentWidth:layoutWidth];
+  }
 #if !TARGET_OS_OSX
   _scrollView.contentSize = CGSizeMake(MAX(_totalTableWidth, self.bounds.size.width), _totalTableHeight);
   _scrollView.scrollEnabled = (_totalTableWidth > self.bounds.size.width);

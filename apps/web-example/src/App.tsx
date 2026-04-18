@@ -196,6 +196,8 @@ export default function App() {
               borderRadius: 99,
             },
           }}
+          selectionColor="#DCDDFE"
+          selectionHandleColor="#5A52FA"
         />
 
         <View style={styles.divider} />

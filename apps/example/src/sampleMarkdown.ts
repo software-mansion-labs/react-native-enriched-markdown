@@ -309,6 +309,14 @@ Conservation efforts are making a difference:
 | ***The Nature Conservancy*** | Land protection | Protected 125M+ acres |
 | One Tree Planted | Reforestation | Planted 100M+ trees |
 
+
+| Organization | Focus Area |
+|--------------|------------|
+| **WFF** | Global conservation |
+| *RA* | Sustainable agriculture |
+| ***TNC*** | Land protection |
+| ***OTP*** | Reforestation |
+
 ---
 
 ## The Future of Forests

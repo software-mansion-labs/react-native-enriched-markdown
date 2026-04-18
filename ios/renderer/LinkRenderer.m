@@ -48,6 +48,39 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   return url;
 }
 
+// Stamps NSKern on the character before and the last character of an inline
+// chip range so its drawn background never overlaps surrounding text.
+//
+// Kern value is `paddingHorizontal`: exactly enough to shift the chip's left
+// overhang off the previous glyph (leading kern) and the following glyph off
+// the chip's right overhang (trailing kern). With this amount, a chip just
+// touches its neighbors rather than gapping — adjacent chips separated by a
+// source-markdown space show the natural `space_width` between them, which
+// matches the gap CSS `paddingInline` produces on web. Using `paddingHorizontal
+// * 2` would double up across a shared boundary character and push consecutive
+// chips visibly far apart.
+//
+// Adjacent chips writing the same value on the shared boundary character is
+// idempotent.
+static void applyChipKern(NSMutableAttributedString *output, NSRange chipRange, CGFloat paddingHorizontal)
+{
+  if (chipRange.length == 0 || paddingHorizontal <= 0)
+    return;
+
+  NSNumber *kernValue = @(paddingHorizontal);
+
+  // Trailing kern on the last glyph of the chip.
+  NSRange trailing = NSMakeRange(NSMaxRange(chipRange) - 1, 1);
+  [output addAttribute:NSKernAttributeName value:kernValue range:trailing];
+
+  // Leading kern on the character immediately before the chip, if any. This
+  // pushes the chip right so its left overhang doesn't cover preceding text.
+  if (chipRange.location > 0) {
+    NSRange leading = NSMakeRange(chipRange.location - 1, 1);
+    [output addAttribute:NSKernAttributeName value:kernValue range:leading];
+  }
+}
+
 #pragma mark - Rendering
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
@@ -165,16 +198,19 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   [output appendAttributedString:[[NSAttributedString alloc] initWithString:displayText attributes:attrs]];
   NSRange outputRange = NSMakeRange(start, output.length - start);
 
-  // The drawn pill extends `paddingHorizontal` beyond the glyph run on each
-  // side. Inline text doesn't reserve any advance for that visual padding, so
-  // two adjacent mentions (separated only by a space) would have their pills
-  // visually overlap. Stamping NSKern on the last glyph pushes the following
-  // character away by the same amount the pill extends, matching what CSS
-  // `paddingInline` does on web.
+  // The drawn pill extends `paddingHorizontal` beyond the glyph run on both
+  // sides. Inline text doesn't reserve any advance for that visual padding, so
+  // without extra spacing the pill would cover the character immediately
+  // before the mention (and likewise any adjacent mention/citation following
+  // it). Stamping NSKern on:
+  //   - the character BEFORE the mention (adds leading advance), and
+  //   - the LAST character of the mention (adds trailing advance)
+  // pushes the surrounding text outside the pill edges, matching what CSS
+  // `paddingInline` produces on web. Adjacent chips' kerns land on the same
+  // boundary character and are idempotent.
   CGFloat mentionPaddingH = [_config mentionPaddingHorizontal];
   if (mentionPaddingH > 0 && outputRange.length > 0) {
-    NSRange lastCharRange = NSMakeRange(NSMaxRange(outputRange) - 1, 1);
-    [output addAttribute:NSKernAttributeName value:@(mentionPaddingH * 2) range:lastCharRange];
+    applyChipKern(output, outputRange, mentionPaddingH);
   }
 
   [context registerMentionRange:outputRange url:mentionURL text:displayText];
@@ -250,16 +286,10 @@ static NSString *stripScheme(NSString *url, NSString *scheme)
   [output addAttribute:ENRMCitationURLAttributeName value:targetURL range:range];
   [output addAttribute:ENRMCitationTextAttributeName value:labelText range:range];
 
-  // The drawn chip background extends `paddingHorizontal` beyond the glyph run
-  // on each side. Inline text doesn't reserve any advance for that visual
-  // padding, so adjacent citations (and following text) would sit right up
-  // against our glyphs, causing the drawn chips to overlap. Applying NSKern
-  // on the last character adds the missing trailing advance so consecutive
-  // chips have the same natural spacing they'd get on web via CSS padding.
-  if (paddingHorizontal > 0 && range.length > 0) {
-    NSRange lastCharRange = NSMakeRange(NSMaxRange(range) - 1, 1);
-    [output addAttribute:NSKernAttributeName value:@(paddingHorizontal * 2) range:lastCharRange];
-  }
+  // Stamp NSKern on the characters flanking the chip so the drawn background
+  // has symmetric clearance from surrounding text (previous glyph on the
+  // left, following glyph on the right).
+  applyChipKern(output, range, paddingHorizontal);
 
   [context registerCitationRange:range url:targetURL text:labelText];
 }

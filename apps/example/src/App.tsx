@@ -129,6 +129,8 @@ export default function App() {
             onMentionPress={handleMentionPress}
             markdownStyle={markdownStyle}
             contextMenuItems={contextMenuItems}
+            selectionColor={Platform.OS === 'ios' ? "#5A52FA" : "#DCDDFE"}
+            selectionHandleColor="#5A52FA"
           />
         </ScrollView>
       )}

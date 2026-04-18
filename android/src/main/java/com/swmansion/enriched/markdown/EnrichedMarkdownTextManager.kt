@@ -100,6 +100,20 @@ class EnrichedMarkdownTextManager :
     view?.setIsSelectable(selectable)
   }
 
+  override fun setSelectionColor(
+    view: EnrichedMarkdownText?,
+    value: Int?,
+  ) {
+    view?.setSelectionColorFromProps(value)
+  }
+
+  override fun setSelectionHandleColor(
+    view: EnrichedMarkdownText?,
+    value: Int?,
+  ) {
+    view?.setSelectionHandleColorFromProps(value)
+  }
+
   @ReactProp(name = "md4cFlags")
   override fun setMd4cFlags(
     view: EnrichedMarkdownText?,

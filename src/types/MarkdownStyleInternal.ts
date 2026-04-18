@@ -34,10 +34,7 @@ interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
 interface ListStyleInternal extends BaseBlockStyleInternal {
   bulletColor: string;
   bulletSize: number;
-  // Minimum reserved marker column width. Negative = "auto" → use each
-  // list's natural marker width (UL: bulletSize/2, OL: width of "99.",
-  // task: checkbox size).
-  markerWidth: number;
+  markerMinWidth: number;
   markerColor: string;
   markerFontWeight: string;
   gapWidth: number;

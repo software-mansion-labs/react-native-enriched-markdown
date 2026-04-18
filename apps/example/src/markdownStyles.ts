@@ -69,7 +69,7 @@ export const customMarkdownStyle: MarkdownStyle = {
     lineHeight: Platform.select({ ios: 22, android: 26, default: 26 }),
     bulletColor: '#6b7280',
     bulletSize: 6,
-    markerWidth: 20,
+    markerMinWidth: 20,
     markerColor: '#6b7280',
     markerFontWeight: '500',
     gapWidth: 8,

@@ -713,8 +713,8 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
-  if (newStyle.list.markerWidth != oldStyle.list.markerWidth) {
-    [config setListStyleMarkerWidth:newStyle.list.markerWidth];
+  if (newStyle.list.markerMinWidth != oldStyle.list.markerMinWidth) {
+    [config setListStyleMarkerMinWidth:newStyle.list.markerMinWidth];
     changed = YES;
   }
 

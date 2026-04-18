@@ -236,8 +236,8 @@
 - (void)setListStyleBulletColor:(RCTUIColor *)newValue;
 - (CGFloat)listStyleBulletSize;
 - (void)setListStyleBulletSize:(CGFloat)newValue;
-- (CGFloat)listStyleMarkerWidth;
-- (void)setListStyleMarkerWidth:(CGFloat)newValue;
+- (CGFloat)listStyleMarkerMinWidth;
+- (void)setListStyleMarkerMinWidth:(CGFloat)newValue;
 - (RCTUIColor *)listStyleMarkerColor;
 - (void)setListStyleMarkerColor:(RCTUIColor *)newValue;
 - (NSString *)listStyleMarkerFontWeight;

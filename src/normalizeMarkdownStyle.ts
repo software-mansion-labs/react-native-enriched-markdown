@@ -112,7 +112,7 @@ const DEFAULT_NORMALIZED_STYLE = Object.freeze({
     marginBottom: 16,
     bulletColor: normalizeColor('#6B7280')!,
     bulletSize: 6,
-    markerWidth: -1,
+    markerMinWidth: 0,
     markerColor: normalizeColor('#6B7280')!,
     markerFontWeight: '500',
     gapWidth: 12,

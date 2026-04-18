@@ -42,6 +42,8 @@ export const EnrichedMarkdownText = ({
   streamingAnimation = false,
   spoilerOverlay = 'particles',
   contextMenuItems,
+  selectionColor,
+  selectionHandleColor,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -137,6 +139,8 @@ export const EnrichedMarkdownText = ({
     style: containerStyle,
     contextMenuItems: nativeContextMenuItems,
     onContextMenuItemPress: handleContextMenuItemPress,
+    selectionColor,
+    selectionHandleColor,
     ...rest,
   };
 

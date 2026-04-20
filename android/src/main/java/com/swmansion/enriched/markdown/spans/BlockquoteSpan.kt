@@ -75,11 +75,8 @@ class BlockquoteSpan(
 
   /**
    * Drawn BEFORE glyphs and before other [LineBackgroundSpan]s attached to the
-   * same line, so inline backgrounds painted by mention / code spans render on
-   * top of the blockquote fill instead of being covered by it (the previous
-   * implementation painted the blockquote fill from [drawLeadingMargin], which
-   * runs AFTER [LineBackgroundSpan.drawBackground] and erased the mention
-   * pill).
+   * same line, so inline backgrounds painted by code spans render on
+   * top of the blockquote fill instead of being covered by it.
    */
   override fun drawBackground(
     canvas: Canvas,

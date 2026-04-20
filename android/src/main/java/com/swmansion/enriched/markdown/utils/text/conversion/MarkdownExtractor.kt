@@ -5,12 +5,14 @@ import android.text.style.UnderlineSpan
 import android.widget.TextView
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
+import com.swmansion.enriched.markdown.spans.CitationSpan
 import com.swmansion.enriched.markdown.spans.CodeBlockSpan
 import com.swmansion.enriched.markdown.spans.CodeSpan
 import com.swmansion.enriched.markdown.spans.EmphasisSpan
 import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.MentionSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
@@ -301,17 +303,21 @@ object MarkdownExtractor {
     val hasStrikethrough = spannable.getSpans(start, end, StrikethroughSpan::class.java).isNotEmpty()
     val hasUnderline = spannable.getSpans(start, end, UnderlineSpan::class.java).isNotEmpty()
     val linkSpans = spannable.getSpans(start, end, LinkSpan::class.java)
+    val mentionSpans = spannable.getSpans(start, end, MentionSpan::class.java)
+    val citationSpans = spannable.getSpans(start, end, CitationSpan::class.java)
+
+    val hasAnyLinkShape = linkSpans.isNotEmpty() || mentionSpans.isNotEmpty() || citationSpans.isNotEmpty()
 
     var result = text
 
     // Innermost first
-    if (hasCode && linkSpans.isEmpty()) {
+    if (hasCode && !hasAnyLinkShape) {
       result = "`$result`"
     }
     if (hasStrikethrough) {
       result = "~~$result~~"
     }
-    if (hasUnderline && linkSpans.isEmpty()) {
+    if (hasUnderline && !hasAnyLinkShape) {
       result = "<u>$result</u>"
     }
     if (hasEmphasis) {
@@ -320,9 +326,16 @@ object MarkdownExtractor {
     if (hasStrong) {
       result = "**$result**"
     }
-    if (linkSpans.isNotEmpty()) {
-      result = "[$text](${linkSpans[0].url})"
-    }
+    // Mentions and citations share the `[text](scheme://url)` shape as regular
+    // links — just with distinct URL schemes — so a selected range that
+    // covers one emits the full markdown link, preserving the target URL.
+    result =
+      when {
+        mentionSpans.isNotEmpty() -> "[$text](mention://${mentionSpans[0].url})"
+        citationSpans.isNotEmpty() -> "[$text](citation://${citationSpans[0].url})"
+        linkSpans.isNotEmpty() -> "[$text](${linkSpans[0].url})"
+        else -> result
+      }
 
     return result
   }

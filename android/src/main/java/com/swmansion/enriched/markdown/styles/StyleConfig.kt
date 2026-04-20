@@ -234,6 +234,32 @@ class StyleConfig(
     SpoilerStyle.fromReadableMap(map, styleParser)
   }
 
+  val mentionStyle: MentionStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("mention")) {
+        "Mention style not found. JS should always provide defaults."
+      }
+    MentionStyle.fromReadableMap(map, styleParser)
+  }
+
+  val citationStyle: CitationStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("citation")) {
+        "Citation style not found. JS should always provide defaults."
+      }
+    CitationStyle.fromReadableMap(map, styleParser)
+  }
+
+  val mentionTypeface: Typeface? by lazy {
+    val family = mentionStyle.fontFamily.takeIf { it.isNotEmpty() }
+    val weight = parseFontWeight(mentionStyle.fontWeight)
+    if (family != null) {
+      applyStyles(null, ReactConstants.UNSET, weight, family, assets)
+    } else {
+      null
+    }
+  }
+
   val tableTypeface: Typeface? by lazy {
     val fontFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
     val fontWeight = parseFontWeight(tableStyle.fontWeight)
@@ -297,7 +323,9 @@ class StyleConfig(
       taskListStyle == other.taskListStyle &&
       mathStyle == other.mathStyle &&
       inlineMathStyle == other.inlineMathStyle &&
-      spoilerStyle == other.spoilerStyle
+      spoilerStyle == other.spoilerStyle &&
+      mentionStyle == other.mentionStyle &&
+      citationStyle == other.citationStyle
   }
 
   override fun hashCode(): Int {
@@ -320,6 +348,8 @@ class StyleConfig(
     result = 31 * result + mathStyle.hashCode()
     result = 31 * result + inlineMathStyle.hashCode()
     result = 31 * result + spoilerStyle.hashCode()
+    result = 31 * result + mentionStyle.hashCode()
+    result = 31 * result + citationStyle.hashCode()
     return result
   }
 }

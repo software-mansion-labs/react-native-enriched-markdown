@@ -5,6 +5,8 @@ import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
 } from '../types/events';
 import type { KaTeXInstance } from './katex';
 
@@ -68,6 +70,8 @@ export interface RendererCallbacks {
   onLinkPress?: (event: LinkPressEvent) => void;
   onLinkLongPress?: (event: LinkLongPressEvent) => void;
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
+  onMentionPress?: (event: MentionPressEvent) => void;
+  onCitationPress?: (event: CitationPressEvent) => void;
 }
 
 export interface RenderCapabilities {

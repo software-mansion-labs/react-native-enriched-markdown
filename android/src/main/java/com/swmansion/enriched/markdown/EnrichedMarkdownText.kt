@@ -26,8 +26,10 @@ import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
+import com.swmansion.enriched.markdown.utils.text.view.emitCitationPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
+import com.swmansion.enriched.markdown.utils.text.view.emitMentionPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
 import java.util.concurrent.Executors
 
@@ -228,9 +230,11 @@ class EnrichedMarkdownText
 
       text = styledText
 
-      if (movementMethod !is LinkLongPressMovementMethod) {
-        movementMethod = LinkLongPressMovementMethod.createInstance()
-      }
+      val method =
+        (movementMethod as? LinkLongPressMovementMethod)
+          ?: LinkLongPressMovementMethod.createInstance().also { movementMethod = it }
+      method.onMentionTap = { url, mentionText -> emitOnMentionPress(url, mentionText) }
+      method.onCitationTap = { url, citationText -> emitOnCitationPress(url, citationText) }
 
       renderer.getCollectedImageSpans().forEach { span ->
         span.registerTextView(this)
@@ -264,6 +268,20 @@ class EnrichedMarkdownText
 
     fun emitOnLinkLongPress(url: String) {
       emitLinkLongPressEvent(url)
+    }
+
+    fun emitOnMentionPress(
+      url: String,
+      text: String,
+    ) {
+      emitMentionPressEvent(url, text)
+    }
+
+    fun emitOnCitationPress(
+      url: String,
+      text: String,
+    ) {
+      emitCitationPressEvent(url, text)
     }
 
     fun setOnLinkPressCallback(callback: (String) -> Unit) {

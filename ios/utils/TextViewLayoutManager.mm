@@ -1,8 +1,10 @@
 #import "TextViewLayoutManager.h"
 #import "BlockquoteBorder.h"
+#import "CitationBackground.h"
 #import "CodeBackground.h"
 #import "CodeBlockBackground.h"
 #import "ListMarkerDrawer.h"
+#import "MentionBackground.h"
 #import "RuntimeKeys.h"
 #import "StyleConfig.h"
 #import <objc/runtime.h>
@@ -42,6 +44,12 @@
 
   ListMarkerDrawer *markerDrawer = [self getListMarkerDrawerWithConfig:config];
   [markerDrawer drawMarkersForGlyphRange:glyphsToShow layoutManager:self textContainer:textContainer atPoint:origin];
+
+  MentionBackground *mentionBg = [self getMentionBackgroundWithConfig:config];
+  [mentionBg drawBackgroundsForGlyphRange:glyphsToShow layoutManager:self textContainer:textContainer atPoint:origin];
+
+  CitationBackground *citationBg = [self getCitationBackgroundWithConfig:config];
+  [citationBg drawBackgroundsForGlyphRange:glyphsToShow layoutManager:self textContainer:textContainer atPoint:origin];
 }
 
 #pragma mark - Safe Property Accessors
@@ -89,6 +97,26 @@
   return obj;
 }
 
+- (MentionBackground *)getMentionBackgroundWithConfig:(StyleConfig *)config
+{
+  MentionBackground *obj = objc_getAssociatedObject(self, kMentionBackgroundKey);
+  if (!obj) {
+    obj = [[MentionBackground alloc] initWithConfig:config];
+    objc_setAssociatedObject(self, kMentionBackgroundKey, obj, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  }
+  return obj;
+}
+
+- (CitationBackground *)getCitationBackgroundWithConfig:(StyleConfig *)config
+{
+  CitationBackground *obj = objc_getAssociatedObject(self, kCitationBackgroundKey);
+  if (!obj) {
+    obj = [[CitationBackground alloc] initWithConfig:config];
+    objc_setAssociatedObject(self, kCitationBackgroundKey, obj, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  }
+  return obj;
+}
+
 #pragma mark - Configuration
 
 - (StyleConfig *)config
@@ -103,6 +131,8 @@
   objc_setAssociatedObject(self, kCodeBlockBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kBlockquoteBorderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(self, kListMarkerDrawerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, kMentionBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, kCitationBackgroundKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
   objc_setAssociatedObject(self, kStyleConfigKey, config, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 

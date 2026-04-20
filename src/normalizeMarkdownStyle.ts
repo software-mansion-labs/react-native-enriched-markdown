@@ -205,6 +205,32 @@ const DEFAULT_NORMALIZED_STYLE = Object.freeze({
     particles: { density: 8, speed: 20 },
     solid: { borderRadius: 4 },
   },
+  mention: {
+    color: normalizeColor('#1D4ED8')!,
+    backgroundColor: normalizeColor('#DBEAFE')!,
+    borderColor: normalizeColor('#BFDBFE')!,
+    borderWidth: 0,
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    fontFamily: '',
+    fontWeight: '500',
+    fontSize: 0,
+    pressedOpacity: 0.6,
+  },
+  citation: {
+    color: normalizeColor('#2563EB')!,
+    fontSizeMultiplier: 0.7,
+    baselineOffsetPx: 0,
+    fontWeight: '',
+    underline: false,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 999,
+  },
 }) as MarkdownStyleInternal;
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();

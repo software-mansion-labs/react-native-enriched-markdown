@@ -122,7 +122,7 @@ class TreeNetwork {
     this.trees = [];
     this.fungalConnections = new Map();
   }
-  
+
   connectTrees(tree1, tree2) {
     // Trees share nutrients through mycorrhizal networks
     this.fungalConnections.set(\`\${tree1.id}-\${tree2.id}\`, {
@@ -316,11 +316,11 @@ def detect_deforestation(region):
     """Monitor forest cover changes using satellite imagery"""
     current_cover = satellite_imagery.get_forest_cover(region)
     previous_cover = satellite_imagery.get_historical_cover(region, years_ago=1)
-    
+
     deforestation_rate = (previous_cover - current_cover) / previous_cover
     if deforestation_rate > 0.05:  # 5% threshold
         alert_conservation_team(region, deforestation_rate)
-    
+
     return deforestation_rate
 \`\`\`
 

@@ -11,6 +11,7 @@ import android.view.ViewParent
 import android.widget.TextView
 import com.swmansion.enriched.markdown.EnrichedMarkdown
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
+import com.swmansion.enriched.markdown.spans.CitationSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.layout.isLayoutRTL
@@ -123,7 +124,10 @@ private fun TextView.copyWithHTML() {
 
   val spannable = text as? Spannable ?: return
   val selectedText = spannable.subSequence(start, end)
-  val plainText = selectedText.toString()
+  // Citation text (e.g. superscript markers) is reference metadata, not prose;
+  // strip it from the plain-text flavor so pasting into a plain text target
+  // yields clean copy. Rich flavors (HTML below) still keep the marker.
+  val plainText = buildPlainTextWithoutCitations(selectedText)
 
   val styleConfig =
     (this as? EnrichedMarkdownText)?.markdownStyle
@@ -146,6 +150,38 @@ private fun TextView.copyWithHTML() {
   } else {
     clipboard.setPrimaryClip(ClipData.newPlainText("Text", plainText))
   }
+}
+
+/**
+ * Rebuilds a plain-text string from a selected CharSequence with any ranges
+ * tagged by a [CitationSpan] elided. The selection is indexed from 0, so span
+ * positions need to be translated against the passed-in CharSequence.
+ */
+private fun buildPlainTextWithoutCitations(selection: CharSequence): String {
+  if (selection !is Spannable) return selection.toString()
+
+  val spans = selection.getSpans(0, selection.length, CitationSpan::class.java)
+  if (spans.isEmpty()) return selection.toString()
+
+  // Collect non-overlapping, non-zero-length ranges sorted by start index.
+  val ranges =
+    spans
+      .map { selection.getSpanStart(it) to selection.getSpanEnd(it) }
+      .filter { it.second > it.first }
+      .sortedBy { it.first }
+
+  val result = StringBuilder(selection.length)
+  var cursor = 0
+  for ((spanStart, spanEnd) in ranges) {
+    if (spanStart > cursor) {
+      result.append(selection.subSequence(cursor, spanStart))
+    }
+    cursor = maxOf(cursor, spanEnd)
+  }
+  if (cursor < selection.length) {
+    result.append(selection.subSequence(cursor, selection.length))
+  }
+  return result.toString()
 }
 
 private fun TextView.copyMarkdownToClipboard() {

@@ -559,6 +559,34 @@ using namespace facebook::react;
     }
   };
 
+  tableView.onMentionPress = ^(NSString *url, NSString *text) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf)
+      return;
+
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onMentionPress({
+          .url = std::string([(url ?: @"") UTF8String] ?: ""),
+          .text = std::string([(text ?: @"") UTF8String] ?: ""),
+      });
+    }
+  };
+
+  tableView.onCitationPress = ^(NSString *url, NSString *text) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf)
+      return;
+
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onCitationPress({
+          .url = std::string([(url ?: @"") UTF8String] ?: ""),
+          .text = std::string([(text ?: @"") UTF8String] ?: ""),
+      });
+    }
+  };
+
   [tableView applyTableNode:tableSegment.tableNode];
 
   return tableView;
@@ -760,11 +788,28 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     }
   }
 
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url) {
+  NSString *linkURL = nil;
+  NSString *mentionURL = nil;
+  NSString *mentionText = nil;
+  NSString *citationURL = nil;
+  NSString *citationText = nil;
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionURL, &mentionText, &citationURL,
+                                 &citationText)) {
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
     if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
+      if (mentionURL) {
+        eventEmitter->onMentionPress({
+            .url = std::string([mentionURL UTF8String] ?: ""),
+            .text = std::string([(mentionText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (citationURL) {
+        eventEmitter->onCitationPress({
+            .url = std::string([citationURL UTF8String] ?: ""),
+            .text = std::string([(citationText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (linkURL) {
+        eventEmitter->onLinkPress({.url = std::string([linkURL UTF8String])});
+      }
     }
     return;
   }

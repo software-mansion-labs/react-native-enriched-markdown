@@ -185,6 +185,69 @@ interface SpoilerStyle {
   solid?: SpoilerSolidStyle;
 }
 
+interface MentionStyle {
+  color?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  paddingHorizontal?: number;
+  paddingVertical?: number;
+  fontFamily?: string;
+  fontWeight?: string;
+  fontSize?: number;
+  /**
+   * Alpha multiplier applied while the pill is pressed (0-1).
+   * Provides built-in press feedback matching native expectations.
+   * @default 0.6
+   */
+  pressedOpacity?: number;
+}
+
+interface CitationStyle {
+  color?: string;
+  /**
+   * Multiplier applied to the surrounding font size.
+   * @default 0.7
+   */
+  fontSizeMultiplier?: number;
+  /**
+   * Explicit baseline offset in px. When undefined, derived from font metrics
+   * for iOS/Android parity.
+   */
+  baselineOffsetPx?: number;
+  fontWeight?: string;
+  underline?: boolean;
+  backgroundColor?: string;
+  /**
+   * Horizontal padding (in px) applied to the citation marker. Increases both
+   * the tap target and the width of the background when one is set.
+   * @default 0
+   */
+  paddingHorizontal?: number;
+  /**
+   * Vertical padding (in px) applied to the citation marker. Increases both
+   * the tap target and the height of the background when one is set.
+   * @default 0
+   */
+  paddingVertical?: number;
+  /**
+   * Border color rendered around the citation marker. Only visible when
+   * `borderWidth` is > 0.
+   */
+  borderColor?: string;
+  /**
+   * Border width (in px) rendered around the citation marker.
+   * @default 0
+   */
+  borderWidth?: number;
+  /**
+   * Corner radius (in px) of the citation marker's background/border.
+   * Defaults to a fully-rounded pill.
+   */
+  borderRadius?: number;
+}
+
 export interface MarkdownStyle {
   paragraph?: ParagraphStyle;
   h1?: HeadingStyle;
@@ -210,6 +273,8 @@ export interface MarkdownStyle {
   math?: MathStyle;
   inlineMath?: InlineMathStyle;
   spoiler?: SpoilerStyle;
+  mention?: MentionStyle;
+  citation?: CitationStyle;
 }
 
 /**

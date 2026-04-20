@@ -17,6 +17,12 @@
   if (self = [super init]) {
     _linkRanges = [NSMutableArray array];
     _linkURLs = [NSMutableArray array];
+    _mentionRanges = [NSMutableArray array];
+    _mentionURLs = [NSMutableArray array];
+    _mentionTexts = [NSMutableArray array];
+    _citationRanges = [NSMutableArray array];
+    _citationURLs = [NSMutableArray array];
+    _citationTexts = [NSMutableArray array];
     _headingRanges = [NSMutableArray array];
     _headingLevels = [NSMutableArray array];
     _imageRanges = [NSMutableArray array];
@@ -103,6 +109,24 @@
     return;
   [self.linkRanges addObject:[NSValue valueWithRange:range]];
   [self.linkURLs addObject:url ?: @""];
+}
+
+- (void)registerMentionRange:(NSRange)range url:(NSString *)url text:(NSString *)text
+{
+  if (range.length == 0)
+    return;
+  [self.mentionRanges addObject:[NSValue valueWithRange:range]];
+  [self.mentionURLs addObject:url ?: @""];
+  [self.mentionTexts addObject:text ?: @""];
+}
+
+- (void)registerCitationRange:(NSRange)range url:(NSString *)url text:(NSString *)text
+{
+  if (range.length == 0)
+    return;
+  [self.citationRanges addObject:[NSValue valueWithRange:range]];
+  [self.citationURLs addObject:url ?: @""];
+  [self.citationTexts addObject:text ?: @""];
 }
 
 - (void)applyLinkAttributesToString:(NSMutableAttributedString *)attributedString
@@ -243,6 +267,12 @@
 {
   [_linkRanges removeAllObjects];
   [_linkURLs removeAllObjects];
+  [_mentionRanges removeAllObjects];
+  [_mentionURLs removeAllObjects];
+  [_mentionTexts removeAllObjects];
+  [_citationRanges removeAllObjects];
+  [_citationURLs removeAllObjects];
+  [_citationTexts removeAllObjects];
   [_headingRanges removeAllObjects];
   [_headingLevels removeAllObjects];
   [_imageRanges removeAllObjects];

@@ -8,12 +8,24 @@ import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.widget.TextView
+import com.swmansion.enriched.markdown.spans.CitationSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.MentionSpan
 import com.swmansion.enriched.markdown.spans.SpoilerSpan
 import com.swmansion.enriched.markdown.spoiler.SpoilerCapable
 import kotlin.math.abs
 
 class LinkLongPressMovementMethod : LinkMovementMethod() {
+  /**
+   * Optional callback invoked when a [MentionSpan] is tapped. The mention pill
+   * is a [android.text.style.ReplacementSpan], not a [android.text.style.ClickableSpan],
+   * so the standard LinkMovementMethod dispatch doesn't reach it.
+   */
+  var onMentionTap: ((url: String, text: String) -> Unit)? = null
+
+  /** Optional callback invoked when a [CitationSpan] is tapped. */
+  var onCitationTap: ((url: String, text: String) -> Unit)? = null
+
   private val handler = Handler(Looper.getMainLooper())
   private var longPressRunnable: Runnable? = null
 
@@ -22,6 +34,10 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
 
   var isLinkTouchActive: Boolean = false
     private set
+
+  private var activeMentionSpan: MentionSpan? = null
+  private var pendingMentionTapOffset: Int = -1
+  private var pendingCitationTapOffset: Int = -1
 
   override fun onTouchEvent(
     widget: TextView,
@@ -36,6 +52,19 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
         val span = findLinkSpan(widget, buffer, event)
         isLinkTouchActive = span != null
         span?.let { scheduleLongPress(widget, it) }
+
+        findMentionSpan(widget, buffer, event)?.let { mention ->
+          activeMentionSpan = mention
+          mention.isPressed = true
+          widget.invalidate()
+          pendingMentionTapOffset = charOffsetAt(widget, event) ?: -1
+        }
+
+        if (activeMentionSpan == null) {
+          findCitationSpan(widget, buffer, event)?.let { _ ->
+            pendingCitationTapOffset = charOffsetAt(widget, event) ?: -1
+          }
+        }
       }
 
       MotionEvent.ACTION_MOVE -> {
@@ -45,6 +74,8 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
         ) {
           cancelLongPress()
           isLinkTouchActive = false
+          clearMentionPressedState(widget)
+          pendingCitationTapOffset = -1
         }
       }
 
@@ -56,13 +87,44 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
         }
         if (handleSpoilerTap(widget, buffer, event)) {
           Selection.removeSelection(buffer)
+          clearMentionPressedState(widget)
+          pendingCitationTapOffset = -1
           return true
+        }
+
+        val mention = activeMentionSpan
+        if (mention != null) {
+          // Only emit if finger is still over the same mention span.
+          val stillOverMention = findMentionSpan(widget, buffer, event) === mention
+          clearMentionPressedState(widget)
+          pendingMentionTapOffset = -1
+          if (stillOverMention) {
+            onMentionTap?.invoke(mention.url, mention.displayText)
+            return true
+          }
+        }
+
+        if (pendingCitationTapOffset >= 0) {
+          val currentOffset = charOffsetAt(widget, event) ?: -1
+          val citation =
+            if (currentOffset >= 0) {
+              buffer.getSpans(currentOffset, currentOffset, CitationSpan::class.java).firstOrNull()
+            } else {
+              null
+            }
+          pendingCitationTapOffset = -1
+          if (citation != null) {
+            onCitationTap?.invoke(citation.url, citation.displayText)
+            return true
+          }
         }
       }
 
       MotionEvent.ACTION_CANCEL -> {
         cancelLongPress()
         isLinkTouchActive = false
+        clearMentionPressedState(widget)
+        pendingCitationTapOffset = -1
         if (widget.hasSelection()) {
           Selection.removeSelection(buffer)
         }
@@ -125,6 +187,32 @@ class LinkLongPressMovementMethod : LinkMovementMethod() {
   ): LinkSpan? {
     val offset = charOffsetAt(widget, event) ?: return null
     return buffer.getSpans(offset, offset, LinkSpan::class.java).firstOrNull()
+  }
+
+  private fun findMentionSpan(
+    widget: TextView,
+    buffer: Spannable,
+    event: MotionEvent,
+  ): MentionSpan? {
+    val offset = charOffsetAt(widget, event) ?: return null
+    return buffer.getSpans(offset, offset, MentionSpan::class.java).firstOrNull()
+  }
+
+  private fun findCitationSpan(
+    widget: TextView,
+    buffer: Spannable,
+    event: MotionEvent,
+  ): CitationSpan? {
+    val offset = charOffsetAt(widget, event) ?: return null
+    return buffer.getSpans(offset, offset, CitationSpan::class.java).firstOrNull()
+  }
+
+  private fun clearMentionPressedState(widget: TextView) {
+    activeMentionSpan?.let {
+      it.isPressed = false
+      widget.invalidate()
+    }
+    activeMentionSpan = null
   }
 
   private fun handleSpoilerTap(

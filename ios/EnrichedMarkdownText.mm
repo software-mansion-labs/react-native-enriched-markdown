@@ -537,11 +537,28 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
     return;
   }
 
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url) {
+  NSString *linkURL = nil;
+  NSString *mentionURL = nil;
+  NSString *mentionText = nil;
+  NSString *citationURL = nil;
+  NSString *citationText = nil;
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionURL, &mentionText, &citationURL,
+                                 &citationText)) {
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
     if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
+      if (mentionURL) {
+        eventEmitter->onMentionPress({
+            .url = std::string([mentionURL UTF8String] ?: ""),
+            .text = std::string([(mentionText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (citationURL) {
+        eventEmitter->onCitationPress({
+            .url = std::string([citationURL UTF8String] ?: ""),
+            .text = std::string([(citationText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (linkURL) {
+        eventEmitter->onLinkPress({.url = std::string([linkURL UTF8String])});
+      }
     }
     return;
   }

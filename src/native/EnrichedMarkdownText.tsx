@@ -13,12 +13,20 @@ import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
   OnContextMenuItemPressEvent,
 } from '../types/events';
 
 export type { MarkdownStyle, Md4cFlags };
 export type { EnrichedMarkdownTextProps, ContextMenuItem };
-export type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent };
+export type {
+  LinkPressEvent,
+  LinkLongPressEvent,
+  TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
+};
 
 const defaultMd4cFlags: Md4cFlags = {
   underline: false,
@@ -32,6 +40,8 @@ export const EnrichedMarkdownText = ({
   onLinkPress,
   onLinkLongPress,
   onTaskListItemPress,
+  onMentionPress,
+  onCitationPress,
   enableLinkPreview,
   selectable = true,
   md4cFlags = defaultMd4cFlags,
@@ -120,12 +130,30 @@ export const EnrichedMarkdownText = ({
     [onTaskListItemPress]
   );
 
+  const handleMentionPress = useCallback(
+    (e: NativeSyntheticEvent<MentionPressEvent>) => {
+      const { url, text } = e.nativeEvent;
+      onMentionPress?.({ url, text });
+    },
+    [onMentionPress]
+  );
+
+  const handleCitationPress = useCallback(
+    (e: NativeSyntheticEvent<CitationPressEvent>) => {
+      const { url, text } = e.nativeEvent;
+      onCitationPress?.({ url, text });
+    },
+    [onCitationPress]
+  );
+
   const sharedProps = {
     markdown,
     markdownStyle: normalizedStyle,
     onLinkPress: handleLinkPress,
     onLinkLongPress: handleLinkLongPress,
     onTaskListItemPress: handleTaskListItemPress,
+    onMentionPress: onMentionPress ? handleMentionPress : undefined,
+    onCitationPress: onCitationPress ? handleCitationPress : undefined,
     enableLinkPreview: onLinkLongPress == null && (enableLinkPreview ?? true),
     selectable,
     md4cFlags: normalizedMd4cFlags,

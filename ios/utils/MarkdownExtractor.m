@@ -8,6 +8,7 @@
 #import "ENRMMathInlineAttachment.h"
 #endif
 #import "LastElementUtils.h"
+#import "LinkRenderer.h"
 #import "ListItemRenderer.h"
 #import "RuntimeKeys.h"
 #import "ThematicBreakAttachment.h"
@@ -290,7 +291,18 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         NSNumber *underlineStyle = attrs[NSUnderlineStyleAttributeName];
                         BOOL isUnderline = (underlineStyle != nil && [underlineStyle integerValue] != 0);
 
+                        // Mentions / citations are stored as inline text tagged with custom
+                        // attributes. When the range covers a mention we emit
+                        // `[text](mention://<id>)`; citations likewise become
+                        // `[text](citation://<url>)` so copy/paste roundtrips cleanly.
                         NSString *linkURL = attrs[NSLinkAttributeName];
+                        NSString *mentionURL = attrs[ENRMMentionURLAttributeName];
+                        NSString *citationURL = attrs[ENRMCitationURLAttributeName];
+                        if (mentionURL) {
+                          linkURL = [@"mention://" stringByAppendingString:mentionURL];
+                        } else if (citationURL) {
+                          linkURL = [@"citation://" stringByAppendingString:citationURL];
+                        }
                         NSString *segment = applyInlineFormatting(text, isBold, isItalic, isMonospace, isStrikethrough,
                                                                   isUnderline, linkURL);
 

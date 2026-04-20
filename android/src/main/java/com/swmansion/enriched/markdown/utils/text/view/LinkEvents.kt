@@ -6,8 +6,10 @@ import android.widget.TextView
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.NativeGestureUtil
+import com.swmansion.enriched.markdown.events.CitationPressEvent
 import com.swmansion.enriched.markdown.events.LinkLongPressEvent
 import com.swmansion.enriched.markdown.events.LinkPressEvent
+import com.swmansion.enriched.markdown.events.MentionPressEvent
 
 fun View.emitLinkPressEvent(url: String) {
   val reactContext = context as? ReactContext ?: return
@@ -21,6 +23,26 @@ fun View.emitLinkLongPressEvent(url: String) {
   val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
   val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
   dispatcher?.dispatchEvent(LinkLongPressEvent(surfaceId, id, url))
+}
+
+fun View.emitMentionPressEvent(
+  url: String,
+  text: String,
+) {
+  val reactContext = context as? ReactContext ?: return
+  val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+  val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+  dispatcher?.dispatchEvent(MentionPressEvent(surfaceId, id, url, text))
+}
+
+fun View.emitCitationPressEvent(
+  url: String,
+  text: String,
+) {
+  val reactContext = context as? ReactContext ?: return
+  val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+  val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+  dispatcher?.dispatchEvent(CitationPressEvent(surfaceId, id, url, text))
 }
 
 /**

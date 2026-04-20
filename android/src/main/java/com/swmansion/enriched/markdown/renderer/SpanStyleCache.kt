@@ -1,6 +1,8 @@
 package com.swmansion.enriched.markdown.renderer
 
 import android.graphics.Typeface
+import com.swmansion.enriched.markdown.styles.CitationStyle
+import com.swmansion.enriched.markdown.styles.MentionStyle
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
 /** Shared style cache for spans to avoid redundant calculations. */
@@ -27,6 +29,9 @@ class SpanStyleCache(
   val spoilerParticleDensity: Float = style.spoilerStyle.particleDensity
   val spoilerParticleSpeed: Float = style.spoilerStyle.particleSpeed
   val spoilerSolidBorderRadius: Float = style.spoilerStyle.solidBorderRadius
+  val mentionStyle: MentionStyle = style.mentionStyle
+  val mentionTypeface: Typeface? = style.mentionTypeface
+  val citationStyle: CitationStyle = style.citationStyle
 
   private fun buildColorsToPreserve(style: StyleConfig): IntArray {
     val paragraphColor = style.paragraphStyle.color
@@ -47,6 +52,19 @@ class SpanStyleCache(
         ?.let { add(it) }
       style.taskListStyle.checkedTextColor
         .takeIf { it != 0 }
+        ?.let { add(it) }
+      // Inline chip colors (mention / citation). Container spans like
+      // BaseListSpan and BlockquoteSpan overwrite text color via
+      // `applyColorPreserving(blockColor, colorsToPreserve)`. Including the
+      // chip colors here ensures the mention/citation foreground set by
+      // MentionSpan / CitationSpan survives that overwrite — otherwise the
+      // chip text falls back to the surrounding block color inside lists or
+      // blockquotes.
+      style.mentionStyle.color
+        .takeIf { it != 0 && it != paragraphColor }
+        ?.let { add(it) }
+      style.citationStyle.color
+        .takeIf { it != 0 && it != paragraphColor }
         ?.let { add(it) }
     }.toIntArray()
   }

@@ -1069,5 +1069,161 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  // ── Mention ─────────────────────────────────────────────────────────────
+
+  if (newStyle.mention.color != oldStyle.mention.color) {
+    if (newStyle.mention.color) {
+      [config setMentionColor:RCTUIColorFromSharedColor(newStyle.mention.color)];
+    } else {
+      [config setMentionColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.mention.backgroundColor != oldStyle.mention.backgroundColor) {
+    if (newStyle.mention.backgroundColor) {
+      [config setMentionBackgroundColor:RCTUIColorFromSharedColor(newStyle.mention.backgroundColor)];
+    } else {
+      [config setMentionBackgroundColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.mention.borderColor != oldStyle.mention.borderColor) {
+    if (newStyle.mention.borderColor) {
+      [config setMentionBorderColor:RCTUIColorFromSharedColor(newStyle.mention.borderColor)];
+    } else {
+      [config setMentionBorderColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.mention.borderWidth != oldStyle.mention.borderWidth) {
+    [config setMentionBorderWidth:newStyle.mention.borderWidth];
+    changed = YES;
+  }
+
+  if (newStyle.mention.borderRadius != oldStyle.mention.borderRadius) {
+    [config setMentionBorderRadius:newStyle.mention.borderRadius];
+    changed = YES;
+  }
+
+  if (newStyle.mention.paddingHorizontal != oldStyle.mention.paddingHorizontal) {
+    [config setMentionPaddingHorizontal:newStyle.mention.paddingHorizontal];
+    changed = YES;
+  }
+
+  if (newStyle.mention.paddingVertical != oldStyle.mention.paddingVertical) {
+    [config setMentionPaddingVertical:newStyle.mention.paddingVertical];
+    changed = YES;
+  }
+
+  if (newStyle.mention.fontFamily != oldStyle.mention.fontFamily) {
+    if (!newStyle.mention.fontFamily.empty()) {
+      NSString *fontFamily = [[NSString alloc] initWithUTF8String:newStyle.mention.fontFamily.c_str()];
+      [config setMentionFontFamily:fontFamily];
+    } else {
+      [config setMentionFontFamily:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.mention.fontWeight != oldStyle.mention.fontWeight) {
+    if (!newStyle.mention.fontWeight.empty()) {
+      NSString *fontWeight = [[NSString alloc] initWithUTF8String:newStyle.mention.fontWeight.c_str()];
+      [config setMentionFontWeight:fontWeight];
+    } else {
+      [config setMentionFontWeight:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.mention.fontSize != oldStyle.mention.fontSize) {
+    [config setMentionFontSize:newStyle.mention.fontSize];
+    changed = YES;
+  }
+
+  if (newStyle.mention.pressedOpacity != oldStyle.mention.pressedOpacity) {
+    [config setMentionPressedOpacity:newStyle.mention.pressedOpacity];
+    changed = YES;
+  }
+
+  // ── Citation ────────────────────────────────────────────────────────────
+
+  if (newStyle.citation.color != oldStyle.citation.color) {
+    if (newStyle.citation.color) {
+      [config setCitationColor:RCTUIColorFromSharedColor(newStyle.citation.color)];
+    } else {
+      [config setCitationColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.citation.fontSizeMultiplier != oldStyle.citation.fontSizeMultiplier) {
+    [config setCitationFontSizeMultiplier:newStyle.citation.fontSizeMultiplier];
+    changed = YES;
+  }
+
+  if (newStyle.citation.baselineOffsetPx != oldStyle.citation.baselineOffsetPx) {
+    [config setCitationBaselineOffsetPx:newStyle.citation.baselineOffsetPx];
+    changed = YES;
+  }
+
+  if (newStyle.citation.fontWeight != oldStyle.citation.fontWeight) {
+    if (!newStyle.citation.fontWeight.empty()) {
+      NSString *fontWeight = [[NSString alloc] initWithUTF8String:newStyle.citation.fontWeight.c_str()];
+      [config setCitationFontWeight:fontWeight];
+    } else {
+      [config setCitationFontWeight:nullptr];
+    }
+    changed = YES;
+  }
+
+  {
+    BOOL newUnderline = newStyle.citation.underline ? YES : NO;
+    if (newStyle.citation.underline != oldStyle.citation.underline || [config citationUnderline] != newUnderline) {
+      [config setCitationUnderline:newUnderline];
+      changed = YES;
+    }
+  }
+
+  if (newStyle.citation.backgroundColor != oldStyle.citation.backgroundColor) {
+    if (newStyle.citation.backgroundColor) {
+      [config setCitationBackgroundColor:RCTUIColorFromSharedColor(newStyle.citation.backgroundColor)];
+    } else {
+      [config setCitationBackgroundColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.citation.paddingHorizontal != oldStyle.citation.paddingHorizontal) {
+    [config setCitationPaddingHorizontal:newStyle.citation.paddingHorizontal];
+    changed = YES;
+  }
+
+  if (newStyle.citation.paddingVertical != oldStyle.citation.paddingVertical) {
+    [config setCitationPaddingVertical:newStyle.citation.paddingVertical];
+    changed = YES;
+  }
+
+  if (newStyle.citation.borderColor != oldStyle.citation.borderColor) {
+    if (newStyle.citation.borderColor) {
+      [config setCitationBorderColor:RCTUIColorFromSharedColor(newStyle.citation.borderColor)];
+    } else {
+      [config setCitationBorderColor:nullptr];
+    }
+    changed = YES;
+  }
+
+  if (newStyle.citation.borderWidth != oldStyle.citation.borderWidth) {
+    [config setCitationBorderWidth:newStyle.citation.borderWidth];
+    changed = YES;
+  }
+
+  if (newStyle.citation.borderRadius != oldStyle.citation.borderRadius) {
+    [config setCitationBorderRadius:newStyle.citation.borderRadius];
+    changed = YES;
+  }
+
   return changed;
 }

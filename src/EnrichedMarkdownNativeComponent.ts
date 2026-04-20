@@ -153,6 +153,34 @@ interface SpoilerStyleInternal {
   solid: SpoilerSolidStyleInternal;
 }
 
+interface MentionStyleInternal {
+  color: ColorValue;
+  backgroundColor: ColorValue;
+  borderColor: ColorValue;
+  borderWidth: CodegenTypes.Float;
+  borderRadius: CodegenTypes.Float;
+  paddingHorizontal: CodegenTypes.Float;
+  paddingVertical: CodegenTypes.Float;
+  fontFamily: string;
+  fontWeight: string;
+  fontSize: CodegenTypes.Float;
+  pressedOpacity: CodegenTypes.Float;
+}
+
+interface CitationStyleInternal {
+  color: ColorValue;
+  fontSizeMultiplier: CodegenTypes.Float;
+  baselineOffsetPx: CodegenTypes.Float;
+  fontWeight: string;
+  underline: boolean;
+  backgroundColor: ColorValue;
+  paddingHorizontal: CodegenTypes.Float;
+  paddingVertical: CodegenTypes.Float;
+  borderColor: ColorValue;
+  borderWidth: CodegenTypes.Float;
+  borderRadius: CodegenTypes.Float;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -178,6 +206,8 @@ export interface MarkdownStyleInternal {
   math: MathStyleInternal;
   inlineMath: InlineMathStyleInternal;
   spoiler: SpoilerStyleInternal;
+  mention: MentionStyleInternal;
+  citation: CitationStyleInternal;
 }
 
 export interface LinkPressEvent {
@@ -186,6 +216,16 @@ export interface LinkPressEvent {
 
 export interface LinkLongPressEvent {
   url: string;
+}
+
+export interface MentionPressEvent {
+  url: string;
+  text: string;
+}
+
+export interface CitationPressEvent {
+  url: string;
+  text: string;
 }
 
 export interface TaskListItemPressEvent {
@@ -254,6 +294,14 @@ export interface NativeProps extends ViewProps {
    * Receives the 0-based task index, current checked state, and the item's plain text.
    */
   onTaskListItemPress?: CodegenTypes.BubblingEventHandler<TaskListItemPressEvent>;
+  /**
+   * Callback fired when an inline mention pill (`mention://<id>`) is pressed.
+   */
+  onMentionPress?: CodegenTypes.BubblingEventHandler<MentionPressEvent>;
+  /**
+   * Callback fired when an inline citation (`citation://<url>`) is pressed.
+   */
+  onCitationPress?: CodegenTypes.BubblingEventHandler<CitationPressEvent>;
   /**
    * Controls whether the system link preview is shown on long press (iOS only).
    *

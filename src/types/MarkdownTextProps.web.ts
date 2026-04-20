@@ -86,12 +86,6 @@ export interface EnrichedMarkdownTextProps
    */
   selectionColor?: ColorValue;
   /**
-   * Best-effort tint for selection affordances (`accent-color` on the root).
-   * Selection handle appearance is largely browser-controlled.
-   * @platform web
-   */
-  selectionHandleColor?: ColorValue;
-  /**
    * When false (default), removes trailing margin from the last element to
    * eliminate bottom spacing.
    * When true, keeps the trailing margin from the last element's marginBottom style.

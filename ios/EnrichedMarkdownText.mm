@@ -412,12 +412,9 @@ using namespace facebook::react;
     _textView.selectable = newViewProps.selectable;
   }
 
-  if (newViewProps.selectionHandleColor != oldViewProps.selectionHandleColor ||
-      newViewProps.selectionColor != oldViewProps.selectionColor) {
+  if (newViewProps.selectionColor != oldViewProps.selectionColor) {
 #if !TARGET_OS_OSX
-    if (isColorMeaningful(newViewProps.selectionHandleColor)) {
-      ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionHandleColor));
-    } else if (isColorMeaningful(newViewProps.selectionColor)) {
+    if (isColorMeaningful(newViewProps.selectionColor)) {
       ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
     }
 #endif

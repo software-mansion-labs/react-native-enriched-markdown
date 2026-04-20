@@ -690,8 +690,7 @@ using namespace facebook::react;
     }
   }
 
-  if (newViewProps.selectionHandleColor != oldViewProps.selectionHandleColor ||
-      newViewProps.selectionColor != oldViewProps.selectionColor) {
+  if (newViewProps.selectionColor != oldViewProps.selectionColor) {
 #if !TARGET_OS_OSX
     for (RCTUIView *segment in _segmentViews) {
       if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
@@ -945,9 +944,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 - (void)applySelectionTintFromProps:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView
 {
 #if !TARGET_OS_OSX
-  if (isColorMeaningful(props.selectionHandleColor)) {
-    ENRMSetSelectionColor(textView, RCTUIColorFromSharedColor(props.selectionHandleColor));
-  } else if (isColorMeaningful(props.selectionColor)) {
+  if (isColorMeaningful(props.selectionColor)) {
     ENRMSetSelectionColor(textView, RCTUIColorFromSharedColor(props.selectionColor));
   }
 #endif

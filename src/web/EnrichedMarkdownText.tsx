@@ -36,7 +36,6 @@ export const EnrichedMarkdownText = ({
   selectable = true,
   dir,
   selectionColor,
-  selectionHandleColor,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
@@ -134,11 +133,8 @@ export const EnrichedMarkdownText = ({
       ...(selectionBgVar != null
         ? ({ ['--enrm-selection-bg']: selectionBgVar } as CSSProperties)
         : null),
-      ...(selectionHandleColor != null && selectionHandleColor !== undefined
-        ? { accentColor: String(selectionHandleColor) }
-        : null),
     };
-  }, [containerStyle, selectable, selectionColor, selectionHandleColor]);
+  }, [containerStyle, selectable, selectionColor]);
 
   // The browser's default copy picks up the text content of the selected
   // DOM, which would include citation markers. Citations are reference

@@ -278,8 +278,7 @@ export interface NativeProps extends ViewProps {
    *
    * - **Android**: maps to `TextView.highlightColor`.
    * - **iOS**: `UITextView.tintColor` drives the selection highlight, caret, and
-   *   selection handles together. When `selectionHandleColor` is also set, it
-   *   takes precedence for `tintColor` (see that prop).
+   *   selection handles together.
    * - **Web**: maps to `::selection` background via a CSS variable on the root.
    *
    * @platform ios, android, web
@@ -290,11 +289,7 @@ export interface NativeProps extends ViewProps {
    *
    * - **Android**: tints the left, mid, and right handle drawables (API 29+;
    *   older API levels leave handles at the default theme color).
-   * - **iOS**: merged with selection via `tintColor` — when set, it overrides
-   *   `selectionColor` for the shared `tintColor` (highlight + handles + caret).
-   * - **Web**: best-effort via `accent-color` on the root; browser support varies.
-   *
-   * @platform ios, android, web
+   * @platform android
    */
   selectionHandleColor?: ColorValue;
   /**

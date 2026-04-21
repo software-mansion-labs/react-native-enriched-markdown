@@ -1,0 +1,48 @@
+import type { CSSProperties } from 'react';
+import type { MarkdownStyleInternal } from '../types/MarkdownStyleInternal';
+export declare function zeroTrailingMargins(style: MarkdownStyleInternal): MarkdownStyleInternal;
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+export declare function toHeadingLevel(level: string): HeadingLevel;
+export declare function listItemStyle(isTask: boolean): CSSProperties | undefined;
+export declare function checkedTaskTextStyle(style: MarkdownStyleInternal): CSSProperties;
+export declare function tableBodyRowStyle(style: MarkdownStyleInternal, rowIndex: number): CSSProperties;
+export declare const parseErrorFallbackStyle: CSSProperties;
+export interface Styles {
+    paragraph: CSSProperties;
+    paragraphInBlockquote: CSSProperties;
+    h1: CSSProperties;
+    h2: CSSProperties;
+    h3: CSSProperties;
+    h4: CSSProperties;
+    h5: CSSProperties;
+    h6: CSSProperties;
+    blockquote: CSSProperties;
+    list: CSSProperties;
+    listNested: CSSProperties;
+    listTask: CSSProperties;
+    codeBlock: CSSProperties;
+    codeBlockFont: CSSProperties;
+    thematicBreak: CSSProperties;
+    image: CSSProperties;
+    inlineImage: CSSProperties;
+    strong: CSSProperties;
+    emphasis: CSSProperties;
+    code: CSSProperties;
+    link: CSSProperties;
+    strikethrough: CSSProperties;
+    underline: CSSProperties;
+    mathInline: CSSProperties;
+    mathDisplay: CSSProperties;
+    table: CSSProperties;
+    tableWrapper: CSSProperties;
+    tableHeaderCell: Record<ColumnAlign, CSSProperties>;
+    tableCell: Record<ColumnAlign, CSSProperties>;
+    taskCheckbox: CSSProperties;
+    mention: CSSProperties;
+    citation: CSSProperties;
+    mentionPressedOpacity: number;
+}
+type ColumnAlign = 'left' | 'center' | 'right' | 'default';
+export declare function buildStyles(style: MarkdownStyleInternal): Styles;
+export {};
+//# sourceMappingURL=styles.d.ts.map

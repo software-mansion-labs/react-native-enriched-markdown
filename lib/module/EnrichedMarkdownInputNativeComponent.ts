@@ -1,0 +1,256 @@
+import {
+  codegenNativeComponent,
+  codegenNativeCommands,
+  type ViewProps,
+  type ColorValue,
+  type HostComponent,
+  type CodegenTypes,
+} from 'react-native';
+import type React from 'react';
+
+interface MarkdownInputStyleInternal {
+  strong: {
+    color?: ColorValue;
+  };
+  em: {
+    color?: ColorValue;
+  };
+  link: {
+    color: ColorValue;
+    underline: boolean;
+  };
+  spoiler: {
+    color: ColorValue;
+    backgroundColor: ColorValue;
+  };
+}
+
+interface TargetedEvent {
+  target: CodegenTypes.Int32;
+}
+
+export interface OnChangeTextEvent {
+  value: string;
+}
+
+export interface OnChangeMarkdownEvent {
+  value: string;
+}
+
+export interface OnChangeSelectionEvent {
+  start: CodegenTypes.Int32;
+  end: CodegenTypes.Int32;
+}
+
+export interface OnChangeStateEvent {
+  bold: { isActive: boolean };
+  italic: { isActive: boolean };
+  underline: { isActive: boolean };
+  strikethrough: { isActive: boolean };
+  spoiler: { isActive: boolean };
+  link: { isActive: boolean };
+}
+
+export interface OnRequestMarkdownResultEvent {
+  requestId: CodegenTypes.Int32;
+  markdown: string;
+}
+
+export interface OnRequestCaretRectResultEvent {
+  requestId: CodegenTypes.Int32;
+  x: CodegenTypes.Double;
+  y: CodegenTypes.Double;
+  width: CodegenTypes.Double;
+  height: CodegenTypes.Double;
+}
+
+export interface OnCaretRectChangeEvent {
+  x: CodegenTypes.Double;
+  y: CodegenTypes.Double;
+  width: CodegenTypes.Double;
+  height: CodegenTypes.Double;
+}
+
+export interface LinkNativeRegex {
+  pattern: string;
+  caseInsensitive: boolean;
+  dotAll: boolean;
+  isDisabled: boolean;
+  isDefault: boolean;
+}
+
+export interface OnLinkDetected {
+  text: string;
+  url: string;
+  start: CodegenTypes.Int32;
+  end: CodegenTypes.Int32;
+}
+
+export interface ContextMenuItemConfig {
+  text: string;
+  icon?: string;
+}
+
+export interface OnContextMenuItemPressEvent {
+  itemText: string;
+  selectedText: string;
+  selectionStart: CodegenTypes.Int32;
+  selectionEnd: CodegenTypes.Int32;
+  styleState: {
+    bold: { isActive: boolean };
+    italic: { isActive: boolean };
+    underline: { isActive: boolean };
+    strikethrough: { isActive: boolean };
+    spoiler: { isActive: boolean };
+    link: { isActive: boolean };
+  };
+}
+
+export interface NativeProps extends ViewProps {
+  /**
+   * Initial markdown content.
+   */
+  defaultValue?: string;
+  /**
+   * Placeholder text shown when the input is empty.
+   */
+  placeholder?: string;
+  /**
+   * Color of the placeholder text.
+   */
+  placeholderTextColor?: ColorValue;
+  /**
+   * Whether the input is editable.
+   * @default true
+   */
+  editable?: boolean;
+  /**
+   * Whether the input should auto-focus on mount.
+   * @default false
+   */
+  autoFocus?: boolean;
+  /**
+   * Whether the input is scrollable.
+   * @default true
+   */
+  scrollEnabled?: boolean;
+  /**
+   * Auto-capitalization behavior.
+   */
+  autoCapitalize?: string;
+  /**
+   * Whether the input supports multiple lines.
+   * @default true
+   */
+  multiline?: boolean;
+  /**
+   * Color of the cursor.
+   */
+  cursorColor?: ColorValue;
+  /**
+   * Color of the text selection highlight.
+   */
+  selectionColor?: ColorValue;
+  /**
+   * Inline format style overrides.
+   * Always provided with complete defaults via normalizeMarkdownInputStyle.
+   */
+  markdownStyle: MarkdownInputStyleInternal;
+
+  // These should not be passed as regular props.
+  color?: ColorValue;
+  fontSize?: CodegenTypes.Float;
+  lineHeight?: CodegenTypes.Float;
+  fontFamily?: string;
+  fontWeight?: string;
+
+  /**
+   * Whether onChangeMarkdown handler is set. When true, the native side
+   * serializes formatting ranges to Markdown on every change.
+   */
+  isOnChangeMarkdownSet?: boolean;
+
+  /**
+   * Custom items to show in the text selection context menu.
+   * Each item is shown by its `text` label; invisible items should be filtered out before passing here.
+   */
+  contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+
+  /**
+   * Regex configuration for automatic link detection.
+   * Omit or pass undefined to use platform defaults.
+   */
+  linkRegex?: Readonly<LinkNativeRegex>;
+
+  // Events
+  onChangeText?: CodegenTypes.DirectEventHandler<OnChangeTextEvent>;
+  onChangeMarkdown?: CodegenTypes.DirectEventHandler<OnChangeMarkdownEvent>;
+  onChangeSelection?: CodegenTypes.DirectEventHandler<OnChangeSelectionEvent>;
+  onChangeState?: CodegenTypes.DirectEventHandler<OnChangeStateEvent>;
+  onInputFocus?: CodegenTypes.DirectEventHandler<TargetedEvent>;
+  onInputBlur?: CodegenTypes.DirectEventHandler<TargetedEvent>;
+  onRequestMarkdownResult?: CodegenTypes.DirectEventHandler<OnRequestMarkdownResultEvent>;
+  onRequestCaretRectResult?: CodegenTypes.DirectEventHandler<OnRequestCaretRectResultEvent>;
+  onCaretRectChange?: CodegenTypes.DirectEventHandler<OnCaretRectChangeEvent>;
+  onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
+  onLinkDetected?: CodegenTypes.DirectEventHandler<OnLinkDetected>;
+}
+
+type ComponentType = HostComponent<NativeProps>;
+
+interface NativeCommands {
+  focus: (viewRef: React.ElementRef<ComponentType>) => void;
+  blur: (viewRef: React.ElementRef<ComponentType>) => void;
+  setValue: (
+    viewRef: React.ElementRef<ComponentType>,
+    markdown: string
+  ) => void;
+  setSelection: (
+    viewRef: React.ElementRef<ComponentType>,
+    start: CodegenTypes.Int32,
+    end: CodegenTypes.Int32
+  ) => void;
+  toggleBold: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleItalic: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleUnderline: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleStrikethrough: (viewRef: React.ElementRef<ComponentType>) => void;
+  toggleSpoiler: (viewRef: React.ElementRef<ComponentType>) => void;
+  setLink: (viewRef: React.ElementRef<ComponentType>, url: string) => void;
+  insertLink: (
+    viewRef: React.ElementRef<ComponentType>,
+    text: string,
+    url: string
+  ) => void;
+  removeLink: (viewRef: React.ElementRef<ComponentType>) => void;
+  requestMarkdown: (
+    viewRef: React.ElementRef<ComponentType>,
+    requestId: CodegenTypes.Int32
+  ) => void;
+  requestCaretRect: (
+    viewRef: React.ElementRef<ComponentType>,
+    requestId: CodegenTypes.Int32
+  ) => void;
+}
+
+export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
+  supportedCommands: [
+    'focus',
+    'blur',
+    'setValue',
+    'setSelection',
+    'toggleBold',
+    'toggleItalic',
+    'toggleUnderline',
+    'toggleStrikethrough',
+    'toggleSpoiler',
+    'setLink',
+    'insertLink',
+    'removeLink',
+    'requestMarkdown',
+    'requestCaretRect',
+  ],
+});
+
+export default codegenNativeComponent<NativeProps>('EnrichedMarkdownInput', {
+  interfaceOnly: true,
+}) as HostComponent<NativeProps>;

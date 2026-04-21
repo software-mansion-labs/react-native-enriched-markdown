@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
   # ios folder that contains headers so renderer/ utils/ attachments/ etc. cross-imports resolve.
   ios_header_paths = %w[
     ios ios/attachments ios/input ios/input/internals ios/input/styles ios/internals ios/parser
-    ios/renderer ios/styles ios/utils ios/views
+    ios/renderer ios/styles ios/utils ios/views ios/generated
   ].map { |p| "\"$(PODS_TARGET_SRCROOT)/#{p}\"" }.join(' ')
 
   s.pod_target_xcconfig = {

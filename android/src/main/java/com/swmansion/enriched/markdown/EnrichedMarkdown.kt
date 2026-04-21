@@ -18,7 +18,7 @@ import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
 import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
-import com.swmansion.enriched.markdown.utils.text.view.applyMarkdownSelectionColors
+import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
@@ -55,8 +55,8 @@ class EnrichedMarkdown
     private var maxFontSizeMultiplier: Float = 0f
     private var allowTrailingMargin: Boolean = false
     private var selectable: Boolean = true
-    private var propSelectionColor: Int? = null
-    private var propSelectionHandleColor: Int? = null
+    private var selectionColor: Int? = null
+    private var selectionHandleColor: Int? = null
 
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
@@ -133,19 +133,19 @@ class EnrichedMarkdown
       }
     }
 
-    fun setSelectionColorFromProps(color: Int?) {
-      propSelectionColor = color
+    fun setSelectionColor(color: Int?) {
+      selectionColor = color
       applySelectionColorsToSegments()
     }
 
-    fun setSelectionHandleColorFromProps(color: Int?) {
-      propSelectionHandleColor = color
+    fun setSelectionHandleColor(color: Int?) {
+      selectionHandleColor = color
       applySelectionColorsToSegments()
     }
 
     private fun applySelectionColorsToSegments() {
       segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
-        it.applyMarkdownSelectionColors(propSelectionColor, propSelectionHandleColor)
+        it.applySelectionColors(selectionColor, selectionHandleColor)
       }
     }
 
@@ -266,7 +266,7 @@ class EnrichedMarkdown
           setContextMenuItems(contextMenuItemTexts, ::forwardContextMenuItemPress)
         }
 
-        applyMarkdownSelectionColors(propSelectionColor, propSelectionHandleColor)
+        applySelectionColors(selectionColor, selectionHandleColor)
       }
 
     private fun createTableView(

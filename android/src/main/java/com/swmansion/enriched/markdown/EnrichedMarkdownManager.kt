@@ -94,14 +94,14 @@ class EnrichedMarkdownManager :
     view: EnrichedMarkdown?,
     value: Int?,
   ) {
-    view?.setSelectionColorFromProps(value)
+    view?.setSelectionColor(value)
   }
 
   override fun setSelectionHandleColor(
     view: EnrichedMarkdown?,
     value: Int?,
   ) {
-    view?.setSelectionHandleColorFromProps(value)
+    view?.setSelectionHandleColor(value)
   }
 
   @ReactProp(name = "md4cFlags")

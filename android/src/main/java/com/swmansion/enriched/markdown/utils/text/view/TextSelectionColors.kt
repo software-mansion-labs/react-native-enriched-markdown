@@ -11,7 +11,7 @@ import androidx.core.graphics.drawable.DrawableCompat
  * Handle drawables are only tinted on API 29+ where the framework exposes getters;
  * on older versions the handle theme defaults remain unchanged.
  */
-fun TextView.applyMarkdownSelectionColors(
+fun TextView.applySelectionColors(
   selectionColor: Int?,
   selectionHandleColor: Int?,
 ) {

@@ -91,7 +91,7 @@ using namespace facebook::react;
 #endif
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
-- (void)applySelectionTintFromProps:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView;
+- (void)applySelectionColor:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView;
 @end
 
 @implementation EnrichedMarkdown {
@@ -496,7 +496,7 @@ using namespace facebook::react;
   [view applyAttributedText:segment.attributedText context:segment.context];
 
   const auto &selectionProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(self->_props);
-  [self applySelectionTintFromProps:selectionProps toTextView:view.textView];
+  [self applySelectionColor:selectionProps toTextView:view.textView];
 
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [view.textView addGestureRecognizer:tapRecognizer];
@@ -667,7 +667,7 @@ using namespace facebook::react;
     for (RCTUIView *segment in _segmentViews) {
       if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
         ENRMPlatformTextView *tv = ((EnrichedMarkdownInternalText *)segment).textView;
-        [self applySelectionTintFromProps:newViewProps toTextView:tv];
+        [self applySelectionColor:newViewProps toTextView:tv];
       }
     }
 #endif
@@ -896,7 +896,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 }
 #endif
 
-- (void)applySelectionTintFromProps:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView
+- (void)applySelectionColor:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView
 {
 #if !TARGET_OS_OSX
   if (isColorMeaningful(props.selectionColor)) {

@@ -22,8 +22,8 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
-import com.swmansion.enriched.markdown.utils.text.view.applyMarkdownSelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
+import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
@@ -82,8 +82,8 @@ class EnrichedMarkdownText
       private set
     var spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES
 
-    private var propSelectionColor: Int? = null
-    private var propSelectionHandleColor: Int? = null
+    private var selectionColor: Int? = null
+    private var selectionHandleColor: Int? = null
 
     init {
       setupAsMarkdownTextView()
@@ -253,7 +253,7 @@ class EnrichedMarkdownText
         previousTextLength = styledText.length
       }
 
-      applyMarkdownSelectionColors(propSelectionColor, propSelectionHandleColor)
+      applySelectionColors(selectionColor, selectionHandleColor)
     }
 
     fun setContextMenuItems(items: List<String>) {
@@ -264,14 +264,14 @@ class EnrichedMarkdownText
       applySelectableState(selectable)
     }
 
-    fun setSelectionColorFromProps(color: Int?) {
-      propSelectionColor = color
-      applyMarkdownSelectionColors(propSelectionColor, propSelectionHandleColor)
+    fun setSelectionColor(color: Int?) {
+      selectionColor = color
+      applySelectionColors(selectionColor, selectionHandleColor)
     }
 
-    fun setSelectionHandleColorFromProps(color: Int?) {
-      propSelectionHandleColor = color
-      applyMarkdownSelectionColors(propSelectionColor, propSelectionHandleColor)
+    fun setSelectionHandleColor(color: Int?) {
+      selectionHandleColor = color
+      applySelectionColors(selectionColor, selectionHandleColor)
     }
 
     fun emitOnLinkPress(url: String) {

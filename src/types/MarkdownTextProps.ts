@@ -108,21 +108,17 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    */
   selectable?: boolean;
   /**
-   * Color of the text selection highlight (selected text background).
+   * Color of the text selection highlight.
    *
-   * - **Android**: maps to `TextView.highlightColor`.
-   * - **iOS**: `UITextView.tintColor` drives the selection highlight, caret, and
-   *   selection handles together.
-   * - **Web**: maps to `::selection` background via a CSS variable on the root.
+   * On iOS, this also affects the caret and selection handle colors
+   * (they share a single tint).
    *
    * @platform ios, android, web
    */
   selectionColor?: ColorValue;
   /**
    * Color of the selection handles (drag anchors).
-   *
-   * - **Android**: tints the left, mid, and right handle drawables (API 29+;
-   *   older API levels leave handles at the default theme color).
+   * No-op on API levels below 29.
    *
    * @platform android
    */

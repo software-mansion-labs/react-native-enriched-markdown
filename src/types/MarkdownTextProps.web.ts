@@ -81,7 +81,7 @@ export interface EnrichedMarkdownTextProps
    */
   selectable?: boolean;
   /**
-   * Color of the text selection highlight (`::selection` background).
+   * Color of the text selection highlight.
    * @platform web
    */
   selectionColor?: ColorValue;

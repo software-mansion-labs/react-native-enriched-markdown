@@ -901,6 +901,8 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 #if !TARGET_OS_OSX
   if (isColorMeaningful(props.selectionColor)) {
     ENRMSetSelectionColor(textView, RCTUIColorFromSharedColor(props.selectionColor));
+  } else {
+    ENRMSetSelectionColor(textView, nil); // resets to inherited / system tint
   }
 #endif
 }

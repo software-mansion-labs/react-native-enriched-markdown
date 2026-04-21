@@ -416,6 +416,8 @@ using namespace facebook::react;
 #if !TARGET_OS_OSX
     if (isColorMeaningful(newViewProps.selectionColor)) {
       ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
+    } else {
+      ENRMSetSelectionColor(_textView, nil); // resets to inherited / system tint
     }
 #endif
   }

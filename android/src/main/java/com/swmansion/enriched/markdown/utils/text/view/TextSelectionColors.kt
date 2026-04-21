@@ -1,9 +1,12 @@
 package com.swmansion.enriched.markdown.utils.text.view
 
 import android.os.Build
+import android.util.Log
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.graphics.drawable.DrawableCompat
+
+private const val TAG = "TextSelectionColors"
 
 /**
  * Applies selection highlight and (where supported) handle tinting to a [TextView].
@@ -25,23 +28,20 @@ private fun TextView.applySelectionHandleTint(
   if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
     return
   }
-  try {
-    tintHandle(textSelectHandleLeft, color)?.let { setTextSelectHandleLeft(it) }
-    tintHandle(textSelectHandle, color)?.let { setTextSelectHandle(it) }
-    tintHandle(textSelectHandleRight, color)?.let { setTextSelectHandleRight(it) }
-  } catch (_: Exception) {
-    // Defensive: OEM TextView variants may not support all handle accessors.
-  }
-}
 
-private fun tintHandle(
-  drawable: android.graphics.drawable.Drawable?,
-  @ColorInt color: Int,
-): android.graphics.drawable.Drawable? {
-  if (drawable == null) {
-    return null
+  val handles =
+    listOf(
+      this::getTextSelectHandleLeft to this::setTextSelectHandleLeft,
+      this::getTextSelectHandle to this::setTextSelectHandle,
+      this::getTextSelectHandleRight to this::setTextSelectHandleRight,
+    )
+
+  handles.forEach { (getter, setter) ->
+    try {
+      getter()?.mutate()?.also { DrawableCompat.setTint(it, color) }?.let(setter)
+    } catch (e: LinkageError) {
+      // Defensive: OEM TextView variants may strip individual handle accessors.
+      Log.w(TAG, "Selection handle tint skipped: ${e.message}")
+    }
   }
-  val mutated = drawable.mutate()
-  DrawableCompat.setTint(mutated, color)
-  return mutated
 }

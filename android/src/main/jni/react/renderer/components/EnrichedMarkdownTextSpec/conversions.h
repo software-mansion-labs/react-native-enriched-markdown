@@ -27,7 +27,7 @@ inline folly::dynamic toDynamic(const EnrichedMarkdownProps &props) {
   return serializedProps;
 }
 
-inline folly::dynamic toDynamic(const EnrichedMarkdownInputProps &props) {
+inline folly::dynamic toDynamic(const EnrichedMarkdownTextInputProps &props) {
   folly::dynamic serializedProps = folly::dynamic::object();
   serializedProps["defaultValue"] = props.defaultValue;
   serializedProps["placeholder"] = props.placeholder;

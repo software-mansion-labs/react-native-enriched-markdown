@@ -193,8 +193,8 @@
         "EnrichedMarkdown": {
           "className": "EnrichedMarkdown"
         },
-        "EnrichedMarkdownInput": {
-          "className": "EnrichedMarkdownInput"
+        "EnrichedMarkdownTextInput": {
+          "className": "EnrichedMarkdownTextInput"
         }
       }
     },

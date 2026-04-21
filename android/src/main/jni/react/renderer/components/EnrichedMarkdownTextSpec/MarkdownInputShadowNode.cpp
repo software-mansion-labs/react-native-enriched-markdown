@@ -4,7 +4,7 @@
 
 namespace facebook::react {
 
-extern const char MarkdownInputComponentName[] = "EnrichedMarkdownInput";
+extern const char MarkdownInputComponentName[] = "EnrichedMarkdownTextInput";
 
 void MarkdownInputShadowNode::setMeasurementsManager(
     const std::shared_ptr<MarkdownInputMeasurementManager> &measurementsManager) {

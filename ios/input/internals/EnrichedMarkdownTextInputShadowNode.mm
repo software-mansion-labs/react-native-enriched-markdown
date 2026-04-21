@@ -1,27 +1,27 @@
-#import "EnrichedMarkdownInputShadowNode.h"
-#import "EnrichedMarkdownInput.h"
+#import "EnrichedMarkdownTextInputShadowNode.h"
+#import "EnrichedMarkdownTextInput.h"
 #import <react/utils/ManagedObjectWrapper.h>
 #import <yoga/Yoga.h>
 
 namespace facebook::react {
 
-extern const char EnrichedMarkdownInputComponentName[] = "EnrichedMarkdownInput";
+extern const char EnrichedMarkdownTextInputComponentName[] = "EnrichedMarkdownTextInput";
 
-EnrichedMarkdownInputShadowNode::EnrichedMarkdownInputShadowNode(const ShadowNodeFragment &fragment,
-                                                                 const ShadowNodeFamily::Shared &family,
-                                                                 ShadowNodeTraits traits)
+EnrichedMarkdownTextInputShadowNode::EnrichedMarkdownTextInputShadowNode(const ShadowNodeFragment &fragment,
+                                                                         const ShadowNodeFamily::Shared &family,
+                                                                         ShadowNodeTraits traits)
     : ConcreteViewShadowNode(fragment, family, traits)
 {
 }
 
-EnrichedMarkdownInputShadowNode::EnrichedMarkdownInputShadowNode(const ShadowNode &sourceShadowNode,
-                                                                 const ShadowNodeFragment &fragment)
+EnrichedMarkdownTextInputShadowNode::EnrichedMarkdownTextInputShadowNode(const ShadowNode &sourceShadowNode,
+                                                                         const ShadowNodeFragment &fragment)
     : ConcreteViewShadowNode(sourceShadowNode, fragment)
 {
   dirtyLayoutIfNeeded();
 }
 
-void EnrichedMarkdownInputShadowNode::dirtyLayoutIfNeeded()
+void EnrichedMarkdownTextInputShadowNode::dirtyLayoutIfNeeded()
 {
   const auto state = this->getStateData();
   const int receivedCounter = state.getHeightRecalculationCounter();
@@ -32,9 +32,10 @@ void EnrichedMarkdownInputShadowNode::dirtyLayoutIfNeeded()
   }
 }
 
-id EnrichedMarkdownInputShadowNode::setupMockInputView_(CGFloat width) const
+id EnrichedMarkdownTextInputShadowNode::setupMockInputView_(CGFloat width) const
 {
-  EnrichedMarkdownInput *mockView = [[EnrichedMarkdownInput alloc] initWithFrame:CGRectMake(20000, 20000, width, 1000)];
+  EnrichedMarkdownTextInput *mockView =
+      [[EnrichedMarkdownTextInput alloc] initWithFrame:CGRectMake(20000, 20000, width, 1000)];
 
   mockView.blockEmitting = YES;
 
@@ -44,14 +45,14 @@ id EnrichedMarkdownInputShadowNode::setupMockInputView_(CGFloat width) const
   return mockView;
 }
 
-Size EnrichedMarkdownInputShadowNode::measureContent(const LayoutContext &layoutContext,
-                                                     const LayoutConstraints &layoutConstraints) const
+Size EnrichedMarkdownTextInputShadowNode::measureContent(const LayoutContext &layoutContext,
+                                                         const LayoutConstraints &layoutConstraints) const
 {
   CGFloat maxWidth = layoutConstraints.maximumSize.width;
 
   RCTInternalGenericWeakWrapper *weakWrapper =
       (RCTInternalGenericWeakWrapper *)unwrapManagedObject(getStateData().getComponentViewRef());
-  EnrichedMarkdownInput *view = weakWrapper ? (EnrichedMarkdownInput *)weakWrapper.object : nil;
+  EnrichedMarkdownTextInput *view = weakWrapper ? (EnrichedMarkdownTextInput *)weakWrapper.object : nil;
 
   __block CGSize size;
 
@@ -59,7 +60,7 @@ Size EnrichedMarkdownInputShadowNode::measureContent(const LayoutContext &layout
     if (view) {
       size = [view measureSize:maxWidth];
     } else {
-      EnrichedMarkdownInput *mockView = setupMockInputView_(maxWidth);
+      EnrichedMarkdownTextInput *mockView = setupMockInputView_(maxWidth);
       size = [mockView measureSize:maxWidth];
     }
   };

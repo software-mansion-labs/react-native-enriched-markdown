@@ -11,13 +11,13 @@ export type {
   TaskListItemPressEvent,
 } from './types/events';
 
-export { EnrichedMarkdownInput } from './EnrichedMarkdownInput';
+export { EnrichedMarkdownTextInput } from './EnrichedMarkdownTextInput';
 export type {
-  EnrichedMarkdownInputProps,
-  EnrichedMarkdownInputInstance,
-  MarkdownInputStyle,
+  EnrichedMarkdownTextInputProps,
+  EnrichedMarkdownTextInputInstance,
+  MarkdownTextInputStyle,
   StyleState,
   ContextMenuItem,
   OnLinkDetected,
   CaretRect,
-} from './EnrichedMarkdownInput';
+} from './EnrichedMarkdownTextInput';

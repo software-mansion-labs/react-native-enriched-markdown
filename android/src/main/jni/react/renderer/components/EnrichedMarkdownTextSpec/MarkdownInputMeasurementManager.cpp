@@ -9,7 +9,8 @@ using namespace facebook::jni;
 
 namespace facebook::react {
 
-Size MarkdownInputMeasurementManager::measure(SurfaceId surfaceId, int viewTag, const EnrichedMarkdownInputProps &props,
+Size MarkdownInputMeasurementManager::measure(SurfaceId surfaceId, int viewTag,
+                                              const EnrichedMarkdownTextInputProps &props,
                                               LayoutConstraints layoutConstraints) const {
   const jni::global_ref<jobject> &fabricUIManager = contextContainer_->at<jni::global_ref<jobject>>("FabricUIManager");
 
@@ -21,7 +22,7 @@ Size MarkdownInputMeasurementManager::measure(SurfaceId surfaceId, int viewTag, 
   auto minimumSize = layoutConstraints.minimumSize;
   auto maximumSize = layoutConstraints.maximumSize;
 
-  local_ref<JString> componentName = make_jstring("EnrichedMarkdownInput");
+  local_ref<JString> componentName = make_jstring("EnrichedMarkdownTextInput");
 
   folly::dynamic extraData = folly::dynamic::object();
   extraData["viewTag"] = viewTag;

@@ -1,11 +1,11 @@
 #import "ContextMenuUtils.h"
 #import "ENRMUIKit.h"
-#import "EnrichedMarkdownInput+Internal.h"
+#import "EnrichedMarkdownTextInput+Internal.h"
 #import "PasteboardUtils.h"
 
 // TODO: Wrap all user-facing strings with NSLocalizedString for localization support.
 
-@implementation EnrichedMarkdownInput (ContextMenu)
+@implementation EnrichedMarkdownTextInput (ContextMenu)
 
 - (void)copySelectedRangeAsMarkdown
 {
@@ -25,7 +25,7 @@
     return nil;
   }
 
-  __weak EnrichedMarkdownInput *weakSelf = self;
+  __weak EnrichedMarkdownTextInput *weakSelf = self;
 
   static const struct {
     NSString *title;
@@ -104,7 +104,7 @@
     return menu;
   }
 
-  __weak EnrichedMarkdownInput *weakSelf = self;
+  __weak EnrichedMarkdownTextInput *weakSelf = self;
   NSArray<NSMenuItem *> *customItems =
       ENRMBuildContextMenuItems([self contextMenuItemTexts], [self contextMenuItemIcons], textView,
                                 ^(NSString *itemText, NSString *_, NSUInteger __, NSUInteger ___) {

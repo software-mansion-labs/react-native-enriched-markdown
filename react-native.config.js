@@ -9,7 +9,7 @@ module.exports = {
         componentDescriptors: [
           'EnrichedMarkdownTextComponentDescriptor',
           'EnrichedMarkdownComponentDescriptor',
-          'EnrichedMarkdownInputComponentDescriptor',
+          'EnrichedMarkdownTextInputComponentDescriptor',
         ],
       },
     },

@@ -1,4 +1,4 @@
-#import "EnrichedMarkdownInput.h"
+#import "EnrichedMarkdownTextInput.h"
 #import "ContextMenuUtils.h"
 #import "ENRMAutoLinkDetector.h"
 #import "ENRMDetectorPipeline.h"
@@ -19,12 +19,12 @@
 #import <React/RCTBackedTextInputDelegate.h>
 #endif
 
-#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownInputComponentDescriptor.h>
+#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownTextInputComponentDescriptor.h>
 #import <ReactNativeEnrichedMarkdown/EventEmitters.h>
 #import <ReactNativeEnrichedMarkdown/Props.h>
 #import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
 
-#import "EnrichedMarkdownInputShadowNode.h"
+#import "EnrichedMarkdownTextInputShadowNode.h"
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>
 #import <react/utils/ManagedObjectWrapper.h>
@@ -32,9 +32,9 @@
 using namespace facebook::react;
 
 #if !TARGET_OS_OSX
-@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, UITextViewDelegate>
+@interface EnrichedMarkdownTextInput () <RCTEnrichedMarkdownTextInputViewProtocol, UITextViewDelegate>
 #else
-@interface EnrichedMarkdownInput () <RCTEnrichedMarkdownInputViewProtocol, RCTBackedTextInputDelegate>
+@interface EnrichedMarkdownTextInput () <RCTEnrichedMarkdownTextInputViewProtocol, RCTBackedTextInputDelegate>
 #endif
 - (void)setupTextView;
 - (void)applyFormatting;
@@ -43,10 +43,10 @@ using namespace facebook::react;
 - (void)replaceSelectedTextWith:(NSString *)text formattingRanges:(NSArray<ENRMFormattingRange *> *)ranges;
 @end
 
-@implementation EnrichedMarkdownInput {
+@implementation EnrichedMarkdownTextInput {
   ENRMPlatformTextView *_textView;
   ENRMInputLayoutManager *_layoutManager;
-  EnrichedMarkdownInputShadowNode::ConcreteState::Shared _state;
+  EnrichedMarkdownTextInputShadowNode::ConcreteState::Shared _state;
   int _heightUpdateCounter;
   ENRMInputFormatter *_formatter;
   ENRMInputFormatterStyle *_formatterStyle;
@@ -84,7 +84,7 @@ using namespace facebook::react;
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
-  return concreteComponentDescriptorProvider<EnrichedMarkdownInputComponentDescriptor>();
+  return concreteComponentDescriptorProvider<EnrichedMarkdownTextInputComponentDescriptor>();
 }
 
 + (BOOL)shouldBeRecycled
@@ -95,7 +95,7 @@ using namespace facebook::react;
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
-    static const auto defaultProps = std::make_shared<const EnrichedMarkdownInputProps>();
+    static const auto defaultProps = std::make_shared<const EnrichedMarkdownTextInputProps>();
     _props = defaultProps;
 
     self.backgroundColor = [RCTUIColor clearColor];
@@ -122,7 +122,7 @@ using namespace facebook::react;
                                                         formattingStore:_formattingStore
                                                                   style:_formatterStyle];
 
-  __weak EnrichedMarkdownInput *weakSelf = self;
+  __weak EnrichedMarkdownTextInput *weakSelf = self;
   _autoLinkDetector.onLinkDetected = ^(NSString *text, NSString *url, NSRange range) {
     [weakSelf emitOnLinkDetectedWithText:text url:url range:range];
   };
@@ -191,7 +191,7 @@ using namespace facebook::react;
 - (void)updateState:(const facebook::react::State::Shared &)state
            oldState:(const facebook::react::State::Shared &)oldState
 {
-  _state = std::static_pointer_cast<const EnrichedMarkdownInputShadowNode::ConcreteState>(state);
+  _state = std::static_pointer_cast<const EnrichedMarkdownTextInputShadowNode::ConcreteState>(state);
 
   if (oldState == nullptr) {
     [self requestHeightUpdate];
@@ -206,7 +206,7 @@ using namespace facebook::react;
 
   _heightUpdateCounter++;
   auto selfRef = wrapManagedObjectWeakly(self);
-  _state->updateState(EnrichedMarkdownInputState(_heightUpdateCounter, selfRef));
+  _state->updateState(EnrichedMarkdownTextInputState(_heightUpdateCounter, selfRef));
 }
 
 #pragma mark - Measurement
@@ -245,8 +245,8 @@ using namespace facebook::react;
 
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
-  const auto &oldViewProps = *std::static_pointer_cast<EnrichedMarkdownInputProps const>(_props);
-  const auto &newViewProps = *std::static_pointer_cast<EnrichedMarkdownInputProps const>(props);
+  const auto &oldViewProps = *std::static_pointer_cast<EnrichedMarkdownTextInputProps const>(_props);
+  const auto &newViewProps = *std::static_pointer_cast<EnrichedMarkdownTextInputProps const>(props);
 
   if (newViewProps.editable != oldViewProps.editable) {
     _textView.editable = newViewProps.editable;
@@ -385,7 +385,7 @@ using namespace facebook::react;
     [self updatePlaceholderVisibility];
     [self requestHeightUpdate];
 
-    const auto &viewProps = *std::static_pointer_cast<EnrichedMarkdownInputProps const>(_props);
+    const auto &viewProps = *std::static_pointer_cast<EnrichedMarkdownTextInputProps const>(_props);
     if (viewProps.autoFocus) {
       ENRMFocusTextView(_textView);
     }
@@ -715,7 +715,7 @@ using namespace facebook::react;
   ENRMFormattingRange *activeLink = [_formattingStore rangeOfType:ENRMInputStyleTypeLink containingPosition:cursor];
   NSString *existingURL = activeLink != nil ? activeLink.url : nil;
 
-  __weak EnrichedMarkdownInput *weakSelf = self;
+  __weak EnrichedMarkdownTextInput *weakSelf = self;
   ENRMShowLinkPrompt(self, existingURL, ^(NSString *url) { [weakSelf setLink:url]; });
 }
 
@@ -803,7 +803,7 @@ using namespace facebook::react;
 
 - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
 {
-  RCTEnrichedMarkdownInputHandleCommand(self, commandName, args);
+  RCTEnrichedMarkdownTextInputHandleCommand(self, commandName, args);
 }
 
 #pragma mark - Style state query
@@ -831,12 +831,12 @@ using namespace facebook::react;
   }
 }
 
-- (std::shared_ptr<EnrichedMarkdownInputEventEmitter const>)getEventEmitter
+- (std::shared_ptr<EnrichedMarkdownTextInputEventEmitter const>)getEventEmitter
 {
   if (_eventEmitter == nullptr || _blockEmitting) {
     return nullptr;
   }
-  return std::static_pointer_cast<EnrichedMarkdownInputEventEmitter const>(_eventEmitter);
+  return std::static_pointer_cast<EnrichedMarkdownTextInputEventEmitter const>(_eventEmitter);
 }
 
 - (NSArray<ENRMFormattingRange *> *)allRangesIncludingTransient
@@ -1343,7 +1343,7 @@ using namespace facebook::react;
 
 @end
 
-Class<RCTComponentViewProtocol> EnrichedMarkdownInputCls(void)
+Class<RCTComponentViewProtocol> EnrichedMarkdownTextInputCls(void)
 {
-  return EnrichedMarkdownInput.class;
+  return EnrichedMarkdownTextInput.class;
 }

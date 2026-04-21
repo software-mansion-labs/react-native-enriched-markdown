@@ -1,6 +1,6 @@
-# EnrichedMarkdownInput
+# EnrichedMarkdownTextInput
 
-`EnrichedMarkdownInput` is a rich text input component that outputs Markdown. It is an uncontrolled input — it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use.
+`EnrichedMarkdownTextInput` is a rich text input component that outputs Markdown. It is an uncontrolled input — it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use.
 
 ## Usage
 
@@ -10,18 +10,18 @@ Here's a simple example of an input that lets you toggle bold on its text and sh
 import { useRef, useState } from 'react';
 import { View, Button, StyleSheet } from 'react-native';
 import {
-  EnrichedMarkdownInput,
-  type EnrichedMarkdownInputInstance,
+  EnrichedMarkdownTextInput,
+  type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
 
 export default function App() {
-  const ref = useRef<EnrichedMarkdownInputInstance>(null);
+  const ref = useRef<EnrichedMarkdownTextInputInstance>(null);
   const [state, setState] = useState<StyleState | null>(null);
 
   return (
     <View style={styles.container}>
-      <EnrichedMarkdownInput
+      <EnrichedMarkdownTextInput
         ref={ref}
         placeholder="Type here..."
         onChangeState={setState}
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
 Summary of what happens here:
 
-1. Any methods imperatively called on the input to e.g. toggle some style must be used through a `ref` of `EnrichedMarkdownInputInstance` type. Here, `toggleBold` method that is called on the button press calls `ref.current?.toggleBold()`, which toggles the bold styling within the current selection.
+1. Any methods imperatively called on the input to e.g. toggle some style must be used through a `ref` of `EnrichedMarkdownTextInputInstance` type. Here, `toggleBold` method that is called on the button press calls `ref.current?.toggleBold()`, which toggles the bold styling within the current selection.
 2. All style state information is emitted by the `onChangeState` callback. The callback payload provides a nested object for each style (e.g., `bold`, `italic`), containing an `isActive` property to guide your UI logic — indicating if the style is currently applied (highlight the button).
 
 ## Inline Styles
@@ -80,7 +80,7 @@ A complete example of a setup that supports both setting links on the selected t
 
 ## Auto-Link Detection
 
-`EnrichedMarkdownInput` can automatically detect URLs as the user types and convert them into Markdown links. Detected links are visually styled in the input and serialized as `[text](url)` in the Markdown output.
+`EnrichedMarkdownTextInput` can automatically detect URLs as the user types and convert them into Markdown links. Detected links are visually styled in the input and serialized as `[text](url)` in the Markdown output.
 
 ### Basic usage
 
@@ -93,7 +93,7 @@ Bare domains and `www.` prefixes are automatically normalized with `https://` (e
 You can provide a custom regex pattern to control which text is detected as a link:
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   linkRegex={/https?:\/\/[^\s]+/i}
 />
 ```
@@ -101,7 +101,7 @@ You can provide a custom regex pattern to control which text is detected as a li
 Pass `null` to disable auto-link detection entirely:
 
 ```tsx
-<EnrichedMarkdownInput linkRegex={null} />
+<EnrichedMarkdownTextInput linkRegex={null} />
 ```
 
 ### Listening for detections
@@ -109,7 +109,7 @@ Pass `null` to disable auto-link detection entirely:
 Use the `onLinkDetected` callback to be notified when a new link is detected:
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   onLinkDetected={({ text, url, start, end }) => {
     console.log(`Detected link: ${text} -> ${url} at [${start}, ${end}]`);
   }}
@@ -124,14 +124,14 @@ When a manual link is applied (via `setLink` or `insertLink`) over an auto-detec
 
 ## Caret Position Tracking
 
-`EnrichedMarkdownInput` can report the caret's pixel position relative to the input, which is useful when the input is embedded in a scrollable container with `scrollEnabled={false}` and you need to keep the caret visible.
+`EnrichedMarkdownTextInput` can report the caret's pixel position relative to the input, which is useful when the input is embedded in a scrollable container with `scrollEnabled={false}` and you need to keep the caret visible.
 
 ### `onCaretRectChange`
 
 A push-based callback that fires whenever the caret moves (typing, selection change, content reflow). The native side diffs the caret rect before emitting, so redundant events are suppressed automatically.
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   scrollEnabled={false}
   onCaretRectChange={(rect) => {
     console.log(rect);
@@ -155,7 +155,7 @@ You can find some examples in the [usage section](#usage) or in the example app.
 
 ## Other Events
 
-`EnrichedMarkdownInput` emits a few more events that may be of use:
+`EnrichedMarkdownTextInput` emits a few more events that may be of use:
 
 - [onFocus](API_REFERENCE.md#onfocus-1) - emits whenever input focuses.
 - [onBlur](API_REFERENCE.md#onblur) - emits whenever input blurs.
@@ -163,12 +163,12 @@ You can find some examples in the [usage section](#usage) or in the example app.
 - [onChangeMarkdown](API_REFERENCE.md#onchangemarkdown) - returns the Markdown string parsed from current input text and styles anytime it would change. As parsing the Markdown on each input change can be expensive, not assigning the event's callback will skip the serialization for better performance.
 - [onChangeSelection](API_REFERENCE.md#onchangeselection) - returns `{ start, end }` of the current selection, useful for working with [links](#links).
 
-## Customizing \<EnrichedMarkdownInput /> Styles
+## Customizing \<EnrichedMarkdownTextInput /> Styles
 
-`EnrichedMarkdownInput` accepts a `markdownStyle` prop for customizing how formatted text appears in the input:
+`EnrichedMarkdownTextInput` accepts a `markdownStyle` prop for customizing how formatted text appears in the input:
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   markdownStyle={{
     strong: { color: '#1D4ED8' },
     em: { color: '#7C3AED' },

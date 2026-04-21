@@ -1,7 +1,7 @@
 #import "ENRMInputTextView.h"
-#import "EnrichedMarkdownInput.h"
+#import "EnrichedMarkdownTextInput.h"
 #if TARGET_OS_OSX
-#import "EnrichedMarkdownInput+Internal.h"
+#import "EnrichedMarkdownTextInput+Internal.h"
 #endif
 
 static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-markdown.markdown";

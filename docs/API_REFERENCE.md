@@ -249,7 +249,7 @@ interface ContextMenuItem {
 
 ---
 
-## EnrichedMarkdownInput
+## EnrichedMarkdownTextInput
 
 ### Props
 
@@ -339,7 +339,7 @@ Style configuration for formatted text in the input.
 
 | Type                 | Default Value | Platform |
 | -------------------- | ------------- | -------- |
-| `MarkdownInputStyle` | `{}`          | Both     |
+| `MarkdownTextInputStyle` | `{}`          | Both     |
 
 **Properties:**
 
@@ -429,7 +429,7 @@ All values are in density-independent pixels, relative to the input's top-left c
 **Example:**
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   scrollEnabled={false}
   onCaretRectChange={(rect) => {
     console.log('Caret at:', rect.x, rect.y);
@@ -499,7 +499,7 @@ interface ContextMenuItem {
 **Example:**
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   contextMenuItems={[
     {
       text: 'Summarize with AI',

@@ -44,9 +44,9 @@ private:
   const std::shared_ptr<MarkdownTextMeasurementManager> measurementsManager_;
 };
 
-class EnrichedMarkdownInputComponentDescriptor final : public ConcreteComponentDescriptor<MarkdownInputShadowNode> {
+class EnrichedMarkdownTextInputComponentDescriptor final : public ConcreteComponentDescriptor<MarkdownInputShadowNode> {
 public:
-  EnrichedMarkdownInputComponentDescriptor(const ComponentDescriptorParameters &parameters)
+  EnrichedMarkdownTextInputComponentDescriptor(const ComponentDescriptorParameters &parameters)
       : ConcreteComponentDescriptor(parameters),
         measurementsManager_(std::make_shared<MarkdownInputMeasurementManager>(contextContainer_)) {}
 

@@ -6,7 +6,7 @@ import {
   useRef,
 } from 'react';
 import type React from 'react';
-import EnrichedMarkdownInputNativeComponent, {
+import EnrichedMarkdownTextInputNativeComponent, {
   Commands,
   type NativeProps,
   type OnChangeTextEvent,
@@ -18,8 +18,8 @@ import EnrichedMarkdownInputNativeComponent, {
   type OnCaretRectChangeEvent,
   type OnContextMenuItemPressEvent,
   type OnLinkDetected,
-} from './EnrichedMarkdownInputNativeComponent';
-export type { OnLinkDetected } from './EnrichedMarkdownInputNativeComponent';
+} from './EnrichedMarkdownTextInputNativeComponent';
+export type { OnLinkDetected } from './EnrichedMarkdownTextInputNativeComponent';
 import type {
   HostInstance,
   NativeSyntheticEvent,
@@ -27,13 +27,13 @@ import type {
   TextStyle,
   ColorValue,
 } from 'react-native';
-import { normalizeMarkdownInputStyle } from './normalizeMarkdownInputStyle';
+import { normalizeMarkdownTextInputStyle } from './normalizeMarkdownTextInputStyle';
 import { toNativeRegexConfig } from './utils/regexParser';
 import type { RefObject } from 'react';
 
 type NativeRef = HostInstance;
 
-export interface MarkdownInputStyle {
+export interface MarkdownTextInputStyle {
   strong?: {
     color?: string;
   };
@@ -77,7 +77,7 @@ export interface CaretRect {
   height: number;
 }
 
-export interface EnrichedMarkdownInputInstance {
+export interface EnrichedMarkdownTextInputInstance {
   focus: () => void;
   blur: () => void;
   measure: HostInstance['measure'];
@@ -97,8 +97,8 @@ export interface EnrichedMarkdownInputInstance {
   getCaretRect: () => Promise<CaretRect>;
 }
 
-export interface EnrichedMarkdownInputProps {
-  ref?: RefObject<EnrichedMarkdownInputInstance | null>;
+export interface EnrichedMarkdownTextInputProps {
+  ref?: RefObject<EnrichedMarkdownTextInputInstance | null>;
   defaultValue?: string;
   placeholder?: string;
   placeholderTextColor?: ColorValue;
@@ -109,7 +109,7 @@ export interface EnrichedMarkdownInputProps {
   multiline?: boolean;
   cursorColor?: ColorValue;
   selectionColor?: ColorValue;
-  markdownStyle?: MarkdownInputStyle;
+  markdownStyle?: MarkdownTextInputStyle;
   style?: ViewStyle | TextStyle;
   onChangeText?: (text: string) => void;
   onChangeMarkdown?: (markdown: string) => void;
@@ -131,13 +131,13 @@ type PendingRequest<T> = {
 function getNativeRef(ref: React.RefObject<NativeRef | null>): NativeRef {
   if (ref.current == null) {
     throw new Error(
-      'EnrichedMarkdownInput: native ref is not attached. Ensure the component is mounted.'
+      'EnrichedMarkdownTextInput: native ref is not attached. Ensure the component is mounted.'
     );
   }
   return ref.current;
 }
 
-export const EnrichedMarkdownInput = ({
+export const EnrichedMarkdownTextInput = ({
   ref,
   markdownStyle,
   style,
@@ -161,7 +161,7 @@ export const EnrichedMarkdownInput = ({
   onBlur,
   contextMenuItems,
   linkRegex: _linkRegex,
-}: EnrichedMarkdownInputProps) => {
+}: EnrichedMarkdownTextInputProps) => {
   const nativeRef = useRef<NativeRef | null>(null);
 
   const nextRequestId = useRef(1);
@@ -204,7 +204,7 @@ export const EnrichedMarkdownInput = ({
     };
   }, []);
 
-  const normalizedStyle = normalizeMarkdownInputStyle(markdownStyle);
+  const normalizedStyle = normalizeMarkdownTextInputStyle(markdownStyle);
 
   const linkRegex = useMemo(
     () => toNativeRegexConfig(_linkRegex),
@@ -358,7 +358,7 @@ export const EnrichedMarkdownInput = ({
   });
 
   return (
-    <EnrichedMarkdownInputNativeComponent
+    <EnrichedMarkdownTextInputNativeComponent
       ref={nativeRef}
       style={style}
       markdownStyle={normalizedStyle}
@@ -400,4 +400,4 @@ export const EnrichedMarkdownInput = ({
   );
 };
 
-export default EnrichedMarkdownInput;
+export default EnrichedMarkdownTextInput;

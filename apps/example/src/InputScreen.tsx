@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import type { HostInstance } from 'react-native';
 import {
-  EnrichedMarkdownInput,
+  EnrichedMarkdownTextInput,
   EnrichedMarkdownText,
-  type EnrichedMarkdownInputInstance,
+  type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
 import { LinkModal } from './LinkModal';
@@ -69,7 +69,7 @@ const MARKDOWN_STYLE = {
 let nextId = 6;
 
 export default function InputScreen() {
-  const inputRef = useRef<EnrichedMarkdownInputInstance>(null);
+  const inputRef = useRef<EnrichedMarkdownTextInputInstance>(null);
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const [state, setState] = useState<StyleState | null>(null);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
@@ -302,7 +302,7 @@ export default function InputScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.inputRow}>
-          <EnrichedMarkdownInput
+          <EnrichedMarkdownTextInput
             ref={inputRef}
             placeholder="Message..."
             placeholderTextColor="#9CA3AF"

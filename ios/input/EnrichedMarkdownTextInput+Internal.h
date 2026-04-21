@@ -1,11 +1,11 @@
 #pragma once
 
 #import "ENRMInputStyledRange.h"
-#import "EnrichedMarkdownInput.h"
+#import "EnrichedMarkdownTextInput.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EnrichedMarkdownInput (Internal)
+@interface EnrichedMarkdownTextInput (Internal)
 
 - (void)toggleBold;
 - (void)toggleItalic;

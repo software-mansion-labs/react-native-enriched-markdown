@@ -1,8 +1,8 @@
 import { processColor, type ColorValue } from 'react-native';
-import type { MarkdownInputStyle } from './EnrichedMarkdownInput';
+import type { MarkdownTextInputStyle } from './EnrichedMarkdownTextInput';
 import { normalizeColor } from './styleUtils';
 
-interface MarkdownInputStyleInternal {
+interface MarkdownTextInputStyleInternal {
   strong: {
     color?: ColorValue;
   };
@@ -23,7 +23,7 @@ const DEFAULT_LINK_COLOR = '#2563EB';
 const DEFAULT_SPOILER_COLOR = '#374151';
 const DEFAULT_SPOILER_BG_COLOR = '#E5E7EB';
 
-const defaultInternal: MarkdownInputStyleInternal = Object.freeze({
+const defaultInternal: MarkdownTextInputStyleInternal = Object.freeze({
   strong: {
     color: undefined,
   },
@@ -40,12 +40,12 @@ const defaultInternal: MarkdownInputStyleInternal = Object.freeze({
   },
 });
 
-let cachedInput: MarkdownInputStyle | undefined;
-let cachedResult: MarkdownInputStyleInternal | undefined;
+let cachedInput: MarkdownTextInputStyle | undefined;
+let cachedResult: MarkdownTextInputStyleInternal | undefined;
 
-export const normalizeMarkdownInputStyle = (
-  style?: MarkdownInputStyle
-): MarkdownInputStyleInternal => {
+export const normalizeMarkdownTextInputStyle = (
+  style?: MarkdownTextInputStyle
+): MarkdownTextInputStyleInternal => {
   if (!style || Object.keys(style).length === 0) {
     return defaultInternal;
   }
@@ -54,7 +54,7 @@ export const normalizeMarkdownInputStyle = (
     return cachedResult;
   }
 
-  const result: MarkdownInputStyleInternal = {
+  const result: MarkdownTextInputStyleInternal = {
     strong: {
       color: normalizeColor(style.strong?.color),
     },

@@ -42,5 +42,5 @@ The web implementation also exports `WebMarkdownTextProps` which extends `Enrich
 
 ## Not supported on web
 
-- `EnrichedMarkdownInput` — native-only
+- `EnrichedMarkdownTextInput` — native-only
 - Configurable link `target` — all links open in a new tab (`target="_blank"`). Use `onLinkPress` for custom navigation.

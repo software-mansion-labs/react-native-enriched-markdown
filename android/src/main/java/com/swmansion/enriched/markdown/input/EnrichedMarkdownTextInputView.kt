@@ -38,7 +38,7 @@ import com.swmansion.enriched.markdown.input.toolbar.InputContextMenu
 import com.swmansion.enriched.markdown.utils.input.AutoCapitalizeUtils
 import kotlin.math.ceil
 
-class EnrichedMarkdownInputView(
+class EnrichedMarkdownTextInputView(
   context: Context,
 ) : AppCompatEditText(context) {
   private var isComponentReady = false

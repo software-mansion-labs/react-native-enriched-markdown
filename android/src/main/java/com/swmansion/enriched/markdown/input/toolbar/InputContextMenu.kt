@@ -9,7 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownTextInputView
 import com.swmansion.enriched.markdown.input.formatting.MarkdownSerializer
 import com.swmansion.enriched.markdown.input.model.FormattingRange
 import com.swmansion.enriched.markdown.input.model.StyleType
@@ -17,7 +17,7 @@ import com.swmansion.enriched.markdown.input.model.StyleType
 // TODO: Wrap all user-facing strings for localization support.
 
 class InputContextMenu(
-  private val view: EnrichedMarkdownInputView,
+  private val view: EnrichedMarkdownTextInputView,
 ) {
   private var customItemTexts: List<String> = emptyList()
 

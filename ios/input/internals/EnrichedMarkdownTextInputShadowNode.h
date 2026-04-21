@@ -1,5 +1,5 @@
 #pragma once
-#include "EnrichedMarkdownInputState.h"
+#include "EnrichedMarkdownTextInputState.h"
 #include <ReactNativeEnrichedMarkdown/EventEmitters.h>
 #include <ReactNativeEnrichedMarkdown/Props.h>
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
@@ -7,18 +7,18 @@
 
 namespace facebook::react {
 
-JSI_EXPORT extern const char EnrichedMarkdownInputComponentName[];
+JSI_EXPORT extern const char EnrichedMarkdownTextInputComponentName[];
 
-class EnrichedMarkdownInputShadowNode
-    : public ConcreteViewShadowNode<EnrichedMarkdownInputComponentName, EnrichedMarkdownInputProps,
-                                    EnrichedMarkdownInputEventEmitter, EnrichedMarkdownInputState> {
+class EnrichedMarkdownTextInputShadowNode
+    : public ConcreteViewShadowNode<EnrichedMarkdownTextInputComponentName, EnrichedMarkdownTextInputProps,
+                                    EnrichedMarkdownTextInputEventEmitter, EnrichedMarkdownTextInputState> {
 public:
   using ConcreteViewShadowNode::ConcreteViewShadowNode;
 
-  EnrichedMarkdownInputShadowNode(const ShadowNodeFragment &fragment, const ShadowNodeFamily::Shared &family,
-                                  ShadowNodeTraits traits);
+  EnrichedMarkdownTextInputShadowNode(const ShadowNodeFragment &fragment, const ShadowNodeFamily::Shared &family,
+                                      ShadowNodeTraits traits);
 
-  EnrichedMarkdownInputShadowNode(const ShadowNode &sourceShadowNode, const ShadowNodeFragment &fragment);
+  EnrichedMarkdownTextInputShadowNode(const ShadowNode &sourceShadowNode, const ShadowNodeFragment &fragment);
 
   void dirtyLayoutIfNeeded();
 

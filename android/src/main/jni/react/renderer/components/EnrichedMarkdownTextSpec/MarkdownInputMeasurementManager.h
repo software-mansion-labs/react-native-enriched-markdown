@@ -11,7 +11,7 @@ public:
   MarkdownInputMeasurementManager(const std::shared_ptr<const ContextContainer> &contextContainer)
       : contextContainer_(contextContainer) {}
 
-  Size measure(SurfaceId surfaceId, int viewTag, const EnrichedMarkdownInputProps &props,
+  Size measure(SurfaceId surfaceId, int viewTag, const EnrichedMarkdownTextInputProps &props,
                LayoutConstraints layoutConstraints) const;
 
 private:

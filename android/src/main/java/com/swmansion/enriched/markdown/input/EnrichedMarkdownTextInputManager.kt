@@ -11,8 +11,8 @@ import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewManagerDelegate
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.viewmanagers.EnrichedMarkdownInputManagerDelegate
-import com.facebook.react.viewmanagers.EnrichedMarkdownInputManagerInterface
+import com.facebook.react.viewmanagers.EnrichedMarkdownTextInputManagerDelegate
+import com.facebook.react.viewmanagers.EnrichedMarkdownTextInputManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.input.autolink.LinkRegexConfig
 import com.swmansion.enriched.markdown.input.events.OnCaretRectChangeEvent
@@ -31,21 +31,22 @@ import com.swmansion.enriched.markdown.input.model.StyleType
 import com.swmansion.enriched.markdown.utils.input.BorderPropsApplicator
 import com.swmansion.enriched.markdown.utils.input.MarkdownStyleParser
 
-@ReactModule(name = EnrichedMarkdownInputManager.NAME)
-class EnrichedMarkdownInputManager :
-  SimpleViewManager<EnrichedMarkdownInputView>(),
-  EnrichedMarkdownInputManagerInterface<EnrichedMarkdownInputView> {
-  private val delegate: ViewManagerDelegate<EnrichedMarkdownInputView> =
-    EnrichedMarkdownInputManagerDelegate(this)
+@ReactModule(name = EnrichedMarkdownTextInputManager.NAME)
+class EnrichedMarkdownTextInputManager :
+  SimpleViewManager<EnrichedMarkdownTextInputView>(),
+  EnrichedMarkdownTextInputManagerInterface<EnrichedMarkdownTextInputView> {
+  private val delegate: ViewManagerDelegate<EnrichedMarkdownTextInputView> =
+    EnrichedMarkdownTextInputManagerDelegate(this)
 
-  override fun getDelegate(): ViewManagerDelegate<EnrichedMarkdownInputView> = delegate
+  override fun getDelegate(): ViewManagerDelegate<EnrichedMarkdownTextInputView> = delegate
 
   override fun getName(): String = NAME
 
-  override fun createViewInstance(reactContext: ThemedReactContext): EnrichedMarkdownInputView = EnrichedMarkdownInputView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): EnrichedMarkdownTextInputView =
+    EnrichedMarkdownTextInputView(reactContext)
 
   override fun updateState(
-    view: EnrichedMarkdownInputView,
+    view: EnrichedMarkdownTextInputView,
     props: ReactStylesDiffMap?,
     stateWrapper: StateWrapper?,
   ): Any? {
@@ -53,12 +54,12 @@ class EnrichedMarkdownInputManager :
     return super.updateState(view, props, stateWrapper)
   }
 
-  override fun onAfterUpdateTransaction(view: EnrichedMarkdownInputView) {
+  override fun onAfterUpdateTransaction(view: EnrichedMarkdownTextInputView) {
     super.onAfterUpdateTransaction(view)
     view.afterUpdateTransaction()
   }
 
-  override fun onDropViewInstance(view: EnrichedMarkdownInputView) {
+  override fun onDropViewInstance(view: EnrichedMarkdownTextInputView) {
     super.onDropViewInstance(view)
     view.layoutManager.release()
   }
@@ -97,7 +98,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "defaultValue")
   override fun setDefaultValue(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: String?,
   ) {
     if (value != null && view?.text?.isEmpty() == true) {
@@ -107,7 +108,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "placeholder")
   override fun setPlaceholder(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: String?,
   ) {
     view?.hint = value
@@ -115,7 +116,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "placeholderTextColor", customType = "Color")
   override fun setPlaceholderTextColor(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Int?,
   ) {
     view?.setHintTextColor(value ?: Color.GRAY)
@@ -123,7 +124,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "editable", defaultBoolean = true)
   override fun setEditable(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Boolean,
   ) {
     view?.isEnabled = value
@@ -131,7 +132,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "autoFocus", defaultBoolean = false)
   override fun setAutoFocus(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Boolean,
   ) {
     view?.autoFocusRequested = value
@@ -139,7 +140,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "scrollEnabled", defaultBoolean = true)
   override fun setScrollEnabled(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Boolean,
   ) {
     view?.scrollEnabled = value
@@ -148,7 +149,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "autoCapitalize")
   override fun setAutoCapitalize(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: String?,
   ) {
     view?.setAutoCapitalize(value)
@@ -156,7 +157,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "multiline", defaultBoolean = true)
   override fun setMultiline(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Boolean,
   ) {
     view?.isSingleLine = !value
@@ -164,7 +165,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "cursorColor", customType = "Color")
   override fun setCursorColor(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Int?,
   ) {
     view?.setCursorColorFromProps(value)
@@ -172,7 +173,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "selectionColor", customType = "Color")
   override fun setSelectionColor(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Int?,
   ) {
     if (value != null) {
@@ -182,7 +183,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "markdownStyle")
   override fun setMarkdownStyle(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: ReadableMap?,
   ) {
     if (view == null || value == null) return
@@ -197,7 +198,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "color", customType = "Color")
   override fun setColor(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Int?,
   ) {
     view?.setColorFromProps(value)
@@ -205,7 +206,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "fontSize", defaultFloat = 16f)
   override fun setFontSize(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Float,
   ) {
     view?.setFontSizeFromProps(value)
@@ -213,7 +214,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "lineHeight", defaultFloat = 0f)
   override fun setLineHeight(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Float,
   ) {
     if (value > 0 && view != null) {
@@ -223,7 +224,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "fontFamily")
   override fun setFontFamily(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: String?,
   ) {
     view?.setFontFamily(value)
@@ -231,7 +232,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "fontWeight")
   override fun setFontWeight(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: String?,
   ) {
     view?.setFontWeight(value)
@@ -239,7 +240,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "isOnChangeMarkdownSet", defaultBoolean = false)
   override fun setIsOnChangeMarkdownSet(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: Boolean,
   ) {
     view?.emitMarkdown = value
@@ -247,7 +248,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "contextMenuItems")
   override fun setContextMenuItems(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: ReadableArray?,
   ) {
     if (view == null) return
@@ -257,7 +258,7 @@ class EnrichedMarkdownInputManager :
 
   @ReactProp(name = "linkRegex")
   override fun setLinkRegex(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     value: ReadableMap?,
   ) {
     if (view == null) return
@@ -277,7 +278,7 @@ class EnrichedMarkdownInputManager :
   }
 
   override fun updateProperties(
-    view: EnrichedMarkdownInputView,
+    view: EnrichedMarkdownTextInputView,
     props: ReactStylesDiffMap,
   ) {
     BorderPropsApplicator.apply(view, props)
@@ -285,7 +286,7 @@ class EnrichedMarkdownInputManager :
   }
 
   override fun setPadding(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     left: Int,
     top: Int,
     right: Int,
@@ -297,16 +298,16 @@ class EnrichedMarkdownInputManager :
 
   // Commands
 
-  override fun focus(view: EnrichedMarkdownInputView?) {
+  override fun focus(view: EnrichedMarkdownTextInputView?) {
     view?.requestFocusProgrammatically()
   }
 
-  override fun blur(view: EnrichedMarkdownInputView?) {
+  override fun blur(view: EnrichedMarkdownTextInputView?) {
     view?.clearFocus()
   }
 
   override fun setValue(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     markdown: String?,
   ) {
     if (markdown != null) {
@@ -315,7 +316,7 @@ class EnrichedMarkdownInputManager :
   }
 
   override fun setSelection(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     start: Int,
     end: Int,
   ) {
@@ -325,28 +326,28 @@ class EnrichedMarkdownInputManager :
     view?.setSelection(clampedStart, clampedEnd)
   }
 
-  override fun toggleBold(view: EnrichedMarkdownInputView?) {
+  override fun toggleBold(view: EnrichedMarkdownTextInputView?) {
     view?.toggleInlineStyle(StyleType.BOLD)
   }
 
-  override fun toggleItalic(view: EnrichedMarkdownInputView?) {
+  override fun toggleItalic(view: EnrichedMarkdownTextInputView?) {
     view?.toggleInlineStyle(StyleType.ITALIC)
   }
 
-  override fun toggleUnderline(view: EnrichedMarkdownInputView?) {
+  override fun toggleUnderline(view: EnrichedMarkdownTextInputView?) {
     view?.toggleInlineStyle(StyleType.UNDERLINE)
   }
 
-  override fun toggleStrikethrough(view: EnrichedMarkdownInputView?) {
+  override fun toggleStrikethrough(view: EnrichedMarkdownTextInputView?) {
     view?.toggleInlineStyle(StyleType.STRIKETHROUGH)
   }
 
-  override fun toggleSpoiler(view: EnrichedMarkdownInputView?) {
+  override fun toggleSpoiler(view: EnrichedMarkdownTextInputView?) {
     view?.toggleInlineStyle(StyleType.SPOILER)
   }
 
   override fun setLink(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     url: String?,
   ) {
     if (url != null) {
@@ -355,7 +356,7 @@ class EnrichedMarkdownInputManager :
   }
 
   override fun insertLink(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     text: String?,
     url: String?,
   ) {
@@ -364,25 +365,25 @@ class EnrichedMarkdownInputManager :
     }
   }
 
-  override fun removeLink(view: EnrichedMarkdownInputView?) {
+  override fun removeLink(view: EnrichedMarkdownTextInputView?) {
     view?.removeLinkAtCursor()
   }
 
   override fun requestMarkdown(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     requestId: Int,
   ) {
     view?.eventEmitter?.emitRequestMarkdownResult(requestId)
   }
 
   override fun requestCaretRect(
-    view: EnrichedMarkdownInputView?,
+    view: EnrichedMarkdownTextInputView?,
     requestId: Int,
   ) {
     view?.eventEmitter?.emitRequestCaretRectResult(requestId)
   }
 
   companion object {
-    const val NAME = "EnrichedMarkdownInput"
+    const val NAME = "EnrichedMarkdownTextInput"
   }
 }

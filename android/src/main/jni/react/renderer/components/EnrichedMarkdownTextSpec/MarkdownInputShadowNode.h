@@ -12,8 +12,8 @@ namespace facebook::react {
 JSI_EXPORT extern const char MarkdownInputComponentName[];
 
 class MarkdownInputShadowNode final
-    : public ConcreteViewShadowNode<MarkdownInputComponentName, EnrichedMarkdownInputProps,
-                                    EnrichedMarkdownInputEventEmitter, MarkdownInputState> {
+    : public ConcreteViewShadowNode<MarkdownInputComponentName, EnrichedMarkdownTextInputProps,
+                                    EnrichedMarkdownTextInputEventEmitter, MarkdownInputState> {
 public:
   using ConcreteViewShadowNode::ConcreteViewShadowNode;
 

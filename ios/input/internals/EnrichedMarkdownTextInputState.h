@@ -3,10 +3,10 @@
 
 namespace facebook::react {
 
-class EnrichedMarkdownInputState {
+class EnrichedMarkdownTextInputState {
 public:
-  EnrichedMarkdownInputState() = default;
-  EnrichedMarkdownInputState(int counter, std::shared_ptr<void> ref) : counter_(counter), viewRef_(ref) {}
+  EnrichedMarkdownTextInputState() = default;
+  EnrichedMarkdownTextInputState(int counter, std::shared_ptr<void> ref) : counter_(counter), viewRef_(ref) {}
 
   int getHeightRecalculationCounter() const {
     return counter_;

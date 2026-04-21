@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import type React from 'react';
 
-interface MarkdownInputStyleInternal {
+interface MarkdownTextInputStyleInternal {
   strong: {
     color?: ColorValue;
   };
@@ -153,9 +153,9 @@ export interface NativeProps extends ViewProps {
   selectionColor?: ColorValue;
   /**
    * Inline format style overrides.
-   * Always provided with complete defaults via normalizeMarkdownInputStyle.
+   * Always provided with complete defaults via normalizeMarkdownTextInputStyle.
    */
-  markdownStyle: MarkdownInputStyleInternal;
+  markdownStyle: MarkdownTextInputStyleInternal;
 
   // These should not be passed as regular props.
   color?: ColorValue;
@@ -251,6 +251,9 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
   ],
 });
 
-export default codegenNativeComponent<NativeProps>('EnrichedMarkdownInput', {
-  interfaceOnly: true,
-}) as HostComponent<NativeProps>;
+export default codegenNativeComponent<NativeProps>(
+  'EnrichedMarkdownTextInput',
+  {
+    interfaceOnly: true,
+  }
+) as HostComponent<NativeProps>;

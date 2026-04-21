@@ -37,7 +37,7 @@
                                                                              error:&error];
     if (error) {
       RCTLogWarn(
-          @"[EnrichedMarkdownInput]: Couldn't parse the user-defined link regex '%@', "
+          @"[EnrichedMarkdownTextInput]: Couldn't parse the user-defined link regex '%@', "
            "falling back to default regex.",
           _pattern);
     } else {

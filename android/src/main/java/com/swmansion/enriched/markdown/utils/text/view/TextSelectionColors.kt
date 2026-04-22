@@ -29,9 +29,7 @@ fun TextView.applySelectionColors(
 private fun TextView.applySelectionHandleTint(
   @ColorInt color: Int,
 ) {
-  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-    return
-  }
+  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
 
   val handles: List<Pair<HandleGetter, HandleSetter>> =
     listOf(
@@ -44,7 +42,6 @@ private fun TextView.applySelectionHandleTint(
     try {
       getter(this)?.mutate()?.also { DrawableCompat.setTint(it, color) }?.let { setter(this, it) }
     } catch (e: LinkageError) {
-      // Defensive: OEM TextView variants may strip individual handle accessors.
       Log.w(TAG, "Selection handle tint skipped: ${e.message}")
     }
   }

@@ -250,9 +250,6 @@ function App() {
 }
 ```
 
-> [!TIP]
-> The palettes above are a starting point. Replace these values with your app's design-system tokens for a consistent look across your UI.
-
 > [!NOTE]
 > **Performance:** Define style objects outside the component (as shown above) or wrap them in `useMemo` so the same object reference is reused across renders.
 

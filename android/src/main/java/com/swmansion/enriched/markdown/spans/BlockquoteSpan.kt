@@ -87,7 +87,7 @@ class BlockquoteSpan(
     lineNum: Int,
   ) {
     if (shouldSkipDrawing(text, start)) return
-    drawBackground(canvas, top, bottom, right)
+    drawBackground(canvas, left, top, bottom, right)
   }
 
   @SuppressLint("WrongConstant") // Result of mask is always valid: 0, 1, 2, or 3
@@ -140,12 +140,13 @@ class BlockquoteSpan(
 
   private fun drawBackground(
     c: Canvas,
+    left: Int,
     top: Int,
     bottom: Int,
     right: Int,
   ) {
     val bgColor = blockquoteStyle.backgroundColor?.takeIf { it != Color.TRANSPARENT } ?: return
     val backgroundPaint = configureBackgroundPaint(bgColor)
-    c.drawRect(0f, top.toFloat(), right.toFloat(), bottom.toFloat(), backgroundPaint)
+    c.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), backgroundPaint)
   }
 }

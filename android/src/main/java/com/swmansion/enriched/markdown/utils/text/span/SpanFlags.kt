@@ -14,4 +14,4 @@ const val SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE = SpannableString.SPAN_EXCLUSIVE_EXCLUS
  * [BlockquoteSpan]) that must sit under inline pill/chip backgrounds.
  */
 const val SPAN_FLAGS_CONTAINER_BACKGROUND =
-  SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE or ((0xFF) shl Spanned.SPAN_PRIORITY_SHIFT)
+  Spanned.SPAN_EXCLUSIVE_EXCLUSIVE or Spanned.SPAN_PRIORITY

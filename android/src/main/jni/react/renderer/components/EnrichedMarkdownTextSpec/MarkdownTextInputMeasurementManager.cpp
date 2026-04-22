@@ -1,4 +1,4 @@
-#include "MarkdownInputMeasurementManager.h"
+#include "MarkdownTextInputMeasurementManager.h"
 #include "conversions.h"
 
 #include <fbjni/fbjni.h>
@@ -9,9 +9,9 @@ using namespace facebook::jni;
 
 namespace facebook::react {
 
-Size MarkdownInputMeasurementManager::measure(SurfaceId surfaceId, int viewTag,
-                                              const EnrichedMarkdownTextInputProps &props,
-                                              LayoutConstraints layoutConstraints) const {
+Size MarkdownTextInputMeasurementManager::measure(SurfaceId surfaceId, int viewTag,
+                                                  const EnrichedMarkdownTextInputProps &props,
+                                                  LayoutConstraints layoutConstraints) const {
   const jni::global_ref<jobject> &fabricUIManager = contextContainer_->at<jni::global_ref<jobject>>("FabricUIManager");
 
   static const auto measure =

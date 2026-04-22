@@ -4,11 +4,11 @@
 
 namespace facebook::react {
 
-class MarkdownInputState {
+class MarkdownTextInputState {
 public:
-  MarkdownInputState() : forceHeightRecalculationCounter_(0) {}
+  MarkdownTextInputState() : forceHeightRecalculationCounter_(0) {}
 
-  MarkdownInputState(MarkdownInputState const &previousState, folly::dynamic data)
+  MarkdownTextInputState(MarkdownTextInputState const &previousState, folly::dynamic data)
       : forceHeightRecalculationCounter_((int)data["forceHeightRecalculationCounter"].getInt()) {}
 
   folly::dynamic getDynamic() const {

@@ -1,18 +1,18 @@
-#include "MarkdownInputShadowNode.h"
+#include "MarkdownTextInputShadowNode.h"
 
 #include <react/renderer/core/LayoutContext.h>
 
 namespace facebook::react {
 
-extern const char MarkdownInputComponentName[] = "EnrichedMarkdownTextInput";
+extern const char MarkdownTextInputComponentName[] = "EnrichedMarkdownTextInput";
 
-void MarkdownInputShadowNode::setMeasurementsManager(
-    const std::shared_ptr<MarkdownInputMeasurementManager> &measurementsManager) {
+void MarkdownTextInputShadowNode::setMeasurementsManager(
+    const std::shared_ptr<MarkdownTextInputMeasurementManager> &measurementsManager) {
   ensureUnsealed();
   measurementsManager_ = measurementsManager;
 }
 
-void MarkdownInputShadowNode::dirtyLayoutIfNeeded() {
+void MarkdownTextInputShadowNode::dirtyLayoutIfNeeded() {
   const auto state = this->getStateData();
   const auto counter = state.getForceHeightRecalculationCounter();
 
@@ -22,8 +22,8 @@ void MarkdownInputShadowNode::dirtyLayoutIfNeeded() {
   }
 }
 
-Size MarkdownInputShadowNode::measureContent(const LayoutContext &layoutContext,
-                                             const LayoutConstraints &layoutConstraints) const {
+Size MarkdownTextInputShadowNode::measureContent(const LayoutContext &layoutContext,
+                                                 const LayoutConstraints &layoutConstraints) const {
   return measurementsManager_->measure(getSurfaceId(), getTag(), getConcreteProps(), layoutConstraints);
 }
 

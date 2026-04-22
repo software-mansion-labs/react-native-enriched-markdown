@@ -146,9 +146,9 @@ using namespace facebook::react;
 #else
   ENRMInputTextView *inputTextView = [[ENRMInputTextView alloc] initWithFrame:CGRectZero];
 #endif
-  inputTextView.markdownInput = self;
+  inputTextView.markdownTextInput = self;
   _textView = inputTextView;
-  ENRMConfigureMarkdownInputTextView(_textView);
+  ENRMConfigureMarkdownTextInputTextView(_textView);
 #if !TARGET_OS_OSX
   _textView.adjustsFontForContentSizeCategory = YES;
   _textView.delegate = self;

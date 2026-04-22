@@ -20,7 +20,7 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
   }
 
   NSString *plainText = [self.text substringWithRange:selection];
-  NSString *markdown = [self.markdownInput markdownForSelectedRange];
+  NSString *markdown = [self.markdownTextInput markdownForSelectedRange];
 
   UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
   NSMutableDictionary *items = [NSMutableDictionary dictionary];
@@ -49,8 +49,8 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
     markdown = [[NSString alloc] initWithData:markdownValue encoding:NSUTF8StringEncoding];
   }
 
-  if (markdown.length > 0 && self.markdownInput != nil) {
-    [self.markdownInput pasteMarkdown:markdown];
+  if (markdown.length > 0 && self.markdownTextInput != nil) {
+    [self.markdownTextInput pasteMarkdown:markdown];
     return;
   }
 
@@ -74,8 +74,8 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
 - (void)layoutSubviews
 {
   [super layoutSubviews];
-  if (self.markdownInput != nil) {
-    [self.markdownInput scheduleRelayoutIfNeeded];
+  if (self.markdownTextInput != nil) {
+    [self.markdownTextInput scheduleRelayoutIfNeeded];
   }
 }
 
@@ -93,7 +93,7 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
   }
 
   NSString *plainText = [self.string substringWithRange:selection];
-  NSString *markdown = [self.markdownInput markdownForSelectedRange];
+  NSString *markdown = [self.markdownTextInput markdownForSelectedRange];
 
   NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
   [pasteboard clearContents];
@@ -121,8 +121,8 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
   NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
 
   NSString *markdown = [pasteboard stringForType:kENRMMarkdownPasteboardType];
-  if (markdown.length > 0 && self.markdownInput != nil) {
-    [self.markdownInput pasteMarkdown:markdown];
+  if (markdown.length > 0 && self.markdownTextInput != nil) {
+    [self.markdownTextInput pasteMarkdown:markdown];
     return;
   }
 
@@ -158,8 +158,8 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
 - (NSMenu *)menuForEvent:(NSEvent *)event
 {
   NSMenu *menu = [super menuForEvent:event];
-  if (self.markdownInput != nil) {
-    return [self.markdownInput enrichedMenuForEvent:event defaultMenu:menu textView:self];
+  if (self.markdownTextInput != nil) {
+    return [self.markdownTextInput enrichedMenuForEvent:event defaultMenu:menu textView:self];
   }
   return menu;
 }
@@ -167,8 +167,8 @@ static NSString *const kENRMMarkdownPasteboardType = @"com.swmansion.enriched-ma
 - (void)layout
 {
   [super layout];
-  if (self.markdownInput != nil) {
-    [self.markdownInput scheduleRelayoutIfNeeded];
+  if (self.markdownTextInput != nil) {
+    [self.markdownTextInput scheduleRelayoutIfNeeded];
   }
 }
 

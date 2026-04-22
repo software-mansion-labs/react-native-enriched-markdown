@@ -2,8 +2,8 @@
 
 #include "MarkdownContainerMeasurementManager.h"
 #include "MarkdownContainerShadowNode.h"
-#include "MarkdownInputMeasurementManager.h"
-#include "MarkdownInputShadowNode.h"
+#include "MarkdownTextInputMeasurementManager.h"
+#include "MarkdownTextInputShadowNode.h"
 #include "MarkdownTextMeasurementManager.h"
 #include "MarkdownTextShadowNode.h"
 
@@ -44,20 +44,21 @@ private:
   const std::shared_ptr<MarkdownTextMeasurementManager> measurementsManager_;
 };
 
-class EnrichedMarkdownTextInputComponentDescriptor final : public ConcreteComponentDescriptor<MarkdownInputShadowNode> {
+class EnrichedMarkdownTextInputComponentDescriptor final
+    : public ConcreteComponentDescriptor<MarkdownTextInputShadowNode> {
 public:
   EnrichedMarkdownTextInputComponentDescriptor(const ComponentDescriptorParameters &parameters)
       : ConcreteComponentDescriptor(parameters),
-        measurementsManager_(std::make_shared<MarkdownInputMeasurementManager>(contextContainer_)) {}
+        measurementsManager_(std::make_shared<MarkdownTextInputMeasurementManager>(contextContainer_)) {}
 
   void adopt(ShadowNode &shadowNode) const override {
     ConcreteComponentDescriptor::adopt(shadowNode);
-    auto &inputShadowNode = static_cast<MarkdownInputShadowNode &>(shadowNode);
+    auto &inputShadowNode = static_cast<MarkdownTextInputShadowNode &>(shadowNode);
     inputShadowNode.setMeasurementsManager(measurementsManager_);
   }
 
 private:
-  const std::shared_ptr<MarkdownInputMeasurementManager> measurementsManager_;
+  const std::shared_ptr<MarkdownTextInputMeasurementManager> measurementsManager_;
 };
 
 void EnrichedMarkdownTextSpec_registerComponentDescriptorsFromCodegen(

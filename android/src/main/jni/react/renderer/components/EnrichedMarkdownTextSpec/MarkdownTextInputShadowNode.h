@@ -1,7 +1,7 @@
 #pragma once
 
-#include "MarkdownInputMeasurementManager.h"
-#include "MarkdownInputState.h"
+#include "MarkdownTextInputMeasurementManager.h"
+#include "MarkdownTextInputState.h"
 
 #include <react/renderer/components/EnrichedMarkdownTextSpec/EventEmitters.h>
 #include <react/renderer/components/EnrichedMarkdownTextSpec/Props.h>
@@ -9,15 +9,15 @@
 
 namespace facebook::react {
 
-JSI_EXPORT extern const char MarkdownInputComponentName[];
+JSI_EXPORT extern const char MarkdownTextInputComponentName[];
 
-class MarkdownInputShadowNode final
-    : public ConcreteViewShadowNode<MarkdownInputComponentName, EnrichedMarkdownTextInputProps,
-                                    EnrichedMarkdownTextInputEventEmitter, MarkdownInputState> {
+class MarkdownTextInputShadowNode final
+    : public ConcreteViewShadowNode<MarkdownTextInputComponentName, EnrichedMarkdownTextInputProps,
+                                    EnrichedMarkdownTextInputEventEmitter, MarkdownTextInputState> {
 public:
   using ConcreteViewShadowNode::ConcreteViewShadowNode;
 
-  MarkdownInputShadowNode(ShadowNode const &sourceShadowNode, ShadowNodeFragment const &fragment)
+  MarkdownTextInputShadowNode(ShadowNode const &sourceShadowNode, ShadowNodeFragment const &fragment)
       : ConcreteViewShadowNode(sourceShadowNode, fragment) {
     dirtyLayoutIfNeeded();
   }
@@ -29,7 +29,7 @@ public:
     return traits;
   }
 
-  void setMeasurementsManager(const std::shared_ptr<MarkdownInputMeasurementManager> &measurementsManager);
+  void setMeasurementsManager(const std::shared_ptr<MarkdownTextInputMeasurementManager> &measurementsManager);
 
   void dirtyLayoutIfNeeded();
 
@@ -37,7 +37,7 @@ public:
 
 private:
   int forceHeightRecalculationCounter_{0};
-  std::shared_ptr<MarkdownInputMeasurementManager> measurementsManager_;
+  std::shared_ptr<MarkdownTextInputMeasurementManager> measurementsManager_;
 };
 
 } // namespace facebook::react

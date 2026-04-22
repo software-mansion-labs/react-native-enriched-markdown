@@ -176,7 +176,7 @@ static inline void ENRMSetDefaultTypingAttributes(ENRMPlatformTextView *textView
 /// Applies shared configuration to a text view used for markdown input editing.
 /// Handles platform differences: scroll indicators, text container insets,
 /// drawsBackground (macOS). Sets editable=YES, scrollEnabled=YES.
-static inline void ENRMConfigureMarkdownInputTextView(ENRMPlatformTextView *textView)
+static inline void ENRMConfigureMarkdownTextInputTextView(ENRMPlatformTextView *textView)
 {
   textView.font = [UIFont systemFontOfSize:16.0];
   textView.backgroundColor = [RCTUIColor clearColor];

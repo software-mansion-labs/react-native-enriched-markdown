@@ -7,7 +7,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ENRMInputTextView : ENRMPlatformTextView
-@property (nonatomic, weak, nullable) EnrichedMarkdownTextInput *markdownInput;
+@property (nonatomic, weak, nullable) EnrichedMarkdownTextInput *markdownTextInput;
 @end
 
 NS_ASSUME_NONNULL_END

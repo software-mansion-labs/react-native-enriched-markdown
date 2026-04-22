@@ -46,11 +46,9 @@ class BlockquoteRenderer(
         .map { builder.getSpanStart(it) to builder.getSpanEnd(it) }
         .sortedBy { it.first }
 
-    // The Accent Bar Span covers the full range for visual continuity.
-    // Use high-priority flags so BlockquoteSpan's LineBackgroundSpan pass
-    // runs FIRST on each line — the blockquote fill is painted first, then
-    // inline chip/pill backgrounds (mention pills etc.) draw on top of it
-    // instead of being covered by it.
+    // The accent bar span covers the full range for visual continuity.
+    // SPAN_FLAGS_CONTAINER_BACKGROUND keeps the blockquote fill under any
+    // inline chip/pill backgrounds on the same line.
     builder.setSpan(
       BlockquoteSpan(style, depth, factory.context, factory.styleCache),
       start,

@@ -73,11 +73,6 @@ class BlockquoteSpan(
     }
   }
 
-  /**
-   * Drawn BEFORE glyphs and before other [LineBackgroundSpan]s attached to the
-   * same line, so inline backgrounds painted by code spans render on
-   * top of the blockquote fill instead of being covered by it.
-   */
   override fun drawBackground(
     canvas: Canvas,
     paint: Paint,

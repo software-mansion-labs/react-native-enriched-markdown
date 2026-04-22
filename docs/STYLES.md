@@ -203,6 +203,59 @@ The library provides sensible default styles for all Markdown elements out of th
 > }), []);
 > ```
 
+## Dark Mode
+
+The library ships with light-mode color defaults. It does not include a `colorScheme` prop — just like React Native's `Text`, theming is left to the consumer.
+
+To support dark mode, create `MarkdownStyle` objects for each color scheme and switch between them using `useColorScheme()`. Your values always win over the defaults — you only need to specify the colors you want to change:
+
+```tsx
+import { useColorScheme } from 'react-native';
+import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
+import type { MarkdownStyle } from 'react-native-enriched-markdown';
+
+const lightMarkdownStyle: MarkdownStyle = {
+  blockquote: { backgroundColor: '#F9FAFB', borderColor: '#D1D5DB' },
+  code: { color: '#E01E5A', backgroundColor: '#FDF2F4' },
+  table: {
+    headerBackgroundColor: '#F3F4F6',
+    rowEvenBackgroundColor: '#FFFFFF',
+    rowOddBackgroundColor: '#F9FAFB',
+  },
+  // ... override any other colors for light mode
+};
+
+const darkMarkdownStyle: MarkdownStyle = {
+  paragraph: { color: '#E5E7EB' },
+  blockquote: { backgroundColor: '#1F2937', borderColor: '#4B5563' },
+  code: { color: '#F87171', backgroundColor: '#1F2937' },
+  table: {
+    headerBackgroundColor: '#1F2937',
+    rowEvenBackgroundColor: '#111827',
+    rowOddBackgroundColor: '#1A1A2E',
+    borderColor: '#374151',
+  },
+  // ... override any other colors for dark mode
+};
+
+function App() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <EnrichedMarkdownText
+      markdown={content}
+      markdownStyle={colorScheme === 'dark' ? darkMarkdownStyle : lightMarkdownStyle}
+    />
+  );
+}
+```
+
+> [!TIP]
+> The palettes above are a starting point. Replace these values with your app's design-system tokens for a consistent look across your UI.
+
+> [!NOTE]
+> **Performance:** Define style objects outside the component (as shown above) or wrap them in `useMemo` so the same object reference is reused across renders.
+
 ## Style Properties Reference
 
 ### Block Styles (paragraph, h1-h6, blockquote, list, codeBlock)

@@ -293,7 +293,7 @@ using namespace facebook::react;
     if (isColorMeaningful(newViewProps.selectionColor)) {
       ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
     } else {
-      ENRMSetSelectionColor(_textView, nil); // resets to inherited / system tint
+      ENRMSetSelectionColor(_textView, nil);
     }
   }
 

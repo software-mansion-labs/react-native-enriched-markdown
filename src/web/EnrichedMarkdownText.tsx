@@ -104,7 +104,7 @@ export const EnrichedMarkdownText = ({
   );
 
   const wrapperStyle = useMemo<CSSProperties>(() => {
-    const selectionBgVar = selectionColor
+    const selectionColorCss = selectionColor
       ? normalizeColor(String(selectionColor))
       : undefined;
 
@@ -113,8 +113,8 @@ export const EnrichedMarkdownText = ({
       flexDirection: 'column',
       ...(containerStyle as CSSProperties),
       ...(selectable ? undefined : { userSelect: 'none' }),
-      ...(selectionBgVar != null
-        ? ({ ['--enrm-selection-bg']: selectionBgVar } as CSSProperties)
+      ...(selectionColorCss != null
+        ? ({ ['--enrm-selection-bg']: selectionColorCss } as CSSProperties)
         : null),
     };
   }, [containerStyle, selectable, selectionColor]);

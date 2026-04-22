@@ -104,3 +104,7 @@ When text is selected, `react-native-enriched-markdown` provides enhanced copy f
 ## Customizing Styles
 
 `react-native-enriched-markdown` allows customizing styles of all Markdown elements using the `markdownStyle` prop. See the [Style Properties Reference](STYLES.md) for a detailed overview of all available style properties.
+
+### Dark Mode
+
+The library uses light-mode defaults. To support dark mode, pass a dark `markdownStyle` object — your values always take priority over the defaults. See the [Dark Mode](STYLES.md#dark-mode) section in the Style Properties Reference for a ready-to-use example with `useColorScheme()`.

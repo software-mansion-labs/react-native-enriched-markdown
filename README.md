@@ -1,4 +1,4 @@
-<img src="https://github.com/user-attachments/assets/27d269ca-4004-423f-b90a-745edadd7307" alt="react-native-enriched-markdown by Software Mansion" width="100%">
+<img src="https://github.com/user-attachments/assets/83cb462c-17df-4809-8b8a-fa4abb258cb3" alt="react-native-enriched-markdown by Software Mansion" width="100%">
 
 # react-native-enriched-markdown
 

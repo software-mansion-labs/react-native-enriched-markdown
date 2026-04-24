@@ -95,9 +95,10 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * Color of the text selection highlight.
    *
    * On iOS, this also affects the caret and selection handle colors
-   * (they share a single tint).
+   * (they share a single tint). On macOS, only the selection background
+   * is affected.
    *
-   * @platform ios, android, web
+   * @platform ios, android, macos, web
    */
   selectionColor?: ColorValue;
   /**

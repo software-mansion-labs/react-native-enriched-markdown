@@ -26,6 +26,7 @@
 #import "MarkdownExtractor.h"
 #import "ParagraphStyleUtils.h"
 #import "RuntimeKeys.h"
+#import "SelectionColorUtils.h"
 #import "StyleConfig.h"
 #import "StylePropsUtils.h"
 #import "TableContainerView.h"
@@ -91,7 +92,6 @@ using namespace facebook::react;
 #endif
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
-- (void)applySelectionColor:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView;
 @end
 
 @implementation EnrichedMarkdown {
@@ -496,7 +496,7 @@ using namespace facebook::react;
   [view applyAttributedText:segment.attributedText context:segment.context];
 
   const auto &selectionProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(self->_props);
-  [self applySelectionColor:selectionProps toTextView:view.textView];
+  ENRMApplySelectionColor(view.textView, selectionProps.selectionColor);
 
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [view.textView addGestureRecognizer:tapRecognizer];
@@ -663,14 +663,12 @@ using namespace facebook::react;
   }
 
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
-#if !TARGET_OS_OSX
     for (RCTUIView *segment in _segmentViews) {
       if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
         ENRMPlatformTextView *tv = ((EnrichedMarkdownInternalText *)segment).textView;
-        [self applySelectionColor:newViewProps toTextView:tv];
+        ENRMApplySelectionColor(tv, newViewProps.selectionColor);
       }
     }
-#endif
   }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
@@ -895,16 +893,5 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   return [MarkdownAccessibilityElementBuilder buildRotorsFromElements:[self accessibilityElements]];
 }
 #endif
-
-- (void)applySelectionColor:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView
-{
-#if !TARGET_OS_OSX
-  if (isColorMeaningful(props.selectionColor)) {
-    ENRMSetSelectionColor(textView, RCTUIColorFromSharedColor(props.selectionColor));
-  } else {
-    ENRMSetSelectionColor(textView, nil);
-  }
-#endif
-}
 
 @end

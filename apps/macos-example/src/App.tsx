@@ -83,6 +83,7 @@ export default function App() {
               onLinkPress={handleLinkPress}
               markdownStyle={markdownStyle}
               contextMenuItems={contextMenuItems}
+              selectionColor="#DCDDFE"
             />
           </ScrollView>
           {lastLink != null && (

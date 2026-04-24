@@ -20,6 +20,7 @@
 #import "MarkdownExtractor.h"
 #import "ParagraphStyleUtils.h"
 #import "RuntimeKeys.h"
+#import "SelectionColorUtils.h"
 #import "StylePropsUtils.h"
 #import "TaskListTapUtils.h"
 
@@ -413,13 +414,7 @@ using namespace facebook::react;
   }
 
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
-#if !TARGET_OS_OSX
-    if (isColorMeaningful(newViewProps.selectionColor)) {
-      ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
-    } else {
-      ENRMSetSelectionColor(_textView, nil);
-    }
-#endif
+    ENRMApplySelectionColor(_textView, newViewProps.selectionColor);
   }
 
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {

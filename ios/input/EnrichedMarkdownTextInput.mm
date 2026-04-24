@@ -15,6 +15,7 @@
 #import "ENRMStyleMergingConfig.h"
 #import "ENRMUIKit.h"
 #import "InputStylePropsUtils.h"
+#import "SelectionColorUtils.h"
 #if TARGET_OS_OSX
 #import <React/RCTBackedTextInputDelegate.h>
 #endif
@@ -290,11 +291,7 @@ using namespace facebook::react;
   }
 
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
-    if (isColorMeaningful(newViewProps.selectionColor)) {
-      ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
-    } else {
-      ENRMSetSelectionColor(_textView, nil);
-    }
+    ENRMApplySelectionColor(_textView, newViewProps.selectionColor);
   }
 
   _emitMarkdown = newViewProps.isOnChangeMarkdownSet;

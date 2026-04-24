@@ -18,7 +18,6 @@ import type { ASTNode, RendererCallbacks, RenderCapabilities } from './types';
 import { indexTaskItems, markInlineImages } from './utils';
 import { loadKaTeX } from './katex';
 import type { KaTeXInstance } from './katex';
-import { normalizeColor } from '../styleUtils';
 
 export const EnrichedMarkdownText = ({
   markdown,
@@ -103,21 +102,18 @@ export const EnrichedMarkdownText = ({
     [lastChildStyle]
   );
 
-  const wrapperStyle = useMemo<CSSProperties>(() => {
-    const selectionColorCss = selectionColor
-      ? normalizeColor(String(selectionColor))
-      : undefined;
-
-    return {
+  const wrapperStyle = useMemo<CSSProperties>(
+    () => ({
       display: 'flex',
       flexDirection: 'column',
       ...(containerStyle as CSSProperties),
       ...(selectable ? undefined : { userSelect: 'none' }),
-      ...(selectionColorCss != null
-        ? ({ ['--enrm-selection-bg']: selectionColorCss } as CSSProperties)
+      ...(selectionColor
+        ? ({ ['--enrm-selection-bg']: selectionColor } as CSSProperties)
         : null),
-    };
-  }, [containerStyle, selectable, selectionColor]);
+    }),
+    [containerStyle, selectable, selectionColor]
+  );
 
   const selectionStyle = selectionColor ? (
     <style>{`[data-enriched-markdown-text] ::selection {

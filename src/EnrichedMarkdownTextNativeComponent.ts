@@ -274,6 +274,22 @@ export interface NativeProps extends ViewProps {
    */
   selectable?: boolean;
   /**
+   * Color of the text selection highlight.
+   *
+   * On iOS, this also affects the caret and selection handle colors
+   * (they share a single tint).
+   *
+   * @platform ios, android, web
+   */
+  selectionColor?: ColorValue;
+  /**
+   * Color of the selection handles (drag anchors).
+   * No-op on API levels below 29.
+   *
+   * @platform android
+   */
+  selectionHandleColor?: ColorValue;
+  /**
    * MD4C parser flags configuration.
    * Controls how the markdown parser interprets certain syntax.
    */

@@ -18,6 +18,7 @@ import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
 import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
+import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
@@ -54,6 +55,8 @@ class EnrichedMarkdown
     private var maxFontSizeMultiplier: Float = 0f
     private var allowTrailingMargin: Boolean = false
     private var selectable: Boolean = true
+    private var selectionColor: Int? = null
+    private var selectionHandleColor: Int? = null
 
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
@@ -125,6 +128,22 @@ class EnrichedMarkdown
       selectable = value
       segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
         it.setIsSelectable(value)
+      }
+    }
+
+    fun setSelectionColor(color: Int?) {
+      selectionColor = color
+      applySelectionColorsToSegments()
+    }
+
+    fun setSelectionHandleColor(color: Int?) {
+      selectionHandleColor = color
+      applySelectionColorsToSegments()
+    }
+
+    private fun applySelectionColorsToSegments() {
+      segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
+        it.applySelectionColors(selectionColor, selectionHandleColor)
       }
     }
 
@@ -234,6 +253,8 @@ class EnrichedMarkdown
         if (contextMenuItemTexts.isNotEmpty()) {
           setContextMenuItems(contextMenuItemTexts, ::forwardContextMenuItemPress)
         }
+
+        applySelectionColors(selectionColor, selectionHandleColor)
       }
 
     private fun createTableView(

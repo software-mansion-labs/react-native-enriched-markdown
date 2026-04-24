@@ -93,6 +93,8 @@ export default function App() {
             onLinkPress={handleLinkPress}
             markdownStyle={markdownStyle}
             contextMenuItems={contextMenuItems}
+            selectionColor={Platform.OS === 'ios' ? '#5A52FA' : '#DCDDFE'}
+            selectionHandleColor="#5A52FA"
           />
         </ScrollView>
       )}

@@ -1,4 +1,4 @@
-import type { ViewProps, ViewStyle, TextStyle } from 'react-native';
+import type { ColorValue, ViewProps, ViewStyle, TextStyle } from 'react-native';
 import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
 import type {
   LinkPressEvent,
@@ -91,6 +91,22 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @platform ios, android, web
    */
   selectable?: boolean;
+  /**
+   * Color of the text selection highlight.
+   *
+   * On iOS, this also affects the caret and selection handle colors
+   * (they share a single tint).
+   *
+   * @platform ios, android, web
+   */
+  selectionColor?: ColorValue;
+  /**
+   * Color of the selection handles (drag anchors).
+   * No-op on API levels below 29.
+   *
+   * @platform android
+   */
+  selectionHandleColor?: ColorValue;
   /**
    * Specifies whether fonts should scale to respect Text Size accessibility settings.
    * When false, text will not scale with the user's accessibility settings.

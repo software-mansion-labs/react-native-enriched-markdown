@@ -23,6 +23,7 @@ import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
+import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
@@ -80,6 +81,9 @@ class EnrichedMarkdownText
     override var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
       private set
     var spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES
+
+    private var selectionColor: Int? = null
+    private var selectionHandleColor: Int? = null
 
     init {
       setupAsMarkdownTextView()
@@ -248,6 +252,8 @@ class EnrichedMarkdownText
         fadeAnimator?.animate(tailStart, styledText.length)
         previousTextLength = styledText.length
       }
+
+      applySelectionColors(selectionColor, selectionHandleColor)
     }
 
     fun setContextMenuItems(items: List<String>) {
@@ -256,6 +262,16 @@ class EnrichedMarkdownText
 
     fun setIsSelectable(selectable: Boolean) {
       applySelectableState(selectable)
+    }
+
+    fun setSelectionColor(color: Int?) {
+      selectionColor = color
+      applySelectionColors(selectionColor, selectionHandleColor)
+    }
+
+    fun setSelectionHandleColor(color: Int?) {
+      selectionHandleColor = color
+      applySelectionColors(selectionColor, selectionHandleColor)
     }
 
     fun emitOnLinkPress(url: String) {

@@ -292,6 +292,8 @@ using namespace facebook::react;
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
     if (isColorMeaningful(newViewProps.selectionColor)) {
       ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
+    } else {
+      ENRMSetSelectionColor(_textView, nil);
     }
   }
 

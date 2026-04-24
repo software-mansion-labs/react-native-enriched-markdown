@@ -1,3 +1,4 @@
+import type { ColorValue } from 'react-native';
 import type { CSSProperties, HTMLAttributes } from 'react';
 import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
 import type {
@@ -65,6 +66,11 @@ export interface EnrichedMarkdownTextProps
    * @platform ios, android, web
    */
   selectable?: boolean;
+  /**
+   * Color of the text selection highlight.
+   * @platform web
+   */
+  selectionColor?: ColorValue;
   /**
    * When false (default), removes trailing margin from the last element to
    * eliminate bottom spacing.

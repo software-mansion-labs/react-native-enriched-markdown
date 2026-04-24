@@ -9,6 +9,7 @@
 #import "ENRMTailFadeInAnimator.h"
 #import "ENRMTextRenderer.h"
 #import "ENRMTextViewSetup.h"
+#import "ENRMUIKit.h"
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
@@ -409,6 +410,16 @@ using namespace facebook::react;
 
   if (_textView.selectable != newViewProps.selectable) {
     _textView.selectable = newViewProps.selectable;
+  }
+
+  if (newViewProps.selectionColor != oldViewProps.selectionColor) {
+#if !TARGET_OS_OSX
+    if (isColorMeaningful(newViewProps.selectionColor)) {
+      ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
+    } else {
+      ENRMSetSelectionColor(_textView, nil);
+    }
+#endif
   }
 
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {

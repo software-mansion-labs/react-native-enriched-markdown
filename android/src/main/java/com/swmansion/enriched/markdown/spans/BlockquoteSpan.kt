@@ -10,6 +10,7 @@ import android.text.Layout
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
+import android.text.style.LineBackgroundSpan
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.renderer.SpanStyleCache
@@ -23,7 +24,8 @@ class BlockquoteSpan(
   private val context: Context,
   private val styleCache: SpanStyleCache,
 ) : MetricAffectingSpan(),
-  LeadingMarginSpan {
+  LeadingMarginSpan,
+  LineBackgroundSpan {
   private val levelSpacing: Float = blockquoteStyle.borderWidth + blockquoteStyle.gapWidth
   private val blockStyle =
     BlockStyle(
@@ -60,8 +62,6 @@ class BlockquoteSpan(
     // Essential check from original: only the deepest span draws to prevent over-rendering background
     if (shouldSkipDrawing(text, start)) return
 
-    drawBackground(c, top, bottom, layout)
-
     val borderPaint = configureBorderPaint()
     val borderTop = top.toFloat()
     val borderBottom = bottom.toFloat()
@@ -71,6 +71,23 @@ class BlockquoteSpan(
       val borderRight = borderX + (blockquoteStyle.borderWidth * dir)
       c.drawRect(minOf(borderX, borderRight), borderTop, maxOf(borderX, borderRight), borderBottom, borderPaint)
     }
+  }
+
+  override fun drawBackground(
+    canvas: Canvas,
+    paint: Paint,
+    left: Int,
+    right: Int,
+    top: Int,
+    baseline: Int,
+    bottom: Int,
+    text: CharSequence,
+    start: Int,
+    end: Int,
+    lineNum: Int,
+  ) {
+    if (shouldSkipDrawing(text, start)) return
+    drawBackground(canvas, left, top, bottom, right)
   }
 
   @SuppressLint("WrongConstant") // Result of mask is always valid: 0, 1, 2, or 3
@@ -123,12 +140,13 @@ class BlockquoteSpan(
 
   private fun drawBackground(
     c: Canvas,
+    left: Int,
     top: Int,
     bottom: Int,
-    layout: Layout?,
+    right: Int,
   ) {
     val bgColor = blockquoteStyle.backgroundColor?.takeIf { it != Color.TRANSPARENT } ?: return
     val backgroundPaint = configureBackgroundPaint(bgColor)
-    c.drawRect(0f, top.toFloat(), layout?.width?.toFloat() ?: 0f, bottom.toFloat(), backgroundPaint)
+    c.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), backgroundPaint)
   }
 }

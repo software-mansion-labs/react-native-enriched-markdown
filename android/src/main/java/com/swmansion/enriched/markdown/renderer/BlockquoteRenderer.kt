@@ -3,6 +3,7 @@ package com.swmansion.enriched.markdown.renderer
 import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
+import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_CONTAINER_BACKGROUND
 import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 import com.swmansion.enriched.markdown.utils.text.span.applyMarginBottom
 import com.swmansion.enriched.markdown.utils.text.span.applyMarginTop
@@ -45,12 +46,14 @@ class BlockquoteRenderer(
         .map { builder.getSpanStart(it) to builder.getSpanEnd(it) }
         .sortedBy { it.first }
 
-    // The Accent Bar Span covers the full range for visual continuity
+    // The accent bar span covers the full range for visual continuity.
+    // SPAN_FLAGS_CONTAINER_BACKGROUND keeps the blockquote fill under any
+    // inline chip/pill backgrounds on the same line.
     builder.setSpan(
       BlockquoteSpan(style, depth, factory.context, factory.styleCache),
       start,
       end,
-      SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
+      SPAN_FLAGS_CONTAINER_BACKGROUND,
     )
 
     // Apply styling only to segments that are NOT nested quotes

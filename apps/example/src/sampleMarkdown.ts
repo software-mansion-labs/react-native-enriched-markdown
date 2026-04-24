@@ -11,7 +11,7 @@ Forests cover approximately **31% of the Earth's land surface**, providing habit
 
 Forests are often called the *lungs of the Earth*. They absorb **carbon dioxide** and release oxygen through photosynthesis — a process essential for all life on our planet. A single mature tree can absorb up to \`48 pounds\` of CO₂ per year.
 
-> In every walk with nature, one receives far more than he seeks.
+> In every walk with nature, one receives far more than he seeks. \`test code\`
 >
 > — John Muir
 
@@ -136,7 +136,7 @@ class TreeNetwork {
     this.trees = [];
     this.fungalConnections = new Map();
   }
-  
+
   connectTrees(tree1, tree2) {
     // Trees share nutrients through mycorrhizal networks
     this.fungalConnections.set(\`\${tree1.id}-\${tree2.id}\`, {
@@ -330,11 +330,11 @@ def detect_deforestation(region):
     """Monitor forest cover changes using satellite imagery"""
     current_cover = satellite_imagery.get_forest_cover(region)
     previous_cover = satellite_imagery.get_historical_cover(region, years_ago=1)
-    
+
     deforestation_rate = (previous_cover - current_cover) / previous_cover
     if deforestation_rate > 0.05:  # 5% threshold
         alert_conservation_team(region, deforestation_rate)
-    
+
     return deforestation_rate
 \`\`\`
 

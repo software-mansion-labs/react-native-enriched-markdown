@@ -1,10 +1,4 @@
-import {
-  useState,
-  useEffect,
-  useMemo,
-  Fragment,
-  type CSSProperties,
-} from 'react';
+import { useState, useEffect, useMemo, type CSSProperties } from 'react';
 import type { EnrichedMarkdownTextProps } from '../types/MarkdownTextProps.web';
 import { normalizeMarkdownStyle } from '../normalizeMarkdownStyle.web';
 import {
@@ -18,6 +12,7 @@ import type { ASTNode, RendererCallbacks, RenderCapabilities } from './types';
 import { indexTaskItems, markInlineImages } from './utils';
 import { loadKaTeX } from './katex';
 import type { KaTeXInstance } from './katex';
+import { ENRM_TEXT_CLASS, ENRM_SELECTION_BG_VAR } from './globalStyles';
 
 export const EnrichedMarkdownText = ({
   markdown,
@@ -109,31 +104,17 @@ export const EnrichedMarkdownText = ({
       ...(containerStyle as CSSProperties),
       ...(selectable ? undefined : { userSelect: 'none' }),
       ...(selectionColor
-        ? ({ ['--enrm-selection-bg']: selectionColor } as CSSProperties)
+        ? ({ [ENRM_SELECTION_BG_VAR]: selectionColor } as CSSProperties)
         : null),
     }),
     [containerStyle, selectable, selectionColor]
   );
 
-  const selectionStyle = selectionColor ? (
-    <style>{`[data-enriched-markdown-text] ::selection {
-    background-color: var(--enrm-selection-bg);
-    }`}</style>
-  ) : null;
-
   if (parseError) {
     return (
-      <Fragment>
-        {selectionStyle}
-        <div
-          data-enriched-markdown-text
-          style={wrapperStyle}
-          dir={dir}
-          {...rest}
-        >
-          <pre style={parseErrorFallbackStyle}>{markdown}</pre>
-        </div>
-      </Fragment>
+      <div className={ENRM_TEXT_CLASS} style={wrapperStyle} dir={dir} {...rest}>
+        <pre style={parseErrorFallbackStyle}>{markdown}</pre>
+      </div>
     );
   }
 
@@ -143,21 +124,18 @@ export const EnrichedMarkdownText = ({
   const lastIdx = children.length - 1;
 
   return (
-    <Fragment>
-      {selectionStyle}
-      <div data-enriched-markdown-text style={wrapperStyle} dir={dir} {...rest}>
-        {children.map((child, index) => (
-          <RenderNode
-            key={`${child.type}-${index}`}
-            node={child}
-            style={index === lastIdx ? lastChildStyle : normalizedStyle}
-            styles={index === lastIdx ? lastChildStyles : styles}
-            callbacks={callbacks}
-            capabilities={capabilities}
-          />
-        ))}
-      </div>
-    </Fragment>
+    <div className={ENRM_TEXT_CLASS} style={wrapperStyle} dir={dir} {...rest}>
+      {children.map((child, index) => (
+        <RenderNode
+          key={`${child.type}-${index}`}
+          node={child}
+          style={index === lastIdx ? lastChildStyle : normalizedStyle}
+          styles={index === lastIdx ? lastChildStyles : styles}
+          callbacks={callbacks}
+          capabilities={capabilities}
+        />
+      ))}
+    </div>
   );
 };
 

@@ -105,6 +105,22 @@ Whether text can be selected.
 | --------- | ------------- | -------- |
 | `boolean` | `true`         | Both     |
 
+### `selectionColor`
+
+Color of the text selection highlight. On iOS, this also affects the caret and selection handle colors (they share a single tint). On macOS, only the selection background is affected. On Android, use `selectionHandleColor` to override the handle color independently.
+
+| Type         | Default Value | Platform           |
+| ------------ | ------------- | ------------------ |
+| `ColorValue` | -             | Both, macOS, Web   |
+
+### `selectionHandleColor`
+
+Color of the selection handles (drag anchors). No-op on Android API levels below 29.
+
+| Type         | Default Value | Platform |
+| ------------ | ------------- | -------- |
+| `ColorValue` | -             | Android  |
+
 ### `md4cFlags`
 
 Configuration for md4c parser extension flags.

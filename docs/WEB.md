@@ -11,7 +11,7 @@ All core `EnrichedMarkdownText` features are supported on web, including:
 - Full GFM: tables (with horizontal scroll), task lists (with checkbox interaction), strikethrough, links, images (block and inline), code blocks, LaTeX math (block and inline)
 - All `markdownStyle` customisation options
 - `onLinkPress`, `onLinkLongPress` (mapped to `contextmenu` event), `onTaskListItemPress` callbacks
-- `allowTrailingMargin`, `containerStyle`, `selectable`, `md4cFlags` (`underline`, `latexMath`)
+- `allowTrailingMargin`, `containerStyle`, `selectable`, `selectionColor`, `md4cFlags` (`underline`, `latexMath`)
 - RTL support via the `dir` prop (CSS logical properties automatically flip blockquote borders, list indentation, etc.)
 
 ### Accessibility
@@ -39,6 +39,7 @@ The web implementation also exports `WebMarkdownTextProps` which extends `Enrich
 | `allowFontScaling` / `maxFontSizeMultiplier` | React Native text scaling props. Browsers handle font scaling natively via OS accessibility settings. |
 | `streamingAnimation` | Native-only tail fade-in animation. Not yet implemented on web. |
 | `contextMenuItems` | Not supported — browsers don't allow extending the native context menu. |
+| `selectionHandleColor` | Android-only — desktop browsers don't render selection handles. |
 
 ## Not supported on web
 

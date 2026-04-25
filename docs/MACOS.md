@@ -12,6 +12,7 @@ These will be addressed in upcoming releases:
 - **Tail fade-in animation** falls back to instant reveal (no `CADisplayLink` on macOS)
 - **VoiceOver** accessibility is stubbed (pending `NSAccessibility` implementation)
 - **Font scale observation** does not respond to system font size changes
+- **`selectionColor`** affects only the selection background. The iOS-style caret + handle tinting isn't available on macOS, since AppKit's `NSTextView` doesn't expose them via `tintColor`.
 
 ## Example app
 

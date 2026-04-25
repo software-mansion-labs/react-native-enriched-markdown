@@ -25,6 +25,21 @@
     sourceSignatures = @[];
   }
 
+  // Build a signature -> (view, index) lookup for fallback reuse when
+  // positional matching fails (e.g. a new segment inserted before an
+  // existing table shifts it to a different index).
+  NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *signatureToIndices =
+      [NSMutableDictionary dictionaryWithCapacity:sourceSignatures.count];
+  [sourceSignatures enumerateObjectsUsingBlock:^(NSNumber *sig, NSUInteger idx, BOOL *stop) {
+    NSMutableArray<NSNumber *> *indices = signatureToIndices[sig];
+    if (!indices) {
+      indices = [NSMutableArray arrayWithObject:@(idx)];
+      signatureToIndices[sig] = indices;
+    } else {
+      [indices addObject:@(idx)];
+    }
+  }];
+
   NSMutableArray<RCTUIView *> *nextViews = [NSMutableArray arrayWithCapacity:renderedSegments.count];
   NSMutableArray<NSNumber *> *nextSignatures = [NSMutableArray arrayWithCapacity:renderedSegments.count];
   NSMutableSet<RCTUIView *> *reusedViews = [NSMutableSet setWithCapacity:sourceViews.count];
@@ -35,12 +50,30 @@
     RCTUIView *view = nil;
     NSNumber *nextSignature = @(segment.signature);
 
-    if (existingView && matchesKind(existingView, segment)) {
+    // 1. Positional match: same index, same kind.
+    if (existingView && ![reusedViews containsObject:existingView] && matchesKind(existingView, segment)) {
       if (![existingSignature isEqual:nextSignature]) {
         updateView(existingView, segment);
       }
       view = existingView;
-    } else {
+    }
+
+    // 2. Signature-based fallback: find an unused view with exact same signature.
+    if (!view) {
+      NSMutableArray<NSNumber *> *candidateIndices = signatureToIndices[nextSignature];
+      while (candidateIndices.count > 0) {
+        NSUInteger candidateIdx = candidateIndices.firstObject.unsignedIntegerValue;
+        [candidateIndices removeObjectAtIndex:0];
+        RCTUIView *candidate = sourceViews[candidateIdx];
+        if (![reusedViews containsObject:candidate] && matchesKind(candidate, segment)) {
+          view = candidate;
+          break;
+        }
+      }
+    }
+
+    // 3. No reusable view found — create a new one.
+    if (!view) {
       view = createView(segment);
       attachView(view);
     }

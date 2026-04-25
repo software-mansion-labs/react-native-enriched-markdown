@@ -12,8 +12,11 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @interface ENRMSegmentReconciler : NSObject
-// Reuses views by index when the segment kind still matches. Matching
-// signatures skip updates; changed signatures update the existing view.
+// Reconciles segment views using a two-pass strategy:
+// 1. Try positional match: if the view at the same index matches kind, reuse it.
+// 2. Fall back to signature-based lookup: find an unused view with the same
+//    kind+signature elsewhere in the old list. This handles mid-stream segment
+//    insertions where a completed table/math block shifts position.
 + (ENRMSegmentReconciliationResult *)
     reconcileCurrentViews:(NSArray<RCTUIView *> *)currentViews
         currentSignatures:(NSArray<NSNumber *> *)currentSignatures

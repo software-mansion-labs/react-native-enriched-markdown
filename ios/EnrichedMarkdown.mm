@@ -69,7 +69,6 @@ static char kENRMSegmentFadeAnimatorKey;
   ENRMSegmentViewRegistry *_segmentViewRegistry;
   BOOL _forceRecreateSegments;
   BOOL _forceHeightUpdateOnNextRender;
-  BOOL _heightUpdateScheduled;
 
   dispatch_queue_t _renderQueue;
   NSUInteger _currentRenderId;
@@ -110,7 +109,6 @@ static char kENRMSegmentFadeAnimatorKey;
     _segmentSignatures = [NSMutableArray array];
     _forceRecreateSegments = NO;
     _forceHeightUpdateOnNextRender = NO;
-    _heightUpdateScheduled = NO;
     [self configureSegmentViewRegistry];
 
     _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
@@ -299,6 +297,21 @@ static char kENRMSegmentFadeAnimatorKey;
   return _renderedMarkdown != nil && [_renderedMarkdown isEqualToString:markdown];
 }
 
+- (BOOL)renderedSegmentsChangeTopology:(NSArray<ENRMRenderedSegment *> *)renderedSegments
+{
+  if (renderedSegments.count != _segmentViews.count) {
+    return YES;
+  }
+
+  for (NSUInteger index = 0; index < renderedSegments.count; index++) {
+    if (![_segmentViewRegistry view:_segmentViews[index] matchesSegment:renderedSegments[index]]) {
+      return YES;
+    }
+  }
+
+  return NO;
+}
+
 - (void)updateState:(const facebook::react::State::Shared &)state
            oldState:(const facebook::react::State::Shared &)oldState
 {
@@ -318,32 +331,6 @@ static char kENRMSegmentFadeAnimatorKey;
   _heightUpdateCounter++;
   auto selfRef = wrapManagedObjectWeakly(self);
   _state->updateState(EnrichedMarkdownState(_heightUpdateCounter, selfRef));
-}
-
-- (void)scheduleStreamingHeightUpdate
-{
-  if (_heightUpdateScheduled) {
-    return;
-  }
-
-  _heightUpdateScheduled = YES;
-  __weak EnrichedMarkdown *weakSelf = self;
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.12 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    EnrichedMarkdown *strongSelf = weakSelf;
-    if (!strongSelf) {
-      return;
-    }
-
-    strongSelf->_heightUpdateScheduled = NO;
-    if (strongSelf.bounds.size.width <= 0) {
-      return;
-    }
-
-    CGSize measured = [strongSelf measureSize:strongSelf.bounds.size.width];
-    if (needsHeightUpdate(measured, strongSelf.bounds)) {
-      [strongSelf requestHeightUpdate];
-    }
-  });
 }
 
 - (void)renderMarkdownContent:(NSString *)markdownString
@@ -444,6 +431,7 @@ static char kENRMSegmentFadeAnimatorKey;
 - (void)applyRenderedSegments:(NSArray *)renderedSegments renderedMarkdown:(NSString *)renderedMarkdown
 {
   _renderedMarkdown = [renderedMarkdown copy];
+  BOOL segmentTopologyChanged = _streamingAnimation && [self renderedSegmentsChangeTopology:renderedSegments];
 
   ENRMSegmentReconciliationResult *result = [ENRMSegmentReconciler reconcileCurrentViews:_segmentViews
       currentSignatures:_segmentSignatures
@@ -472,10 +460,15 @@ static char kENRMSegmentFadeAnimatorKey;
     _forceHeightUpdateOnNextRender = NO;
     [self setNeedsLayout];
 
-    if (forceHeightUpdate) {
+    if (forceHeightUpdate || segmentTopologyChanged) {
+      [self computeSegmentLayoutForWidth:self.bounds.size.width applyFrames:YES];
+      [self layoutIfNeeded];
       [self requestHeightUpdate];
     } else if (_streamingAnimation) {
-      [self scheduleStreamingHeightUpdate];
+      CGSize measured = [self measureSize:self.bounds.size.width];
+      if (needsHeightUpdate(measured, self.bounds)) {
+        [self requestHeightUpdate];
+      }
     } else {
       CGSize measured = [self measureSize:self.bounds.size.width];
       if (needsHeightUpdate(measured, self.bounds)) {
@@ -770,9 +763,39 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   return EnrichedMarkdown.class;
 }
 
+#if !TARGET_OS_OSX
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+{
+  if ([super pointInside:point withEvent:event]) {
+    return YES;
+  }
+
+  for (RCTUIView *segment in _segmentViews) {
+    if (CGRectContainsPoint(segment.frame, point)) {
+      return YES;
+    }
+  }
+
+  return NO;
+}
+#endif
+
 - (facebook::react::SharedTouchEventEmitter)touchEventEmitterAtPoint:(CGPoint)point
 {
   for (RCTUIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[TableContainerView class]]) {
+      CGPoint segmentPoint = [self convertPoint:point toView:segment];
+#if !TARGET_OS_OSX
+      if ([segment pointInside:segmentPoint withEvent:nil]) {
+        return nil;
+      }
+#else
+      if (CGRectContainsPoint(segment.bounds, segmentPoint)) {
+        return nil;
+      }
+#endif
+    }
+
     if (![segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
       continue;
     }

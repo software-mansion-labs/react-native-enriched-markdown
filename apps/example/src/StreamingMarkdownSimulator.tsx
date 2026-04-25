@@ -9,14 +9,19 @@ import {
 import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
 import { customMarkdownStyle } from './markdownStyles';
 
-const STREAM_SOURCE = `Here is a tiny streamed answer.
+const STREAM_SOURCE = `Here is a longer streamed answer used to stress GitHub-flavored markdown streaming on iOS.
 
-First table:
+The goal is to keep normal text flowing while completed tables and block LaTeX views stay stable. Each section below adds enough text between block views to make layout changes easier to notice during streaming.
 
-| Item | Value |
-| --- | ---: |
-| Alpha | 1 |
-| Beta | 2 |
+First summary table:
+
+| Area | Why it matters | Expected behavior |
+| --- | --- | --- |
+| Text | Keeps streaming frequently | Tail text fades in |
+| Table | Expensive native block | Existing table is reused |
+| Math | Expensive native block | Existing formula is reused |
+
+After the first table, the answer continues with regular prose. This paragraph should stream normally and should not cause the completed table above to be recreated. It gives the preview enough height to make jumps and delayed measurements visible.
 
 First LaTeX block:
 
@@ -24,12 +29,18 @@ $$
 E = mc^2
 $$
 
-Second table:
+The first equation is intentionally short. The following text continues immediately after it so we can verify that the math block appears once, then remains stable while more text is appended below.
 
-| Step | Status |
-| --- | --- |
-| Parse | done |
-| Render | streaming |
+Second progress table:
+
+| Step | Status | Notes |
+| --- | --- | --- |
+| Parse markdown | done | AST is ready |
+| Split segments | done | Text, table, and math are separated |
+| Reconcile views | active | Unchanged blocks should be reused |
+| Measure height | active | Height should update only when needed |
+
+The stream now adds a longer paragraph to simulate a real assistant response. The important thing is that appending this text should not force the previous table or formula to flash, fade again, or rebuild their native views.
 
 Second LaTeX block:
 
@@ -37,18 +48,39 @@ $$
 a^2 + b^2 = c^2
 $$
 
-Final table:
+More explanatory text follows the second formula. This gives us another opportunity to check that previously completed blocks remain visually stable while the tail of the message continues to animate.
 
-| Block | Kind |
+Comparison table:
+
+| Scenario | Static GFM | Streaming GFM |
+| --- | --- | --- |
+| Complete table | Renders immediately | Renders when complete |
+| Incomplete table | Renders as parser allows | Hidden until complete |
+| Complete math block | Renders immediately | Renders when complete |
+| Incomplete math block | Renders as parser allows | Hidden until closing delimiter |
+
+This paragraph is intentionally a little longer. It should make the preview scrollable and help us see whether the UI thread stays smooth when several completed block views already exist above the streaming tail.
+
+Third LaTeX block:
+
+$$
+F(x) = \\int_0^x t^2\\,dt = \\frac{x^3}{3}
+$$
+
+Final validation table:
+
+| Check | Result |
 | --- | --- |
-| One | text |
-| Two | table |
-| Three | math |
+| Text keeps streaming | expected |
+| Completed tables stay visible | expected |
+| Completed math stays visible | expected |
+| Incomplete block is hidden | expected |
+| Height grows only for rendered content | expected |
 
-Done.`;
+The streamed answer is complete. At this point all tables and block LaTeX sections should be visible, and none of the earlier blocks should have been recreated unnecessarily while the final text was appended.`;
 
 const TICK_MS = 80;
-const CHARS_PER_TICK = 3;
+const CHARS_PER_TICK = 6;
 
 export default function StreamingMarkdownSimulator() {
   const [cursor, setCursor] = useState(0);
@@ -85,7 +117,7 @@ export default function StreamingMarkdownSimulator() {
     <ScrollView style={styles.root} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Streaming markdown simulator</Text>
       <Text style={styles.subtitle}>
-        JS-only stream: short text, a few tables, and a few block LaTeX
+        JS-only stream: longer text, several tables, and several block LaTeX
         segments.
       </Text>
 

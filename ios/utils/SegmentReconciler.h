@@ -8,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ENRMSegmentReconciliationResult : NSObject
 @property (nonatomic, strong) NSMutableArray<RCTUIView *> *views;
-@property (nonatomic, strong) NSMutableArray<NSString *> *signatures;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *signatures;
 @end
 
 @interface ENRMSegmentReconciler : NSObject
@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 // signatures skip updates; changed signatures update the existing view.
 + (ENRMSegmentReconciliationResult *)
     reconcileCurrentViews:(NSArray<RCTUIView *> *)currentViews
-        currentSignatures:(NSArray<NSString *> *)currentSignatures
+        currentSignatures:(NSArray<NSNumber *> *)currentSignatures
          renderedSegments:(NSArray<ENRMRenderedSegment *> *)renderedSegments
                     reset:(BOOL)reset
                createView:(RCTUIView * (^)(ENRMRenderedSegment *segment))createView

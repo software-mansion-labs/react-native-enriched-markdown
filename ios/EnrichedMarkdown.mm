@@ -65,7 +65,7 @@ static char kENRMSegmentFadeAnimatorKey;
   NSString *_cachedMarkdown;
   NSString *_renderedMarkdown;
   NSMutableArray<RCTUIView *> *_segmentViews;
-  NSMutableArray<NSString *> *_segmentSignatures;
+  NSMutableArray<NSNumber *> *_segmentSignatures;
   ENRMSegmentViewRegistry *_segmentViewRegistry;
   BOOL _forceRecreateSegments;
   BOOL _forceHeightUpdateOnNextRender;
@@ -423,7 +423,7 @@ static char kENRMSegmentFadeAnimatorKey;
   for (ENRMRenderedSegment *segment in renderedSegments) {
     RCTUIView *view = [_segmentViewRegistry createViewForSegment:segment animateIfStreaming:NO];
     [_segmentViews addObject:view];
-    [_segmentSignatures addObject:segment.signature ?: @""];
+    [_segmentSignatures addObject:@(segment.signature)];
     [self addSubview:view];
   }
 }

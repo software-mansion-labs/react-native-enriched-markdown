@@ -54,22 +54,32 @@ NSArray<ENRMRenderedSegment *> *ENRMRenderSegmentsFromAST(MarkdownASTNode *ast, 
   NSArray *segments = ENRMSplitASTIntoSegments(ast);
   NSMutableArray<ENRMRenderedSegment *> *renderedSegments = [NSMutableArray array];
 
+  static const uint64_t kTextKindSalt = 0x7465787400000000ULL;  // "text"
+  static const uint64_t kTableKindSalt = 0x7461626C00000000ULL; // "tabl"
+  static const uint64_t kMathKindSalt = 0x6D61746800000000ULL;  // "math"
+
   for (id segment in segments) {
     if ([segment isKindOfClass:[ENRMTextSegment class]]) {
       ENRMTextSegment *textSegment = (ENRMTextSegment *)segment;
       ENRMRenderResult *rendered = ENRMRenderASTNodes(textSegment.nodes, config, allowTrailingMargin, allowFontScaling,
                                                       maxFontSizeMultiplier, currentWritingDirection());
-      NSString *signature = [@"text:" stringByAppendingString:ENRMSignatureForNodes(textSegment.nodes)];
+      uint64_t signature = ENRMSignatureForNodes(textSegment.nodes) ^ kTextKindSalt;
       [renderedSegments addObject:[ENRMRenderedSegment textSegmentWithResult:rendered signature:signature]];
     } else if ([segment isKindOfClass:[ENRMTableSegment class]]) {
       ENRMTableSegment *tableSegment = (ENRMTableSegment *)segment;
-      NSString *signature = [@"table:" stringByAppendingString:ENRMSignatureForNode(tableSegment.tableNode)];
+      uint64_t signature = ENRMSignatureForNode(tableSegment.tableNode) ^ kTableKindSalt;
       [renderedSegments addObject:[ENRMRenderedSegment tableSegmentWithSegment:tableSegment signature:signature]];
     }
 #if ENRICHED_MARKDOWN_MATH
     else if ([segment isKindOfClass:[ENRMMathSegment class]]) {
       ENRMMathSegment *mathSegment = (ENRMMathSegment *)segment;
-      NSString *signature = [@"math:" stringByAppendingString:mathSegment.latex ?: @""];
+      uint64_t signature = ENRMSignatureForNode(nil) ^ kMathKindSalt;
+      NSString *latex = mathSegment.latex ?: @"";
+      const char *utf8 = [latex UTF8String];
+      while (*utf8) {
+        signature ^= (uint8_t)*utf8++;
+        signature *= 1099511628211ULL;
+      }
       [renderedSegments addObject:[ENRMRenderedSegment mathSegmentWithSegment:mathSegment signature:signature]];
     }
 #endif

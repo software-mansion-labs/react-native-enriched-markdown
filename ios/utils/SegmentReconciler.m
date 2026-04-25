@@ -7,7 +7,7 @@
 @implementation ENRMSegmentReconciler
 + (ENRMSegmentReconciliationResult *)
     reconcileCurrentViews:(NSArray<RCTUIView *> *)currentViews
-        currentSignatures:(NSArray<NSString *> *)currentSignatures
+        currentSignatures:(NSArray<NSNumber *> *)currentSignatures
          renderedSegments:(NSArray<ENRMRenderedSegment *> *)renderedSegments
                     reset:(BOOL)reset
                createView:(RCTUIView * (^)(ENRMRenderedSegment *segment))createView
@@ -17,7 +17,7 @@
               matchesKind:(BOOL (^)(RCTUIView *view, ENRMRenderedSegment *segment))matchesKind
 {
   NSArray<RCTUIView *> *sourceViews = currentViews;
-  NSArray<NSString *> *sourceSignatures = currentSignatures;
+  NSArray<NSNumber *> *sourceSignatures = currentSignatures;
 
   if (reset) {
     [currentViews enumerateObjectsUsingBlock:^(RCTUIView *view, NSUInteger index, BOOL *stop) { removeView(view); }];
@@ -26,17 +26,17 @@
   }
 
   NSMutableArray<RCTUIView *> *nextViews = [NSMutableArray arrayWithCapacity:renderedSegments.count];
-  NSMutableArray<NSString *> *nextSignatures = [NSMutableArray arrayWithCapacity:renderedSegments.count];
+  NSMutableArray<NSNumber *> *nextSignatures = [NSMutableArray arrayWithCapacity:renderedSegments.count];
   NSMutableSet<RCTUIView *> *reusedViews = [NSMutableSet setWithCapacity:sourceViews.count];
 
   [renderedSegments enumerateObjectsUsingBlock:^(ENRMRenderedSegment *segment, NSUInteger index, BOOL *stop) {
     RCTUIView *existingView = index < sourceViews.count ? sourceViews[index] : nil;
-    NSString *existingSignature = index < sourceSignatures.count ? sourceSignatures[index] : nil;
+    NSNumber *existingSignature = index < sourceSignatures.count ? sourceSignatures[index] : nil;
     RCTUIView *view = nil;
-    NSString *nextSignature = segment.signature ?: @"";
+    NSNumber *nextSignature = @(segment.signature);
 
     if (existingView && matchesKind(existingView, segment)) {
-      if (![existingSignature isEqualToString:nextSignature]) {
+      if (![existingSignature isEqual:nextSignature]) {
         updateView(existingView, segment);
       }
       view = existingView;

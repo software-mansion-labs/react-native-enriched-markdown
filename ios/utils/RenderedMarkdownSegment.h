@@ -26,21 +26,21 @@ typedef NS_ENUM(NSInteger, ENRMSegmentKind) { ENRMSegmentKindText, ENRMSegmentKi
 
 @interface ENRMRenderedSegment : NSObject
 @property (nonatomic, assign) ENRMSegmentKind kind;
-@property (nonatomic, copy) NSString *signature;
+@property (nonatomic, assign) uint64_t signature;
 @property (nonatomic, strong, nullable) ENRMRenderResult *textResult;
 @property (nonatomic, strong, nullable) ENRMTableSegment *tableSegment;
 @property (nonatomic, strong, nullable) ENRMMathSegment *mathSegment;
-+ (instancetype)textSegmentWithResult:(ENRMRenderResult *)result signature:(NSString *)signature;
-+ (instancetype)tableSegmentWithSegment:(ENRMTableSegment *)segment signature:(NSString *)signature;
-+ (instancetype)mathSegmentWithSegment:(ENRMMathSegment *)segment signature:(NSString *)signature;
++ (instancetype)textSegmentWithResult:(ENRMRenderResult *)result signature:(uint64_t)signature;
++ (instancetype)tableSegmentWithSegment:(ENRMTableSegment *)segment signature:(uint64_t)signature;
++ (instancetype)mathSegmentWithSegment:(ENRMMathSegment *)segment signature:(uint64_t)signature;
 @end
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-NSString *ENRMSignatureForNode(MarkdownASTNode *_Nullable node);
-NSString *ENRMSignatureForNodes(NSArray<MarkdownASTNode *> *nodes);
+uint64_t ENRMSignatureForNode(MarkdownASTNode *_Nullable node);
+uint64_t ENRMSignatureForNodes(NSArray<MarkdownASTNode *> *nodes);
 
 #ifdef __cplusplus
 }

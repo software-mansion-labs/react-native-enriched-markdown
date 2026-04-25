@@ -32,10 +32,9 @@
 @end
 
 @implementation ENRMRenderedSegment
-+ (instancetype)textSegmentWithResult:(ENRMRenderResult *)result signature:(NSString *)signature
++ (instancetype)textSegmentWithResult:(ENRMRenderResult *)result signature:(uint64_t)signature
 {
   NSParameterAssert(result != nil);
-  NSParameterAssert(signature != nil);
   ENRMRenderedSegment *segment = [[ENRMRenderedSegment alloc] init];
   segment.kind = ENRMSegmentKindText;
   segment.textResult = result;
@@ -43,10 +42,9 @@
   return segment;
 }
 
-+ (instancetype)tableSegmentWithSegment:(ENRMTableSegment *)tableSegment signature:(NSString *)signature
++ (instancetype)tableSegmentWithSegment:(ENRMTableSegment *)tableSegment signature:(uint64_t)signature
 {
   NSParameterAssert(tableSegment != nil);
-  NSParameterAssert(signature != nil);
   ENRMRenderedSegment *segment = [[ENRMRenderedSegment alloc] init];
   segment.kind = ENRMSegmentKindTable;
   segment.tableSegment = tableSegment;
@@ -54,10 +52,9 @@
   return segment;
 }
 
-+ (instancetype)mathSegmentWithSegment:(ENRMMathSegment *)mathSegment signature:(NSString *)signature
++ (instancetype)mathSegmentWithSegment:(ENRMMathSegment *)mathSegment signature:(uint64_t)signature
 {
   NSParameterAssert(mathSegment != nil);
-  NSParameterAssert(signature != nil);
   ENRMRenderedSegment *segment = [[ENRMRenderedSegment alloc] init];
   segment.kind = ENRMSegmentKindMath;
   segment.mathSegment = mathSegment;
@@ -66,31 +63,68 @@
 }
 @end
 
-NSString *ENRMSignatureForNode(MarkdownASTNode *node)
-{
-  if (!node)
-    return @"";
+// FNV-1a 64-bit hash for segment signatures. Collisions are theoretically
+// possible but negligible for the small number of segments per document
+// (~single digits). Worst case is a single skipped view update, corrected
+// on the next streaming tick. This replaces the previous approach of building
+// and comparing multi-KB NSString signatures from the full AST subtree.
+static const uint64_t kFNVOffsetBasis = 14695981039346656037ULL;
+static const uint64_t kFNVPrime = 1099511628211ULL;
 
-  NSMutableString *signature = [NSMutableString stringWithFormat:@"%ld|%@|", (long)node.type, node.content ?: @""];
-  NSArray *keys = [[node.attributes allKeys] sortedArrayUsingSelector:@selector(compare:)];
-  for (NSString *key in keys) {
-    [signature appendFormat:@"%@=%@;", key, node.attributes[key]];
-  }
-  [signature appendString:@"["];
-  for (MarkdownASTNode *child in node.children) {
-    [signature appendString:ENRMSignatureForNode(child)];
-    [signature appendString:@","];
-  }
-  [signature appendString:@"]"];
-  return signature;
+static inline uint64_t fnvMixByte(uint64_t hash, uint8_t byte)
+{
+  hash ^= byte;
+  hash *= kFNVPrime;
+  return hash;
 }
 
-NSString *ENRMSignatureForNodes(NSArray<MarkdownASTNode *> *nodes)
+static inline uint64_t fnvMixUInt64(uint64_t hash, uint64_t value)
 {
-  NSMutableString *signature = [NSMutableString string];
-  for (MarkdownASTNode *node in nodes) {
-    [signature appendString:ENRMSignatureForNode(node)];
-    [signature appendString:@"|"];
+  for (int i = 0; i < 8; i++) {
+    hash = fnvMixByte(hash, (uint8_t)(value & 0xFF));
+    value >>= 8;
   }
-  return signature;
+  return hash;
+}
+
+static inline uint64_t fnvMixString(uint64_t hash, NSString *string)
+{
+  if (!string)
+    return hash;
+  const char *utf8 = [string UTF8String];
+  while (*utf8) {
+    hash = fnvMixByte(hash, (uint8_t)*utf8++);
+  }
+  return hash;
+}
+
+uint64_t ENRMSignatureForNode(MarkdownASTNode *node)
+{
+  if (!node)
+    return kFNVOffsetBasis;
+
+  uint64_t hash = kFNVOffsetBasis;
+  hash = fnvMixUInt64(hash, (uint64_t)node.type);
+  hash = fnvMixString(hash, node.content);
+
+  NSArray *keys = [[node.attributes allKeys] sortedArrayUsingSelector:@selector(compare:)];
+  for (NSString *key in keys) {
+    hash = fnvMixString(hash, key);
+    hash = fnvMixString(hash, node.attributes[key]);
+  }
+
+  for (MarkdownASTNode *child in node.children) {
+    hash = fnvMixUInt64(hash, ENRMSignatureForNode(child));
+  }
+
+  return hash;
+}
+
+uint64_t ENRMSignatureForNodes(NSArray<MarkdownASTNode *> *nodes)
+{
+  uint64_t hash = kFNVOffsetBasis;
+  for (MarkdownASTNode *node in nodes) {
+    hash = fnvMixUInt64(hash, ENRMSignatureForNode(node));
+  }
+  return hash;
 }

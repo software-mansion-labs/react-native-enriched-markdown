@@ -53,6 +53,12 @@
 
 using namespace facebook::react;
 
+typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
+  ENRMDirtyNone = 0,
+  ENRMDirtyRecreateSegments = 1 << 0,
+  ENRMDirtyForceHeight = 1 << 1,
+};
+
 static char kENRMSegmentFadeAnimatorKey;
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
@@ -67,8 +73,7 @@ static char kENRMSegmentFadeAnimatorKey;
   NSMutableArray<RCTUIView *> *_segmentViews;
   NSMutableArray<NSNumber *> *_segmentSignatures;
   ENRMSegmentViewRegistry *_segmentViewRegistry;
-  BOOL _forceRecreateSegments;
-  BOOL _forceHeightUpdateOnNextRender;
+  ENRMDirtyFlags _dirtyFlags;
 
   dispatch_queue_t _renderQueue;
   NSUInteger _currentRenderId;
@@ -107,8 +112,7 @@ static char kENRMSegmentFadeAnimatorKey;
     _md4cFlags = [ENRMMd4cFlags defaultFlags];
     _segmentViews = [NSMutableArray array];
     _segmentSignatures = [NSMutableArray array];
-    _forceRecreateSegments = NO;
-    _forceHeightUpdateOnNextRender = NO;
+    _dirtyFlags = ENRMDirtyNone;
     [self configureSegmentViewRegistry];
 
     _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
@@ -130,8 +134,7 @@ static char kENRMSegmentFadeAnimatorKey;
         [strongSelf->_config setFontScaleMultiplier:strongSelf->_fontScaleObserver.effectiveFontScale];
       }
       if (strongSelf->_cachedMarkdown != nil && strongSelf->_cachedMarkdown.length > 0) {
-        strongSelf->_forceRecreateSegments = YES;
-        strongSelf->_forceHeightUpdateOnNextRender = YES;
+        strongSelf->_dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
         [strongSelf renderMarkdownContent:strongSelf->_cachedMarkdown];
       }
     };
@@ -148,7 +151,7 @@ static char kENRMSegmentFadeAnimatorKey;
                           matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
                             return [view isKindOfClass:[EnrichedMarkdownInternalText class]];
                           }
-                          createView:^RCTUIView *(ENRMRenderedSegment *segment, BOOL animateIfStreaming) {
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
                             EnrichedMarkdown *strongSelf = weakSelf;
                             if (!strongSelf) {
                               return [[RCTUIView alloc] init];
@@ -156,9 +159,7 @@ static char kENRMSegmentFadeAnimatorKey;
 
                             EnrichedMarkdownInternalText *view =
                                 [strongSelf createTextViewForRenderedSegment:segment.textResult];
-                            if (animateIfStreaming) {
-                              [strongSelf animateTextView:view fromTailStart:0];
-                            }
+                            [strongSelf animateTextView:view fromTailStart:0];
                             return view;
                           }
                           updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
@@ -173,16 +174,14 @@ static char kENRMSegmentFadeAnimatorKey;
                           matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
                             return [view isKindOfClass:[TableContainerView class]];
                           }
-                          createView:^RCTUIView *(ENRMRenderedSegment *segment, BOOL animateIfStreaming) {
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
                             EnrichedMarkdown *strongSelf = weakSelf;
                             if (!strongSelf) {
                               return [[RCTUIView alloc] init];
                             }
 
                             TableContainerView *view = [strongSelf createTableViewForSegment:segment.tableSegment];
-                            if (animateIfStreaming) {
-                              [strongSelf animateBlockViewIfNeeded:view];
-                            }
+                            [strongSelf animateBlockViewIfNeeded:view];
                             return view;
                           }
                           updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
@@ -194,7 +193,7 @@ static char kENRMSegmentFadeAnimatorKey;
                           matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
                             return [view isKindOfClass:[ENRMMathContainerView class]];
                           }
-                          createView:^RCTUIView *(ENRMRenderedSegment *segment, BOOL animateIfStreaming) {
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
                             EnrichedMarkdown *strongSelf = weakSelf;
                             if (!strongSelf) {
                               return [[RCTUIView alloc] init];
@@ -202,9 +201,7 @@ static char kENRMSegmentFadeAnimatorKey;
 
                             ENRMMathContainerView *view =
                                 [strongSelf createMathViewForSegment:(ENRMMathSegment *)segment.mathSegment];
-                            if (animateIfStreaming) {
-                              [strongSelf animateBlockViewIfNeeded:view];
-                            }
+                            [strongSelf animateBlockViewIfNeeded:view];
                             return view;
                           }
                           updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
@@ -421,7 +418,7 @@ static char kENRMSegmentFadeAnimatorKey;
   }
 
   for (ENRMRenderedSegment *segment in renderedSegments) {
-    RCTUIView *view = [_segmentViewRegistry createViewForSegment:segment animateIfStreaming:NO];
+    RCTUIView *view = [_segmentViewRegistry createViewForSegment:segment];
     [_segmentViews addObject:view];
     [_segmentSignatures addObject:@(segment.signature)];
     [self addSubview:view];
@@ -436,9 +433,9 @@ static char kENRMSegmentFadeAnimatorKey;
   ENRMSegmentReconciliationResult *result = [ENRMSegmentReconciler reconcileCurrentViews:_segmentViews
       currentSignatures:_segmentSignatures
       renderedSegments:renderedSegments
-      reset:_forceRecreateSegments
+      reset:(_dirtyFlags & ENRMDirtyRecreateSegments) != 0
       createView:^RCTUIView *(ENRMRenderedSegment *segment) {
-        return [self->_segmentViewRegistry createViewForSegment:segment animateIfStreaming:YES];
+        return [self->_segmentViewRegistry createViewForSegment:segment];
       }
       updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
         [self->_segmentViewRegistry updateView:view withSegment:segment];
@@ -448,16 +445,13 @@ static char kENRMSegmentFadeAnimatorKey;
       matchesKind:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
         return [self->_segmentViewRegistry view:view matchesSegment:segment];
       }];
-  _forceRecreateSegments = NO;
+  BOOL forceHeightUpdate = (_dirtyFlags & ENRMDirtyForceHeight) != 0;
+  _dirtyFlags = ENRMDirtyNone;
 
   _segmentViews = result.views;
   _segmentSignatures = result.signatures;
 
   if (self.bounds.size.width > 0) {
-    // Some prop changes recreate identical-looking segments but still change
-    // Yoga height. Request one update instead of relying on size diffing.
-    BOOL forceHeightUpdate = _forceHeightUpdateOnNextRender;
-    _forceHeightUpdateOnNextRender = NO;
     [self setNeedsLayout];
 
     if (forceHeightUpdate || segmentTopologyChanged) {
@@ -631,9 +625,9 @@ static char kENRMSegmentFadeAnimatorKey;
 
   if (stylePropChanged) {
     [ENRMImageAttachment clearAttachmentRegistry];
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
     if (!markdownChanged) {
-      _forceRecreateSegments = YES;
+      _dirtyFlags |= ENRMDirtyRecreateSegments;
     }
   }
 
@@ -654,8 +648,7 @@ static char kENRMSegmentFadeAnimatorKey;
       [_config setFontScaleMultiplier:_fontScaleObserver.effectiveFontScale];
     }
     stylePropChanged = YES;
-    _forceRecreateSegments = YES;
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
   }
 
   if (newViewProps.maxFontSizeMultiplier != oldViewProps.maxFontSizeMultiplier) {
@@ -664,26 +657,24 @@ static char kENRMSegmentFadeAnimatorKey;
       [_config setMaxFontSizeMultiplier:_maxFontSizeMultiplier];
     }
     stylePropChanged = YES;
-    _forceRecreateSegments = YES;
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
   }
 
   if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
     _allowTrailingMargin = newViewProps.allowTrailingMargin;
-    _forceRecreateSegments = YES;
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
   }
 
   BOOL md4cFlagsChanged = NO;
   if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
     _md4cFlags.underline = newViewProps.md4cFlags.underline;
     md4cFlagsChanged = YES;
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
   }
   if (newViewProps.md4cFlags.latexMath != oldViewProps.md4cFlags.latexMath) {
     _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
   }
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
@@ -692,7 +683,7 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL streamingAnimationChanged = newViewProps.streamingAnimation != oldViewProps.streamingAnimation;
   if (streamingAnimationChanged) {
     _streamingAnimation = newViewProps.streamingAnimation;
-    _forceHeightUpdateOnNextRender = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
     if (!_streamingAnimation) {
       for (RCTUIView *segment in _segmentViews) {
         if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {

@@ -45,14 +45,14 @@
   return handler != nil && handler.matchesView(view, segment);
 }
 
-- (RCTUIView *)createViewForSegment:(ENRMRenderedSegment *)segment animateIfStreaming:(BOOL)animateIfStreaming
+- (RCTUIView *)createViewForSegment:(ENRMRenderedSegment *)segment
 {
   ENRMSegmentViewHandler *handler = [self handlerForSegment:segment];
   NSAssert(handler != nil, @"Missing segment view handler for kind %ld", (long)segment.kind);
   if (!handler) {
     return [[RCTUIView alloc] init];
   }
-  return handler.createView(segment, animateIfStreaming);
+  return handler.createView(segment);
 }
 
 - (void)updateView:(RCTUIView *)view withSegment:(ENRMRenderedSegment *)segment

@@ -6,7 +6,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef BOOL (^ENRMSegmentMatchesViewBlock)(RCTUIView *view, ENRMRenderedSegment *segment);
-typedef RCTUIView *_Nonnull (^ENRMSegmentCreateViewBlock)(ENRMRenderedSegment *segment, BOOL animateIfStreaming);
+typedef RCTUIView *_Nonnull (^ENRMSegmentCreateViewBlock)(ENRMRenderedSegment *segment);
 typedef void (^ENRMSegmentUpdateViewBlock)(RCTUIView *view, ENRMRenderedSegment *segment);
 
 @interface ENRMSegmentViewHandler : NSObject
@@ -28,7 +28,7 @@ typedef void (^ENRMSegmentUpdateViewBlock)(RCTUIView *view, ENRMRenderedSegment 
 - (instancetype)initWithHandlers:(NSArray<ENRMSegmentViewHandler *> *)handlers;
 
 - (BOOL)view:(RCTUIView *)view matchesSegment:(ENRMRenderedSegment *)segment;
-- (RCTUIView *)createViewForSegment:(ENRMRenderedSegment *)segment animateIfStreaming:(BOOL)animateIfStreaming;
+- (RCTUIView *)createViewForSegment:(ENRMRenderedSegment *)segment;
 - (void)updateView:(RCTUIView *)view withSegment:(ENRMRenderedSegment *)segment;
 
 @end

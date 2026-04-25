@@ -132,11 +132,13 @@ class EnrichedMarkdown
     }
 
     fun setSelectionColor(color: Int?) {
+      if (selectionColor == color) return
       selectionColor = color
       applySelectionColorsToSegments()
     }
 
     fun setSelectionHandleColor(color: Int?) {
+      if (selectionHandleColor == color) return
       selectionHandleColor = color
       applySelectionColorsToSegments()
     }

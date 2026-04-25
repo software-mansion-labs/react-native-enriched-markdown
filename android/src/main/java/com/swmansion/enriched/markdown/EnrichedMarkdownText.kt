@@ -265,11 +265,13 @@ class EnrichedMarkdownText
     }
 
     fun setSelectionColor(color: Int?) {
+      if (selectionColor == color) return
       selectionColor = color
       applySelectionColors(selectionColor, selectionHandleColor)
     }
 
     fun setSelectionHandleColor(color: Int?) {
+      if (selectionHandleColor == color) return
       selectionHandleColor = color
       applySelectionColors(selectionColor, selectionHandleColor)
     }

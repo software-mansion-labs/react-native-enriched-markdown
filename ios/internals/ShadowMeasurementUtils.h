@@ -1,10 +1,12 @@
 #pragma once
 
+#include "MeasurementCache.h"
 #import <Foundation/Foundation.h>
 #import <React/RCTUtils.h>
 #include <algorithm>
 #include <cmath>
 #include <react/renderer/core/LayoutConstraints.h>
+#include <react/utils/ManagedObjectWrapper.h>
 
 namespace facebook::react {
 
@@ -40,6 +42,89 @@ static inline Size ENRMClampMeasuredSize(CGSize size, const LayoutConstraints &l
     clampedHeight = std::min(clampedHeight, layoutConstraints.maximumSize.height);
   }
   return {clampedWidth, clampedHeight};
+}
+
+template <typename PropsT>
+static inline bool ENRMPropsNeedExactStreamingMeasurement(const PropsT &oldProps, const PropsT &newProps)
+{
+  return oldProps.streamingAnimation != newProps.streamingAnimation ||
+         oldProps.allowFontScaling != newProps.allowFontScaling ||
+         oldProps.maxFontSizeMultiplier != newProps.maxFontSizeMultiplier ||
+         oldProps.allowTrailingMargin != newProps.allowTrailingMargin ||
+         oldProps.md4cFlags.underline != newProps.md4cFlags.underline ||
+         oldProps.md4cFlags.latexMath != newProps.md4cFlags.latexMath ||
+         computeStyleFingerprint(oldProps.markdownStyle) != computeStyleFingerprint(newProps.markdownStyle);
+}
+
+template <typename PropsT, typename ViewT>
+static inline Size ENRMMeasureMarkdownContent(const PropsT &typedProps, const std::shared_ptr<void> &componentViewRef,
+                                              int receivedCounter, int &lastExactMeasurementCounter,
+                                              MarkdownFlavor flavor, const LayoutConstraints &layoutConstraints,
+                                              ViewT * (^createMockView)(CGFloat width))
+{
+  CGFloat maxWidth = layoutConstraints.maximumSize.width;
+
+  RCTInternalGenericWeakWrapper *weakWrapper = (RCTInternalGenericWeakWrapper *)unwrapManagedObject(componentViewRef);
+  ViewT *view = weakWrapper ? (ViewT *)weakWrapper.object : nil;
+
+  if (typedProps.streamingAnimation && view && receivedCounter <= lastExactMeasurementCounter) {
+    __block CGSize currentSize = CGSizeZero;
+    void (^readCurrentSize)(void) = ^{
+      if (view.bounds.size.width > 0 && view.bounds.size.height > 0) {
+        currentSize = view.bounds.size;
+      }
+    };
+
+    if ([NSThread isMainThread]) {
+      readCurrentSize();
+    } else {
+      dispatch_sync(dispatch_get_main_queue(), readCurrentSize);
+    }
+
+    if (currentSize.height > 0) {
+      return ENRMClampMeasuredSize(currentSize, layoutConstraints);
+    }
+  }
+
+  const bool shouldUseMeasurementCache = !typedProps.streamingAnimation;
+  CGFloat fontScale = shouldUseMeasurementCache ? ENRMFontScaleForMeasurement(typedProps.allowFontScaling) : 1.0;
+
+  if (shouldUseMeasurementCache && !typedProps.markdown.empty()) {
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, flavor);
+    CachedSize cached;
+    if (MeasurementCache::shared().get(cacheKey, cached)) {
+      return ENRMClampMeasuredSize(CGSizeMake(cached.width, cached.height), layoutConstraints);
+    }
+  }
+
+  __block CGSize size;
+  NSString *currentMarkdown = typedProps.markdown.empty() ? nil : @(typedProps.markdown.c_str());
+
+  void (^measureBlock)(void) = ^{
+    if (view && (typedProps.streamingAnimation || [view hasRenderedMarkdown:currentMarkdown])) {
+      size = [view measureSize:maxWidth];
+    } else {
+      ViewT *mockView = createMockView(maxWidth);
+      size = [mockView measureSize:maxWidth];
+    }
+  };
+
+  if ([NSThread isMainThread]) {
+    measureBlock();
+  } else {
+    dispatch_sync(dispatch_get_main_queue(), measureBlock);
+  }
+
+  if (shouldUseMeasurementCache && !typedProps.markdown.empty()) {
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, flavor);
+    MeasurementCache::shared().set(cacheKey, {size.width, size.height});
+  }
+
+  if (typedProps.streamingAnimation) {
+    lastExactMeasurementCounter = receivedCounter;
+  }
+
+  return ENRMClampMeasuredSize(size, layoutConstraints);
 }
 
 } // namespace facebook::react

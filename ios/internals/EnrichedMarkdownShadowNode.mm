@@ -1,11 +1,26 @@
 #import "EnrichedMarkdownShadowNode.h"
 #import "EnrichedMarkdown.h"
+#import "ShadowMeasurementUtils.h"
 #import <react/utils/ManagedObjectWrapper.h>
 #import <yoga/Yoga.h>
 
 namespace facebook::react {
 
 extern const char EnrichedMarkdownComponentName[] = "EnrichedMarkdown";
+
+static bool ENRMPropsNeedExactStreamingMeasurement(const EnrichedMarkdownProps &oldProps,
+                                                   const EnrichedMarkdownProps &newProps)
+{
+  // Streaming normally reuses the current native bounds to avoid re-measuring
+  // every token. Layout-affecting prop changes still need one exact pass.
+  return oldProps.streamingAnimation != newProps.streamingAnimation ||
+         oldProps.allowFontScaling != newProps.allowFontScaling ||
+         oldProps.maxFontSizeMultiplier != newProps.maxFontSizeMultiplier ||
+         oldProps.allowTrailingMargin != newProps.allowTrailingMargin ||
+         oldProps.md4cFlags.underline != newProps.md4cFlags.underline ||
+         oldProps.md4cFlags.latexMath != newProps.md4cFlags.latexMath ||
+         computeStyleFingerprint(oldProps.markdownStyle) != computeStyleFingerprint(newProps.markdownStyle);
+}
 
 EnrichedMarkdownShadowNode::EnrichedMarkdownShadowNode(const ShadowNodeFragment &fragment,
                                                        const ShadowNodeFamily::Shared &family, ShadowNodeTraits traits)
@@ -15,8 +30,19 @@ EnrichedMarkdownShadowNode::EnrichedMarkdownShadowNode(const ShadowNodeFragment 
 
 EnrichedMarkdownShadowNode::EnrichedMarkdownShadowNode(const ShadowNode &sourceShadowNode,
                                                        const ShadowNodeFragment &fragment)
-    : ConcreteViewShadowNode(sourceShadowNode, fragment)
+    : ConcreteViewShadowNode(sourceShadowNode, fragment),
+      localHeightRecalculationCounter_(
+          static_cast<const EnrichedMarkdownShadowNode &>(sourceShadowNode).localHeightRecalculationCounter_),
+      lastExactMeasurementCounter_(
+          static_cast<const EnrichedMarkdownShadowNode &>(sourceShadowNode).lastExactMeasurementCounter_)
 {
+  const auto &oldProps = *std::static_pointer_cast<const EnrichedMarkdownProps>(sourceShadowNode.getProps());
+  const auto &newProps = *std::static_pointer_cast<const EnrichedMarkdownProps>(this->getProps());
+
+  if (newProps.streamingAnimation && ENRMPropsNeedExactStreamingMeasurement(oldProps, newProps)) {
+    lastExactMeasurementCounter_ = -1;
+  }
+
   dirtyLayoutIfNeeded();
 }
 
@@ -56,32 +82,47 @@ Size EnrichedMarkdownShadowNode::measureContent(const LayoutContext &layoutConte
 
   const auto &typedProps = *std::static_pointer_cast<const EnrichedMarkdownProps>(this->getProps());
 
-  CGFloat fontScale = typedProps.allowFontScaling ? RCTFontSizeMultiplier() : 1.0;
-
-  if (!typedProps.markdown.empty()) {
-    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::GitHub);
-    CachedSize cached;
-    if (MeasurementCache::shared().get(cacheKey, cached)) {
-      Float cachedWidth = std::max(cached.width, layoutConstraints.minimumSize.width);
-      cachedWidth = std::min(cachedWidth, layoutConstraints.maximumSize.width);
-      Float cachedHeight = std::max(cached.height, layoutConstraints.minimumSize.height);
-      if (std::isfinite(layoutConstraints.maximumSize.height)) {
-        cachedHeight = std::min(cachedHeight, layoutConstraints.maximumSize.height);
-      }
-      return {cachedWidth, cachedHeight};
-    }
-  }
-
   RCTInternalGenericWeakWrapper *weakWrapper =
       (RCTInternalGenericWeakWrapper *)unwrapManagedObject(getStateData().getComponentViewRef());
   EnrichedMarkdown *view = weakWrapper ? (EnrichedMarkdown *)weakWrapper.object : nil;
 
-  NSString *currentMarkdown = typedProps.markdown.empty() ? nil : @(typedProps.markdown.c_str());
+  const int receivedCounter = getStateData().getHeightRecalculationCounter();
+
+  if (typedProps.streamingAnimation && view && receivedCounter <= lastExactMeasurementCounter_) {
+    __block CGSize currentSize = CGSizeZero;
+    void (^readCurrentSize)(void) = ^{
+      if (view.bounds.size.width > 0 && view.bounds.size.height > 0) {
+        currentSize = view.bounds.size;
+      }
+    };
+
+    if ([NSThread isMainThread]) {
+      readCurrentSize();
+    } else {
+      dispatch_sync(dispatch_get_main_queue(), readCurrentSize);
+    }
+
+    if (currentSize.height > 0) {
+      return ENRMClampMeasuredSize(currentSize, layoutConstraints);
+    }
+  }
+
+  const bool shouldUseMeasurementCache = !typedProps.streamingAnimation;
+  CGFloat fontScale = shouldUseMeasurementCache ? ENRMFontScaleForMeasurement(typedProps.allowFontScaling) : 1.0;
+
+  if (shouldUseMeasurementCache && !typedProps.markdown.empty()) {
+    auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::GitHub);
+    CachedSize cached;
+    if (MeasurementCache::shared().get(cacheKey, cached)) {
+      return ENRMClampMeasuredSize(CGSizeMake(cached.width, cached.height), layoutConstraints);
+    }
+  }
 
   __block CGSize size;
+  NSString *currentMarkdown = typedProps.markdown.empty() ? nil : @(typedProps.markdown.c_str());
 
   void (^measureBlock)(void) = ^{
-    if (view && [view hasRenderedMarkdown:currentMarkdown]) {
+    if (view && (typedProps.streamingAnimation || [view hasRenderedMarkdown:currentMarkdown])) {
       size = [view measureSize:maxWidth];
     } else {
       EnrichedMarkdown *mockView = setupMockEnrichedMarkdown_(maxWidth);
@@ -95,20 +136,16 @@ Size EnrichedMarkdownShadowNode::measureContent(const LayoutContext &layoutConte
     dispatch_sync(dispatch_get_main_queue(), measureBlock);
   }
 
-  if (!typedProps.markdown.empty()) {
+  if (shouldUseMeasurementCache && !typedProps.markdown.empty()) {
     auto cacheKey = buildMeasurementCacheKey(typedProps, maxWidth, fontScale, MarkdownFlavor::GitHub);
     MeasurementCache::shared().set(cacheKey, {size.width, size.height});
   }
 
-  Float clampedWidth = size.width;
-  Float clampedHeight = size.height;
-  clampedWidth = std::max(clampedWidth, layoutConstraints.minimumSize.width);
-  clampedWidth = std::min(clampedWidth, layoutConstraints.maximumSize.width);
-  clampedHeight = std::max(clampedHeight, layoutConstraints.minimumSize.height);
-  if (std::isfinite(layoutConstraints.maximumSize.height)) {
-    clampedHeight = std::min(clampedHeight, layoutConstraints.maximumSize.height);
+  if (typedProps.streamingAnimation) {
+    lastExactMeasurementCounter_ = receivedCounter;
   }
-  return {clampedWidth, clampedHeight};
+
+  return ENRMClampMeasuredSize(size, layoutConstraints);
 }
 
 } // namespace facebook::react

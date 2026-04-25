@@ -66,6 +66,7 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _enableLinkPreview;
   BOOL _streamingAnimation;
+  BOOL _forceHeightUpdateOnNextRender;
 
   NSUInteger _previousTextLength;
   ENRMTailFadeInAnimator *_fadeAnimator;
@@ -143,6 +144,7 @@ using namespace facebook::react;
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
     _enableLinkPreview = YES;
+    _forceHeightUpdateOnNextRender = NO;
 
     _fontScaleObserver = [[FontScaleObserver alloc] init];
     __weak EnrichedMarkdownText *weakSelf = self;
@@ -154,6 +156,7 @@ using namespace facebook::react;
         [strongSelf->_config setFontScaleMultiplier:strongSelf->_fontScaleObserver.effectiveFontScale];
       }
       if (strongSelf->_cachedMarkdown != nil && strongSelf->_cachedMarkdown.length > 0) {
+        strongSelf->_forceHeightUpdateOnNextRender = YES;
         [strongSelf renderMarkdownContent:strongSelf->_cachedMarkdown];
       }
     };
@@ -347,6 +350,11 @@ using namespace facebook::react;
   [_spoilerManager setNeedsUpdate];
 
   if (self.bounds.size.width > 0) {
+    // Font/style changes can produce the same measured size before UIKit has
+    // fully refreshed layout, so force one Yoga update after those renders.
+    BOOL forceHeightUpdate = _forceHeightUpdateOnNextRender;
+    _forceHeightUpdateOnNextRender = NO;
+
     [_textView.layoutManager ensureLayoutForTextContainer:_textView.textContainer];
     ENRMSetNeedsDisplay(_textView);
 #if !TARGET_OS_OSX
@@ -356,7 +364,7 @@ using namespace facebook::react;
     [_spoilerManager updateIfNeeded];
 
     CGSize measured = [self measureSize:self.bounds.size.width];
-    if (needsHeightUpdate(measured, self.bounds)) {
+    if (forceHeightUpdate || needsHeightUpdate(measured, self.bounds)) {
       [self requestHeightUpdate];
     }
   }
@@ -399,6 +407,7 @@ using namespace facebook::react;
 
   if (stylePropChanged) {
     [ENRMImageAttachment clearAttachmentRegistry];
+    _forceHeightUpdateOnNextRender = YES;
   }
 
   NSLayoutManager *layoutManager = _textView.layoutManager;
@@ -425,6 +434,7 @@ using namespace facebook::react;
     }
 
     stylePropChanged = YES;
+    _forceHeightUpdateOnNextRender = YES;
   }
 
   if (newViewProps.maxFontSizeMultiplier != oldViewProps.maxFontSizeMultiplier) {
@@ -435,20 +445,24 @@ using namespace facebook::react;
     }
 
     stylePropChanged = YES;
+    _forceHeightUpdateOnNextRender = YES;
   }
 
   if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
     _allowTrailingMargin = newViewProps.allowTrailingMargin;
+    _forceHeightUpdateOnNextRender = YES;
   }
 
   BOOL md4cFlagsChanged = NO;
   if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
     _md4cFlags.underline = newViewProps.md4cFlags.underline;
     md4cFlagsChanged = YES;
+    _forceHeightUpdateOnNextRender = YES;
   }
   if (newViewProps.md4cFlags.latexMath != oldViewProps.md4cFlags.latexMath) {
     _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;
+    _forceHeightUpdateOnNextRender = YES;
   }
   BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;

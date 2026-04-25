@@ -8,6 +8,11 @@
 
 namespace facebook::react {
 
+// measureContent runs on Yoga's background layout thread and uses
+// dispatch_sync to main for UIKit reads. Safe because RN never
+// synchronously joins the layout queue from main. A synchronous
+// layout flush from main would deadlock.
+
 static inline CGFloat ENRMFontScaleForMeasurement(bool allowFontScaling)
 {
   if (!allowFontScaling) {

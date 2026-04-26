@@ -139,8 +139,7 @@ class EnrichedMarkdownManager :
     view: EnrichedMarkdown?,
     streamingAnimation: Boolean,
   ) {
-    // TODO: Add streaming animation support for github flavor.
-    // Currently only supported with flavor="commonmark" (single TextView).
+    view?.streamingAnimation = streamingAnimation
   }
 
   @ReactProp(name = "spoilerOverlay")

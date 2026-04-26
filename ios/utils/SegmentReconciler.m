@@ -40,6 +40,14 @@
     }
   }];
 
+  NSMutableDictionary<NSNumber *, NSNumber *> *remainingNextSignatureCounts =
+      [NSMutableDictionary dictionaryWithCapacity:renderedSegments.count];
+  for (ENRMRenderedSegment *segment in renderedSegments) {
+    NSNumber *signature = @(segment.signature);
+    NSUInteger count = remainingNextSignatureCounts[signature].unsignedIntegerValue;
+    remainingNextSignatureCounts[signature] = @(count + 1);
+  }
+
   NSMutableArray<RCTUIView *> *nextViews = [NSMutableArray arrayWithCapacity:renderedSegments.count];
   NSMutableArray<NSNumber *> *nextSignatures = [NSMutableArray arrayWithCapacity:renderedSegments.count];
   NSMutableSet<RCTUIView *> *reusedViews = [NSMutableSet setWithCapacity:sourceViews.count];
@@ -50,11 +58,16 @@
     RCTUIView *view = nil;
     NSNumber *nextSignature = @(segment.signature);
 
-    // 1. Positional match: same index, same kind.
-    if (existingView && ![reusedViews containsObject:existingView] && matchesKind(existingView, segment)) {
-      if (![existingSignature isEqual:nextSignature]) {
-        updateView(existingView, segment);
-      }
+    NSUInteger remainingNextSignatureCount = remainingNextSignatureCounts[nextSignature].unsignedIntegerValue;
+    if (remainingNextSignatureCount > 1) {
+      remainingNextSignatureCounts[nextSignature] = @(remainingNextSignatureCount - 1);
+    } else {
+      [remainingNextSignatureCounts removeObjectForKey:nextSignature];
+    }
+
+    // 1. Exact positional match: the same view still represents the same segment.
+    if (existingView && ![reusedViews containsObject:existingView] && matchesKind(existingView, segment) &&
+        [existingSignature isEqual:nextSignature]) {
       view = existingView;
     }
 
@@ -72,7 +85,15 @@
       }
     }
 
-    // 3. No reusable view found — create a new one.
+    // 3. Same-kind positional update. If this old signature appears later in
+    // the new list, leave the view available for that exact reuse instead.
+    if (!view && existingView && ![reusedViews containsObject:existingView] && matchesKind(existingView, segment) &&
+        (existingSignature == nil || remainingNextSignatureCounts[existingSignature].unsignedIntegerValue == 0)) {
+      updateView(existingView, segment);
+      view = existingView;
+    }
+
+    // 4. No reusable view found — create a new one.
     if (!view) {
       view = createView(segment);
       attachView(view);

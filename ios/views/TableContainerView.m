@@ -167,6 +167,11 @@
   return [buffer copy];
 }
 
+- (NSUInteger)rowCount
+{
+  return _rows.count;
+}
+
 - (void)applyTableNode:(MarkdownASTNode *)tableNode
 {
   [[_gridContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];

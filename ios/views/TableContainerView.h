@@ -26,6 +26,8 @@ typedef void (^TableLinkPressBlock)(NSString *url);
 
 @property (nonatomic, assign) BOOL enableLinkPreview;
 
+@property (nonatomic, readonly) NSUInteger rowCount;
+
 @end
 
 NS_ASSUME_NONNULL_END

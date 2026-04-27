@@ -9,7 +9,6 @@
 #import "EditMenuUtils.h"
 
 #import "ENRMFeatureFlags.h"
-#import "ENRMUIKit.h"
 
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
@@ -89,6 +88,7 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL _selectable;
   BOOL _enableLinkPreview;
   BOOL _streamingAnimation;
+  ENRMTableStreamingMode _tableStreamingMode;
 
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
@@ -123,6 +123,7 @@ static char kENRMSegmentFadeAnimatorKey;
     _selectable = YES;
     _enableLinkPreview = YES;
     _streamingAnimation = NO;
+    _tableStreamingMode = ENRMTableStreamingModeHidden;
 
     _fontScaleObserver = [[FontScaleObserver alloc] init];
     __weak EnrichedMarkdown *weakSelf = self;
@@ -185,7 +186,10 @@ static char kENRMSegmentFadeAnimatorKey;
                             return view;
                           }
                           updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
-                            [(TableContainerView *)view applyTableNode:segment.tableSegment.tableNode];
+                            EnrichedMarkdown *strongSelf = weakSelf;
+                            if (strongSelf) {
+                              [strongSelf updateTableView:(TableContainerView *)view withSegment:segment.tableSegment];
+                            }
                           }]];
 
 #if ENRICHED_MARKDOWN_MATH
@@ -347,10 +351,11 @@ static char kENRMSegmentFadeAnimatorKey;
   CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;
   BOOL allowTrailingMargin = _allowTrailingMargin;
   BOOL streamingAnimation = _streamingAnimation;
+  ENRMTableStreamingMode tableStreamingMode = _tableStreamingMode;
 
   dispatch_async(_renderQueue, ^{
     NSString *renderableMarkdown =
-        streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString) : markdownString;
+        streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, tableStreamingMode) : markdownString;
     if (renderableMarkdown.length == 0) {
       dispatch_async(dispatch_get_main_queue(), ^{
         if (renderId == self->_currentRenderId) {
@@ -405,7 +410,7 @@ static char kENRMSegmentFadeAnimatorKey;
   _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
   NSString *renderableMarkdown =
-      _streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString) : markdownString;
+      _streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, _tableStreamingMode) : markdownString;
   _renderedMarkdown = [renderableMarkdown copy];
 
   if (renderableMarkdown.length == 0) {
@@ -458,11 +463,6 @@ static char kENRMSegmentFadeAnimatorKey;
       [self computeSegmentLayoutForWidth:self.bounds.size.width applyFrames:YES];
       [self layoutIfNeeded];
       [self requestHeightUpdate];
-    } else if (_streamingAnimation) {
-      CGSize measured = [self measureSize:self.bounds.size.width];
-      if (needsHeightUpdate(measured, self.bounds)) {
-        [self requestHeightUpdate];
-      }
     } else {
       CGSize measured = [self measureSize:self.bounds.size.width];
       if (needsHeightUpdate(measured, self.bounds)) {
@@ -559,6 +559,39 @@ static char kENRMSegmentFadeAnimatorKey;
   [tableView applyTableNode:tableSegment.tableNode];
 
   return tableView;
+}
+
+- (void)updateTableView:(TableContainerView *)view withSegment:(ENRMTableSegment *)tableSegment
+{
+  NSUInteger previousRowCount = view.rowCount;
+  [view applyTableNode:tableSegment.tableNode];
+
+#if !TARGET_OS_OSX
+  if (!_streamingAnimation || view.rowCount <= previousRowCount) {
+    return;
+  }
+
+  // The grid container is inside the scroll view: TableContainerView > UIScrollView > gridContainer.
+  // After applyTableNode:, cells are laid out sequentially — each row has colCount cell-background subviews.
+  RCTUIView *scrollView = view.subviews.firstObject;
+  RCTUIView *gridContainer = scrollView.subviews.firstObject;
+  if (!gridContainer || gridContainer.subviews.count == 0 || view.rowCount == 0) {
+    return;
+  }
+
+  NSUInteger colCount = gridContainer.subviews.count / view.rowCount;
+  if (colCount == 0) {
+    return;
+  }
+
+  NSUInteger firstNewCellIndex = previousRowCount * colCount;
+  NSArray<RCTUIView *> *subviews = gridContainer.subviews;
+  for (NSUInteger i = firstNewCellIndex; i < subviews.count; i++) {
+    RCTUIView *cellView = subviews[i];
+    cellView.alpha = 0.0;
+    [UIView animateWithDuration:0.20 animations:^{ cellView.alpha = 1.0; }];
+  }
+#endif
 }
 
 #if ENRICHED_MARKDOWN_MATH
@@ -697,6 +730,15 @@ static char kENRMSegmentFadeAnimatorKey;
     }
   }
 
+  BOOL streamingConfigChanged = NO;
+  if (newViewProps.streamingConfig.tableMode != oldViewProps.streamingConfig.tableMode) {
+    NSString *tableModeStr = [[NSString alloc] initWithUTF8String:newViewProps.streamingConfig.tableMode.c_str()];
+    _tableStreamingMode = [tableModeStr isEqualToString:@"progressive"] ? ENRMTableStreamingModeProgressive
+                                                                        : ENRMTableStreamingModeHidden;
+    streamingConfigChanged = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
+  }
+
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
     _contextMenuItemIcons = ENRMContextMenuIconsFromItems(newViewProps.contextMenuItems);
@@ -722,7 +764,7 @@ static char kENRMSegmentFadeAnimatorKey;
   }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged ||
-      streamingAnimationChanged) {
+      streamingAnimationChanged || streamingConfigChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
   }

@@ -4,11 +4,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSInteger, ENRMTableStreamingMode) {
+  ENRMTableStreamingModeHidden = 0,
+  ENRMTableStreamingModeProgressive,
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-NSString *ENRMRenderableMarkdownForStreaming(NSString *markdown);
+NSString *ENRMRenderableMarkdownForStreaming(NSString *markdown, ENRMTableStreamingMode tableMode);
 
 #ifdef __cplusplus
 }

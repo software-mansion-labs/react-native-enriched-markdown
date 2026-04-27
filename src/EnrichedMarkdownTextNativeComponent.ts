@@ -226,6 +226,10 @@ export interface Md4cFlagsInternal {
   latexMath: boolean;
 }
 
+interface StreamingConfigInternal {
+  tableMode: string;
+}
+
 export interface NativeProps extends ViewProps {
   /**
    * Markdown content to render.
@@ -322,6 +326,10 @@ export interface NativeProps extends ViewProps {
    * @default false
    */
   streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
+  /**
+   * Fine-grained control over streaming behavior for block-level elements.
+   */
+  streamingConfig?: StreamingConfigInternal;
   /**
    * Controls how spoiler text is displayed before being revealed.
    * - 'particles' (default): animated particle overlay.

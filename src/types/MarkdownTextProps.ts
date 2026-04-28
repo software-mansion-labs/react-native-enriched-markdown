@@ -20,6 +20,18 @@ export interface ContextMenuItem {
   visible?: boolean;
 }
 
+export interface StreamingConfig {
+  /**
+   * Controls how incomplete tables are handled during streaming.
+   * - `'hidden'` (default): hide the entire table until it's complete.
+   * - `'progressive'`: show the table row-by-row as rows complete.
+   * Only effective when `streamingAnimation` is `true`.
+   * @default 'hidden'
+   * @platform ios, android
+   */
+  tableMode?: 'hidden' | 'progressive';
+}
+
 export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
   /**
    * Markdown content to render.
@@ -150,6 +162,12 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @platform ios, android
    */
   streamingAnimation?: boolean;
+  /**
+   * Fine-grained control over streaming behavior for block-level elements.
+   * Only effective when `streamingAnimation` is `true`.
+   * @platform ios, android
+   */
+  streamingConfig?: StreamingConfig;
   /**
    * Controls how spoiler text is displayed before being revealed.
    * - `'particles'` (default): animated particle overlay (CAEmitterLayer on iOS,

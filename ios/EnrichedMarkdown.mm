@@ -2,12 +2,13 @@
 #import "ContextMenuUtils.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
+#import "ENRMTailFadeInAnimator.h"
 #import "ENRMTextRenderer.h"
+#import "ENRMTextViewSetup.h"
 #import "ENRMUIKit.h"
 #import "EditMenuUtils.h"
 
 #import "ENRMFeatureFlags.h"
-#import "ENRMUIKit.h"
 
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
@@ -24,9 +25,13 @@
 #import "MarkdownASTNode.h"
 #import "MarkdownAccessibilityElementBuilder.h"
 #import "MarkdownExtractor.h"
-#import "ParagraphStyleUtils.h"
+#import "RenderedMarkdownSegment.h"
 #import "RuntimeKeys.h"
+#import "SegmentReconciler.h"
+#import "SegmentRenderer.h"
+#import "SegmentViewRegistry.h"
 #import "SelectionColorUtils.h"
+#import "StreamingMarkdownFilter.h"
 #import "StyleConfig.h"
 #import "StylePropsUtils.h"
 #import "TableContainerView.h"
@@ -47,49 +52,13 @@
 
 using namespace facebook::react;
 
-@interface EMTextSegment : NSObject
-@property (nonatomic, strong) NSArray<MarkdownASTNode *> *nodes;
-+ (instancetype)segmentWithNodes:(NSArray<MarkdownASTNode *> *)nodes;
-@end
+typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
+  ENRMDirtyNone = 0,
+  ENRMDirtyRecreateSegments = 1 << 0,
+  ENRMDirtyForceHeight = 1 << 1,
+};
 
-@implementation EMTextSegment
-+ (instancetype)segmentWithNodes:(NSArray<MarkdownASTNode *> *)nodes
-{
-  EMTextSegment *segment = [[EMTextSegment alloc] init];
-  segment.nodes = [nodes copy];
-  return segment;
-}
-@end
-
-@interface EMTableSegment : NSObject
-@property (nonatomic, strong) MarkdownASTNode *tableNode;
-+ (instancetype)segmentWithTableNode:(MarkdownASTNode *)node;
-@end
-
-@implementation EMTableSegment
-+ (instancetype)segmentWithTableNode:(MarkdownASTNode *)node
-{
-  EMTableSegment *segment = [[EMTableSegment alloc] init];
-  segment.tableNode = node;
-  return segment;
-}
-@end
-
-#if ENRICHED_MARKDOWN_MATH
-@interface EMMathSegment : NSObject
-@property (nonatomic, strong) NSString *latex;
-+ (instancetype)segmentWithLatex:(NSString *)latex;
-@end
-
-@implementation EMMathSegment
-+ (instancetype)segmentWithLatex:(NSString *)latex
-{
-  EMMathSegment *segment = [[EMMathSegment alloc] init];
-  segment.latex = latex;
-  return segment;
-}
-@end
-#endif
+static char kENRMSegmentFadeAnimatorKey;
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
 @end
@@ -101,6 +70,9 @@ using namespace facebook::react;
   NSString *_cachedMarkdown;
   NSString *_renderedMarkdown;
   NSMutableArray<RCTUIView *> *_segmentViews;
+  NSMutableArray<NSNumber *> *_segmentSignatures;
+  ENRMSegmentViewRegistry *_segmentViewRegistry;
+  ENRMDirtyFlags _dirtyFlags;
 
   dispatch_queue_t _renderQueue;
   NSUInteger _currentRenderId;
@@ -115,6 +87,8 @@ using namespace facebook::react;
   BOOL _allowTrailingMargin;
   BOOL _selectable;
   BOOL _enableLinkPreview;
+  BOOL _streamingAnimation;
+  ENRMTableStreamingMode _tableStreamingMode;
 
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
@@ -137,6 +111,9 @@ using namespace facebook::react;
     _parser = [[ENRMMarkdownParser alloc] init];
     _md4cFlags = [ENRMMd4cFlags defaultFlags];
     _segmentViews = [NSMutableArray array];
+    _segmentSignatures = [NSMutableArray array];
+    _dirtyFlags = ENRMDirtyNone;
+    [self configureSegmentViewRegistry];
 
     _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
     _currentRenderId = 0;
@@ -145,6 +122,8 @@ using namespace facebook::react;
     _allowTrailingMargin = NO;
     _selectable = YES;
     _enableLinkPreview = YES;
+    _streamingAnimation = NO;
+    _tableStreamingMode = ENRMTableStreamingModeHidden;
 
     _fontScaleObserver = [[FontScaleObserver alloc] init];
     __weak EnrichedMarkdown *weakSelf = self;
@@ -156,11 +135,85 @@ using namespace facebook::react;
         [strongSelf->_config setFontScaleMultiplier:strongSelf->_fontScaleObserver.effectiveFontScale];
       }
       if (strongSelf->_cachedMarkdown != nil && strongSelf->_cachedMarkdown.length > 0) {
+        strongSelf->_dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
         [strongSelf renderMarkdownContent:strongSelf->_cachedMarkdown];
       }
     };
   }
   return self;
+}
+
+- (void)configureSegmentViewRegistry
+{
+  __weak EnrichedMarkdown *weakSelf = self;
+  NSMutableArray<ENRMSegmentViewHandler *> *handlers = [NSMutableArray array];
+
+  [handlers addObject:[ENRMSegmentViewHandler handlerWithKind:ENRMSegmentKindText
+                          matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            return [view isKindOfClass:[EnrichedMarkdownInternalText class]];
+                          }
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
+                            EnrichedMarkdown *strongSelf = weakSelf;
+                            if (!strongSelf) {
+                              return [[RCTUIView alloc] init];
+                            }
+
+                            EnrichedMarkdownInternalText *view =
+                                [strongSelf createTextViewForRenderedSegment:segment.textResult];
+                            [strongSelf animateTextView:view fromTailStart:0];
+                            return view;
+                          }
+                          updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            EnrichedMarkdown *strongSelf = weakSelf;
+                            if (strongSelf) {
+                              [strongSelf updateTextView:(EnrichedMarkdownInternalText *)view
+                                     withRenderedSegment:segment.textResult];
+                            }
+                          }]];
+
+  [handlers addObject:[ENRMSegmentViewHandler handlerWithKind:ENRMSegmentKindTable
+                          matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            return [view isKindOfClass:[TableContainerView class]];
+                          }
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
+                            EnrichedMarkdown *strongSelf = weakSelf;
+                            if (!strongSelf) {
+                              return [[RCTUIView alloc] init];
+                            }
+
+                            TableContainerView *view = [strongSelf createTableViewForSegment:segment.tableSegment];
+                            [strongSelf animateBlockViewIfNeeded:view];
+                            return view;
+                          }
+                          updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            EnrichedMarkdown *strongSelf = weakSelf;
+                            if (strongSelf) {
+                              [strongSelf updateTableView:(TableContainerView *)view withSegment:segment.tableSegment];
+                            }
+                          }]];
+
+#if ENRICHED_MARKDOWN_MATH
+  [handlers addObject:[ENRMSegmentViewHandler handlerWithKind:ENRMSegmentKindMath
+                          matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            return [view isKindOfClass:[ENRMMathContainerView class]];
+                          }
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
+                            EnrichedMarkdown *strongSelf = weakSelf;
+                            if (!strongSelf) {
+                              return [[RCTUIView alloc] init];
+                            }
+
+                            ENRMMathContainerView *view =
+                                [strongSelf createMathViewForSegment:(ENRMMathSegment *)segment.mathSegment];
+                            [strongSelf animateBlockViewIfNeeded:view];
+                            return view;
+                          }
+                          updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            [(ENRMMathContainerView *)view applyLatex:((ENRMMathSegment *)segment.mathSegment).latex];
+                          }]];
+#endif
+
+  _segmentViewRegistry = [[ENRMSegmentViewRegistry alloc] initWithHandlers:handlers];
 }
 
 - (CGSize)computeSegmentLayoutForWidth:(CGFloat)width applyFrames:(BOOL)applyFrames
@@ -245,6 +298,21 @@ using namespace facebook::react;
   return _renderedMarkdown != nil && [_renderedMarkdown isEqualToString:markdown];
 }
 
+- (BOOL)renderedSegmentsChangeTopology:(NSArray<ENRMRenderedSegment *> *)renderedSegments
+{
+  if (renderedSegments.count != _segmentViews.count) {
+    return YES;
+  }
+
+  for (NSUInteger index = 0; index < renderedSegments.count; index++) {
+    if (![_segmentViewRegistry view:_segmentViews[index] matchesSegment:renderedSegments[index]]) {
+      return YES;
+    }
+  }
+
+  return NO;
+}
+
 - (void)updateState:(const facebook::react::State::Shared &)state
            oldState:(const facebook::react::State::Shared &)oldState
 {
@@ -266,48 +334,6 @@ using namespace facebook::react;
   _state->updateState(EnrichedMarkdownState(_heightUpdateCounter, selfRef));
 }
 
-- (NSArray *)splitASTIntoSegments:(MarkdownASTNode *)root
-{
-  NSMutableArray *segments = [NSMutableArray array];
-  NSMutableArray *currentTextNodes = [NSMutableArray array];
-
-  for (MarkdownASTNode *child in root.children) {
-    if (child.type == MarkdownNodeTypeTable) {
-      if (currentTextNodes.count > 0) {
-        [segments addObject:[EMTextSegment segmentWithNodes:[currentTextNodes copy]]];
-        [currentTextNodes removeAllObjects];
-      }
-      [segments addObject:[EMTableSegment segmentWithTableNode:child]];
-    }
-#if ENRICHED_MARKDOWN_MATH
-    else if (child.type == MarkdownNodeTypeLatexMathDisplay) {
-#if !TARGET_OS_OSX
-      if (currentTextNodes.count > 0) {
-        [segments addObject:[EMTextSegment segmentWithNodes:[currentTextNodes copy]]];
-        [currentTextNodes removeAllObjects];
-      }
-      NSString *latex = child.children.count > 0 ? child.children.firstObject.content : child.content;
-      [segments addObject:[EMMathSegment segmentWithLatex:latex ?: @""]];
-#else
-      // TODO: Fix block math rendering on macOS. Adding ENRMMathContainerView (which
-      // hosts MTMathUILabel) as a segment causes all preceding text segments to become
-      // invisible. Likely related to MTMathUILabel.layer.geometryFlipped interacting
-      // with NSTextView's coordinate system. Inline math ($...$) works.
-#endif
-    }
-#endif
-    else {
-      [currentTextNodes addObject:child];
-    }
-  }
-
-  if (currentTextNodes.count > 0) {
-    [segments addObject:[EMTextSegment segmentWithNodes:currentTextNodes]];
-  }
-
-  return segments;
-}
-
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
   if (_blockAsyncRender) {
@@ -324,41 +350,35 @@ using namespace facebook::react;
   BOOL allowFontScaling = _fontScaleObserver.allowFontScaling;
   CGFloat maxFontSizeMultiplier = _maxFontSizeMultiplier;
   BOOL allowTrailingMargin = _allowTrailingMargin;
+  BOOL streamingAnimation = _streamingAnimation;
+  ENRMTableStreamingMode tableStreamingMode = _tableStreamingMode;
 
   dispatch_async(_renderQueue, ^{
-    MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
+    NSString *renderableMarkdown =
+        streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, tableStreamingMode) : markdownString;
+    if (renderableMarkdown.length == 0) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        if (renderId == self->_currentRenderId) {
+          [self applyRenderedSegments:@[] renderedMarkdown:renderableMarkdown];
+        }
+      });
+      return;
+    }
+
+    MarkdownASTNode *ast = [parser parseMarkdown:renderableMarkdown flags:md4cFlags];
     if (!ast) {
       return;
     }
 
-    NSArray *segments = [self splitASTIntoSegments:ast];
-
-    NSMutableArray *renderedSegments = [NSMutableArray array];
-
-    for (id segment in segments) {
-      if ([segment isKindOfClass:[EMTextSegment class]]) {
-        ENRMRenderResult *rendered = [self renderTextSegment:(EMTextSegment *)segment
-                                                      config:config
-                                         allowTrailingMargin:allowTrailingMargin
-                                            allowFontScaling:allowFontScaling
-                                       maxFontSizeMultiplier:maxFontSizeMultiplier];
-        [renderedSegments addObject:rendered];
-      } else if ([segment isKindOfClass:[EMTableSegment class]]) {
-        [renderedSegments addObject:segment];
-      }
-#if ENRICHED_MARKDOWN_MATH
-      else if ([segment isKindOfClass:[EMMathSegment class]]) {
-        [renderedSegments addObject:segment];
-      }
-#endif
-    }
+    NSArray<ENRMRenderedSegment *> *renderedSegments =
+        ENRMRenderSegmentsFromAST(ast, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier);
 
     dispatch_async(dispatch_get_main_queue(), ^{
       if (renderId != self->_currentRenderId) {
         return;
       }
 
-      [self applyRenderedSegments:renderedSegments];
+      [self applyRenderedSegments:renderedSegments renderedMarkdown:renderableMarkdown];
     });
   });
 }
@@ -370,28 +390,8 @@ using namespace facebook::react;
     return nil;
   }
 
-  NSArray *segments = [self splitASTIntoSegments:ast];
-  NSMutableArray *renderedSegments = [NSMutableArray array];
-
-  for (id segment in segments) {
-    if ([segment isKindOfClass:[EMTextSegment class]]) {
-      ENRMRenderResult *rendered = [self renderTextSegment:(EMTextSegment *)segment
-                                                    config:_config
-                                       allowTrailingMargin:_allowTrailingMargin
-                                          allowFontScaling:_fontScaleObserver.allowFontScaling
-                                     maxFontSizeMultiplier:_maxFontSizeMultiplier];
-      [renderedSegments addObject:rendered];
-    } else if ([segment isKindOfClass:[EMTableSegment class]]) {
-      [renderedSegments addObject:segment];
-    }
-#if ENRICHED_MARKDOWN_MATH
-    else if ([segment isKindOfClass:[EMMathSegment class]]) {
-      [renderedSegments addObject:segment];
-    }
-#endif
-  }
-
-  return renderedSegments;
+  return ENRMRenderSegmentsFromAST(ast, _config, _allowTrailingMargin, _fontScaleObserver.allowFontScaling,
+                                   _maxFontSizeMultiplier);
 }
 
 /// Synchronous rendering for mock view measurement (no UI updates needed).
@@ -405,89 +405,75 @@ using namespace facebook::react;
     [view removeFromSuperview];
   }
   [_segmentViews removeAllObjects];
+  [_segmentSignatures removeAllObjects];
 
   _blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
-  _renderedMarkdown = [markdownString copy];
+  NSString *renderableMarkdown =
+      _streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, _tableStreamingMode) : markdownString;
+  _renderedMarkdown = [renderableMarkdown copy];
 
-  NSArray *renderedSegments = [self parseAndRenderSegments:markdownString];
+  if (renderableMarkdown.length == 0) {
+    return;
+  }
+
+  NSArray *renderedSegments = [self parseAndRenderSegments:renderableMarkdown];
   if (!renderedSegments) {
     return;
   }
 
-  for (id segment in renderedSegments) {
-    if ([segment isKindOfClass:[ENRMRenderResult class]]) {
-      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(ENRMRenderResult *)segment];
-      [_segmentViews addObject:view];
-      [self addSubview:view];
-    } else if ([segment isKindOfClass:[EMTableSegment class]]) {
-      TableContainerView *tableView = [self createTableViewForSegment:(EMTableSegment *)segment];
-      [_segmentViews addObject:tableView];
-      [self addSubview:tableView];
-    }
-#if ENRICHED_MARKDOWN_MATH
-    else if ([segment isKindOfClass:[EMMathSegment class]]) {
-      ENRMMathContainerView *mathView = [self createMathViewForSegment:(EMMathSegment *)segment];
-      [_segmentViews addObject:mathView];
-      [self addSubview:mathView];
-    }
-#endif
+  for (ENRMRenderedSegment *segment in renderedSegments) {
+    RCTUIView *view = [_segmentViewRegistry createViewForSegment:segment];
+    [_segmentViews addObject:view];
+    [_segmentSignatures addObject:@(segment.signature)];
+    [self addSubview:view];
   }
 }
 
-- (void)applyRenderedSegments:(NSArray *)renderedSegments
+- (void)applyRenderedSegments:(NSArray *)renderedSegments renderedMarkdown:(NSString *)renderedMarkdown
 {
-  _renderedMarkdown = [_cachedMarkdown copy];
+  _renderedMarkdown = [renderedMarkdown copy];
+  BOOL segmentTopologyChanged = _streamingAnimation && [self renderedSegmentsChangeTopology:renderedSegments];
 
-  for (RCTUIView *view in _segmentViews) {
-    [view removeFromSuperview];
-  }
-  [_segmentViews removeAllObjects];
+  ENRMSegmentReconciliationResult *result = [ENRMSegmentReconciler reconcileCurrentViews:_segmentViews
+      currentSignatures:_segmentSignatures
+      renderedSegments:renderedSegments
+      reset:(_dirtyFlags & ENRMDirtyRecreateSegments) != 0
+      createView:^RCTUIView *(ENRMRenderedSegment *segment) {
+        return [self->_segmentViewRegistry createViewForSegment:segment];
+      }
+      updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
+        [self->_segmentViewRegistry updateView:view withSegment:segment];
+      }
+      attachView:^(RCTUIView *view) { [self addSubview:view]; }
+      removeView:^(RCTUIView *view) { [view removeFromSuperview]; }
+      matchesKind:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
+        return [self->_segmentViewRegistry view:view matchesSegment:segment];
+      }];
+  BOOL forceHeightUpdate = (_dirtyFlags & ENRMDirtyForceHeight) != 0;
+  _dirtyFlags = ENRMDirtyNone;
 
-  for (id segment in renderedSegments) {
-    if ([segment isKindOfClass:[ENRMRenderResult class]]) {
-      EnrichedMarkdownInternalText *view = [self createTextViewForRenderedSegment:(ENRMRenderResult *)segment];
-      [_segmentViews addObject:view];
-      [self addSubview:view];
-    } else if ([segment isKindOfClass:[EMTableSegment class]]) {
-      EMTableSegment *tableSegment = (EMTableSegment *)segment;
-      TableContainerView *tableView = [self createTableViewForSegment:tableSegment];
-      [_segmentViews addObject:tableView];
-      [self addSubview:tableView];
-    }
-#if ENRICHED_MARKDOWN_MATH
-    else if ([segment isKindOfClass:[EMMathSegment class]]) {
-      EMMathSegment *mathSegment = (EMMathSegment *)segment;
-      ENRMMathContainerView *mathView = [self createMathViewForSegment:mathSegment];
-      [_segmentViews addObject:mathView];
-      [self addSubview:mathView];
-    }
-#endif
-  }
+  _segmentViews = result.views;
+  _segmentSignatures = result.signatures;
 
   if (self.bounds.size.width > 0) {
     [self setNeedsLayout];
 
-    CGSize measured = [self measureSize:self.bounds.size.width];
-    if (needsHeightUpdate(measured, self.bounds)) {
+    if (forceHeightUpdate || segmentTopologyChanged) {
+      [self computeSegmentLayoutForWidth:self.bounds.size.width applyFrames:YES];
+      [self layoutIfNeeded];
       [self requestHeightUpdate];
+    } else {
+      CGSize measured = [self measureSize:self.bounds.size.width];
+      if (needsHeightUpdate(measured, self.bounds)) {
+        [self requestHeightUpdate];
+      }
     }
   }
 }
 
-- (ENRMRenderResult *)renderTextSegment:(EMTextSegment *)textSegment
-                                 config:(StyleConfig *)config
-                    allowTrailingMargin:(BOOL)allowTrailingMargin
-                       allowFontScaling:(BOOL)allowFontScaling
-                  maxFontSizeMultiplier:(CGFloat)maxFontSizeMultiplier
+- (void)configureTextView:(EnrichedMarkdownInternalText *)view withRenderedSegment:(ENRMRenderResult *)segment
 {
-  return ENRMRenderASTNodes(textSegment.nodes, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
-                            currentWritingDirection());
-}
-
-- (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(ENRMRenderResult *)segment
-{
-  EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
   view.spoilerOverlay = _spoilerOverlay;
   view.allowTrailingMargin = _allowTrailingMargin;
   view.lastElementMarginBottom = segment.lastElementMarginBottom;
@@ -497,6 +483,12 @@ using namespace facebook::react;
 
   const auto &selectionProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(self->_props);
   ENRMApplySelectionColor(view.textView, selectionProps.selectionColor);
+}
+
+- (EnrichedMarkdownInternalText *)createTextViewForRenderedSegment:(ENRMRenderResult *)segment
+{
+  EnrichedMarkdownInternalText *view = [[EnrichedMarkdownInternalText alloc] initWithConfig:_config];
+  [self configureTextView:view withRenderedSegment:segment];
 
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [view.textView addGestureRecognizer:tapRecognizer];
@@ -532,7 +524,7 @@ using namespace facebook::react;
   return view;
 }
 
-- (TableContainerView *)createTableViewForSegment:(EMTableSegment *)tableSegment
+- (TableContainerView *)createTableViewForSegment:(ENRMTableSegment *)tableSegment
 {
   TableContainerView *tableView = [[TableContainerView alloc] initWithConfig:_config];
 
@@ -569,14 +561,56 @@ using namespace facebook::react;
   return tableView;
 }
 
+- (void)updateTableView:(TableContainerView *)view withSegment:(ENRMTableSegment *)tableSegment
+{
+  NSUInteger previousRowCount = view.rowCount;
+  [view applyTableNode:tableSegment.tableNode];
+
+  if (_streamingAnimation) {
+    [view animateNewRowsFromPreviousCount:previousRowCount duration:0.20];
+  }
+}
+
 #if ENRICHED_MARKDOWN_MATH
-- (ENRMMathContainerView *)createMathViewForSegment:(EMMathSegment *)mathSegment
+- (ENRMMathContainerView *)createMathViewForSegment:(ENRMMathSegment *)mathSegment
 {
   ENRMMathContainerView *mathView = [[ENRMMathContainerView alloc] initWithConfig:_config];
   [mathView applyLatex:mathSegment.latex];
   return mathView;
 }
 #endif
+
+- (void)animateBlockViewIfNeeded:(RCTUIView *)view
+{
+  if (!_streamingAnimation)
+    return;
+
+#if !TARGET_OS_OSX
+  view.alpha = 0.0;
+  [UIView animateWithDuration:0.20 animations:^{ view.alpha = 1.0; }];
+#endif
+}
+
+- (void)animateTextView:(EnrichedMarkdownInternalText *)view fromTailStart:(NSUInteger)tailStart
+{
+  if (!_streamingAnimation)
+    return;
+
+  ENRMTailFadeInAnimator *animator = objc_getAssociatedObject(view.textView, &kENRMSegmentFadeAnimatorKey);
+  if (!animator) {
+    animator = [[ENRMTailFadeInAnimator alloc] initWithTextView:view.textView];
+    objc_setAssociatedObject(view.textView, &kENRMSegmentFadeAnimatorKey, animator, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  }
+
+  [animator animateFrom:tailStart to:ENRMGetAttributedText(view.textView).length];
+}
+
+- (void)updateTextView:(EnrichedMarkdownInternalText *)view withRenderedSegment:(ENRMRenderResult *)segment
+{
+  NSUInteger tailStart = ENRMGetAttributedText(view.textView).length;
+  [self configureTextView:view withRenderedSegment:segment];
+  [self animateTextView:view fromTailStart:tailStart];
+}
 
 - (void)layoutSubviews
 {
@@ -590,6 +624,7 @@ using namespace facebook::react;
   const auto &newViewProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(props);
 
   BOOL stylePropChanged = NO;
+  BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
 
   if (_config == nil) {
     _config = [[StyleConfig alloc] init];
@@ -600,6 +635,10 @@ using namespace facebook::react;
 
   if (stylePropChanged) {
     [ENRMImageAttachment clearAttachmentRegistry];
+    _dirtyFlags |= ENRMDirtyForceHeight;
+    if (!markdownChanged) {
+      _dirtyFlags |= ENRMDirtyRecreateSegments;
+    }
   }
 
   _selectable = newViewProps.selectable;
@@ -619,6 +658,7 @@ using namespace facebook::react;
       [_config setFontScaleMultiplier:_fontScaleObserver.effectiveFontScale];
     }
     stylePropChanged = YES;
+    _dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
   }
 
   if (newViewProps.maxFontSizeMultiplier != oldViewProps.maxFontSizeMultiplier) {
@@ -627,25 +667,54 @@ using namespace facebook::react;
       [_config setMaxFontSizeMultiplier:_maxFontSizeMultiplier];
     }
     stylePropChanged = YES;
+    _dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
   }
 
   if (newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin) {
     _allowTrailingMargin = newViewProps.allowTrailingMargin;
+    _dirtyFlags |= ENRMDirtyRecreateSegments | ENRMDirtyForceHeight;
   }
 
   BOOL md4cFlagsChanged = NO;
   if (newViewProps.md4cFlags.underline != oldViewProps.md4cFlags.underline) {
     _md4cFlags.underline = newViewProps.md4cFlags.underline;
     md4cFlagsChanged = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
   }
   if (newViewProps.md4cFlags.latexMath != oldViewProps.md4cFlags.latexMath) {
     _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
   }
-  BOOL markdownChanged = oldViewProps.markdown != newViewProps.markdown;
   BOOL allowTrailingMarginChanged = newViewProps.allowTrailingMargin != oldViewProps.allowTrailingMargin;
 
   _enableLinkPreview = newViewProps.enableLinkPreview;
+
+  BOOL streamingAnimationChanged = newViewProps.streamingAnimation != oldViewProps.streamingAnimation;
+  if (streamingAnimationChanged) {
+    _streamingAnimation = newViewProps.streamingAnimation;
+    _dirtyFlags |= ENRMDirtyForceHeight;
+    if (!_streamingAnimation) {
+      for (RCTUIView *segment in _segmentViews) {
+        if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+          ENRMTailFadeInAnimator *animator = objc_getAssociatedObject(
+              ((EnrichedMarkdownInternalText *)segment).textView, &kENRMSegmentFadeAnimatorKey);
+          [animator cancel];
+          objc_setAssociatedObject(((EnrichedMarkdownInternalText *)segment).textView, &kENRMSegmentFadeAnimatorKey,
+                                   nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+      }
+    }
+  }
+
+  BOOL streamingConfigChanged = NO;
+  if (newViewProps.streamingConfig.tableMode != oldViewProps.streamingConfig.tableMode) {
+    NSString *tableModeStr = [[NSString alloc] initWithUTF8String:newViewProps.streamingConfig.tableMode.c_str()];
+    _tableStreamingMode = [tableModeStr isEqualToString:@"progressive"] ? ENRMTableStreamingModeProgressive
+                                                                        : ENRMTableStreamingModeHidden;
+    streamingConfigChanged = YES;
+    _dirtyFlags |= ENRMDirtyForceHeight;
+  }
 
   if (ENRMContextMenuItemsChanged(oldViewProps.contextMenuItems, newViewProps.contextMenuItems)) {
     _contextMenuItemTexts = ENRMContextMenuTextsFromItems(newViewProps.contextMenuItems);
@@ -671,7 +740,8 @@ using namespace facebook::react;
     }
   }
 
-  if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
+  if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged ||
+      streamingAnimationChanged || streamingConfigChanged) {
     NSString *markdownString = [[NSString alloc] initWithUTF8String:newViewProps.markdown.c_str()];
     [self renderMarkdownContent:markdownString];
   }
@@ -703,9 +773,39 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   return EnrichedMarkdown.class;
 }
 
+#if !TARGET_OS_OSX
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+{
+  if ([super pointInside:point withEvent:event]) {
+    return YES;
+  }
+
+  for (RCTUIView *segment in _segmentViews) {
+    if (CGRectContainsPoint(segment.frame, point)) {
+      return YES;
+    }
+  }
+
+  return NO;
+}
+#endif
+
 - (facebook::react::SharedTouchEventEmitter)touchEventEmitterAtPoint:(CGPoint)point
 {
   for (RCTUIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[TableContainerView class]]) {
+      CGPoint segmentPoint = [self convertPoint:point toView:segment];
+#if !TARGET_OS_OSX
+      if ([segment pointInside:segmentPoint withEvent:nil]) {
+        return nil;
+      }
+#else
+      if (CGRectContainsPoint(segment.bounds, segmentPoint)) {
+        return nil;
+      }
+#endif
+    }
+
     if (![segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
       continue;
     }

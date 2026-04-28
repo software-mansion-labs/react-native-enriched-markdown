@@ -7,6 +7,7 @@ import type { NativeSyntheticEvent } from 'react-native';
 import type { MarkdownStyle, Md4cFlags } from '../types/MarkdownStyle';
 import type {
   EnrichedMarkdownTextProps,
+  StreamingConfig,
   ContextMenuItem,
 } from '../types/MarkdownTextProps';
 import type {
@@ -17,7 +18,7 @@ import type {
 } from '../types/events';
 
 export type { MarkdownStyle, Md4cFlags };
-export type { EnrichedMarkdownTextProps, ContextMenuItem };
+export type { EnrichedMarkdownTextProps, StreamingConfig, ContextMenuItem };
 export type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent };
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -40,6 +41,7 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   flavor = 'commonmark',
   streamingAnimation = false,
+  streamingConfig,
   spoilerOverlay = 'particles',
   contextMenuItems,
   selectionColor,
@@ -122,6 +124,9 @@ export const EnrichedMarkdownText = ({
     [onTaskListItemPress]
   );
 
+  const tableMode = streamingConfig?.tableMode ?? 'hidden';
+  const normalizedStreamingConfig = useMemo(() => ({ tableMode }), [tableMode]);
+
   const sharedProps = {
     markdown,
     markdownStyle: normalizedStyle,
@@ -135,6 +140,7 @@ export const EnrichedMarkdownText = ({
     maxFontSizeMultiplier,
     allowTrailingMargin,
     streamingAnimation,
+    streamingConfig: normalizedStreamingConfig,
     spoilerOverlay,
     style: containerStyle,
     contextMenuItems: nativeContextMenuItems,

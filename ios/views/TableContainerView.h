@@ -26,6 +26,10 @@ typedef void (^TableLinkPressBlock)(NSString *url);
 
 @property (nonatomic, assign) BOOL enableLinkPreview;
 
+@property (nonatomic, readonly) NSUInteger rowCount;
+
+- (void)animateNewRowsFromPreviousCount:(NSUInteger)previousRowCount duration:(NSTimeInterval)duration;
+
 @end
 
 NS_ASSUME_NONNULL_END

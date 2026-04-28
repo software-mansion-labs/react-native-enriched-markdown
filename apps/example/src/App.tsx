@@ -16,8 +16,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleMarkdown } from './sampleMarkdown';
 import { customMarkdownStyle } from './markdownStyles';
 import InputScreen from './InputScreen';
+import StreamingMarkdownSimulator from './StreamingMarkdownSimulator';
 
-type Screen = 'text' | 'input';
+type Screen = 'text' | 'input' | 'stream';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('input');
@@ -78,10 +79,18 @@ export default function App() {
         >
           Text
         </Text>
+        <Text
+          style={[styles.tab, screen === 'stream' && styles.tabActive]}
+          onPress={() => setScreen('stream')}
+        >
+          Stream
+        </Text>
       </View>
 
       {screen === 'input' ? (
         <InputScreen />
+      ) : screen === 'stream' ? (
+        <StreamingMarkdownSimulator />
       ) : (
         <ScrollView
           style={styles.scrollView}

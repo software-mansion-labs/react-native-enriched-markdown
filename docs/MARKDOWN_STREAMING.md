@@ -11,3 +11,26 @@ import { StreamdownText } from 'react-native-streamdown';
 ```
 
 `StreamdownText` accepts all props from `EnrichedMarkdownText` and adds a `remendConfig` prop for customizing the markdown repair pipeline. See the [react-native-streamdown README](https://github.com/software-mansion-labs/react-native-streamdown#readme) for full setup instructions including the required Babel and Metro configuration for Bundle Mode.
+
+## Table Streaming (GFM)
+
+When using `flavor="github"` with streaming content, tables require special handling because they are block-level elements that can't be rendered until the parser has enough structure (at minimum a header row and separator line).
+
+The `streamingConfig` prop controls this behavior:
+
+```tsx
+<EnrichedMarkdownText
+  markdown={streamingMarkdown}
+  flavor="github"
+  streamingAnimation
+  streamingConfig={{ tableMode: 'progressive' }}
+/>
+```
+
+### Table Modes
+
+| Mode | Behavior |
+|---|---|
+| `'hidden'` (default) | The table is completely hidden until it is followed by a blank line, indicating the table is complete. Prevents visual jank from partially formed tables. |
+| `'progressive'` | Renders the table row-by-row as content arrives. New rows fade in when `streamingAnimation` is enabled. Incomplete trailing rows are automatically trimmed. |
+

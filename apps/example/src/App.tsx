@@ -15,13 +15,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleMarkdown } from './sampleMarkdown';
 import { customMarkdownStyle } from './markdownStyles';
+import PlaygroundScreen from './PlaygroundScreen';
 import InputScreen from './InputScreen';
 import StreamingMarkdownSimulator from './StreamingMarkdownSimulator';
 
-type Screen = 'text' | 'input' | 'stream';
+type Screen = 'playground' | 'text' | 'input' | 'stream';
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('input');
+  const [screen, setScreen] = useState<Screen>('playground');
   const markdownStyle = useMemo(() => customMarkdownStyle, []);
 
   const contextMenuItems = useMemo(
@@ -68,6 +69,12 @@ export default function App() {
     <SafeAreaView style={styles.root}>
       <View style={styles.tabs}>
         <Text
+          style={[styles.tab, screen === 'playground' && styles.tabActive]}
+          onPress={() => setScreen('playground')}
+        >
+          Playground
+        </Text>
+        <Text
           style={[styles.tab, screen === 'input' && styles.tabActive]}
           onPress={() => setScreen('input')}
         >
@@ -87,7 +94,9 @@ export default function App() {
         </Text>
       </View>
 
-      {screen === 'input' ? (
+      {screen === 'playground' ? (
+        <PlaygroundScreen />
+      ) : screen === 'input' ? (
         <InputScreen />
       ) : screen === 'stream' ? (
         <StreamingMarkdownSimulator />

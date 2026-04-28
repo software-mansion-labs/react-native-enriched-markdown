@@ -162,6 +162,14 @@ class EnrichedMarkdownTextManager :
     view?.setStreamingAnimation(streamingAnimation)
   }
 
+  @ReactProp(name = "streamingConfig")
+  override fun setStreamingConfig(
+    view: EnrichedMarkdownText?,
+    config: ReadableMap?,
+  ) {
+    // No-op — CommonMark mode uses a single text view; table streaming is GFM-only.
+  }
+
   @ReactProp(name = "spoilerOverlay")
   override fun setSpoilerOverlay(
     view: EnrichedMarkdownText?,

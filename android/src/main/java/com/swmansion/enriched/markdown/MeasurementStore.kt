@@ -22,6 +22,8 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
 import com.swmansion.enriched.markdown.utils.common.RenderedSegment
+import com.swmansion.enriched.markdown.utils.common.StreamingMarkdownFilter
+import com.swmansion.enriched.markdown.utils.common.TableStreamingMode
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.common.getMapOrNull
 import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
@@ -60,6 +62,8 @@ object MeasurementStore {
   )
 
   private val fontScalingSettings = ConcurrentHashMap<Int, FontScalingSettings>()
+
+  private val streamingTableModes = ConcurrentHashMap<Int, TableStreamingMode>()
 
   private fun resolveFontScalingSettings(
     viewId: Int?,
@@ -102,6 +106,10 @@ object MeasurementStore {
   }
 
   fun release(id: Int) {
+    data.remove(id)
+  }
+
+  fun invalidate(id: Int) {
     data.remove(id)
   }
 
@@ -148,6 +156,17 @@ object MeasurementStore {
     fontScalingSettings.remove(viewId)
   }
 
+  fun updateStreamingTableMode(
+    viewId: Int,
+    mode: TableStreamingMode,
+  ) {
+    streamingTableModes[viewId] = mode
+  }
+
+  fun clearStreamingTableMode(viewId: Int) {
+    streamingTableModes.remove(viewId)
+  }
+
   private fun getMeasureByIdInternal(
     context: Context,
     id: Int?,
@@ -190,6 +209,16 @@ object MeasurementStore {
     maxFontSizeMultiplier: Float,
   ): Int {
     val markdown = props.getStringOrDefault("markdown", "")
+    return computePropsHashForMarkdown(markdown, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+  }
+
+  private fun computePropsHashForMarkdown(
+    markdown: String,
+    props: ReadableMap?,
+    allowFontScaling: Boolean,
+    fontScale: Float,
+    maxFontSizeMultiplier: Float,
+  ): Int {
     val styleMap = props.getMapOrNull("markdownStyle")
     val md4cFlagsMap = props.getMapOrNull("md4cFlags")
     val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
@@ -286,7 +315,27 @@ object MeasurementStore {
     fontScale: Float,
     maxFontSizeMultiplier: Float,
   ): Long {
-    val markdown = props.getStringOrDefault("markdown", "")
+    val isStreaming = props.getBooleanOrDefault("streamingAnimation", false)
+
+    val rawMarkdown = props.getStringOrDefault("markdown", "")
+    val tableMode = if (isStreaming) id?.let { streamingTableModes[it] } ?: TableStreamingMode.HIDDEN else TableStreamingMode.HIDDEN
+    val markdown =
+      if (isStreaming) {
+        StreamingMarkdownFilter.renderableMarkdownForStreaming(rawMarkdown, tableMode)
+      } else {
+        rawMarkdown
+      }
+    val propsHash = computePropsHashForMarkdown(markdown, props, allowFontScaling, fontScale, maxFontSizeMultiplier)
+
+    // Streaming shortcut: reuse cached size when the filtered content and
+    // width are unchanged. When the filter output changes (e.g. a table
+    // becomes complete), the hash differs and we fall through to full measure.
+    if (isStreaming && id != null) {
+      val cached = data[id]
+      if (cached != null && cached.cachedWidth == width && cached.markdownHash == propsHash) {
+        return cached.cachedSize
+      }
+    }
     val styleMap =
       props.getMapOrNull("markdownStyle")
         ?: return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
@@ -297,7 +346,6 @@ object MeasurementStore {
         latexMath = FeatureFlags.IS_MATH_ENABLED && props.getMapOrNull("md4cFlags").getBooleanOrDefault("latexMath", true),
       )
     val allowTrailingMargin = props.getBooleanOrDefault("allowTrailingMargin", false)
-    val propsHash = computePropsHash(props, allowFontScaling, fontScale, maxFontSizeMultiplier)
     val fontSize = getInitialFontSize(styleMap, context, allowFontScaling, fontScale, maxFontSizeMultiplier)
 
     return try {

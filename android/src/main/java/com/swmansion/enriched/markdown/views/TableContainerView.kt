@@ -58,6 +58,32 @@ class TableContainerView(
     }
   private val gridContainer get() = scrollView.getChildAt(0) as GridContainerView
 
+  val rowCount: Int get() = rows.size
+
+  fun animateNewRows(
+    previousRowCount: Int,
+    durationMs: Long,
+  ) {
+    if (rowCount <= previousRowCount) return
+    val grid = gridContainer
+    val childCount = grid.childCount
+    if (childCount == 0 || rowCount == 0) return
+
+    val colCount = childCount / rowCount
+    if (colCount == 0) return
+
+    val firstNewCellIndex = previousRowCount * colCount
+    for (i in firstNewCellIndex until childCount) {
+      val cell = grid.getChildAt(i) ?: continue
+      cell.alpha = 0f
+      cell
+        .animate()
+        .alpha(1f)
+        .setDuration(durationMs)
+        .start()
+    }
+  }
+
   private var rows: List<List<TableCellData>> = emptyList()
   private var columnCount = 0
   private var columnWidths = emptyList<Float>()

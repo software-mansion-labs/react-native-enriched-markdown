@@ -566,32 +566,9 @@ static char kENRMSegmentFadeAnimatorKey;
   NSUInteger previousRowCount = view.rowCount;
   [view applyTableNode:tableSegment.tableNode];
 
-#if !TARGET_OS_OSX
-  if (!_streamingAnimation || view.rowCount <= previousRowCount) {
-    return;
+  if (_streamingAnimation) {
+    [view animateNewRowsFromPreviousCount:previousRowCount duration:0.20];
   }
-
-  // The grid container is inside the scroll view: TableContainerView > UIScrollView > gridContainer.
-  // After applyTableNode:, cells are laid out sequentially — each row has colCount cell-background subviews.
-  RCTUIView *scrollView = view.subviews.firstObject;
-  RCTUIView *gridContainer = scrollView.subviews.firstObject;
-  if (!gridContainer || gridContainer.subviews.count == 0 || view.rowCount == 0) {
-    return;
-  }
-
-  NSUInteger colCount = gridContainer.subviews.count / view.rowCount;
-  if (colCount == 0) {
-    return;
-  }
-
-  NSUInteger firstNewCellIndex = previousRowCount * colCount;
-  NSArray<RCTUIView *> *subviews = gridContainer.subviews;
-  for (NSUInteger i = firstNewCellIndex; i < subviews.count; i++) {
-    RCTUIView *cellView = subviews[i];
-    cellView.alpha = 0.0;
-    [UIView animateWithDuration:0.20 animations:^{ cellView.alpha = 1.0; }];
-  }
-#endif
 }
 
 #if ENRICHED_MARKDOWN_MATH

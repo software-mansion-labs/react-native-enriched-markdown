@@ -172,6 +172,38 @@
   return _rows.count;
 }
 
+#if !TARGET_OS_OSX
+- (void)animateNewRowsFromPreviousCount:(NSUInteger)previousRowCount duration:(NSTimeInterval)duration
+{
+  if (self.rowCount <= previousRowCount) {
+    return;
+  }
+
+  NSArray<RCTUIView *> *subviews = _gridContainer.subviews;
+  NSUInteger childCount = subviews.count;
+  if (childCount == 0 || self.rowCount == 0) {
+    return;
+  }
+
+  NSUInteger colCount = childCount / self.rowCount;
+  if (colCount == 0) {
+    return;
+  }
+
+  NSUInteger firstNewCellIndex = previousRowCount * colCount;
+  for (NSUInteger i = firstNewCellIndex; i < childCount; i++) {
+    RCTUIView *cellView = subviews[i];
+    cellView.alpha = 0.0;
+    [UIView animateWithDuration:duration animations:^{ cellView.alpha = 1.0; }];
+  }
+}
+#else
+- (void)animateNewRowsFromPreviousCount:(NSUInteger)previousRowCount duration:(NSTimeInterval)duration
+{
+  // No-op on macOS
+}
+#endif
+
 - (void)applyTableNode:(MarkdownASTNode *)tableNode
 {
   [[_gridContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];

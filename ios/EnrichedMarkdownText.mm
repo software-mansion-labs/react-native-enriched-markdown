@@ -459,6 +459,16 @@ using namespace facebook::react;
     md4cFlagsChanged = YES;
     _forceHeightUpdateOnNextRender = YES;
   }
+  if (newViewProps.md4cFlags.superscript != oldViewProps.md4cFlags.superscript) {
+    _md4cFlags.superscript = newViewProps.md4cFlags.superscript;
+    md4cFlagsChanged = YES;
+    _forceHeightUpdateOnNextRender = YES;
+  }
+  if (newViewProps.md4cFlags.subscript != oldViewProps.md4cFlags.subscript) {
+    _md4cFlags.subscript = newViewProps.md4cFlags.subscript;
+    md4cFlagsChanged = YES;
+    _forceHeightUpdateOnNextRender = YES;
+  }
   if (newViewProps.md4cFlags.latexMath != oldViewProps.md4cFlags.latexMath) {
     _md4cFlags.latexMath = newViewProps.md4cFlags.latexMath;
     md4cFlagsChanged = YES;

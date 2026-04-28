@@ -4,7 +4,9 @@ import type { Md4cFlags } from '../types/MarkdownStyle';
 type ParseFn = (
   markdown: string,
   underline: number,
-  latexMath: number
+  latexMath: number,
+  superscript: number,
+  subscript: number
 ) => string;
 
 // Caching the Promise (not the resolved value) means concurrent callers share
@@ -20,6 +22,8 @@ function initializeParser(): Promise<ParseFn> {
       .then((wasmModule) =>
         wasmModule.cwrap('parseMarkdown', 'string', [
           'string',
+          'number',
+          'number',
           'number',
           'number',
         ])
@@ -43,12 +47,23 @@ function isASTNode(value: unknown): value is ASTNode {
 
 export async function parseMarkdown(
   markdown: string,
-  { underline = false, latexMath = true }: Md4cFlags = {}
+  {
+    underline = false,
+    latexMath = true,
+    superscript = false,
+    subscript = false,
+  }: Md4cFlags = {}
 ): Promise<ASTNode> {
   const parse = await initializeParser();
 
   const result: unknown = JSON.parse(
-    parse(markdown, underline ? 1 : 0, latexMath ? 1 : 0)
+    parse(
+      markdown,
+      underline ? 1 : 0,
+      latexMath ? 1 : 0,
+      superscript ? 1 : 0,
+      subscript ? 1 : 0
+    )
   );
 
   if (!isASTNode(result)) {

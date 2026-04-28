@@ -21,6 +21,8 @@
 #import "StrikethroughRenderer.h"
 #import "StrongRenderer.h"
 #import "StyleConfig.h"
+#import "SubscriptRenderer.h"
+#import "SuperscriptRenderer.h"
 #import "TextRenderer.h"
 #import "ThematicBreakRenderer.h"
 #import "UnderlineRenderer.h"
@@ -78,6 +80,10 @@
       return [[StrikethroughRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeUnderline:
       return [[UnderlineRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeSuperscript:
+      return [[SuperscriptRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeSubscript:
+      return [[SubscriptRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeParagraph:
       return [[ParagraphRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeLink:

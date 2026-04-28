@@ -15,9 +15,11 @@ extern "C" {
  * @param markdown   Null-terminated UTF-8 markdown input.
  * @param underline  1 → enable __ underline extension; 0 → __ means emphasis.
  * @param latexMath  1 → enable $…$ / $$…$$ LaTeX math spans; 0 → disable.
+ * @param superscript 1 → enable ^superscript^ spans; 0 → disable.
+ * @param subscript  1 → enable ~subscript~ spans; 0 → disable.
  * @return           Null-terminated UTF-8 JSON string, valid until the next call.
  */
-const char *parseMarkdown(const char *markdown, int underline, int latexMath) {
+const char *parseMarkdown(const char *markdown, int underline, int latexMath, int superscript, int subscript) {
   if (!markdown) {
     g_resultBuffer = "{\"type\":\"Document\"}";
     return g_resultBuffer.c_str();
@@ -26,6 +28,8 @@ const char *parseMarkdown(const char *markdown, int underline, int latexMath) {
   Markdown::Md4cFlags flags;
   flags.underline = (underline != 0);
   flags.latexMath = (latexMath != 0);
+  flags.superscript = (superscript != 0);
+  flags.subscript = (subscript != 0);
 
   Markdown::MD4CParser parser;
   auto root = parser.parse(std::string(markdown), flags);

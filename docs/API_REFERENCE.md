@@ -127,11 +127,14 @@ Configuration for md4c parser extension flags.
 
 | Type          | Default Value            | Platform |
 | ------------- | ------------------------ | -------- |
-| `Md4cFlags`   | `{ underline: false }`   | Both     |
+| `Md4cFlags`   | `{ underline: false, superscript: false, subscript: false, latexMath: true }` | Both |
 
 **Properties:**
 
 - **`underline`**: When `true`, treats `_text_` as underline instead of emphasis. When enabled, only `*text*` works for italic emphasis.
+- **`superscript`**: When `true`, parses `^text^` as superscript.
+- **`subscript`**: When `true`, parses `~text~` as subscript. When disabled, single and double tildes remain strikethrough markers.
+- **`latexMath`**: When `true`, parses `$...$` and `$$...$$` as LaTeX math spans.
 
 **Example:**
 

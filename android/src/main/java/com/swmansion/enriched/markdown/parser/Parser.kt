@@ -6,6 +6,8 @@ import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 data class Md4cFlags(
   val underline: Boolean = false,
   val latexMath: Boolean = FeatureFlags.IS_MATH_ENABLED,
+  val superscript: Boolean = false,
+  val subscript: Boolean = false,
   val permissiveAutolinks: Boolean = true,
 ) {
   companion object {

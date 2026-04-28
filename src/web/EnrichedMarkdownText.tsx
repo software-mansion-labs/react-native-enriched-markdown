@@ -37,7 +37,12 @@ export const EnrichedMarkdownText = ({
   const [katex, setKatex] = useState<KaTeXInstance | null>(null);
   const [parseError, setParseError] = useState<boolean>(false);
 
-  const { underline = false, latexMath = true } = md4cFlags;
+  const {
+    underline = false,
+    latexMath = true,
+    superscript = false,
+    subscript = false,
+  } = md4cFlags;
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +50,7 @@ export const EnrichedMarkdownText = ({
     const katexPromise = latexMath ? loadKaTeX() : Promise.resolve(null);
 
     Promise.all([
-      parseMarkdown(markdown, { underline, latexMath }),
+      parseMarkdown(markdown, { underline, latexMath, superscript, subscript }),
       katexPromise,
     ])
       .then(([result, katexInstance]) => {
@@ -73,7 +78,7 @@ export const EnrichedMarkdownText = ({
     return () => {
       cancelled = true;
     };
-  }, [markdown, underline, latexMath]);
+  }, [markdown, underline, latexMath, superscript, subscript]);
 
   const callbacks = useMemo<RendererCallbacks>(
     () => ({ onLinkPress, onLinkLongPress, onTaskListItemPress }),

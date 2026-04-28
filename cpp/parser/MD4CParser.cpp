@@ -306,6 +306,16 @@ public:
         break;
       }
 
+      case MD_SPAN_SUPERSCRIPT: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::Superscript));
+        break;
+      }
+
+      case MD_SPAN_SUBSCRIPT: {
+        impl->pushNode(std::make_shared<MarkdownASTNode>(NodeType::Subscript));
+        break;
+      }
+
       default:
         break;
     }
@@ -476,6 +486,12 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   }
   if (md4cFlags.underline) {
     flags |= MD_FLAG_UNDERLINE;
+  }
+  if (md4cFlags.superscript) {
+    flags |= MD_FLAG_SUPERSCRIPT;
+  }
+  if (md4cFlags.subscript) {
+    flags |= MD_FLAG_SUBSCRIPT;
   }
 
   // Configure MD4C parser with callbacks

@@ -225,6 +225,20 @@ export interface Md4cFlags {
    */
   underline?: boolean;
   /**
+   * Enable superscript span parsing (^text^).
+   * When enabled, the parser recognizes caret superscript delimiters.
+   * When disabled, carets are treated as plain text.
+   * @default false
+   */
+  superscript?: boolean;
+  /**
+   * Enable subscript span parsing (~text~).
+   * When enabled, single tildes are treated as subscript markers.
+   * When disabled, single and double tildes are treated as strikethrough markers.
+   * @default false
+   */
+  subscript?: boolean;
+  /**
    * Enable LaTeX math span parsing ($..$ and $$..$$).
    * When enabled, the parser recognizes LaTeX math delimiters.
    * When disabled, dollar signs are treated as plain text.

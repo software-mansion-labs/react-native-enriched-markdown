@@ -66,6 +66,10 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 25;
     case NodeType::Spoiler:
       return 26;
+    case NodeType::Superscript:
+      return 27;
+    case NodeType::Subscript:
+      return 28;
     default:
       return 0;
   }
@@ -205,6 +209,14 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
         jfieldID latexMathField = env->GetFieldID(flagsClass, "latexMath", "Z");
         if (latexMathField) {
           md4cFlags.latexMath = env->GetBooleanField(flags, latexMathField) == JNI_TRUE;
+        }
+        jfieldID superscriptField = env->GetFieldID(flagsClass, "superscript", "Z");
+        if (superscriptField) {
+          md4cFlags.superscript = env->GetBooleanField(flags, superscriptField) == JNI_TRUE;
+        }
+        jfieldID subscriptField = env->GetFieldID(flagsClass, "subscript", "Z");
+        if (subscriptField) {
+          md4cFlags.subscript = env->GetBooleanField(flags, subscriptField) == JNI_TRUE;
         }
         jfieldID permissiveAutolinksField = env->GetFieldID(flagsClass, "permissiveAutolinks", "Z");
         if (permissiveAutolinksField) {

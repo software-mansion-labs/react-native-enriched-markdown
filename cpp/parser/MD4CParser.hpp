@@ -9,6 +9,8 @@ namespace Markdown {
 struct Md4cFlags {
     bool underline = false;
     bool latexMath = true;
+    bool superscript = false;
+    bool subscript = false;
     bool permissiveAutolinks = true;
 };
 

@@ -23,6 +23,8 @@ export type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent };
 
 const defaultMd4cFlags: Md4cFlags = {
   underline: false,
+  superscript: false,
+  subscript: false,
   latexMath: true,
 };
 
@@ -60,6 +62,8 @@ export const EnrichedMarkdownText = ({
   const normalizedMd4cFlags = useMemo(
     () => ({
       underline: md4cFlags.underline ?? false,
+      superscript: md4cFlags.superscript ?? false,
+      subscript: md4cFlags.subscript ?? false,
       latexMath: md4cFlags.latexMath ?? true,
     }),
     [md4cFlags]

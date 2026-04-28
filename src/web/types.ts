@@ -19,6 +19,8 @@ export type NodeType =
   | 'Emphasis'
   | 'Strikethrough'
   | 'Underline'
+  | 'Superscript'
+  | 'Subscript'
   | 'Code'
   | 'Image'
   | 'Blockquote'

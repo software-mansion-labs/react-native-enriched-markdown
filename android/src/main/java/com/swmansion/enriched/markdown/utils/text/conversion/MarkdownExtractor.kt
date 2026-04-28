@@ -4,6 +4,7 @@ import android.text.Spannable
 import android.text.style.UnderlineSpan
 import android.widget.TextView
 import com.swmansion.enriched.markdown.EnrichedMarkdownText
+import com.swmansion.enriched.markdown.spans.BaselineShiftSpan
 import com.swmansion.enriched.markdown.spans.BlockquoteSpan
 import com.swmansion.enriched.markdown.spans.CodeBlockSpan
 import com.swmansion.enriched.markdown.spans.CodeSpan
@@ -300,6 +301,9 @@ object MarkdownExtractor {
     val hasCode = spannable.getSpans(start, end, CodeSpan::class.java).isNotEmpty()
     val hasStrikethrough = spannable.getSpans(start, end, StrikethroughSpan::class.java).isNotEmpty()
     val hasUnderline = spannable.getSpans(start, end, UnderlineSpan::class.java).isNotEmpty()
+    val baselineShiftSpans = spannable.getSpans(start, end, BaselineShiftSpan::class.java)
+    val hasSuperscript = baselineShiftSpans.any { it.baselineOffsetScale < 0f }
+    val hasSubscript = baselineShiftSpans.any { it.baselineOffsetScale > 0f }
     val linkSpans = spannable.getSpans(start, end, LinkSpan::class.java)
 
     var result = text
@@ -311,6 +315,12 @@ object MarkdownExtractor {
     if (hasStrikethrough) {
       result = "~~$result~~"
     }
+    if (hasSubscript) {
+      result = "~$result~"
+    }
+    if (hasSuperscript) {
+      result = "^$result^"
+    }
     if (hasUnderline && linkSpans.isEmpty()) {
       result = "<u>$result</u>"
     }
@@ -321,7 +331,7 @@ object MarkdownExtractor {
       result = "**$result**"
     }
     if (linkSpans.isNotEmpty()) {
-      result = "[$text](${linkSpans[0].url})"
+      result = "[$result](${linkSpans[0].url})"
     }
 
     return result

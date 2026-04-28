@@ -55,6 +55,18 @@ object MarkdownASTSerializer {
         buffer.append("__")
       }
 
+      NodeType.Superscript -> {
+        buffer.append("^")
+        appendChildren(node, buffer)
+        buffer.append("^")
+      }
+
+      NodeType.Subscript -> {
+        buffer.append("~")
+        appendChildren(node, buffer)
+        buffer.append("~")
+      }
+
       NodeType.Code -> {
         buffer.append("`")
         appendChildren(node, buffer)

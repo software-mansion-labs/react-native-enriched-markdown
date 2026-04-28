@@ -52,6 +52,8 @@ static inline bool ENRMPropsNeedExactStreamingMeasurement(const PropsT &oldProps
          oldProps.maxFontSizeMultiplier != newProps.maxFontSizeMultiplier ||
          oldProps.allowTrailingMargin != newProps.allowTrailingMargin ||
          oldProps.md4cFlags.underline != newProps.md4cFlags.underline ||
+         oldProps.md4cFlags.superscript != newProps.md4cFlags.superscript ||
+         oldProps.md4cFlags.subscript != newProps.md4cFlags.subscript ||
          oldProps.md4cFlags.latexMath != newProps.md4cFlags.latexMath ||
          computeStyleFingerprint(oldProps.markdownStyle) != computeStyleFingerprint(newProps.markdownStyle);
 }

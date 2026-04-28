@@ -79,7 +79,8 @@ static void extractFontTraits(NSDictionary *attrs, BOOL *isBold, BOOL *isItalic,
 }
 
 static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItalic, BOOL isMonospace,
-                                       BOOL isStrikethrough, BOOL isUnderline, NSString *linkURL)
+                                       BOOL isStrikethrough, BOOL isUnderline, BOOL isSuperscript, BOOL isSubscript,
+                                       NSString *linkURL)
 {
   NSMutableString *result = [NSMutableString stringWithString:text];
 
@@ -89,6 +90,12 @@ static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItali
   }
   if (isStrikethrough) {
     result = [NSMutableString stringWithFormat:@"~~%@~~", result];
+  }
+  if (isSubscript) {
+    result = [NSMutableString stringWithFormat:@"~%@~", result];
+  }
+  if (isSuperscript) {
+    result = [NSMutableString stringWithFormat:@"^%@^", result];
   }
   if (isUnderline && !linkURL) {
     result = [NSMutableString stringWithFormat:@"<u>%@</u>", result];
@@ -100,7 +107,7 @@ static NSString *applyInlineFormatting(NSString *text, BOOL isBold, BOOL isItali
     result = [NSMutableString stringWithFormat:@"**%@**", result];
   }
   if (linkURL) {
-    result = [NSMutableString stringWithFormat:@"[%@](%@)", text, linkURL];
+    result = [NSMutableString stringWithFormat:@"[%@](%@)", result, linkURL];
   }
 
   return result;
@@ -289,10 +296,13 @@ NSString *_Nullable extractMarkdownFromAttributedString(NSAttributedString *attr
                         BOOL isStrikethrough = (strikethroughStyle != nil && [strikethroughStyle integerValue] != 0);
                         NSNumber *underlineStyle = attrs[NSUnderlineStyleAttributeName];
                         BOOL isUnderline = (underlineStyle != nil && [underlineStyle integerValue] != 0);
+                        NSNumber *baselineOffset = attrs[NSBaselineOffsetAttributeName];
+                        BOOL isSuperscript = baselineOffset != nil && [baselineOffset doubleValue] > 0;
+                        BOOL isSubscript = baselineOffset != nil && [baselineOffset doubleValue] < 0;
 
                         NSString *linkURL = attrs[NSLinkAttributeName];
                         NSString *segment = applyInlineFormatting(text, isBold, isItalic, isMonospace, isStrikethrough,
-                                                                  isUnderline, linkURL);
+                                                                  isUnderline, isSuperscript, isSubscript, linkURL);
 
                         // Add block prefixes at line start
                         if (isAtLineStart(result)) {

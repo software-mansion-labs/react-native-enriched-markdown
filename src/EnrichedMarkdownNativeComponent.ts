@@ -219,6 +219,16 @@ export interface Md4cFlagsInternal {
    */
   underline: boolean;
   /**
+   * Enable superscript span parsing (^text^).
+   * @default false
+   */
+  superscript: boolean;
+  /**
+   * Enable subscript span parsing (~text~).
+   * @default false
+   */
+  subscript: boolean;
+  /**
    * Enable LaTeX math span parsing ($..$ and $$..$$).
    * When disabled, dollar signs are treated as plain text.
    * @default true

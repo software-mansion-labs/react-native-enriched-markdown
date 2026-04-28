@@ -34,6 +34,8 @@ data class MarkdownASTNode(
     LatexMathInline,
     LatexMathDisplay,
     Spoiler,
+    Superscript,
+    Subscript,
   }
 
   fun getAttribute(key: String): String? = attributes[key]

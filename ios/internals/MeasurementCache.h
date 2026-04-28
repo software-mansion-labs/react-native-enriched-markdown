@@ -36,6 +36,8 @@ struct MeasurementCacheKey {
   bool allowFontScaling;
   double maxFontSizeMultiplier;
   bool md4cFlagsUnderline;
+  bool md4cFlagsSuperscript;
+  bool md4cFlagsSubscript;
   bool md4cFlagsLatexMath;
   size_t styleFingerprint;
   CGFloat fontScale;
@@ -44,10 +46,12 @@ struct MeasurementCacheKey {
   bool operator==(const MeasurementCacheKey &other) const
   {
     return std::tie(markdown, maxWidth, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
-                    md4cFlagsUnderline, md4cFlagsLatexMath, styleFingerprint, fontScale, flavor) ==
-           std::tie(other.markdown, other.maxWidth, other.allowTrailingMargin, other.allowFontScaling,
-                    other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.md4cFlagsLatexMath,
-                    other.styleFingerprint, other.fontScale, other.flavor);
+                    md4cFlagsUnderline, md4cFlagsSuperscript, md4cFlagsSubscript, md4cFlagsLatexMath, styleFingerprint,
+                    fontScale, flavor) == std::tie(other.markdown, other.maxWidth, other.allowTrailingMargin,
+                                                   other.allowFontScaling, other.maxFontSizeMultiplier,
+                                                   other.md4cFlagsUnderline, other.md4cFlagsSuperscript,
+                                                   other.md4cFlagsSubscript, other.md4cFlagsLatexMath,
+                                                   other.styleFingerprint, other.fontScale, other.flavor);
   }
 };
 
@@ -61,6 +65,8 @@ struct MeasurementCacheKeyHash {
     HashUtils::hash_one(h, key.allowFontScaling);
     HashUtils::hash_one(h, key.maxFontSizeMultiplier);
     HashUtils::hash_one(h, key.md4cFlagsUnderline);
+    HashUtils::hash_one(h, key.md4cFlagsSuperscript);
+    HashUtils::hash_one(h, key.md4cFlagsSubscript);
     HashUtils::hash_one(h, key.md4cFlagsLatexMath);
     HashUtils::hash_one(h, key.styleFingerprint);
     HashUtils::hash_one(h, key.fontScale);
@@ -138,6 +144,8 @@ inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFl
       .allowFontScaling = props.allowFontScaling,
       .maxFontSizeMultiplier = props.maxFontSizeMultiplier,
       .md4cFlagsUnderline = props.md4cFlags.underline,
+      .md4cFlagsSuperscript = props.md4cFlags.superscript,
+      .md4cFlagsSubscript = props.md4cFlags.subscript,
       .md4cFlagsLatexMath = props.md4cFlags.latexMath,
       .styleFingerprint = computeStyleFingerprint(props.markdownStyle),
       .fontScale = fontScale,

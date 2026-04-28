@@ -132,10 +132,10 @@ object StreamingMarkdownFilter {
 
   private fun buildLineOffsets(lines: List<String>): IntArray {
     val offsets = IntArray(lines.size)
-    var pos = 0
+    var currentOffset = 0
     for (i in lines.indices) {
-      offsets[i] = pos
-      pos += lines[i].length + 1
+      offsets[i] = currentOffset
+      currentOffset += lines[i].length + 1
     }
     return offsets
   }

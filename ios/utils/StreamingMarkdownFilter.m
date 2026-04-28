@@ -13,7 +13,7 @@ static BOOL ENRMLineIsBlockMathDelimiter(NSString *line)
 static BOOL ENRMLineLooksLikeTableRow(NSString *line)
 {
   NSString *trimmed = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-  return [trimmed hasPrefix:@"|"] && [trimmed containsString:@"|"];
+  return [trimmed hasPrefix:@"|"];
 }
 
 static NSUInteger ENRMPipeCount(NSString *line)
@@ -55,19 +55,19 @@ static BOOL ENRMLineLooksLikeTableSeparator(NSString *line)
   return hasTripleDash;
 }
 
-static NSUInteger ENRMLineStartOffset(NSArray<NSString *> *lines, NSUInteger lineIndex)
+static NSUInteger *ENRMBuildLineOffsets(NSArray<NSString *> *lines, NSUInteger count)
 {
-  NSUInteger offset = 0;
-  for (NSUInteger i = 0; i < lineIndex; i++) {
-    offset += lines[i].length;
-    offset += 1;
+  NSUInteger *offsets = (NSUInteger *)calloc(count, sizeof(NSUInteger));
+  NSUInteger currentOffset = 0;
+  for (NSUInteger i = 0; i < count; i++) {
+    offsets[i] = currentOffset;
+    currentOffset += lines[i].length + 1;
   }
-  return offset;
+  return offsets;
 }
 
-static NSString *ENRMRemovePendingStreamingMathBlock(NSString *markdown)
+static NSString *ENRMRemovePendingStreamingMathBlock(NSString *markdown, NSArray<NSString *> *lines)
 {
-  NSArray<NSString *> *lines = [markdown componentsSeparatedByString:@"\n"];
   NSInteger lastUnclosedDelimiterIndex = -1;
 
   for (NSUInteger i = 0; i < lines.count; i++) {
@@ -80,13 +80,15 @@ static NSString *ENRMRemovePendingStreamingMathBlock(NSString *markdown)
     return markdown;
   }
 
-  NSUInteger offset = ENRMLineStartOffset(lines, (NSUInteger)lastUnclosedDelimiterIndex);
-  return [markdown substringToIndex:offset];
+  NSUInteger *offsets = ENRMBuildLineOffsets(lines, lines.count);
+  NSString *result = [markdown substringToIndex:offsets[(NSUInteger)lastUnclosedDelimiterIndex]];
+  free(offsets);
+  return result;
 }
 
-static NSString *ENRMRemovePendingStreamingTableBlock(NSString *markdown, ENRMTableStreamingMode tableMode)
+static NSString *ENRMRemovePendingStreamingTableBlock(NSString *markdown, NSArray<NSString *> *lines,
+                                                      ENRMTableStreamingMode tableMode)
 {
-  NSArray<NSString *> *lines = [markdown componentsSeparatedByString:@"\n"];
   NSInteger lastNonBlankLineIndex = -1;
 
   for (NSInteger i = (NSInteger)lines.count - 1; i >= 0; i--) {
@@ -100,8 +102,6 @@ static NSString *ENRMRemovePendingStreamingTableBlock(NSString *markdown, ENRMTa
     return markdown;
   }
 
-  // During streaming, treat a trailing table as complete only after a blank
-  // separator line. A single trailing newline can still be followed by more rows.
   if ((NSUInteger)lastNonBlankLineIndex + 1 < lines.count - 1) {
     return markdown;
   }
@@ -124,36 +124,42 @@ static NSString *ENRMRemovePendingStreamingTableBlock(NSString *markdown, ENRMTa
     return markdown;
   }
 
+  NSUInteger *offsets = ENRMBuildLineOffsets(lines, lines.count);
+
   if (tableMode == ENRMTableStreamingModeProgressive) {
     NSInteger tableLineCount = lastNonBlankLineIndex - blockStartIndex + 1;
 
-    // Need at least header + separator to show anything.
     if (tableLineCount < 2 || !ENRMLineLooksLikeTableSeparator(lines[(NSUInteger)blockStartIndex + 1])) {
-      NSUInteger offset = ENRMLineStartOffset(lines, (NSUInteger)blockStartIndex);
-      return [markdown substringToIndex:offset];
+      NSString *result = [markdown substringToIndex:offsets[(NSUInteger)blockStartIndex]];
+      free(offsets);
+      return result;
     }
 
-    // Trim the last data row if it's incomplete: either doesn't end with '|'
-    // or has fewer pipe characters than the header (mid-cell streaming).
     if (tableLineCount > 2) {
       NSString *lastRow = lines[(NSUInteger)lastNonBlankLineIndex];
       NSString *lastRowTrimmed = [lastRow stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
       NSString *headerRow = lines[(NSUInteger)blockStartIndex];
       if (![lastRowTrimmed hasSuffix:@"|"] || ENRMPipeCount(lastRow) < ENRMPipeCount(headerRow)) {
-        NSUInteger offset = ENRMLineStartOffset(lines, (NSUInteger)lastNonBlankLineIndex);
-        return [markdown substringToIndex:offset];
+        NSString *result = [markdown substringToIndex:offsets[(NSUInteger)lastNonBlankLineIndex]];
+        free(offsets);
+        return result;
       }
     }
 
+    free(offsets);
     return markdown;
   }
 
-  NSUInteger offset = ENRMLineStartOffset(lines, (NSUInteger)blockStartIndex);
-  return [markdown substringToIndex:offset];
+  NSString *result = [markdown substringToIndex:offsets[(NSUInteger)blockStartIndex]];
+  free(offsets);
+  return result;
 }
 
 NSString *ENRMRenderableMarkdownForStreaming(NSString *markdown, ENRMTableStreamingMode tableMode)
 {
-  NSString *withoutPendingMath = ENRMRemovePendingStreamingMathBlock(markdown);
-  return ENRMRemovePendingStreamingTableBlock(withoutPendingMath, tableMode);
+  NSArray<NSString *> *lines = [markdown componentsSeparatedByString:@"\n"];
+  NSString *afterMath = ENRMRemovePendingStreamingMathBlock(markdown, lines);
+  NSArray<NSString *> *linesForTable =
+      (afterMath.length == markdown.length) ? lines : [afterMath componentsSeparatedByString:@"\n"];
+  return ENRMRemovePendingStreamingTableBlock(afterMath, linesForTable, tableMode);
 }

@@ -19,6 +19,7 @@ import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
 import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.SegmentReconciler
 import com.swmansion.enriched.markdown.utils.common.StreamingMarkdownFilter
+import com.swmansion.enriched.markdown.utils.common.TableStreamingMode
 import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
 import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
@@ -57,6 +58,9 @@ class EnrichedMarkdown
     private val dirtyFlags = EnumSet.noneOf(DirtyFlag::class.java)
     var streamingAnimation: Boolean = false
 
+    var tableStreamingMode: TableStreamingMode = TableStreamingMode.HIDDEN
+    private var renderPending: Boolean = false
+
     var currentMarkdown: String = ""
       private set
 
@@ -92,7 +96,7 @@ class EnrichedMarkdown
     fun setMarkdownContent(markdown: String) {
       if (currentMarkdown == markdown) return
       currentMarkdown = markdown
-      scheduleRender()
+      renderPending = true
     }
 
     fun setMarkdownStyle(style: ReadableMap?) {
@@ -102,7 +106,15 @@ class EnrichedMarkdown
       markdownStyle = newConfig
       dirtyFlags += DirtyFlag.RECREATE_SEGMENTS
       dirtyFlags += DirtyFlag.FORCE_HEIGHT
-      scheduleRender()
+      renderPending = true
+    }
+
+    fun commitProps() {
+      MeasurementStore.updateStreamingTableMode(id, tableStreamingMode)
+      if (renderPending) {
+        renderPending = false
+        scheduleRenderIfNeeded()
+      }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -121,7 +133,7 @@ class EnrichedMarkdown
     fun setMd4cFlags(flags: Md4cFlags) {
       if (md4cFlags == flags) return
       md4cFlags = flags
-      scheduleRenderIfNeeded()
+      renderPending = true
     }
 
     fun setAllowFontScaling(allow: Boolean) {
@@ -130,7 +142,7 @@ class EnrichedMarkdown
       recreateStyleConfig()
       dirtyFlags += DirtyFlag.RECREATE_SEGMENTS
       dirtyFlags += DirtyFlag.FORCE_HEIGHT
-      scheduleRenderIfNeeded()
+      renderPending = true
     }
 
     fun setMaxFontSizeMultiplier(multiplier: Float) {
@@ -139,7 +151,7 @@ class EnrichedMarkdown
       recreateStyleConfig()
       dirtyFlags += DirtyFlag.RECREATE_SEGMENTS
       dirtyFlags += DirtyFlag.FORCE_HEIGHT
-      scheduleRenderIfNeeded()
+      renderPending = true
     }
 
     fun setAllowTrailingMargin(allow: Boolean) {
@@ -147,7 +159,7 @@ class EnrichedMarkdown
       allowTrailingMargin = allow
       dirtyFlags += DirtyFlag.RECREATE_SEGMENTS
       dirtyFlags += DirtyFlag.FORCE_HEIGHT
-      scheduleRenderIfNeeded()
+      renderPending = true
     }
 
     fun setIsSelectable(value: Boolean) {
@@ -218,6 +230,7 @@ class EnrichedMarkdown
       val style = markdownStyle ?: return
       val markdown = currentMarkdown.takeIf { it.isNotEmpty() } ?: return
       val isStreaming = streamingAnimation
+      val tableMode = tableStreamingMode
 
       val renderId = ++currentRenderId
 
@@ -225,7 +238,7 @@ class EnrichedMarkdown
         try {
           val renderableMarkdown =
             if (isStreaming) {
-              StreamingMarkdownFilter.renderableMarkdownForStreaming(markdown)
+              StreamingMarkdownFilter.renderableMarkdownForStreaming(markdown, tableMode)
             } else {
               markdown
             }
@@ -341,7 +354,12 @@ class EnrichedMarkdown
         }
 
         is RenderedSegment.Table -> {
-          (view as TableContainerView).applyTableNode(segment.node)
+          val tableView = view as TableContainerView
+          val previousRowCount = tableView.rowCount
+          tableView.applyTableNode(segment.node)
+          if (streamingAnimation) {
+            tableView.animateNewRows(previousRowCount, BLOCK_FADE_DURATION_MS)
+          }
         }
 
         is RenderedSegment.Math -> {
@@ -491,6 +509,10 @@ class EnrichedMarkdown
         }
       }
       return totalHeight
+    }
+
+    fun cleanup() {
+      executor.shutdownNow()
     }
 
     companion object {

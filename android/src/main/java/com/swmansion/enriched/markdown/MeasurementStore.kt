@@ -23,6 +23,7 @@ import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
 import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.StreamingMarkdownFilter
+import com.swmansion.enriched.markdown.utils.common.TableStreamingMode
 import com.swmansion.enriched.markdown.utils.common.getBooleanOrDefault
 import com.swmansion.enriched.markdown.utils.common.getMapOrNull
 import com.swmansion.enriched.markdown.utils.common.getStringOrDefault
@@ -61,6 +62,8 @@ object MeasurementStore {
   )
 
   private val fontScalingSettings = ConcurrentHashMap<Int, FontScalingSettings>()
+
+  private val streamingTableModes = ConcurrentHashMap<Int, TableStreamingMode>()
 
   private fun resolveFontScalingSettings(
     viewId: Int?,
@@ -151,6 +154,17 @@ object MeasurementStore {
 
   fun clearFontScalingSettings(viewId: Int) {
     fontScalingSettings.remove(viewId)
+  }
+
+  fun updateStreamingTableMode(
+    viewId: Int,
+    mode: TableStreamingMode,
+  ) {
+    streamingTableModes[viewId] = mode
+  }
+
+  fun clearStreamingTableMode(viewId: Int) {
+    streamingTableModes.remove(viewId)
   }
 
   private fun getMeasureByIdInternal(
@@ -304,9 +318,10 @@ object MeasurementStore {
     val isStreaming = props.getBooleanOrDefault("streamingAnimation", false)
 
     val rawMarkdown = props.getStringOrDefault("markdown", "")
+    val tableMode = if (isStreaming) id?.let { streamingTableModes[it] } ?: TableStreamingMode.HIDDEN else TableStreamingMode.HIDDEN
     val markdown =
       if (isStreaming) {
-        StreamingMarkdownFilter.renderableMarkdownForStreaming(rawMarkdown)
+        StreamingMarkdownFilter.renderableMarkdownForStreaming(rawMarkdown, tableMode)
       } else {
         rawMarkdown
       }

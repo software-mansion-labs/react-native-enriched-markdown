@@ -41,7 +41,6 @@ using namespace facebook::react;
 - (void)applyFormatting;
 - (void)toggleInlineStyle:(ENRMInputStyleType)styleType;
 - (void)resetBaseTypingAttributes;
-- (void)replaceSelectedTextWith:(NSString *)text formattingRanges:(NSArray<ENRMFormattingRange *> *)ranges;
 @end
 
 @implementation EnrichedMarkdownTextInput {

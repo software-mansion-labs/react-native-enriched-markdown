@@ -9,14 +9,15 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import type { HostInstance } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   EnrichedMarkdownTextInput,
   EnrichedMarkdownText,
   type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
-import { LinkModal } from './LinkModal';
+import { LinkModal } from '../LinkModal';
 
 interface Message {
   id: number;
@@ -77,6 +78,9 @@ export default function InputScreen() {
   const [linkModalText, setLinkModalText] = useState('');
   const [linkModalUrl, setLinkModalUrl] = useState('');
   const hasSelectionRef = useRef(false);
+  const navHeaderHeight = useHeaderHeight();
+  const [chatHeaderHeight, setChatHeaderHeight] = useState(0);
+  const { bottom: bottomInset } = useSafeAreaInsets();
 
   const sendMessage = useCallback(async () => {
     const md = await inputRef.current?.getMarkdown();
@@ -168,20 +172,12 @@ export default function InputScreen() {
     []
   );
 
-  const containerRef = useRef<HostInstance | null>(null);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-
-  const measureContainer = useCallback(() => {
-    containerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y));
-  }, []);
-
   return (
-    <View
-      style={styles.container}
-      ref={containerRef}
-      onLayout={measureContainer}
-    >
-      <View style={styles.header}>
+    <View style={styles.container} testID="input-screen">
+      <View
+        style={styles.header}
+        onLayout={(e) => setChatHeaderHeight(e.nativeEvent.layout.height)}
+      >
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>JD</Text>
         </View>
@@ -194,7 +190,7 @@ export default function InputScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={keyboardOffset}
+        keyboardVerticalOffset={navHeaderHeight + chatHeaderHeight}
       >
         <ScrollView
           ref={scrollRef}
@@ -301,7 +297,7 @@ export default function InputScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.inputRow}>
+        <View style={[styles.inputRow, { paddingBottom: 12 + bottomInset }]}>
           <EnrichedMarkdownTextInput
             ref={inputRef}
             placeholder="Message..."

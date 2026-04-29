@@ -9,13 +9,14 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import {
   EnrichedMarkdownTextInput,
   EnrichedMarkdownText,
   type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
-import { LinkModal } from './LinkModal';
+import { LinkModal } from '../LinkModal';
 
 const MARKDOWN_STYLE = {
   link: { color: '#2563EB', underline: true as const },
@@ -46,6 +47,7 @@ const MARKDOWN_STYLE = {
 };
 
 export default function PlaygroundScreen() {
+  const headerHeight = useHeaderHeight();
   const inputRef = useRef<EnrichedMarkdownTextInputInstance>(null);
   const [state, setState] = useState<StyleState | null>(null);
   const [markdown, setMarkdown] = useState('');
@@ -80,6 +82,8 @@ export default function PlaygroundScreen() {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={headerHeight}
+        testID="playground-screen"
       >
         <ScrollView
           style={styles.scroll}

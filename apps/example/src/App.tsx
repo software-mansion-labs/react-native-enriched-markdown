@@ -1,151 +1,54 @@
-import { useState, useMemo } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Linking,
-  Platform,
-  View,
-  Text,
-} from 'react-native';
-import {
-  EnrichedMarkdownText,
-  type LinkPressEvent,
-} from 'react-native-enriched-markdown';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { sampleMarkdown } from './sampleMarkdown';
-import { customMarkdownStyle } from './markdownStyles';
-import PlaygroundScreen from './PlaygroundScreen';
-import InputScreen from './InputScreen';
-import StreamingMarkdownSimulator from './StreamingMarkdownSimulator';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from './screens/HomeScreen';
+import PlaygroundScreen from './screens/PlaygroundScreen';
+import TextScreen from './screens/TextScreen';
+import InputScreen from './screens/InputScreen';
+import StreamingMarkdownSimulator from './screens/StreamingMarkdownSimulator';
 
-type Screen = 'playground' | 'text' | 'input' | 'stream';
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('playground');
-  const markdownStyle = useMemo(() => customMarkdownStyle, []);
-
-  const contextMenuItems = useMemo(
-    () => [
-      {
-        text: 'Summarize with AI',
-        icon: Platform.OS === 'ios' ? 'sparkles' : undefined,
-        onPress: ({ text }: { text: string }) => {
-          Alert.alert('✦ Summarize with AI', `"${text}"`, [
-            { text: 'Dismiss', style: 'cancel' },
-          ]);
-        },
-      },
-      {
-        text: 'Translate',
-        icon: Platform.OS === 'ios' ? 'globe' : undefined,
-        onPress: ({ text }: { text: string }) => {
-          Alert.alert('Translate', `"${text}"`, [
-            { text: 'Dismiss', style: 'cancel' },
-          ]);
-        },
-      },
-    ],
-    []
-  );
-
-  const handleLinkPress = (event: LinkPressEvent) => {
-    const { url } = event;
-    Alert.alert('Link Pressed!', `You tapped on: ${url}`, [
-      {
-        text: 'Open in Browser',
-        onPress: () => {
-          Linking.openURL(url);
-        },
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ]);
-  };
-
   return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.tabs}>
-        <Text
-          style={[styles.tab, screen === 'playground' && styles.tabActive]}
-          onPress={() => setScreen('playground')}
-        >
-          Playground
-        </Text>
-        <Text
-          style={[styles.tab, screen === 'input' && styles.tabActive]}
-          onPress={() => setScreen('input')}
-        >
-          Input
-        </Text>
-        <Text
-          style={[styles.tab, screen === 'text' && styles.tabActive]}
-          onPress={() => setScreen('text')}
-        >
-          Text
-        </Text>
-        <Text
-          style={[styles.tab, screen === 'stream' && styles.tabActive]}
-          onPress={() => setScreen('stream')}
-        >
-          Stream
-        </Text>
-      </View>
-
-      {screen === 'playground' ? (
-        <PlaygroundScreen />
-      ) : screen === 'input' ? (
-        <InputScreen />
-      ) : screen === 'stream' ? (
-        <StreamingMarkdownSimulator />
-      ) : (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-        >
-          <EnrichedMarkdownText
-            flavor="github"
-            markdown={sampleMarkdown}
-            onLinkPress={handleLinkPress}
-            markdownStyle={markdownStyle}
-            contextMenuItems={contextMenuItems}
-            selectionColor={Platform.OS === 'ios' ? '#5A52FA' : '#DCDDFE'}
-            selectionHandleColor="#5A52FA"
-          />
-        </ScrollView>
-      )}
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#007AFF',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      >
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: 'Enriched Markdown Examples' }}
+        />
+        <Stack.Screen
+          name="Playground"
+          component={PlaygroundScreen}
+          options={{ title: 'Playground' }}
+        />
+        <Stack.Screen
+          name="Text"
+          component={TextScreen}
+          options={{ title: 'Text' }}
+        />
+        <Stack.Screen
+          name="Input"
+          component={InputScreen}
+          options={{ title: 'Input' }}
+        />
+        <Stack.Screen
+          name="Stream"
+          component={StreamingMarkdownSimulator}
+          options={{ title: 'Stream' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  tabs: {
-    flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D1D5DB',
-  },
-  tab: {
-    flex: 1,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  tabActive: {
-    color: '#2563EB',
-    borderBottomWidth: 2,
-    borderBottomColor: '#2563EB',
-  },
-  scrollView: {
-    paddingHorizontal: 16,
-  },
-  content: {
-    paddingVertical: 16,
-  },
-});

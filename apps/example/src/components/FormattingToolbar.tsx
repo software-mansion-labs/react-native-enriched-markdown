@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -18,19 +18,10 @@ import StrikethroughIcon from '../assets/icons/strikethrough_s_24dp.svg';
 import SpoilerIcon from '../assets/icons/visibility_off_24dp.svg';
 import AddLinkIcon from '../assets/icons/add_link_24dp.svg';
 
-type IconKey =
-  | 'bold'
-  | 'italic'
-  | 'underline'
-  | 'strikethrough'
-  | 'spoiler'
-  | 'link';
-
 interface FormattingToolbarProps {
   state: StyleState | null;
   inputRef: React.RefObject<EnrichedMarkdownTextInputInstance | null>;
   hasSelection: boolean;
-  icons?: Partial<Record<IconKey, ReactNode>>;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -86,7 +77,6 @@ export function FormattingToolbar({
   state,
   inputRef,
   hasSelection,
-  icons,
   style,
   testID,
 }: FormattingToolbarProps) {
@@ -128,7 +118,7 @@ export function FormattingToolbar({
             onPress={() => inputRef.current?.[action]()}
             testID={`toolbar-${styleKey}`}
           >
-            {icons?.[styleKey] ?? icon}
+            {icon}
           </TouchableOpacity>
         ))}
         <TouchableOpacity
@@ -139,7 +129,7 @@ export function FormattingToolbar({
           onPress={handleLinkButtonPress}
           testID="toolbar-link"
         >
-          {icons?.link ?? LINK_ICON}
+          {LINK_ICON}
         </TouchableOpacity>
       </View>
       <LinkModal

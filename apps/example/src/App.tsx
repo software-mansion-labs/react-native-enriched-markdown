@@ -1,12 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Stack } from './navigation/Stack';
 import HomeScreen from './screens/HomeScreen';
 import PlaygroundScreen from './screens/PlaygroundScreen';
 import TextScreen from './screens/TextScreen';
 import InputScreen from './screens/InputScreen';
 import StreamingMarkdownSimulator from './screens/StreamingMarkdownSimulator';
-
-const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (

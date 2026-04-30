@@ -1,10 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { Stack } from './navigation/Stack';
-import HomeScreen from './screens/HomeScreen';
-import PlaygroundScreen from './screens/PlaygroundScreen';
-import TextScreen from './screens/TextScreen';
-import InputScreen from './screens/InputScreen';
-import StreamingMarkdownSimulator from './screens/StreamingMarkdownSimulator';
+import HomeScreen from './screens/home/HomeScreen';
+import PlaygroundScreen from './screens/playground/PlaygroundScreen';
+import TextScreen from './screens/text/TextScreen';
+import InputScreen from './screens/input/InputScreen';
+import StreamingMarkdownSimulator from './screens/streaming/StreamingMarkdownSimulator';
 
 export default function App() {
   return (

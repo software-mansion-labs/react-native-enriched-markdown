@@ -17,7 +17,7 @@ import {
   type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
-import { LinkModal } from '../LinkModal';
+import { LinkModal } from '../common/LinkModal';
 
 interface Message {
   id: number;

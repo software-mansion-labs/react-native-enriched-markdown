@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { EnrichedMarkdownText } from 'react-native-enriched-markdown';
-import { customMarkdownStyle } from '../markdownStyles';
+import { customMarkdownStyle } from '../../markdownStyles';
 
 const STREAM_SOURCE = `Here is a longer streamed answer used to stress GitHub-flavored markdown streaming on iOS.
 

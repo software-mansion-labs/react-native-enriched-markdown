@@ -4,8 +4,8 @@ import {
   EnrichedMarkdownText,
   type LinkPressEvent,
 } from 'react-native-enriched-markdown';
-import { sampleMarkdown } from '../sampleMarkdown';
-import { customMarkdownStyle } from '../markdownStyles';
+import { sampleMarkdown } from '../../sampleMarkdown';
+import { customMarkdownStyle } from '../../markdownStyles';
 
 export default function TextScreen() {
   const markdownStyle = useMemo(() => customMarkdownStyle, []);

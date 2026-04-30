@@ -16,7 +16,7 @@ import {
   type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
-import { LinkModal } from '../LinkModal';
+import { LinkModal } from '../common/LinkModal';
 
 const MARKDOWN_STYLE = {
   link: { color: '#2563EB', underline: true as const },

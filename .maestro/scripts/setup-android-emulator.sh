@@ -27,6 +27,12 @@ for tool in sdkmanager avdmanager emulator adb; do
   fi
 done
 
+# Check if coreutils are installed
+if ! command -v timeout &>/dev/null; then
+  echo "Error: 'timeout' not found. On macOS, install it with: brew install coreutils"
+  exit 1
+fi
+
 yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
 if ! sdkmanager --list_installed 2>/dev/null | grep -q "system-images;android-${API_LEVEL};"; then

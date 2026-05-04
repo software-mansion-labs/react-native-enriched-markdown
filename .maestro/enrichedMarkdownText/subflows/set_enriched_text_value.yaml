@@ -4,7 +4,31 @@ appId: enrichedmarkdown.example
 - tapOn:
     id: editor-container
 
-- inputText: ${VALUE}
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - inputText: ${VALUE}
+
+# On Android we need to split each line via code
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - runScript:
+          file: '../../scripts/split_lines.js'
+          env:
+            VALUE: ${VALUE}
+      - repeat:
+          times: ${output.lineCount}
+          commands:
+            - runScript:
+                file: '../../scripts/next_line.js'
+                env:
+                  LINES: ${output.lines}
+                  INDEX: ${output.lineIndex}
+            - inputText: ${output.currentLine}
+            - pressKey: Enter
 
 - tapOn:
     id: blur-button

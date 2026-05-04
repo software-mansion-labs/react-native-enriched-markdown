@@ -12,6 +12,7 @@ import com.facebook.react.viewmanagers.EnrichedMarkdownManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
+import com.swmansion.enriched.markdown.utils.common.TableStreamingMode
 import com.swmansion.enriched.markdown.utils.common.emitCitationPress
 import com.swmansion.enriched.markdown.utils.common.emitContextMenuItemPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkLongPress
@@ -21,6 +22,7 @@ import com.swmansion.enriched.markdown.utils.common.emitTaskListItemPress
 import com.swmansion.enriched.markdown.utils.common.markdownEventTypeConstants
 import com.swmansion.enriched.markdown.utils.common.parseContextMenuItems
 import com.swmansion.enriched.markdown.utils.common.parseMd4cFlags
+import com.swmansion.enriched.markdown.utils.common.parseSelectionMenuConfig
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
 
 @ReactModule(name = EnrichedMarkdownManager.NAME)
@@ -39,6 +41,18 @@ class EnrichedMarkdownManager :
       emitContextMenuItemPress(view, itemText, selectedText, selectionStart, selectionEnd)
     }
     return view
+  }
+
+  override fun onAfterUpdateTransaction(view: EnrichedMarkdown) {
+    super.onAfterUpdateTransaction(view)
+    view.commitProps()
+  }
+
+  override fun onDropViewInstance(view: EnrichedMarkdown) {
+    super.onDropViewInstance(view)
+    view.cleanup()
+    MeasurementStore.release(view.id)
+    MeasurementStore.clearStreamingTableMode(view.id)
   }
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> = markdownEventTypeConstants()
@@ -90,6 +104,20 @@ class EnrichedMarkdownManager :
     view?.setIsSelectable(selectable)
   }
 
+  override fun setSelectionColor(
+    view: EnrichedMarkdown?,
+    value: Int?,
+  ) {
+    view?.setSelectionColor(value)
+  }
+
+  override fun setSelectionHandleColor(
+    view: EnrichedMarkdown?,
+    value: Int?,
+  ) {
+    view?.setSelectionHandleColor(value)
+  }
+
   @ReactProp(name = "md4cFlags")
   override fun setMd4cFlags(
     view: EnrichedMarkdown?,
@@ -135,8 +163,21 @@ class EnrichedMarkdownManager :
     view: EnrichedMarkdown?,
     streamingAnimation: Boolean,
   ) {
-    // TODO: Add streaming animation support for github flavor.
-    // Currently only supported with flavor="commonmark" (single TextView).
+    view?.streamingAnimation = streamingAnimation
+  }
+
+  @ReactProp(name = "streamingConfig")
+  override fun setStreamingConfig(
+    view: EnrichedMarkdown?,
+    config: ReadableMap?,
+  ) {
+    if (view == null) return
+    val tableMode =
+      when (config?.getString("tableMode")) {
+        "progressive" -> TableStreamingMode.PROGRESSIVE
+        else -> TableStreamingMode.HIDDEN
+      }
+    view.tableStreamingMode = tableMode
   }
 
   @ReactProp(name = "spoilerOverlay")
@@ -154,6 +195,15 @@ class EnrichedMarkdownManager :
   ) {
     if (view == null) return
     view.setContextMenuItems(parseContextMenuItems(value))
+  }
+
+  @ReactProp(name = "selectionMenuConfig")
+  override fun setSelectionMenuConfig(
+    view: EnrichedMarkdown?,
+    value: ReadableMap?,
+  ) {
+    if (view == null) return
+    view.setSelectionMenuConfig(parseSelectionMenuConfig(value))
   }
 
   override fun setPadding(

@@ -83,6 +83,11 @@ export default function App() {
               onLinkPress={handleLinkPress}
               markdownStyle={markdownStyle}
               contextMenuItems={contextMenuItems}
+              selectionColor="#DCDDFE"
+              selectionMenuConfig={{
+                copyAsMarkdown: true,
+                copyImageUrl: true,
+              }}
             />
           </ScrollView>
           {lastLink != null && (

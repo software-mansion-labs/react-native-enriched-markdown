@@ -1,9 +1,11 @@
 export { default as EnrichedMarkdownText } from './native/EnrichedMarkdownText';
 export type {
   EnrichedMarkdownTextProps,
+  StreamingConfig,
   MarkdownStyle,
   Md4cFlags,
   ContextMenuItem as TextContextMenuItem,
+  SelectionMenuConfig as TextSelectionMenuConfig,
 } from './native/EnrichedMarkdownText';
 export type {
   LinkPressEvent,
@@ -13,13 +15,13 @@ export type {
   CitationPressEvent,
 } from './types/events';
 
-export { EnrichedMarkdownInput } from './EnrichedMarkdownInput';
+export { EnrichedMarkdownTextInput } from './EnrichedMarkdownTextInput';
 export type {
-  EnrichedMarkdownInputProps,
-  EnrichedMarkdownInputInstance,
-  MarkdownInputStyle,
+  EnrichedMarkdownTextInputProps,
+  EnrichedMarkdownTextInputInstance,
+  MarkdownTextInputStyle,
   StyleState,
   ContextMenuItem,
   OnLinkDetected,
   CaretRect,
-} from './EnrichedMarkdownInput';
+} from './EnrichedMarkdownTextInput';

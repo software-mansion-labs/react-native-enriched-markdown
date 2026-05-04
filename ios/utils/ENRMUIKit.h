@@ -176,7 +176,7 @@ static inline void ENRMSetDefaultTypingAttributes(ENRMPlatformTextView *textView
 /// Applies shared configuration to a text view used for markdown input editing.
 /// Handles platform differences: scroll indicators, text container insets,
 /// drawsBackground (macOS). Sets editable=YES, scrollEnabled=YES.
-static inline void ENRMConfigureMarkdownInputTextView(ENRMPlatformTextView *textView)
+static inline void ENRMConfigureMarkdownTextInputTextView(ENRMPlatformTextView *textView)
 {
   textView.font = [UIFont systemFontOfSize:16.0];
   textView.backgroundColor = [RCTUIColor clearColor];
@@ -203,12 +203,16 @@ static inline void ENRMSetCursorColor(ENRMPlatformTextView *textView, RCTUIColor
 #endif
 }
 
-/// Cross-platform selection color: iOS uses tintColor (affects both cursor and selection);
-/// macOS selection highlight is managed by the system and not directly settable.
+/// Cross-platform selection color: iOS uses tintColor (also affects the caret
+/// and selection handles); macOS sets the selection background via
+/// `selectedTextAttributes`. Pass `nil` to restore the system default.
 static inline void ENRMSetSelectionColor(ENRMPlatformTextView *textView, RCTUIColor *color)
 {
 #if !TARGET_OS_OSX
   textView.tintColor = color;
+#else
+  RCTUIColor *resolved = color ?: [NSColor selectedTextBackgroundColor];
+  textView.selectedTextAttributes = @{NSBackgroundColorAttributeName : resolved};
 #endif
 }
 

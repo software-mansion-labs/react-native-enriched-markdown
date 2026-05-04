@@ -7,7 +7,9 @@ import type { NativeSyntheticEvent } from 'react-native';
 import type { MarkdownStyle, Md4cFlags } from '../types/MarkdownStyle';
 import type {
   EnrichedMarkdownTextProps,
+  StreamingConfig,
   ContextMenuItem,
+  SelectionMenuConfig,
 } from '../types/MarkdownTextProps';
 import type {
   LinkPressEvent,
@@ -18,14 +20,18 @@ import type {
   OnContextMenuItemPressEvent,
 } from '../types/events';
 
-export type { MarkdownStyle, Md4cFlags };
-export type { EnrichedMarkdownTextProps, ContextMenuItem };
 export type {
-  LinkPressEvent,
-  LinkLongPressEvent,
-  TaskListItemPressEvent,
-  MentionPressEvent,
   CitationPressEvent,
+  ContextMenuItem,
+  EnrichedMarkdownTextProps,
+  LinkLongPressEvent,
+  LinkPressEvent,
+  MarkdownStyle,
+  Md4cFlags,
+  MentionPressEvent,
+  SelectionMenuConfig,
+  StreamingConfig,
+  TaskListItemPressEvent,
 };
 
 const defaultMd4cFlags: Md4cFlags = {
@@ -50,8 +56,12 @@ export const EnrichedMarkdownText = ({
   allowTrailingMargin = false,
   flavor = 'commonmark',
   streamingAnimation = false,
+  streamingConfig,
   spoilerOverlay = 'particles',
   contextMenuItems,
+  selectionMenuConfig,
+  selectionColor,
+  selectionHandleColor,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -146,6 +156,16 @@ export const EnrichedMarkdownText = ({
     [onCitationPress]
   );
 
+  const tableMode = streamingConfig?.tableMode ?? 'hidden';
+  const normalizedStreamingConfig = useMemo(() => ({ tableMode }), [tableMode]);
+  const normalizedSelectionMenuConfig = useMemo(
+    () => ({
+      copyAsMarkdown: selectionMenuConfig?.copyAsMarkdown ?? true,
+      copyImageUrl: selectionMenuConfig?.copyImageUrl ?? true,
+    }),
+    [selectionMenuConfig]
+  );
+
   const sharedProps = {
     markdown,
     markdownStyle: normalizedStyle,
@@ -161,10 +181,14 @@ export const EnrichedMarkdownText = ({
     maxFontSizeMultiplier,
     allowTrailingMargin,
     streamingAnimation,
+    streamingConfig: normalizedStreamingConfig,
     spoilerOverlay,
     style: containerStyle,
     contextMenuItems: nativeContextMenuItems,
+    selectionMenuConfig: normalizedSelectionMenuConfig,
     onContextMenuItemPress: handleContextMenuItemPress,
+    selectionColor,
+    selectionHandleColor,
     ...rest,
   };
 

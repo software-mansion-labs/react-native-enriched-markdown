@@ -19,6 +19,7 @@ import com.swmansion.enriched.markdown.utils.common.emitTaskListItemPress
 import com.swmansion.enriched.markdown.utils.common.markdownEventTypeConstants
 import com.swmansion.enriched.markdown.utils.common.parseContextMenuItems
 import com.swmansion.enriched.markdown.utils.common.parseMd4cFlags
+import com.swmansion.enriched.markdown.utils.common.parseSelectionMenuConfig
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListTapUtils
 import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
 
@@ -100,6 +101,20 @@ class EnrichedMarkdownTextManager :
     view?.setIsSelectable(selectable)
   }
 
+  override fun setSelectionColor(
+    view: EnrichedMarkdownText?,
+    value: Int?,
+  ) {
+    view?.setSelectionColor(value)
+  }
+
+  override fun setSelectionHandleColor(
+    view: EnrichedMarkdownText?,
+    value: Int?,
+  ) {
+    view?.setSelectionHandleColor(value)
+  }
+
   @ReactProp(name = "md4cFlags")
   override fun setMd4cFlags(
     view: EnrichedMarkdownText?,
@@ -148,6 +163,14 @@ class EnrichedMarkdownTextManager :
     view?.setStreamingAnimation(streamingAnimation)
   }
 
+  @ReactProp(name = "streamingConfig")
+  override fun setStreamingConfig(
+    view: EnrichedMarkdownText?,
+    config: ReadableMap?,
+  ) {
+    // No-op — CommonMark mode uses a single text view; table streaming is GFM-only.
+  }
+
   @ReactProp(name = "spoilerOverlay")
   override fun setSpoilerOverlay(
     view: EnrichedMarkdownText?,
@@ -163,6 +186,15 @@ class EnrichedMarkdownTextManager :
   ) {
     if (view == null) return
     view.setContextMenuItems(parseContextMenuItems(value))
+  }
+
+  @ReactProp(name = "selectionMenuConfig")
+  override fun setSelectionMenuConfig(
+    view: EnrichedMarkdownText?,
+    value: ReadableMap?,
+  ) {
+    if (view == null) return
+    view.setSelectionMenuConfig(parseSelectionMenuConfig(value))
   }
 
   override fun setPadding(

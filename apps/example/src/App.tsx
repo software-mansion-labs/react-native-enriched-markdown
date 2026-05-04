@@ -1,167 +1,53 @@
-import { useState, useMemo } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Linking,
-  Platform,
-  View,
-  Text,
-} from 'react-native';
-import {
-  EnrichedMarkdownText,
-  type LinkPressEvent,
-  type CitationPressEvent,
-  type MentionPressEvent,
-} from 'react-native-enriched-markdown';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { sampleMarkdown } from './sampleMarkdown';
-import { customMarkdownStyle } from './markdownStyles';
-import InputScreen from './InputScreen';
-
-type Screen = 'text' | 'input';
+import { NavigationContainer } from '@react-navigation/native';
+import { Stack } from './navigation/Stack';
+import HomeScreen from './screens/home/HomeScreen';
+import PlaygroundScreen from './screens/playground/PlaygroundScreen';
+import TextScreen from './screens/text/TextScreen';
+import InputScreen from './screens/input/InputScreen';
+import StreamingMarkdownSimulator from './screens/streaming/StreamingMarkdownSimulator';
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('input');
-  const markdownStyle = useMemo(() => customMarkdownStyle, []);
-
-  const contextMenuItems = useMemo(
-    () => [
-      {
-        text: 'Summarize with AI',
-        icon: Platform.OS === 'ios' ? 'sparkles' : undefined,
-        onPress: ({ text }: { text: string }) => {
-          Alert.alert('✦ Summarize with AI', `"${text}"`, [
-            { text: 'Dismiss', style: 'cancel' },
-          ]);
-        },
-      },
-      {
-        text: 'Translate',
-        icon: Platform.OS === 'ios' ? 'globe' : undefined,
-        onPress: ({ text }: { text: string }) => {
-          Alert.alert('Translate', `"${text}"`, [
-            { text: 'Dismiss', style: 'cancel' },
-          ]);
-        },
-      },
-    ],
-    []
-  );
-
-  const handleLinkPress = (event: LinkPressEvent) => {
-    const { url } = event;
-    Alert.alert('Link Pressed!', `You tapped on: ${url}`, [
-      {
-        text: 'Open in Browser',
-        onPress: () => {
-          Linking.openURL(url);
-        },
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ]);
-  };
-
-  const handleCitationPress = (event: CitationPressEvent) => {
-    const { url } = event;
-    Alert.alert('Citation Pressed!', `You tapped on: ${url}`, [
-      {
-        text: 'Open in Browser',
-        onPress: () => {
-          Linking.openURL(url);
-        },
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ]);
-  };
-
-  const handleMentionPress = (event: MentionPressEvent) => {
-    const { url } = event;
-    Alert.alert('Mention Pressed!', `You tapped on: ${url}`, [
-      {
-        text: 'Open in Browser',
-        onPress: () => {
-          Linking.openURL(url);
-        },
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ]);
-  };
-
   return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.tabs}>
-        <Text
-          style={[styles.tab, screen === 'input' && styles.tabActive]}
-          onPress={() => setScreen('input')}
-        >
-          Input
-        </Text>
-        <Text
-          style={[styles.tab, screen === 'text' && styles.tabActive]}
-          onPress={() => setScreen('text')}
-        >
-          Text
-        </Text>
-      </View>
-
-      {screen === 'input' ? (
-        <InputScreen />
-      ) : (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-        >
-          <EnrichedMarkdownText
-            flavor="github"
-            markdown={sampleMarkdown}
-            onLinkPress={handleLinkPress}
-            onCitationPress={handleCitationPress}
-            onMentionPress={handleMentionPress}
-            markdownStyle={markdownStyle}
-            contextMenuItems={contextMenuItems}
-          />
-        </ScrollView>
-      )}
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#BEEBD0',
+          },
+          headerTintColor: '#001A72',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      >
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: 'Enriched Markdown Examples' }}
+        />
+        <Stack.Screen
+          name="Playground"
+          component={PlaygroundScreen}
+          options={{ title: 'Playground' }}
+        />
+        <Stack.Screen
+          name="Text"
+          component={TextScreen}
+          options={{ title: 'Text' }}
+        />
+        <Stack.Screen
+          name="Input"
+          component={InputScreen}
+          options={{ title: 'Input' }}
+        />
+        <Stack.Screen
+          name="Stream"
+          component={StreamingMarkdownSimulator}
+          options={{ title: 'Stream' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  tabs: {
-    flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D1D5DB',
-  },
-  tab: {
-    flex: 1,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  tabActive: {
-    color: '#2563EB',
-    borderBottomWidth: 2,
-    borderBottomColor: '#2563EB',
-  },
-  scrollView: {
-    paddingHorizontal: 16,
-  },
-  content: {
-    paddingVertical: 16,
-  },
-});

@@ -28,6 +28,11 @@ interface BlockquoteStyle extends BaseBlockStyle {
 interface ListStyle extends BaseBlockStyle {
   bulletColor?: string;
   bulletSize?: number;
+  /**
+   * Minimum reserved marker column width applied uniformly to UL/OL/task lists.
+   * `0` (the default) means no minimum — each list uses its natural marker width.
+   */
+  markerMinWidth?: number;
   markerColor?: string;
   markerFontWeight?: string;
   gapWidth?: number;

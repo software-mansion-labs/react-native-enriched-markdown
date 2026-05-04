@@ -34,6 +34,7 @@ interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
 interface ListStyleInternal extends BaseBlockStyleInternal {
   bulletColor: string;
   bulletSize: number;
+  markerMinWidth: number;
   markerColor: string;
   markerFontWeight: string;
   gapWidth: number;

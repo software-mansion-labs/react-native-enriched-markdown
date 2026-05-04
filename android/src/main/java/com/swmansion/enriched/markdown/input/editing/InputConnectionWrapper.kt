@@ -2,12 +2,12 @@ package com.swmansion.enriched.markdown.input.editing
 
 import android.view.KeyEvent
 import android.view.inputmethod.InputConnection
-import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownTextInputView
 import android.view.inputmethod.InputConnectionWrapper as AndroidInputConnectionWrapper
 
 class InputConnectionWrapper(
   target: InputConnection,
-  private val editText: EnrichedMarkdownInputView,
+  private val editText: EnrichedMarkdownTextInputView,
 ) : AndroidInputConnectionWrapper(target, false) {
   var isBatchEdit = false
     private set

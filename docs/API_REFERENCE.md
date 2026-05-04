@@ -105,6 +105,22 @@ Whether text can be selected.
 | --------- | ------------- | -------- |
 | `boolean` | `true`         | Both     |
 
+### `selectionColor`
+
+Color of the text selection highlight. On iOS, this also affects the caret and selection handle colors (they share a single tint). On macOS, only the selection background is affected. On Android, use `selectionHandleColor` to override the handle color independently.
+
+| Type         | Default Value | Platform           |
+| ------------ | ------------- | ------------------ |
+| `ColorValue` | -             | Both, macOS, Web   |
+
+### `selectionHandleColor`
+
+Color of the selection handles (drag anchors). No-op on Android API levels below 29.
+
+| Type         | Default Value | Platform |
+| ------------ | ------------- | -------- |
+| `ColorValue` | -             | Android  |
+
 ### `md4cFlags`
 
 Configuration for md4c parser extension flags.
@@ -170,11 +186,35 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table supp
 
 ### `streamingAnimation`
 
-When `true`, newly appended content fades in during streaming updates. Only the tail (new characters beyond the previous content) is animated. Recommended for LLM streaming use cases with `flavor="commonmark"`.
+When `true`, newly appended content fades in during streaming updates. Only the tail (new characters beyond the previous content) is animated. Recommended for LLM streaming use cases.
 
 | Type      | Default Value | Platform |
 | --------- | ------------- | -------- |
 | `boolean` | `false`       | Both     |
+
+### `streamingConfig`
+
+Configuration for streaming behavior. Currently controls how incomplete tables are handled during streaming with `flavor="github"`.
+
+| Type                    | Default Value            | Platform |
+| ----------------------- | ------------------------ | -------- |
+| `{ tableMode: string }` | `{ tableMode: 'hidden' }` | Both     |
+
+#### `tableMode`
+
+Controls how incomplete (still-streaming) tables are rendered:
+
+- **`'hidden'`** (default): The entire table is hidden until it is complete (followed by a blank line). This prevents visual jank from partially formed tables.
+- **`'progressive'`**: The table is rendered row-by-row as content arrives. Requires at least a header row and separator line before anything is shown. Incomplete trailing rows (missing closing `|` or fewer columns than the header) are trimmed. New rows fade in with animation when `streamingAnimation` is also enabled.
+
+```tsx
+<EnrichedMarkdownText
+  markdown={streamingMarkdown}
+  flavor="github"
+  streamingAnimation
+  streamingConfig={{ tableMode: 'progressive' }}
+/>
+```
 
 ### `spoilerOverlay`
 
@@ -245,11 +285,42 @@ interface ContextMenuItem {
 />
 ```
 
+### `selectionMenuConfig`
+
+Controls built-in actions added to the native text selection menu. Custom app-provided actions are controlled separately with `contextMenuItems`.
+
+| Type                 | Default Value                                  | Platform |
+| -------------------- | ---------------------------------------------- | -------- |
+| `SelectionMenuConfig` | `{ copyAsMarkdown: true, copyImageUrl: true }` | iOS, Android, macOS |
+
+**`SelectionMenuConfig` shape:**
+
+```ts
+interface SelectionMenuConfig {
+  /** Shows the built-in "Copy as Markdown" action for text selections. */
+  copyAsMarkdown?: boolean;
+  /** Shows the built-in "Copy Image URL" action when selected content contains images. */
+  copyImageUrl?: boolean;
+}
+```
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownText
+  markdown={content}
+  selectionMenuConfig={{
+    copyAsMarkdown: false,
+    copyImageUrl: false,
+  }}
+/>
+```
+
 > **Note:** When using `flavor="github"`, `selection.start` and `selection.end` are relative to the text segment the selection is in, not the full markdown string. With `flavor="commonmark"` (default) they are always absolute within the full rendered text.
 
 ---
 
-## EnrichedMarkdownInput
+## EnrichedMarkdownTextInput
 
 ### Props
 
@@ -339,7 +410,7 @@ Style configuration for formatted text in the input.
 
 | Type                 | Default Value | Platform |
 | -------------------- | ------------- | -------- |
-| `MarkdownInputStyle` | `{}`          | Both     |
+| `MarkdownTextInputStyle` | `{}`          | Both     |
 
 **Properties:**
 
@@ -429,7 +500,7 @@ All values are in density-independent pixels, relative to the input's top-left c
 **Example:**
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   scrollEnabled={false}
   onCaretRectChange={(rect) => {
     console.log('Caret at:', rect.x, rect.y);
@@ -499,7 +570,7 @@ interface ContextMenuItem {
 **Example:**
 
 ```tsx
-<EnrichedMarkdownInput
+<EnrichedMarkdownTextInput
   contextMenuItems={[
     {
       text: 'Summarize with AI',

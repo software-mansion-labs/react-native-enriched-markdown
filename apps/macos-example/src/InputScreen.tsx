@@ -8,9 +8,9 @@ import {
   Alert,
 } from 'react-native-macos';
 import {
-  EnrichedMarkdownInput,
+  EnrichedMarkdownTextInput,
   EnrichedMarkdownText,
-  type EnrichedMarkdownInputInstance,
+  type EnrichedMarkdownTextInputInstance,
   type StyleState,
 } from 'react-native-enriched-markdown';
 
@@ -58,7 +58,7 @@ const MARKDOWN_STYLE = {
 let nextId = 5;
 
 export default function InputScreen() {
-  const inputRef = useRef<EnrichedMarkdownInputInstance>(null);
+  const inputRef = useRef<EnrichedMarkdownTextInputInstance>(null);
   const scrollRef = useRef<ScrollView>(null);
   const [state, setState] = useState<StyleState | null>(null);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
@@ -267,7 +267,7 @@ export default function InputScreen() {
 
         {/* Input row */}
         <View style={styles.inputRow}>
-          <EnrichedMarkdownInput
+          <EnrichedMarkdownTextInput
             ref={inputRef}
             placeholder="Message..."
             placeholderTextColor="#9CA3AF"

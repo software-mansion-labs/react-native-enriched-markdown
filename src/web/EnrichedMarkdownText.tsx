@@ -20,6 +20,7 @@ import type { ASTNode, RendererCallbacks, RenderCapabilities } from './types';
 import { indexTaskItems, markInlineImages } from './utils';
 import { loadKaTeX } from './katex';
 import type { KaTeXInstance } from './katex';
+import { ENRM_TEXT_CLASS, ENRM_SELECTION_BG_VAR } from './globalStyles';
 
 export const EnrichedMarkdownText = ({
   markdown,
@@ -34,6 +35,7 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   selectable = true,
   dir,
+  selectionColor,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
@@ -123,8 +125,11 @@ export const EnrichedMarkdownText = ({
       flexDirection: 'column',
       ...(containerStyle as CSSProperties),
       ...(selectable ? undefined : { userSelect: 'none' }),
+      ...(selectionColor
+        ? ({ [ENRM_SELECTION_BG_VAR]: selectionColor } as CSSProperties)
+        : null),
     }),
-    [containerStyle, selectable]
+    [containerStyle, selectable, selectionColor]
   );
 
   // The browser's default copy picks up the text content of the selected
@@ -156,8 +161,9 @@ export const EnrichedMarkdownText = ({
         };
       } | null;
     };
-    const native = (event as unknown as { nativeEvent?: { clipboardData?: unknown } })
-      .nativeEvent;
+    const native = (
+      event as unknown as { nativeEvent?: { clipboardData?: unknown } }
+    ).nativeEvent;
     const clipboardRaw =
       (event as unknown as { clipboardData?: unknown }).clipboardData ??
       native?.clipboardData;
@@ -182,9 +188,9 @@ export const EnrichedMarkdownText = ({
     }
 
     // Cast: lib is ES-only; Range lives on the browser document.
-    const raw = (selection as { getRangeAt: (i: number) => unknown }).getRangeAt(
-      0
-    ) as {
+    const raw = (
+      selection as { getRangeAt: (i: number) => unknown }
+    ).getRangeAt(0) as {
       collapsed: boolean;
       cloneRange: () => {
         compareBoundaryPoints: (how: number, other: unknown) => number;
@@ -243,7 +249,7 @@ export const EnrichedMarkdownText = ({
 
   if (parseError) {
     return (
-      <div style={wrapperStyle} dir={dir} {...rest}>
+      <div className={ENRM_TEXT_CLASS} style={wrapperStyle} dir={dir} {...rest}>
         <pre style={parseErrorFallbackStyle}>{markdown}</pre>
       </div>
     );
@@ -255,7 +261,13 @@ export const EnrichedMarkdownText = ({
   const lastIdx = children.length - 1;
 
   return (
-    <div style={wrapperStyle} dir={dir} onCopy={handleCopy} {...rest}>
+    <div
+      className={ENRM_TEXT_CLASS}
+      style={wrapperStyle}
+      dir={dir}
+      onCopy={handleCopy}
+      {...rest}
+    >
       {children.map((child, index) => (
         <RenderNode
           key={`${child.type}-${index}`}

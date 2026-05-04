@@ -8,19 +8,24 @@ import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
 sealed interface RenderedSegment {
+  val signature: Long
+
   data class Text(
     val styledText: SpannableString,
     val imageSpans: List<ImageSpan>,
     val needsJustify: Boolean,
     val lastElementMarginBottom: Float,
+    override val signature: Long,
   ) : RenderedSegment
 
   data class Table(
     val node: MarkdownASTNode,
+    override val signature: Long,
   ) : RenderedSegment
 
   data class Math(
     val latex: String,
+    override val signature: Long,
   ) : RenderedSegment
 }
 
@@ -34,9 +39,20 @@ object MarkdownSegmentRenderer {
   ): List<RenderedSegment> =
     segments.map { segment ->
       when (segment) {
-        is MarkdownSegment.Text -> renderTextSegment(segment.nodes, style, context, onLinkPress, onLinkLongPress)
-        is MarkdownSegment.Table -> RenderedSegment.Table(segment.node)
-        is MarkdownSegment.Math -> RenderedSegment.Math(segment.latex)
+        is MarkdownSegment.Text -> {
+          renderTextSegment(segment.nodes, style, context, onLinkPress, onLinkLongPress)
+        }
+
+        is MarkdownSegment.Table -> {
+          val signature = SegmentSignature.signatureForNode(segment.node) xor SegmentSignature.TABLE_KIND_SALT
+          RenderedSegment.Table(segment.node, signature)
+        }
+
+        is MarkdownSegment.Math -> {
+          var signature = SegmentSignature.signatureForNode(null) xor SegmentSignature.MATH_KIND_SALT
+          signature = SegmentSignature.fnvMixString(signature, segment.latex)
+          RenderedSegment.Math(segment.latex, signature)
+        }
       }
     }
 
@@ -49,12 +65,14 @@ object MarkdownSegmentRenderer {
   ): RenderedSegment.Text {
     val documentWrapper = MarkdownASTNode(type = MarkdownASTNode.NodeType.Document, children = nodes)
     val renderer = Renderer().apply { configure(style, context) }
+    val signature = SegmentSignature.signatureForNodes(nodes) xor SegmentSignature.TEXT_KIND_SALT
 
     return RenderedSegment.Text(
       styledText = renderer.renderDocument(documentWrapper, onLinkPress, onLinkLongPress),
       imageSpans = renderer.getCollectedImageSpans().toList(),
       needsJustify = style.needsJustify,
       lastElementMarginBottom = renderer.getLastElementMarginBottom(),
+      signature = signature,
     )
   }
 }

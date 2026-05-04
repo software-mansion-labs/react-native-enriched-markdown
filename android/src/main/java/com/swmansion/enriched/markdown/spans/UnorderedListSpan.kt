@@ -35,13 +35,14 @@ class UnorderedListSpan(
   }
 
   private val radius: Float = listStyle.bulletSize / 2f
+  private val markerColumnWidth: Float = listStyle.effectiveMarkerWidth(radius)
 
   private fun configureBulletPaint(): Paint =
     sharedBulletPaint.apply {
       color = listStyle.bulletColor
     }
 
-  override fun getMarkerWidth(): Float = radius
+  override fun getMarkerWidth(): Float = markerColumnWidth
 
   override fun drawMarker(
     canvas: Canvas,
@@ -55,7 +56,11 @@ class UnorderedListSpan(
     start: Int,
   ) {
     val bulletPaint = configureBulletPaint()
-    val bulletX = x + (depth * marginLeft + radius) * dir
+    // Center the bullet at the right edge of the reserved marker column so
+    // it hugs the gap before the text — matches iOS behavior and stays
+    // visually flush-left when the column width equals the bullet radius
+    // (the default).
+    val bulletX = x + (depth * marginLeft + markerColumnWidth) * dir
     val fontMetrics = paint.fontMetrics
     val bulletY = baseline + (fontMetrics.ascent + fontMetrics.descent) / 2f
 

@@ -2,10 +2,10 @@ package com.swmansion.enriched.markdown.input.editing
 
 import android.text.Editable
 import android.text.TextWatcher
-import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownTextInputView
 
 class MarkdownTextWatcher(
-  private val view: EnrichedMarkdownInputView,
+  private val view: EnrichedMarkdownTextInputView,
 ) : TextWatcher {
   private var editStart = 0
   private var deletedLength = 0

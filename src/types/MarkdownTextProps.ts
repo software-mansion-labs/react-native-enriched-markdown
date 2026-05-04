@@ -1,4 +1,4 @@
-import type { ViewProps, ViewStyle, TextStyle } from 'react-native';
+import type { ColorValue, ViewProps, ViewStyle, TextStyle } from 'react-native';
 import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
 import type {
   LinkPressEvent,
@@ -20,6 +20,31 @@ export interface ContextMenuItem {
   }) => void;
   icon?: string;
   visible?: boolean;
+}
+
+export interface SelectionMenuConfig {
+  /**
+   * Shows the built-in "Copy as Markdown" action for text selections.
+   * @default true
+   */
+  copyAsMarkdown?: boolean;
+  /**
+   * Shows the built-in "Copy Image URL" action when selected content contains images.
+   * @default true
+   */
+  copyImageUrl?: boolean;
+}
+
+export interface StreamingConfig {
+  /**
+   * Controls how incomplete tables are handled during streaming.
+   * - `'hidden'` (default): hide the entire table until it's complete.
+   * - `'progressive'`: show the table row-by-row as rows complete.
+   * Only effective when `streamingAnimation` is `true`.
+   * @default 'hidden'
+   * @platform ios, android
+   */
+  tableMode?: 'hidden' | 'progressive';
 }
 
 export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
@@ -108,6 +133,23 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    */
   selectable?: boolean;
   /**
+   * Color of the text selection highlight.
+   *
+   * On iOS, this also affects the caret and selection handle colors
+   * (they share a single tint). On macOS, only the selection background
+   * is affected.
+   *
+   * @platform ios, android, macos, web
+   */
+  selectionColor?: ColorValue;
+  /**
+   * Color of the selection handles (drag anchors).
+   * No-op on API levels below 29.
+   *
+   * @platform android
+   */
+  selectionHandleColor?: ColorValue;
+  /**
    * Specifies whether fonts should scale to respect Text Size accessibility settings.
    * When false, text will not scale with the user's accessibility settings.
    * @default true
@@ -150,6 +192,12 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    */
   streamingAnimation?: boolean;
   /**
+   * Fine-grained control over streaming behavior for block-level elements.
+   * Only effective when `streamingAnimation` is `true`.
+   * @platform ios, android
+   */
+  streamingConfig?: StreamingConfig;
+  /**
    * Controls how spoiler text is displayed before being revealed.
    * - `'particles'` (default): animated particle overlay (CAEmitterLayer on iOS,
    *   Choreographer-driven Canvas particles on Android).
@@ -167,6 +215,13 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @platform ios, android
    */
   contextMenuItems?: ContextMenuItem[];
+  /**
+   * Controls built-in items added to the native text selection menu.
+   * Custom app-provided actions are controlled separately with `contextMenuItems`.
+   * @default { copyAsMarkdown: true, copyImageUrl: true }
+   * @platform ios, android, macos
+   */
+  selectionMenuConfig?: SelectionMenuConfig;
   /**
    * Sets the text direction on the root container.
    * Useful for RTL languages — CSS logical properties in the renderers

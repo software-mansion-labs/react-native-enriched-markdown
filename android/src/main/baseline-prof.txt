@@ -13,12 +13,82 @@ Lcom/swmansion/enriched/markdown/EnrichedMarkdownTextPackage;
 Lcom/swmansion/enriched/markdown/MeasurementStore;
 
 # Accessibility
+Lcom/swmansion/enriched/markdown/accessibility/AccessibleMarkdownTextView;
 Lcom/swmansion/enriched/markdown/accessibility/MarkdownAccessibilityHelper;
 
 # Events
+Lcom/swmansion/enriched/markdown/events/ContextMenuItemPressEvent;
 Lcom/swmansion/enriched/markdown/events/LinkLongPressEvent;
 Lcom/swmansion/enriched/markdown/events/LinkPressEvent;
 Lcom/swmansion/enriched/markdown/events/TaskListItemPressEvent;
+
+# Input - Core
+Lcom/swmansion/enriched/markdown/input/EnrichedMarkdownTextInputManager;
+Lcom/swmansion/enriched/markdown/input/EnrichedMarkdownTextInputView;
+
+# Input - Autolink
+Lcom/swmansion/enriched/markdown/input/autolink/AutoDetectedLinkColorSpan;
+Lcom/swmansion/enriched/markdown/input/autolink/AutoDetectedLinkMarkerSpan;
+Lcom/swmansion/enriched/markdown/input/autolink/AutoDetectedLinkUnderlineSpan;
+Lcom/swmansion/enriched/markdown/input/autolink/AutoLinkDetector;
+Lcom/swmansion/enriched/markdown/input/autolink/LinkRegexConfig;
+
+# Input - Detection
+Lcom/swmansion/enriched/markdown/input/detection/DetectorPipeline;
+Lcom/swmansion/enriched/markdown/input/detection/TextDetector;
+Lcom/swmansion/enriched/markdown/input/detection/WordResult;
+Lcom/swmansion/enriched/markdown/input/detection/WordsUtils;
+
+# Input - Editing
+Lcom/swmansion/enriched/markdown/input/editing/InputConnectionWrapper;
+Lcom/swmansion/enriched/markdown/input/editing/MarkdownEditableFactory;
+Lcom/swmansion/enriched/markdown/input/editing/MarkdownTextWatcher;
+
+# Input - Events
+Lcom/swmansion/enriched/markdown/input/events/OnCaretRectChangeEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnChangeMarkdownEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnChangeSelectionEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnChangeStateEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnChangeTextEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnContextMenuItemPressEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnInputBlurEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnInputFocusEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnLinkDetectedEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnRequestCaretRectResultEvent;
+Lcom/swmansion/enriched/markdown/input/events/OnRequestMarkdownResultEvent;
+
+# Input - Formatting
+Lcom/swmansion/enriched/markdown/input/formatting/FormattingStore;
+Lcom/swmansion/enriched/markdown/input/formatting/InputFormatter;
+Lcom/swmansion/enriched/markdown/input/formatting/InputParser;
+Lcom/swmansion/enriched/markdown/input/formatting/InputRemend;
+Lcom/swmansion/enriched/markdown/input/formatting/MarkdownSerializer;
+Lcom/swmansion/enriched/markdown/input/formatting/MarkdownSpan;
+Lcom/swmansion/enriched/markdown/input/formatting/ParseResult;
+
+# Input - Layout
+Lcom/swmansion/enriched/markdown/input/layout/InputEventEmitter;
+Lcom/swmansion/enriched/markdown/input/layout/InputLayoutManager;
+Lcom/swmansion/enriched/markdown/input/layout/InputMeasurementStore;
+
+# Input - Model
+Lcom/swmansion/enriched/markdown/input/model/CaretRect;
+Lcom/swmansion/enriched/markdown/input/model/FormattingRange;
+Lcom/swmansion/enriched/markdown/input/model/InputFormatterStyle;
+Lcom/swmansion/enriched/markdown/input/model/StyleType;
+
+# Input - Styles
+Lcom/swmansion/enriched/markdown/input/styles/BoldStyleHandler;
+Lcom/swmansion/enriched/markdown/input/styles/ItalicStyleHandler;
+Lcom/swmansion/enriched/markdown/input/styles/LinkStyleHandler;
+Lcom/swmansion/enriched/markdown/input/styles/SpoilerStyleHandler;
+Lcom/swmansion/enriched/markdown/input/styles/StrikethroughStyleHandler;
+Lcom/swmansion/enriched/markdown/input/styles/StyleHandler;
+Lcom/swmansion/enriched/markdown/input/styles/StyleMergingConfig;
+Lcom/swmansion/enriched/markdown/input/styles/UnderlineStyleHandler;
+
+# Input - Toolbar
+Lcom/swmansion/enriched/markdown/input/toolbar/InputContextMenu;
 
 # Parser
 Lcom/swmansion/enriched/markdown/parser/Md4cFlags;
@@ -27,7 +97,9 @@ Lcom/swmansion/enriched/markdown/parser/MarkdownASTNode$NodeType;
 Lcom/swmansion/enriched/markdown/parser/Parser;
 
 # Renderer Classes
+Lcom/swmansion/enriched/markdown/renderer/BlockStyle;
 Lcom/swmansion/enriched/markdown/renderer/BlockStyleContext;
+Lcom/swmansion/enriched/markdown/renderer/BlockType;
 Lcom/swmansion/enriched/markdown/renderer/BlockquoteRenderer;
 Lcom/swmansion/enriched/markdown/renderer/CodeBlockRenderer;
 Lcom/swmansion/enriched/markdown/renderer/CodeRenderer;
@@ -44,7 +116,10 @@ Lcom/swmansion/enriched/markdown/renderer/MathInlineRenderer;
 Lcom/swmansion/enriched/markdown/renderer/NodeRenderer;
 Lcom/swmansion/enriched/markdown/renderer/ParagraphRenderer;
 Lcom/swmansion/enriched/markdown/renderer/Renderer;
+Lcom/swmansion/enriched/markdown/renderer/RendererConfig;
+Lcom/swmansion/enriched/markdown/renderer/RendererFactory;
 Lcom/swmansion/enriched/markdown/renderer/SpanStyleCache;
+Lcom/swmansion/enriched/markdown/renderer/SpoilerRenderer;
 Lcom/swmansion/enriched/markdown/renderer/StrikethroughRenderer;
 Lcom/swmansion/enriched/markdown/renderer/StrongRenderer;
 Lcom/swmansion/enriched/markdown/renderer/TextRenderer;
@@ -64,17 +139,34 @@ Lcom/swmansion/enriched/markdown/spans/ImageSpan;
 Lcom/swmansion/enriched/markdown/spans/LineHeightSpan;
 Lcom/swmansion/enriched/markdown/spans/LinkSpan;
 Lcom/swmansion/enriched/markdown/spans/MarginBottomSpan;
+Lcom/swmansion/enriched/markdown/spans/MathInlinePlaceholderSpan;
 Lcom/swmansion/enriched/markdown/spans/MathInlineSpan;
 Lcom/swmansion/enriched/markdown/spans/MathMeasureRequest;
 Lcom/swmansion/enriched/markdown/spans/MathMetrics;
 Lcom/swmansion/enriched/markdown/spans/MathRenderMode;
 Lcom/swmansion/enriched/markdown/spans/OrderedListSpan;
+Lcom/swmansion/enriched/markdown/spans/SpoilerSpan;
 Lcom/swmansion/enriched/markdown/spans/StrikethroughSpan;
 Lcom/swmansion/enriched/markdown/spans/StrongSpan;
 Lcom/swmansion/enriched/markdown/spans/TaskListSpan;
 Lcom/swmansion/enriched/markdown/spans/TextSpan;
 Lcom/swmansion/enriched/markdown/spans/ThematicBreakSpan;
 Lcom/swmansion/enriched/markdown/spans/UnorderedListSpan;
+
+# Spoiler
+Lcom/swmansion/enriched/markdown/spoiler/ParticleStrategy;
+Lcom/swmansion/enriched/markdown/spoiler/SegmentKey;
+Lcom/swmansion/enriched/markdown/spoiler/SegmentRect;
+Lcom/swmansion/enriched/markdown/spoiler/SolidStrategy;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerAnimator;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerCapable;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerConstantsKt;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerDrawContext;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerDrawUtilsKt;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerOverlay;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerOverlayDrawer;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerParticleDrawable;
+Lcom/swmansion/enriched/markdown/spoiler/SpoilerStrategyKt;
 
 # Style Configuration
 Lcom/swmansion/enriched/markdown/styles/BaseBlockStyle;
@@ -90,6 +182,7 @@ Lcom/swmansion/enriched/markdown/styles/LinkStyle;
 Lcom/swmansion/enriched/markdown/styles/ListStyle;
 Lcom/swmansion/enriched/markdown/styles/MathStyle;
 Lcom/swmansion/enriched/markdown/styles/ParagraphStyle;
+Lcom/swmansion/enriched/markdown/styles/SpoilerStyle;
 Lcom/swmansion/enriched/markdown/styles/StrikethroughStyle;
 Lcom/swmansion/enriched/markdown/styles/StrongStyle;
 Lcom/swmansion/enriched/markdown/styles/StyleConfig;
@@ -102,9 +195,25 @@ Lcom/swmansion/enriched/markdown/styles/UnderlineStyle;
 
 # Utilities - Common
 Lcom/swmansion/enriched/markdown/utils/common/FeatureFlags;
+Lcom/swmansion/enriched/markdown/utils/common/MarkdownSegment;
+Lcom/swmansion/enriched/markdown/utils/common/MarkdownSegment$Math;
+Lcom/swmansion/enriched/markdown/utils/common/MarkdownSegment$Table;
+Lcom/swmansion/enriched/markdown/utils/common/MarkdownSegment$Text;
+Lcom/swmansion/enriched/markdown/utils/common/MarkdownSegmentKt;
+Lcom/swmansion/enriched/markdown/utils/common/MarkdownViewManagerUtilsKt;
 Lcom/swmansion/enriched/markdown/utils/common/ReadableMapExtensionsKt;
+Lcom/swmansion/enriched/markdown/utils/common/RenderedSegment;
+Lcom/swmansion/enriched/markdown/utils/common/RenderedSegment$Math;
+Lcom/swmansion/enriched/markdown/utils/common/RenderedSegment$Table;
+Lcom/swmansion/enriched/markdown/utils/common/RenderedSegment$Text;
+Lcom/swmansion/enriched/markdown/utils/common/RenderedSegmentKt;
 Lcom/swmansion/enriched/markdown/utils/common/layout/RTLUtilsKt;
 Lcom/swmansion/enriched/markdown/utils/common/serialization/MarkdownASTSerializer;
+
+# Utilities - Input
+Lcom/swmansion/enriched/markdown/utils/input/AutoCapitalizeUtils;
+Lcom/swmansion/enriched/markdown/utils/input/BorderPropsApplicator;
+Lcom/swmansion/enriched/markdown/utils/input/MarkdownStyleParser;
 
 # Utilities - Text
 Lcom/swmansion/enriched/markdown/utils/text/ImageCache;
@@ -116,7 +225,10 @@ Lcom/swmansion/enriched/markdown/utils/text/extensions/ParagraphUtilsKt;
 Lcom/swmansion/enriched/markdown/utils/text/extensions/SpannableExtensionsKt;
 Lcom/swmansion/enriched/markdown/utils/text/extensions/TextPaintExtensionsKt;
 Lcom/swmansion/enriched/markdown/utils/text/interaction/CheckboxTouchHelper;
+Lcom/swmansion/enriched/markdown/utils/text/interaction/TaskListHitTestResult;
+Lcom/swmansion/enriched/markdown/utils/text/interaction/TaskListTapUtils;
 Lcom/swmansion/enriched/markdown/utils/text/interaction/TaskListTapUtilsKt;
+Lcom/swmansion/enriched/markdown/utils/text/interaction/TaskListToggleUtils;
 Lcom/swmansion/enriched/markdown/utils/text/span/BlockSpacingKt;
 Lcom/swmansion/enriched/markdown/utils/text/span/SpanFlagsKt;
 Lcom/swmansion/enriched/markdown/utils/text/view/LinkEventsKt;
@@ -129,3 +241,6 @@ Lcom/swmansion/enriched/markdown/views/BlockSegmentView;
 Lcom/swmansion/enriched/markdown/views/ContextMenuPopup;
 Lcom/swmansion/enriched/markdown/views/MathContainerView;
 Lcom/swmansion/enriched/markdown/views/TableContainerView;
+
+# Math (optional, from src/math source set)
+Lcom/swmansion/enriched/markdown/spans/MathMeasureHelper;

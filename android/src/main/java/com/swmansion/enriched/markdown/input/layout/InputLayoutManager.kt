@@ -1,10 +1,10 @@
 package com.swmansion.enriched.markdown.input.layout
 
 import com.facebook.react.bridge.Arguments
-import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownTextInputView
 
 class InputLayoutManager(
-  private val view: EnrichedMarkdownInputView,
+  private val view: EnrichedMarkdownTextInputView,
 ) {
   private var forceHeightRecalculationCounter = 0
 

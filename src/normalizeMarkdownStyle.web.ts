@@ -98,6 +98,7 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     marginBottom: 16,
     bulletColor: '#6B7280',
     bulletSize: 6,
+    markerMinWidth: 0,
     markerColor: '#6B7280',
     markerFontWeight: '500',
     gapWidth: 12,

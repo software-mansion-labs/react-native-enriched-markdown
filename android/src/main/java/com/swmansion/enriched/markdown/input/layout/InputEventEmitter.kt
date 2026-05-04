@@ -3,7 +3,7 @@ package com.swmansion.enriched.markdown.input.layout
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.Event
-import com.swmansion.enriched.markdown.input.EnrichedMarkdownInputView
+import com.swmansion.enriched.markdown.input.EnrichedMarkdownTextInputView
 import com.swmansion.enriched.markdown.input.events.OnCaretRectChangeEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeMarkdownEvent
 import com.swmansion.enriched.markdown.input.events.OnChangeSelectionEvent
@@ -20,7 +20,7 @@ import com.swmansion.enriched.markdown.input.model.CaretRect
 import com.swmansion.enriched.markdown.input.model.StyleType
 
 class InputEventEmitter(
-  private val view: EnrichedMarkdownInputView,
+  private val view: EnrichedMarkdownTextInputView,
 ) {
   private var prevState: Map<StyleType, Boolean> = emptyMap()
   private var prevCaretRect: CaretRect? = null

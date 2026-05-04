@@ -1,4 +1,4 @@
-import type { LinkNativeRegex } from '../EnrichedMarkdownInputNativeComponent';
+import type { LinkNativeRegex } from '../EnrichedMarkdownTextInputNativeComponent';
 
 const DISABLED_REGEX: LinkNativeRegex = {
   pattern: '',

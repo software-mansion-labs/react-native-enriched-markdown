@@ -80,6 +80,11 @@ export interface EnrichedMarkdownTextProps
    */
   selectable?: boolean;
   /**
+   * Color of the text selection highlight.
+   * @platform web
+   */
+  selectionColor?: string;
+  /**
    * When false (default), removes trailing margin from the last element to
    * eliminate bottom spacing.
    * When true, keeps the trailing margin from the last element's marginBottom style.

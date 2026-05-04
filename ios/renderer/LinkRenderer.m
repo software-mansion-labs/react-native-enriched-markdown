@@ -14,7 +14,7 @@ static NSString *const kMentionScheme = @"mention://";
 static NSString *const kCitationScheme = @"citation://";
 
 @implementation LinkRenderer {
-  RendererFactory *_rendererFactory;
+  __weak RendererFactory *_rendererFactory;
   StyleConfig *_config;
 }
 

@@ -34,6 +34,7 @@ interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
 interface ListStyleInternal extends BaseBlockStyleInternal {
   bulletColor: ColorValue;
   bulletSize: CodegenTypes.Float;
+  markerMinWidth: CodegenTypes.Float;
   markerColor: ColorValue;
   markerFontWeight: string;
   gapWidth: CodegenTypes.Float;
@@ -238,6 +239,11 @@ export interface ContextMenuItemConfig {
   icon?: string;
 }
 
+export interface SelectionMenuConfig {
+  copyAsMarkdown: boolean;
+  copyImageUrl: boolean;
+}
+
 export interface OnContextMenuItemPressEvent {
   itemText: string;
   selectedText: string;
@@ -263,6 +269,10 @@ export interface Md4cFlagsInternal {
    * @default true
    */
   latexMath: boolean;
+}
+
+interface StreamingConfigInternal {
+  tableMode: string;
 }
 
 export interface NativeProps extends ViewProps {
@@ -321,6 +331,23 @@ export interface NativeProps extends ViewProps {
    */
   selectable?: boolean;
   /**
+   * Color of the text selection highlight.
+   *
+   * On iOS, this also affects the caret and selection handle colors
+   * (they share a single tint). On macOS, only the selection background
+   * is affected.
+   *
+   * @platform ios, android, macos, web
+   */
+  selectionColor?: ColorValue;
+  /**
+   * Color of the selection handles (drag anchors).
+   * No-op on API levels below 29.
+   *
+   * @platform android
+   */
+  selectionHandleColor?: ColorValue;
+  /**
    * MD4C parser flags configuration.
    * Controls how the markdown parser interprets certain syntax.
    */
@@ -353,6 +380,10 @@ export interface NativeProps extends ViewProps {
    */
   streamingAnimation?: CodegenTypes.WithDefault<boolean, false>;
   /**
+   * Fine-grained control over streaming behavior for block-level elements.
+   */
+  streamingConfig?: StreamingConfigInternal;
+  /**
    * Controls how spoiler text is displayed before being revealed.
    * - 'particles' (default): animated particle overlay.
    * - 'solid': opaque rectangle covering the text.
@@ -364,6 +395,10 @@ export interface NativeProps extends ViewProps {
    * Custom items to show in the text selection context menu.
    */
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+  /**
+   * Built-in items to show in the text selection context menu.
+   */
+  selectionMenuConfig: Readonly<SelectionMenuConfig>;
   /**
    * Fired when a custom context menu item is pressed.
    * Receives the item label, the currently selected text, and the selection range.

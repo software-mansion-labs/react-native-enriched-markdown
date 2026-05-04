@@ -73,14 +73,6 @@ class BlockquoteSpan(
     }
   }
 
-  /**
-   * Drawn BEFORE glyphs and before other [LineBackgroundSpan]s attached to the
-   * same line, so inline backgrounds painted by mention / code spans render on
-   * top of the blockquote fill instead of being covered by it (the previous
-   * implementation painted the blockquote fill from [drawLeadingMargin], which
-   * runs AFTER [LineBackgroundSpan.drawBackground] and erased the mention
-   * pill).
-   */
   override fun drawBackground(
     canvas: Canvas,
     paint: Paint,
@@ -95,7 +87,7 @@ class BlockquoteSpan(
     lineNum: Int,
   ) {
     if (shouldSkipDrawing(text, start)) return
-    drawBackground(canvas, top, bottom, right)
+    drawBackground(canvas, left, top, bottom, right)
   }
 
   @SuppressLint("WrongConstant") // Result of mask is always valid: 0, 1, 2, or 3
@@ -148,12 +140,13 @@ class BlockquoteSpan(
 
   private fun drawBackground(
     c: Canvas,
+    left: Int,
     top: Int,
     bottom: Int,
     right: Int,
   ) {
     val bgColor = blockquoteStyle.backgroundColor?.takeIf { it != Color.TRANSPARENT } ?: return
     val backgroundPaint = configureBackgroundPaint(bgColor)
-    c.drawRect(0f, top.toFloat(), right.toFloat(), bottom.toFloat(), backgroundPaint)
+    c.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), backgroundPaint)
   }
 }

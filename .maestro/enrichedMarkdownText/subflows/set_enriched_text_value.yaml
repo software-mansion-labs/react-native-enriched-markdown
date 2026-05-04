@@ -1,0 +1,10 @@
+appId: enrichedmarkdown.example
+---
+
+- tapOn:
+    id: editor-container
+
+- inputText: ${VALUE}
+
+- tapOn:
+    id: blur-button

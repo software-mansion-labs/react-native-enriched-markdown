@@ -1,4 +1,4 @@
-appId: swmansion.enriched.example
+appId: swmansion.enriched.markdown.example
 ---
 - runFlow:
     file: '../../subflows/capture_or_assert_screenshot.yaml'

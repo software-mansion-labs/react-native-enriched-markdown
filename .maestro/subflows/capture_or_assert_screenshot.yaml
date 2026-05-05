@@ -1,4 +1,4 @@
-appId: enrichedmarkdown.example
+appId: swmansion.enriched.markdown.example
 ---
 - runFlow:
     when:

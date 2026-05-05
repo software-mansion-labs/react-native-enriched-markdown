@@ -35,11 +35,15 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Inline Code | `` `code` `` | `code` | Parent block | Monospace font, background, optional fontSize |
 | Inline Images | `![alt](url)` | `inlineImage` | N/A | Inline images within text flow |
 | Inline Math | `$...$` | `inlineMath` | Parent block | LaTeX math rendered within the text flow |
-| Spoiler | `||text||` | `spoiler` | Parent block | Text concealed behind animated particle overlay, tap to reveal. Can wrap inline text or entire blocks (e.g. a full paragraph) |
+| Spoiler | `\|\|text\|\|` | `spoiler` | Parent block | Text concealed behind animated particle overlay, tap to reveal. Can wrap inline text or entire blocks (e.g. a full paragraph) |
+| Superscript | `^text^` | `superscript` | Parent block | Raised text at a reduced font size (requires `md4cFlags={{ superscript: true }}`) |
+| Subscript | `~text~` | `subscript` | Parent block | Lowered text at a reduced font size (requires `md4cFlags={{ subscript: true }}`) |
 
 > **Note:** Spoiler syntax (`||text||`) is always enabled. Any double-pipe delimiters in your content will be parsed as spoilers — for example, `a || b || c` would render `b` as a spoiler span rather than plain text.
 
 > **Note:** Underscore syntax (`__text__`, `_text_`) works for bold/italic by default. Enable underline via `md4cFlags={{ underline: true }}` to treat `_text_` as underline instead of emphasis.
+
+> **Note:** Enabling subscript (`md4cFlags={{ subscript: true }}`) changes the behaviour of single tildes — `~text~` becomes subscript instead of strikethrough. Double tildes (`~~text~~`) continue to work as strikethrough regardless.
 
 ### Nested Lists Example
 
@@ -63,6 +67,20 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 > > Level 2 nested
 > > > Level 3 nested (unlimited depth!)
 ```
+
+### Superscript and Subscript Examples
+
+```markdown
+E = mc^2^
+
+H~2~O   H~2~SO~4~
+
+^14^C dating  (isotope notation)
+
+H~3~O^+^  (mixed superscript and subscript)
+```
+
+> Superscript and subscript can be nested inside other inline elements such as bold, italic, and links. They cannot be nested inside each other.
 
 ## Block vs Inline Elements
 

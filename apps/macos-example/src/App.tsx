@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -87,6 +88,10 @@ export default function App() {
               selectionMenuConfig={{
                 copyAsMarkdown: true,
                 copyImageUrl: true,
+              }}
+              md4cFlags={{
+                superscript: true,
+                subscript: true,
               }}
             />
           </ScrollView>

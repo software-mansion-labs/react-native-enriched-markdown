@@ -2,7 +2,7 @@
  * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
- * Copyright (c) 2016-2024 Martin Mitáš
+ * Copyright (c) 2016-2026 Martin Mitáš
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -148,15 +148,17 @@ typedef enum MD_SPANTYPE {
 
   /* Spoiler (hidden content revealed on interaction).
      * Syntax: ||hidden text||
-     * Note: Recognized only when MD_FLAG_SPOILER is enabled. */
+     * Note: Recognized only when MD_FLAG_SPOILERS is enabled. */
   MD_SPAN_SPOILER,
 
   /* <sup>...</sup>
-     * Note: Recognized only when MD_FLAG_SUPERSCRIPT is enabled. */
+     * Syntax: ^superscript^
+     * Note: Recognized only when MD_FLAG_SUPERSCRIPTS is enabled. */
   MD_SPAN_SUPERSCRIPT,
 
   /* <sub>...</sub>
-     * Note: Recognized only when MD_FLAG_SUBSCRIPT is enabled. */
+     * Syntax: ~subscript~
+     * Note: Recognized only when MD_FLAG_SUBSCRIPTS is enabled. */
   MD_SPAN_SUBSCRIPT
 } MD_SPANTYPE;
 
@@ -328,9 +330,9 @@ typedef struct MD_SPAN_WIKILINK {
 #define MD_FLAG_WIKILINKS 0x2000        /* Enable wiki links extension. */
 #define MD_FLAG_UNDERLINE 0x4000        /* Enable underline extension (and disables '_' for normal emphasis). */
 #define MD_FLAG_HARD_SOFT_BREAKS 0x8000 /* Force all soft breaks to act as hard breaks. */
-#define MD_FLAG_SPOILER 0x10000         /* Enable ||hidden text|| spoiler spans. */
-#define MD_FLAG_SUPERSCRIPT 0x20000     /* Enable ^superscript^ spans. */
-#define MD_FLAG_SUBSCRIPT 0x40000       /* Enable ~subscript~ spans (single '~' only; double remains strikethrough). */
+#define MD_FLAG_SPOILERS 0x10000        /* Enable ||hidden text|| spoiler spans. */
+#define MD_FLAG_SUPERSCRIPTS 0x20000    /* Enable ^superscript^ spans. */
+#define MD_FLAG_SUBSCRIPTS 0x40000      /* Enable ~subscript~ spans. */
 
 #define MD_FLAG_PERMISSIVEAUTOLINKS                                                                                    \
   (MD_FLAG_PERMISSIVEEMAILAUTOLINKS | MD_FLAG_PERMISSIVEURLAUTOLINKS | MD_FLAG_PERMISSIVEWWWAUTOLINKS)

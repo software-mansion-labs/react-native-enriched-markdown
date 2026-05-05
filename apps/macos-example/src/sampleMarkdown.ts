@@ -111,6 +111,23 @@ The largest terrestrial biome, spanning across **Northern Russia, Canada, and Sc
 
 ---
 
+## Superscript and Subscript Examples
+
+Mathematical and scientific notation using superscripts and subscripts:
+
+- Water molecule: H~2~O
+- Carbon dioxide: CO~2~
+- Sulfuric acid: H~2~SO~4~
+- Einstein's famous equation: E = mc^2^
+- Pythagorean theorem: a^2^ + b^2^ = c^2^
+- 2^10^ = 1024
+
+Footnote-style references^1^ and trademark symbols like React Native^™^ can also use superscripts.
+
+Scientific prefixes: 6.022 × 10^23^ (Avogadro's number), the universe is approximately 1.38 × 10^10^ years old.
+
+---
+
 ## Fascinating Forest Facts
 
 Did you know that trees communicate through an underground network? Scientists call this the \`Wood Wide Web\` — a fungal network connecting tree roots across entire forests.

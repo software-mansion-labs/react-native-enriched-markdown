@@ -222,7 +222,7 @@ static bool runMd4cParse(NSString *markdown, ParseContext &context)
 
   MD_PARSER parser = {
       .abi_version = 0,
-      .flags = MD_FLAG_NOHTML | MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH | MD_FLAG_SPOILER,
+      .flags = MD_FLAG_NOHTML | MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH | MD_FLAG_SPOILERS,
       .enter_block = onEnterBlock,
       .leave_block = onLeaveBlock,
       .enter_span = onEnterSpan,

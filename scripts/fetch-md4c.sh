@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO="hryhoriiK97/md4c"
+REPO="mity/md4c"
 BRANCH="master"
 BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/src"
 DEST_DIR="$(cd "$(dirname "$0")/.." && pwd)/cpp/md4c"

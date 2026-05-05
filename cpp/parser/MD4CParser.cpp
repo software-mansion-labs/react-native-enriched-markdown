@@ -477,7 +477,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   impl_->reset(estimatedDepth);
   impl_->inputText = markdown.c_str();
 
-  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_SPOILER;
+  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_SPOILERS;
   if (md4cFlags.permissiveAutolinks) {
     flags |= MD_FLAG_PERMISSIVEAUTOLINKS;
   }
@@ -488,10 +488,10 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
     flags |= MD_FLAG_UNDERLINE;
   }
   if (md4cFlags.superscript) {
-    flags |= MD_FLAG_SUPERSCRIPT;
+    flags |= MD_FLAG_SUPERSCRIPTS;
   }
   if (md4cFlags.subscript) {
-    flags |= MD_FLAG_SUBSCRIPT;
+    flags |= MD_FLAG_SUBSCRIPTS;
   }
 
   // Configure MD4C parser with callbacks

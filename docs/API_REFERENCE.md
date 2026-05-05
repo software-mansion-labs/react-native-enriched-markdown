@@ -132,8 +132,8 @@ Configuration for md4c parser extension flags.
 **Properties:**
 
 - **`underline`**: When `true`, treats `_text_` as underline instead of emphasis. When enabled, only `*text*` works for italic emphasis.
-- **`superscript`**: When `true`, parses `^text^` as superscript.
-- **`subscript`**: When `true`, parses `~text~` as subscript. When disabled, single and double tildes remain strikethrough markers.
+- **`superscript`**: When `true`, parses `^text^` as superscript. Visual appearance can be tuned with the `superscript` style prop — see [Superscript-specific](./STYLES.md#superscript-specific).
+- **`subscript`**: When `true`, parses `~text~` as subscript. When disabled, single and double tildes remain strikethrough markers. Visual appearance can be tuned with the `subscript` style prop — see [Subscript-specific](./STYLES.md#subscript-specific).
 - **`latexMath`**: When `true`, parses `$...$` and `$$...$$` as LaTeX math spans.
 
 **Example:**

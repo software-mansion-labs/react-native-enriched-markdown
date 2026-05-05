@@ -3,19 +3,21 @@
 #import "MarkdownASTNode.h"
 #import "RenderContext.h"
 #import "RendererFactory.h"
-
-static const CGFloat ENRMSubscriptFontScale = 0.75;
-static const CGFloat ENRMSubscriptBaselineOffsetScale = -0.2;
+#import "StyleConfig.h"
 
 @implementation SubscriptRenderer {
   RendererFactory *_rendererFactory;
+  CGFloat _fontScale;
+  CGFloat _baselineOffsetScale;
 }
 
 - (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
 {
-  (void)config;
   if (self = [super init]) {
     _rendererFactory = rendererFactory;
+    StyleConfig *styleConfig = (StyleConfig *)config;
+    _fontScale = styleConfig.subscriptFontScale;
+    _baselineOffsetScale = -styleConfig.subscriptBaselineOffsetScale;
   }
   return self;
 }
@@ -29,7 +31,7 @@ static const CGFloat ENRMSubscriptBaselineOffsetScale = -0.2;
   if (range.length == 0)
     return;
 
-  ENRMApplyBaselineShift(output, range, ENRMSubscriptFontScale, ENRMSubscriptBaselineOffsetScale);
+  ENRMApplyBaselineShift(output, range, _fontScale, _baselineOffsetScale);
 }
 
 @end

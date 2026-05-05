@@ -186,6 +186,8 @@ const DEFAULT_NORMALIZED_STYLE: MarkdownStyleInternal = Object.freeze({
     particles: { density: 8, speed: 20 },
     solid: { borderRadius: 4 },
   },
+  superscript: { fontScale: 0.75, baselineOffsetScale: 0.35 },
+  subscript: { fontScale: 0.75, baselineOffsetScale: 0.2 },
 });
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();

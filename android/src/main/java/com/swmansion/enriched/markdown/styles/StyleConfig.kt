@@ -234,6 +234,22 @@ class StyleConfig(
     SpoilerStyle.fromReadableMap(map, styleParser)
   }
 
+  val superscriptStyle: SuperscriptStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("superscript")) {
+        "Superscript style not found. JS should always provide defaults."
+      }
+    SuperscriptStyle.fromReadableMap(map)
+  }
+
+  val subscriptStyle: SubscriptStyle by lazy {
+    val map =
+      requireNotNull(style.getMap("subscript")) {
+        "Subscript style not found. JS should always provide defaults."
+      }
+    SubscriptStyle.fromReadableMap(map)
+  }
+
   val tableTypeface: Typeface? by lazy {
     val fontFamily = tableStyle.fontFamily.takeIf { it.isNotEmpty() }
     val fontWeight = parseFontWeight(tableStyle.fontWeight)
@@ -297,7 +313,9 @@ class StyleConfig(
       taskListStyle == other.taskListStyle &&
       mathStyle == other.mathStyle &&
       inlineMathStyle == other.inlineMathStyle &&
-      spoilerStyle == other.spoilerStyle
+      spoilerStyle == other.spoilerStyle &&
+      superscriptStyle == other.superscriptStyle &&
+      subscriptStyle == other.subscriptStyle
   }
 
   override fun hashCode(): Int {
@@ -320,6 +338,8 @@ class StyleConfig(
     result = 31 * result + mathStyle.hashCode()
     result = 31 * result + inlineMathStyle.hashCode()
     result = 31 * result + spoilerStyle.hashCode()
+    result = 31 * result + superscriptStyle.hashCode()
+    result = 31 * result + subscriptStyle.hashCode()
     return result
   }
 }

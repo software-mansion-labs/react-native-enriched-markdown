@@ -1069,5 +1069,29 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
     changed = YES;
   }
 
+  // ── Superscript ──────────────────────────────────────────────────────────
+
+  if (newStyle.superscript.fontScale != oldStyle.superscript.fontScale) {
+    [config setSuperscriptFontScale:newStyle.superscript.fontScale];
+    changed = YES;
+  }
+
+  if (newStyle.superscript.baselineOffsetScale != oldStyle.superscript.baselineOffsetScale) {
+    [config setSuperscriptBaselineOffsetScale:newStyle.superscript.baselineOffsetScale];
+    changed = YES;
+  }
+
+  // ── Subscript ────────────────────────────────────────────────────────────
+
+  if (newStyle.subscript.fontScale != oldStyle.subscript.fontScale) {
+    [config setSubscriptFontScale:newStyle.subscript.fontScale];
+    changed = YES;
+  }
+
+  if (newStyle.subscript.baselineOffsetScale != oldStyle.subscript.baselineOffsetScale) {
+    [config setSubscriptBaselineOffsetScale:newStyle.subscript.baselineOffsetScale];
+    changed = YES;
+  }
+
   return changed;
 }

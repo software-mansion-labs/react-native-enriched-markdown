@@ -153,6 +153,16 @@ interface SpoilerStyleInternal {
   solid: SpoilerSolidStyleInternal;
 }
 
+interface SuperscriptStyleInternal {
+  fontScale: number;
+  baselineOffsetScale: number;
+}
+
+interface SubscriptStyleInternal {
+  fontScale: number;
+  baselineOffsetScale: number;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -178,4 +188,6 @@ export interface MarkdownStyleInternal {
   math: MathStyleInternal;
   inlineMath: InlineMathStyleInternal;
   spoiler: SpoilerStyleInternal;
+  superscript: SuperscriptStyleInternal;
+  subscript: SubscriptStyleInternal;
 }

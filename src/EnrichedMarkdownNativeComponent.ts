@@ -153,6 +153,16 @@ interface SpoilerStyleInternal {
   solid: SpoilerSolidStyleInternal;
 }
 
+interface SuperscriptStyleInternal {
+  fontScale: CodegenTypes.Float;
+  baselineOffsetScale: CodegenTypes.Float;
+}
+
+interface SubscriptStyleInternal {
+  fontScale: CodegenTypes.Float;
+  baselineOffsetScale: CodegenTypes.Float;
+}
+
 export interface MarkdownStyleInternal {
   paragraph: ParagraphStyleInternal;
   h1: HeadingStyleInternal;
@@ -178,6 +188,8 @@ export interface MarkdownStyleInternal {
   math: MathStyleInternal;
   inlineMath: InlineMathStyleInternal;
   spoiler: SpoilerStyleInternal;
+  superscript: SuperscriptStyleInternal;
+  subscript: SubscriptStyleInternal;
 }
 
 export interface LinkPressEvent {

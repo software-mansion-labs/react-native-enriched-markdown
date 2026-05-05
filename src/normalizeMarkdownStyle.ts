@@ -205,6 +205,14 @@ const DEFAULT_NORMALIZED_STYLE = Object.freeze({
     particles: { density: 8, speed: 20 },
     solid: { borderRadius: 4 },
   },
+  superscript: {
+    fontScale: Platform.select({ android: 0.65, default: 0.75 }),
+    baselineOffsetScale: 0.35,
+  },
+  subscript: {
+    fontScale: Platform.select({ android: 0.65, default: 0.75 }),
+    baselineOffsetScale: 0.2,
+  },
 }) as MarkdownStyleInternal;
 
 const refCache = new WeakMap<MarkdownStyle, MarkdownStyleInternal>();

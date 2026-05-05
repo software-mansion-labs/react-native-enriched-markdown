@@ -1,6 +1,7 @@
 package com.swmansion.enriched.markdown.renderer
 
-private const val SUBSCRIPT_FONT_SCALE = 0.75f
-private const val SUBSCRIPT_BASELINE_OFFSET_SCALE = 0.2f
+class SubscriptRenderer : BaselineShiftRenderer() {
+  override fun fontScale(factory: RendererFactory): Float = factory.styleCache.subscriptFontScale
 
-class SubscriptRenderer : BaselineShiftRenderer(SUBSCRIPT_FONT_SCALE, SUBSCRIPT_BASELINE_OFFSET_SCALE)
+  override fun baselineOffsetScale(factory: RendererFactory): Float = factory.styleCache.subscriptBaselineOffsetScale
+}

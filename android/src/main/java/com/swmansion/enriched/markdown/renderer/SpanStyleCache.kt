@@ -27,6 +27,10 @@ class SpanStyleCache(
   val spoilerParticleDensity: Float = style.spoilerStyle.particleDensity
   val spoilerParticleSpeed: Float = style.spoilerStyle.particleSpeed
   val spoilerSolidBorderRadius: Float = style.spoilerStyle.solidBorderRadius
+  val superscriptFontScale: Float = style.superscriptStyle.fontScale
+  val superscriptBaselineOffsetScale: Float = style.superscriptStyle.baselineOffsetScale
+  val subscriptFontScale: Float = style.subscriptStyle.fontScale
+  val subscriptBaselineOffsetScale: Float = style.subscriptStyle.baselineOffsetScale
 
   private fun buildColorsToPreserve(style: StyleConfig): IntArray {
     val paragraphColor = style.paragraphStyle.color

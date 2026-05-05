@@ -227,6 +227,10 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   CGFloat _spoilerParticleDensity;
   CGFloat _spoilerParticleSpeed;
   CGFloat _spoilerSolidBorderRadius;
+  CGFloat _superscriptFontScale;
+  CGFloat _superscriptBaselineOffsetScale;
+  CGFloat _subscriptFontScale;
+  CGFloat _subscriptBaselineOffsetScale;
 }
 
 - (instancetype)init
@@ -497,6 +501,10 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   copy->_spoilerParticleDensity = _spoilerParticleDensity;
   copy->_spoilerParticleSpeed = _spoilerParticleSpeed;
   copy->_spoilerSolidBorderRadius = _spoilerSolidBorderRadius;
+  copy->_superscriptFontScale = _superscriptFontScale;
+  copy->_superscriptBaselineOffsetScale = _superscriptBaselineOffsetScale;
+  copy->_subscriptFontScale = _subscriptFontScale;
+  copy->_subscriptBaselineOffsetScale = _subscriptBaselineOffsetScale;
 
   return copy;
 }
@@ -2404,6 +2412,46 @@ static const CGFloat kDefaultMinGap = 4.0;
 - (void)setSpoilerSolidBorderRadius:(CGFloat)newValue
 {
   _spoilerSolidBorderRadius = newValue;
+}
+
+- (CGFloat)superscriptFontScale
+{
+  return _superscriptFontScale;
+}
+
+- (void)setSuperscriptFontScale:(CGFloat)newValue
+{
+  _superscriptFontScale = newValue;
+}
+
+- (CGFloat)superscriptBaselineOffsetScale
+{
+  return _superscriptBaselineOffsetScale;
+}
+
+- (void)setSuperscriptBaselineOffsetScale:(CGFloat)newValue
+{
+  _superscriptBaselineOffsetScale = newValue;
+}
+
+- (CGFloat)subscriptFontScale
+{
+  return _subscriptFontScale;
+}
+
+- (void)setSubscriptFontScale:(CGFloat)newValue
+{
+  _subscriptFontScale = newValue;
+}
+
+- (CGFloat)subscriptBaselineOffsetScale
+{
+  return _subscriptBaselineOffsetScale;
+}
+
+- (void)setSubscriptBaselineOffsetScale:(CGFloat)newValue
+{
+  _subscriptBaselineOffsetScale = newValue;
 }
 
 @end

@@ -2,10 +2,12 @@ package com.swmansion.enriched.markdown.renderer
 
 import android.content.Context
 import android.text.SpannableStringBuilder
+import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
+import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 import java.lang.ref.WeakReference
 
 interface NodeRenderer {
@@ -33,8 +35,37 @@ class RendererFactory(
 
   private val activeImageSpans = HashMap<String, WeakReference<ImageSpan>>()
 
+  /**
+   * Spans registered here are applied after the full document tree is rendered, so they
+   * always end up after block-level spans in the SpannableStringBuilder's internal array.
+   * See [BaselineShiftRenderer] for the root cause and the proper long-term fix.
+   */
+  private data class DeferredSpan(
+    val span: MetricAffectingSpan,
+    val start: Int,
+    val end: Int,
+  )
+
+  private val deferredSpans = mutableListOf<DeferredSpan>()
+
+  fun registerDeferredSpan(
+    span: MetricAffectingSpan,
+    start: Int,
+    end: Int,
+  ) {
+    deferredSpans.add(DeferredSpan(span, start, end))
+  }
+
+  fun flushDeferredSpans(builder: SpannableStringBuilder) {
+    for ((span, start, end) in deferredSpans) {
+      builder.setSpan(span, start, end, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
+    }
+    deferredSpans.clear()
+  }
+
   fun resetForNewRender() {
     blockStyleContext.resetForNewRender()
+    deferredSpans.clear()
   }
 
   fun getOrCreateImageSpan(

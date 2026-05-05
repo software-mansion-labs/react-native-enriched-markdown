@@ -367,5 +367,15 @@
 - (void)setSpoilerParticleSpeed:(CGFloat)newValue;
 - (CGFloat)spoilerSolidBorderRadius;
 - (void)setSpoilerSolidBorderRadius:(CGFloat)newValue;
+// Superscript properties
+- (CGFloat)superscriptFontScale;
+- (void)setSuperscriptFontScale:(CGFloat)newValue;
+- (CGFloat)superscriptBaselineOffsetScale;
+- (void)setSuperscriptBaselineOffsetScale:(CGFloat)newValue;
+// Subscript properties
+- (CGFloat)subscriptFontScale;
+- (void)setSubscriptFontScale:(CGFloat)newValue;
+- (CGFloat)subscriptBaselineOffsetScale;
+- (void)setSubscriptBaselineOffsetScale:(CGFloat)newValue;
 
 @end

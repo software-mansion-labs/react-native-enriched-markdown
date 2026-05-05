@@ -52,6 +52,10 @@ class Renderer {
     // Remove trailing margin from last block element
     removeTrailingMargin(builder)
 
+    // Flush deferred spans (e.g. BaselineShiftSpan) after all block-level spans are set.
+    // See BaselineShiftRenderer for context and the proper long-term fix.
+    factory.flushDeferredSpans(builder)
+
     return SpannableString(builder)
   }
 

@@ -188,6 +188,14 @@ The library provides sensible default styles for all Markdown elements out of th
       particles: { density: 10, speed: 25 },
       solid: { borderRadius: 6 },
     },
+    superscript: {
+      fontScale: 0.75,
+      baselineOffsetScale: 0.35,
+    },
+    subscript: {
+      fontScale: 0.75,
+      baselineOffsetScale: 0.20,
+    },
   }}
 />
 ```
@@ -435,3 +443,50 @@ Styles for spoiler text (`||hidden text||`). Spoiler text is concealed behind an
 | `particles.density` | `number` | Density of the particle field (higher = more particles). Default: `8` |
 | `particles.speed` | `number` | Speed of particle movement. Default: `20` |
 | `solid.borderRadius` | `number` | Corner radius of the solid spoiler overlay rectangles. Default: `4` |
+
+### Superscript-specific
+
+Styles for superscript text (`^text^`). Requires `md4cFlags={{ superscript: true }}` to enable the parser.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fontScale` | `number` | Font size as a fraction of the surrounding text size. Default: `0.75` (iOS/macOS/web), `0.65` (Android) |
+| `baselineOffsetScale` | `number` | Vertical shift upward as a fraction of the surrounding text size. Default: `0.35` |
+
+```tsx
+<EnrichedMarkdownText
+  markdown="E = mc^2^"
+  md4cFlags={{ superscript: true }}
+  markdownStyle={{
+    superscript: {
+      fontScale: 0.75,
+      baselineOffsetScale: 0.35,
+    },
+  }}
+/>
+```
+
+### Subscript-specific
+
+Styles for subscript text (`~text~`). Requires `md4cFlags={{ subscript: true }}` to enable the parser. Note: enabling subscript changes the behaviour of single tildes — `~text~` becomes subscript instead of strikethrough.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fontScale` | `number` | Font size as a fraction of the surrounding text size. Default: `0.75` (iOS/macOS/web), `0.65` (Android) |
+| `baselineOffsetScale` | `number` | Vertical shift downward as a fraction of the surrounding text size. Default: `0.20` |
+
+```tsx
+<EnrichedMarkdownText
+  markdown="H~2~O"
+  md4cFlags={{ subscript: true }}
+  markdownStyle={{
+    subscript: {
+      fontScale: 0.75,
+      baselineOffsetScale: 0.20,
+    },
+  }}
+/>
+```
+
+> [!NOTE]
+> Android uses a slightly smaller default `fontScale` (`0.65`) compared to iOS (`0.75`) because Roboto has a larger x-height than San Francisco, making identically-scaled text appear visually larger on Android.

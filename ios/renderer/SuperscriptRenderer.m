@@ -6,7 +6,7 @@
 #import "StyleConfig.h"
 
 @implementation SuperscriptRenderer {
-  RendererFactory *_rendererFactory;
+  __weak RendererFactory *_rendererFactory;
   CGFloat _fontScale;
   CGFloat _baselineOffsetScale;
 }

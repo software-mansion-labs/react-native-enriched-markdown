@@ -9,7 +9,14 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        - [x] Dice 2 onions, 3 carrots, and celery stalks
+        - [x] Add vegetables to the pot
+        - [ ] Add ground pork and beef
+        - [ ] Saute for 10 minutes
+        - [ ] Pour in passata and simmer for 1 hour
+        - [x] Boil spaghetti pasta
+        - [ ] Mix everything and serve
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

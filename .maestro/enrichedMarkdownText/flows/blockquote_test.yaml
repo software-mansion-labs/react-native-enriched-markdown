@@ -9,7 +9,12 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        > this is a text inside a blockquote
+
+         >this is also a text inside a blockquote
+
+        .>this isn't
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

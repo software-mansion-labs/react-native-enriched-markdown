@@ -1,6 +1,6 @@
 appId: swmansion.enriched.markdown.example
 ---
-# checks the parsing of Markdown math display blocks ($...$ LaTeX)
+# checks the parsing of Markdown math display blocks ($$...$$ LaTeX)
 - launchApp
 
 - runFlow:
@@ -9,7 +9,18 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        $$
+        E = mc^2
+        $$
+
+        $$
+        \int_{a}^{b} f(x)\,dx = F(b) - F(a)
+        $$
+
+        $$
+        \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+        $$
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

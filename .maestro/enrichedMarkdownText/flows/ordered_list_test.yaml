@@ -9,7 +9,12 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        1. Preheat oven to 180C
+        2. Mix flour, sugar, and butter
+        3. Add eggs and vanilla extract
+        4. Pour into a greased tin
+        5. Bake for 30 minutes
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

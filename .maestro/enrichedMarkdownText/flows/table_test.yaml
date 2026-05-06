@@ -9,7 +9,12 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        | col1 | col2 | looooooooong col | a |
+        | - | -- | -------------------- | -------- |
+        | test | of | the | t |
+        | the | one | piece is | real
+        | third | Row | to test trailing | symbols | |asdf|||||blabla|
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

@@ -9,7 +9,17 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        - Frontend
+          - React
+            - Hooks
+            - Components
+          - Vue
+        - Backend
+          - Node.js
+          - Python
+            1. Django
+            2. FastAPI
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

@@ -1,6 +1,6 @@
 appId: swmansion.enriched.markdown.example
 ---
-# checks the parsing of Markdown fenced code blocks (with and without language label)
+# checks the parsing of Markdown fenced code blocks
 - launchApp
 
 - runFlow:
@@ -9,7 +9,15 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: ''
+      VALUE: |
+        ```
+        sum = 0
+        for i in range(20):
+          print(i % 3)
+          sum += i % 3
+        print(sum)
+        ```
+
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

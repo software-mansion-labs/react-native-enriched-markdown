@@ -6,10 +6,11 @@ appId: swmansion.enriched.markdown.example
 - runFlow:
     file: '../../subflows/move_to_playground.yaml'
 
-- runFlow:
-    file: '../subflows/set_enriched_text_value.yaml'
-    env:
-      VALUE: ''
+- tapOn:
+    id: insert-inline-image-button
+
+- tapOn:
+    id: blur-button
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

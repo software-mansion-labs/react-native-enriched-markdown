@@ -30,7 +30,7 @@ if [ "$STATE" != "(Booted)" ]; then
   echo "Booting '$DEVICE_NAME' ($UDID)..."
   xcrun simctl boot "$UDID"
   # `bootstatus -b` exits before the app registry is ready on some runtimes.
-  # Polling listapps for a built-in app is a reliable signal that SpringBoard is up.
+  # Polling listapps for a built-in app is better signal that SpringBoard is up.
   echo "Waiting for simulator to finish booting..."
   until xcrun simctl listapps "$UDID" 2>/dev/null | grep -q "com.apple.Preferences"; do
     sleep 2

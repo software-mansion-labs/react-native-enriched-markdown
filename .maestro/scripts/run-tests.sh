@@ -17,7 +17,6 @@
 # Examples:
 #   ./run-tests.sh --platform ios .maestro/enrichedMarkdownTest/flows
 #   ./run-tests.sh --platform android --update-screenshots --rebuild
-# TODO: fix rebuilding skill issues + fix android skill issues
 
 set -euo pipefail
 

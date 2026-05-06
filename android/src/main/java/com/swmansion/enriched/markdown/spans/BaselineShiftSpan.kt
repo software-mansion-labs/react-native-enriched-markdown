@@ -19,6 +19,6 @@ class BaselineShiftSpan(
   private fun applyShift(tp: TextPaint) {
     val originalTextSize = tp.textSize
     tp.textSize = originalTextSize * fontScale
-    tp.baselineShift += (originalTextSize * baselineOffsetScale).roundToInt()
+    tp.baselineShift -= (originalTextSize * baselineOffsetScale).roundToInt()
   }
 }

@@ -1,6 +1,4 @@
-#import "NodeRenderer.h"
-#import <Foundation/Foundation.h>
+#import "BaseRenderer.h"
 
-@interface UnderlineRenderer : NSObject <NodeRenderer>
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
+@interface UnderlineRenderer : BaseRenderer <NodeRenderer>
 @end

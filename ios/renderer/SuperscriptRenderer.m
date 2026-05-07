@@ -5,22 +5,7 @@
 #import "RendererFactory.h"
 #import "StyleConfig.h"
 
-@implementation SuperscriptRenderer {
-  __weak RendererFactory *_rendererFactory;
-  CGFloat _fontScale;
-  CGFloat _baselineOffsetScale;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
-{
-  if (self = [super init]) {
-    _rendererFactory = rendererFactory;
-    StyleConfig *styleConfig = (StyleConfig *)config;
-    _fontScale = styleConfig.superscriptFontScale;
-    _baselineOffsetScale = styleConfig.superscriptBaselineOffsetScale;
-  }
-  return self;
-}
+@implementation SuperscriptRenderer
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {
@@ -31,7 +16,7 @@
   if (range.length == 0)
     return;
 
-  ENRMApplyBaselineShift(output, range, _fontScale, _baselineOffsetScale);
+  ENRMApplyBaselineShift(output, range, _config.superscriptFontScale, _config.superscriptBaselineOffsetScale);
 }
 
 @end

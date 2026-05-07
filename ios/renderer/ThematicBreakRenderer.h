@@ -1,5 +1,4 @@
-#import "NodeRenderer.h"
+#import "BaseRenderer.h"
 
-@interface ThematicBreakRenderer : NSObject <NodeRenderer>
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
+@interface ThematicBreakRenderer : BaseRenderer <NodeRenderer>
 @end

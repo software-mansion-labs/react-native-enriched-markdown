@@ -4,19 +4,7 @@
 #import "RendererFactory.h"
 #import "StyleConfig.h"
 
-@implementation StrikethroughRenderer {
-  __weak RendererFactory *_rendererFactory;
-  StyleConfig *_config;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
-{
-  if (self = [super init]) {
-    _rendererFactory = rendererFactory;
-    _config = (StyleConfig *)config;
-  }
-  return self;
-}
+@implementation StrikethroughRenderer
 
 #pragma mark - Rendering
 

@@ -20,19 +20,7 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
                      nestingLevel:(NSInteger)nestingLevel;
 @end
 
-@implementation ListItemRenderer {
-  __weak RendererFactory *_rendererFactory;
-  StyleConfig *_config;
-}
-
-- (instancetype)initWithRendererFactory:(RendererFactory *)factory config:(StyleConfig *)config
-{
-  if (self = [super init]) {
-    _rendererFactory = factory;
-    _config = config;
-  }
-  return self;
-}
+@implementation ListItemRenderer
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {

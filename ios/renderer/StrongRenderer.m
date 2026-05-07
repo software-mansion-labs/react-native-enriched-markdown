@@ -6,19 +6,7 @@
 #import "StyleConfig.h"
 #import <React/RCTFont.h>
 
-@implementation StrongRenderer {
-  __weak RendererFactory *_rendererFactory;
-  StyleConfig *_config;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
-{
-  if (self = [super init]) {
-    _rendererFactory = rendererFactory;
-    _config = (StyleConfig *)config;
-  }
-  return self;
-}
+@implementation StrongRenderer
 
 #pragma mark - Rendering
 

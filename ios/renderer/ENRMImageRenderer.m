@@ -8,19 +8,7 @@
 static const unichar kLineBreak = '\n';
 static const unichar kZeroWidthSpace = 0x200B;
 
-@implementation ENRMImageRenderer {
-  __weak RendererFactory *_rendererFactory;
-  StyleConfig *_config;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
-{
-  if (self = [super init]) {
-    _rendererFactory = rendererFactory;
-    _config = (StyleConfig *)config;
-  }
-  return self;
-}
+@implementation ENRMImageRenderer
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {

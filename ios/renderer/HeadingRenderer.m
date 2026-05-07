@@ -19,19 +19,7 @@ typedef struct {
 static NSString *const kHeadingTypes[] = {nil,          @"heading-1", @"heading-2", @"heading-3",
                                           @"heading-4", @"heading-5", @"heading-6"};
 
-@implementation HeadingRenderer {
-  __weak RendererFactory *_rendererFactory;
-  StyleConfig *_config;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
-{
-  if (self = [super init]) {
-    _rendererFactory = rendererFactory;
-    _config = (StyleConfig *)config;
-  }
-  return self;
-}
+@implementation HeadingRenderer
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {

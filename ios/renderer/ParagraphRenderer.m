@@ -5,20 +5,7 @@
 #import "RendererFactory.h"
 #import "StyleConfig.h"
 
-@implementation ParagraphRenderer {
-  __weak RendererFactory *_rendererFactory;
-  StyleConfig *_config;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config
-{
-  self = [super init];
-  if (self) {
-    _rendererFactory = rendererFactory;
-    _config = (StyleConfig *)config;
-  }
-  return self;
-}
+@implementation ParagraphRenderer
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {

@@ -1,6 +1,5 @@
 #pragma once
-#import "NodeRenderer.h"
+#import "BaseRenderer.h"
 
-@interface EmphasisRenderer : NSObject <NodeRenderer>
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
+@interface EmphasisRenderer : BaseRenderer <NodeRenderer>
 @end

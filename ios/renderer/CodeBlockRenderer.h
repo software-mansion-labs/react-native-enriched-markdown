@@ -1,10 +1,9 @@
 #pragma once
-#import "NodeRenderer.h"
+#import "BaseRenderer.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface CodeBlockRenderer : NSObject <NodeRenderer>
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
+@interface CodeBlockRenderer : BaseRenderer <NodeRenderer>
 @end
 
 NS_ASSUME_NONNULL_END

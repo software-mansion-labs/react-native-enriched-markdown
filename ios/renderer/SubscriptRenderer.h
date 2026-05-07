@@ -1,6 +1,5 @@
 #pragma once
-#import "NodeRenderer.h"
+#import "BaseRenderer.h"
 
-@interface SubscriptRenderer : NSObject <NodeRenderer>
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(id)config;
+@interface SubscriptRenderer : BaseRenderer <NodeRenderer>
 @end

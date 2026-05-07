@@ -1,8 +1,4 @@
-#import "NodeRenderer.h"
-
-@class RendererFactory;
-@class StyleConfig;
-@class RenderContext;
+#import "BaseRenderer.h"
 
 extern NSString *const ListDepthAttribute;
 extern NSString *const ListTypeAttribute;
@@ -12,8 +8,5 @@ extern NSString *const TaskItemAttribute;
 extern NSString *const TaskCheckedAttribute;
 extern NSString *const TaskIndexAttribute;
 
-@interface ListItemRenderer : NSObject <NodeRenderer>
-
-- (instancetype)initWithRendererFactory:(RendererFactory *)rendererFactory config:(StyleConfig *)config;
-
+@interface ListItemRenderer : BaseRenderer <NodeRenderer>
 @end

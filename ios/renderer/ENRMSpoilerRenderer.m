@@ -4,17 +4,7 @@
 #import "RenderContext.h"
 #import "RendererFactory.h"
 
-@implementation ENRMSpoilerRenderer {
-  __weak RendererFactory *_rendererFactory;
-}
-
-- (instancetype)initWithRendererFactory:(id)rendererFactory config:(__unused id)config
-{
-  if (self = [super init]) {
-    _rendererFactory = rendererFactory;
-  }
-  return self;
-}
+@implementation ENRMSpoilerRenderer
 
 - (void)renderNode:(MarkdownASTNode *)node into:(NSMutableAttributedString *)output context:(RenderContext *)context
 {

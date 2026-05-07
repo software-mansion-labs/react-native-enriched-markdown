@@ -195,13 +195,15 @@ static NSAttributedStringKey const ENRMAutomaticLinkAttributeName = @"ENRMAutoma
   static NSRegularExpression *regex;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
+    NSError *error = nil;
     regex = [NSRegularExpression
         regularExpressionWithPattern:
             @"(?:https?://[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-z]{2,6}\\b[-a-zA-Z0-9@:%_\\+.~#?&//=]*"
             @"|www\\.[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-z]{2,6}\\b[-a-zA-Z0-9@:%_\\+.~#?&//=]*"
             @"|[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-z]{2,6}\\b[-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
                              options:NSRegularExpressionCaseInsensitive
-                               error:nil];
+                               error:&error];
+    NSCAssert(regex != nil, @"ENRMAutoLinkDetector: failed to compile default regex: %@", error);
   });
   return regex;
 }

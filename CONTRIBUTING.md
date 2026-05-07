@@ -25,6 +25,9 @@ cd react-native-enriched-markdown
 ```sh
 # Install dependencies
 yarn
+
+# Build the library (required before running any app)
+yarn prepare
 ```
 
 > Since the project relies on Yarn workspaces, you cannot use [`npm`](https://github.com/npm/cli) for development without manually migrating.
@@ -137,6 +140,7 @@ yarn release
 The `package.json` file contains various scripts for common tasks:
 
 - `yarn`: setup project by installing dependencies.
+- `yarn prepare`: build the library (required before running any app).
 - `yarn typecheck`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
 - `yarn test`: run unit tests with Jest.

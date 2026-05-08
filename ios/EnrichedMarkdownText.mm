@@ -1,6 +1,7 @@
 #import "EnrichedMarkdownText.h"
 #import "CodeBlockBackground.h"
 #import "ContextMenuUtils.h"
+#import "ENRMAsyncRenderCoordinator.h"
 #import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
@@ -51,9 +52,7 @@ using namespace facebook::react;
   StyleConfig *_config;
   ENRMMd4cFlags *_md4cFlags;
 
-  dispatch_queue_t _renderQueue;
-  NSUInteger _currentRenderId;
-  BOOL _blockAsyncRender;
+  ENRMAsyncRenderCoordinator *_renderCoordinator;
 
   EnrichedMarkdownTextShadowNode::ConcreteState::Shared _state;
   int _heightUpdateCounter;
@@ -132,8 +131,8 @@ using namespace facebook::react;
     _parser = [[ENRMMarkdownParser alloc] init];
     _md4cFlags = [ENRMMd4cFlags defaultFlags];
 
-    _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.render", DISPATCH_QUEUE_SERIAL);
-    _currentRenderId = 0;
+    _renderCoordinator =
+        [[ENRMAsyncRenderCoordinator alloc] initWithQueueLabel:"com.swmansion.enriched.markdown.render"];
 
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
@@ -234,13 +233,10 @@ using namespace facebook::react;
 
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
-  if (_blockAsyncRender) {
+  if (_renderCoordinator.blockAsyncRender)
     return;
-  }
 
   _cachedMarkdown = [markdownString copy];
-
-  NSUInteger renderId = ++_currentRenderId;
 
   StyleConfig *config = [_config copy];
   ENRMMarkdownParser *parser = _parser;
@@ -252,26 +248,23 @@ using namespace facebook::react;
 
   NSWritingDirection writingDirection = currentWritingDirection();
 
-  dispatch_async(_renderQueue, ^{
-    MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
-    if (!ast) {
-      return;
-    }
+  __block ENRMRenderResult *result = nil;
 
-    ENRMRenderResult *result = ENRMRenderASTNodes(ast.children, config, allowTrailingMargin, allowFontScaling,
-                                                  maxFontSizeMultiplier, writingDirection);
+  [_renderCoordinator
+      scheduleRender:^BOOL {
+        MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
+        if (!ast)
+          return NO;
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-      if (renderId != self->_currentRenderId) {
-        return;
+        result = ENRMRenderASTNodes(ast.children, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
+                                    writingDirection);
+        return YES;
       }
-
-      self->_lastElementMarginBottom = result.lastElementMarginBottom;
-      self->_accessibilityInfo = result.accessibilityInfo;
-
-      [self applyRenderedText:result.attributedText];
-    });
-  });
+      apply:^{
+        self->_lastElementMarginBottom = result.lastElementMarginBottom;
+        self->_accessibilityInfo = result.accessibilityInfo;
+        [self applyRenderedText:result.attributedText];
+      }];
 }
 
 - (NSMutableAttributedString *)parseAndRenderMarkdown:(NSString *)markdownString
@@ -298,7 +291,7 @@ using namespace facebook::react;
     return;
   }
 
-  _blockAsyncRender = YES;
+  _renderCoordinator.blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
 
   NSMutableAttributedString *attributedText = [self parseAndRenderMarkdown:markdownString];

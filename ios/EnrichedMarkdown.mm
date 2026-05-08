@@ -1,5 +1,6 @@
 #import "EnrichedMarkdown.h"
 #import "ContextMenuUtils.h"
+#import "ENRMAsyncRenderCoordinator.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
 #import "ENRMTailFadeInAnimator.h"
@@ -73,9 +74,7 @@ static char kENRMSegmentFadeAnimatorKey;
   ENRMSegmentViewRegistry *_segmentViewRegistry;
   ENRMDirtyFlags _dirtyFlags;
 
-  dispatch_queue_t _renderQueue;
-  NSUInteger _currentRenderId;
-  BOOL _blockAsyncRender;
+  ENRMAsyncRenderCoordinator *_renderCoordinator;
 
   EnrichedMarkdownShadowNode::ConcreteState::Shared _state;
   int _heightUpdateCounter;
@@ -115,8 +114,8 @@ static char kENRMSegmentFadeAnimatorKey;
     _dirtyFlags = ENRMDirtyNone;
     [self configureSegmentViewRegistry];
 
-    _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
-    _currentRenderId = 0;
+    _renderCoordinator =
+        [[ENRMAsyncRenderCoordinator alloc] initWithQueueLabel:"com.swmansion.enriched.markdown.container.render"];
 
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
@@ -331,12 +330,10 @@ static char kENRMSegmentFadeAnimatorKey;
 
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
-  if (_blockAsyncRender) {
+  if (_renderCoordinator.blockAsyncRender)
     return;
-  }
 
   _cachedMarkdown = [markdownString copy];
-  NSUInteger renderId = ++_currentRenderId;
 
   StyleConfig *config = [_config copy];
   ENRMMarkdownParser *parser = _parser;
@@ -348,34 +345,28 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL streamingAnimation = _streamingAnimation;
   ENRMTableStreamingMode tableStreamingMode = _tableStreamingMode;
 
-  dispatch_async(_renderQueue, ^{
-    NSString *renderableMarkdown =
-        streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, tableStreamingMode) : markdownString;
-    if (renderableMarkdown.length == 0) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        if (renderId == self->_currentRenderId) {
-          [self applyRenderedSegments:@[] renderedMarkdown:renderableMarkdown];
+  __block NSArray<ENRMRenderedSegment *> *renderedSegments = nil;
+  __block NSString *renderableMarkdown = nil;
+
+  [_renderCoordinator
+      scheduleRender:^BOOL {
+        renderableMarkdown = streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, tableStreamingMode)
+                                                : markdownString;
+
+        if (renderableMarkdown.length == 0) {
+          renderedSegments = @[];
+          return YES;
         }
-      });
-      return;
-    }
 
-    MarkdownASTNode *ast = [parser parseMarkdown:renderableMarkdown flags:md4cFlags];
-    if (!ast) {
-      return;
-    }
+        MarkdownASTNode *ast = [parser parseMarkdown:renderableMarkdown flags:md4cFlags];
+        if (!ast)
+          return NO;
 
-    NSArray<ENRMRenderedSegment *> *renderedSegments =
-        ENRMRenderSegmentsFromAST(ast, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier);
-
-    dispatch_async(dispatch_get_main_queue(), ^{
-      if (renderId != self->_currentRenderId) {
-        return;
+        renderedSegments =
+            ENRMRenderSegmentsFromAST(ast, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier);
+        return YES;
       }
-
-      [self applyRenderedSegments:renderedSegments renderedMarkdown:renderableMarkdown];
-    });
-  });
+      apply:^{ [self applyRenderedSegments:renderedSegments renderedMarkdown:renderableMarkdown]; }];
 }
 
 - (NSArray *)parseAndRenderSegments:(NSString *)markdownString
@@ -402,7 +393,7 @@ static char kENRMSegmentFadeAnimatorKey;
   [_segmentViews removeAllObjects];
   [_segmentSignatures removeAllObjects];
 
-  _blockAsyncRender = YES;
+  _renderCoordinator.blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
   NSString *renderableMarkdown =
       _streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, _tableStreamingMode) : markdownString;

@@ -1,10 +1,7 @@
 appId: swmansion.enriched.markdown.example
-<<<<<<< HEAD
 tags:
   - smoke
   - inline
-=======
->>>>>>> main
 ---
 # checks the parsing of inline math spans ($...$)
 - launchApp

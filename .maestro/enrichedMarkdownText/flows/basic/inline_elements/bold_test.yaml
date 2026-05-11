@@ -9,6 +9,10 @@ tags:
 - runFlow:
     file: '../../../../subflows/move_to_playground.yaml'
 
+# underline flag is ON by default; tap to disable it so __text__ renders as bold
+- tapOn:
+    id: underline-button
+
 - runFlow:
     file: '../../../subflows/set_enriched_text_value.yaml'
     env:

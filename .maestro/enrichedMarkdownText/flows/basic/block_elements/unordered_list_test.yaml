@@ -15,9 +15,9 @@ tags:
       VALUE: |
         - Apples
         - Bananas
-        - Cherries
+        - Mango
         * Dragonfruit
-        * Elderberry
+        * Guava
         * Fig
 
 - runFlow:

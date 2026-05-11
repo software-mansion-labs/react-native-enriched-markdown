@@ -1,12 +1,14 @@
 #import "EnrichedMarkdownText.h"
 #import "CodeBlockBackground.h"
 #import "ContextMenuUtils.h"
+#import "ENRMAsyncRenderCoordinator.h"
 #import "ENRMContextMenuTextView+macOS.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
 #import "ENRMSpoilerOverlayManager.h"
 #import "ENRMSpoilerTapUtils.h"
 #import "ENRMTailFadeInAnimator.h"
+#import "ENRMTextInteractionUtils.h"
 #import "ENRMTextRenderer.h"
 #import "ENRMTextViewSetup.h"
 #import "ENRMUIKit.h"
@@ -32,7 +34,6 @@
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>
 #import <React/RCTFont.h>
-#import <react/utils/ManagedObjectWrapper.h>
 
 using namespace facebook::react;
 
@@ -42,6 +43,13 @@ using namespace facebook::react;
 - (void)applyRenderedText:(NSMutableAttributedString *)attributedText;
 - (void)textTapped:(ENRMTapRecognizer *)recognizer;
 - (void)setupLayoutManager;
+- (void)emitLinkPress:(NSString *)url;
+- (void)emitLinkLongPress:(NSString *)url;
+- (void)emitTaskListItemPress:(NSInteger)index checked:(BOOL)checked text:(NSString *)text;
+- (void)emitContextMenuItemPress:(NSString *)itemText
+                    selectedText:(NSString *)selectedText
+                  selectionStart:(NSUInteger)selectionStart
+                    selectionEnd:(NSUInteger)selectionEnd;
 @end
 
 @implementation EnrichedMarkdownText {
@@ -52,9 +60,7 @@ using namespace facebook::react;
   StyleConfig *_config;
   ENRMMd4cFlags *_md4cFlags;
 
-  dispatch_queue_t _renderQueue;
-  NSUInteger _currentRenderId;
-  BOOL _blockAsyncRender;
+  ENRMAsyncRenderCoordinator *_renderCoordinator;
 
   EnrichedMarkdownTextShadowNode::ConcreteState::Shared _state;
   int _heightUpdateCounter;
@@ -120,13 +126,7 @@ using namespace facebook::react;
 
 - (void)requestHeightUpdate
 {
-  if (_state == nullptr) {
-    return;
-  }
-
-  _heightUpdateCounter++;
-  auto selfRef = wrapManagedObjectWeakly(self);
-  _state->updateState(EnrichedMarkdownTextState(_heightUpdateCounter, selfRef));
+  ENRMRequestHeightUpdate<EnrichedMarkdownTextState>(_state, _heightUpdateCounter, self);
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -139,8 +139,8 @@ using namespace facebook::react;
     _parser = [[ENRMMarkdownParser alloc] init];
     _md4cFlags = [ENRMMd4cFlags defaultFlags];
 
-    _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.render", DISPATCH_QUEUE_SERIAL);
-    _currentRenderId = 0;
+    _renderCoordinator =
+        [[ENRMAsyncRenderCoordinator alloc] initWithQueueLabel:"com.swmansion.enriched.markdown.render"];
 
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
@@ -194,16 +194,10 @@ using namespace facebook::react;
     NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
         strongSelf->_contextMenuItemTexts, strongSelf->_contextMenuItemIcons, textView,
         ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
-          auto eventEmitter =
-              std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(strongSelf->_eventEmitter);
-          if (eventEmitter) {
-            eventEmitter->onContextMenuItemPress({
-                .itemText = std::string(itemText.UTF8String),
-                .selectedText = std::string(selectedText.UTF8String),
-                .selectionStart = (int)selectionStart,
-                .selectionEnd = (int)selectionEnd,
-            });
-          }
+          [strongSelf emitContextMenuItemPress:itemText
+                                  selectedText:selectedText
+                                selectionStart:selectionStart
+                                  selectionEnd:selectionEnd];
         });
     return buildEditMenuForSelection(textView.textStorage, textView.selectedRange, strongSelf->_cachedMarkdown,
                                      strongSelf->_config, @[ baseMenu ], customItems,
@@ -241,13 +235,10 @@ using namespace facebook::react;
 
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
-  if (_blockAsyncRender) {
+  if (_renderCoordinator.blockAsyncRender)
     return;
-  }
 
   _cachedMarkdown = [markdownString copy];
-
-  NSUInteger renderId = ++_currentRenderId;
 
   StyleConfig *config = [_config copy];
   ENRMMarkdownParser *parser = _parser;
@@ -259,26 +250,23 @@ using namespace facebook::react;
 
   NSWritingDirection writingDirection = currentWritingDirection();
 
-  dispatch_async(_renderQueue, ^{
-    MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
-    if (!ast) {
-      return;
-    }
+  __block ENRMRenderResult *result = nil;
 
-    ENRMRenderResult *result = ENRMRenderASTNodes(ast.children, config, allowTrailingMargin, allowFontScaling,
-                                                  maxFontSizeMultiplier, writingDirection);
+  [_renderCoordinator
+      scheduleRender:^BOOL {
+        MarkdownASTNode *ast = [parser parseMarkdown:markdownString flags:md4cFlags];
+        if (!ast)
+          return NO;
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-      if (renderId != self->_currentRenderId) {
-        return;
+        result = ENRMRenderASTNodes(ast.children, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
+                                    writingDirection);
+        return YES;
       }
-
-      self->_lastElementMarginBottom = result.lastElementMarginBottom;
-      self->_accessibilityInfo = result.accessibilityInfo;
-
-      [self applyRenderedText:result.attributedText];
-    });
-  });
+      apply:^{
+        self->_lastElementMarginBottom = result.lastElementMarginBottom;
+        self->_accessibilityInfo = result.accessibilityInfo;
+        [self applyRenderedText:result.attributedText];
+      }];
 }
 
 - (NSMutableAttributedString *)parseAndRenderMarkdown:(NSString *)markdownString
@@ -305,7 +293,7 @@ using namespace facebook::react;
     return;
   }
 
-  _blockAsyncRender = YES;
+  _renderCoordinator.blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
 
   NSMutableAttributedString *attributedText = [self parseAndRenderMarkdown:markdownString];
@@ -551,6 +539,42 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
   return [super touchEventEmitterAtPoint:point];
 }
 
+- (void)emitLinkPress:(NSString *)url
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onLinkPress({.url = std::string(url.UTF8String)});
+}
+
+- (void)emitLinkLongPress:(NSString *)url
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onLinkLongPress({.url = std::string(url.UTF8String)});
+}
+
+- (void)emitTaskListItemPress:(NSInteger)index checked:(BOOL)checked text:(NSString *)text
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onTaskListItemPress({.index = (int)index, .checked = checked, .text = std::string(text.UTF8String ?: "")});
+}
+
+- (void)emitContextMenuItemPress:(NSString *)itemText
+                    selectedText:(NSString *)selectedText
+                  selectionStart:(NSUInteger)selectionStart
+                    selectionEnd:(NSUInteger)selectionEnd
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onContextMenuItemPress({
+        .itemText = std::string(itemText.UTF8String),
+        .selectedText = std::string(selectedText.UTF8String),
+        .selectionStart = (int)selectionStart,
+        .selectionEnd = (int)selectionEnd,
+    });
+}
+
 - (void)textTapped:(ENRMTapRecognizer *)recognizer
 {
   ENRMPlatformTextView *textView = (ENRMPlatformTextView *)recognizer.view;
@@ -558,14 +582,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
   if (handleTaskListTapWithSharedLogic(
           textView, recognizer, &self->_cachedMarkdown, self->_config,
           ^(NSInteger index, BOOL checked, NSString *itemText) {
-            auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(self->_eventEmitter);
-            if (eventEmitter) {
-              eventEmitter->onTaskListItemPress({
-                  .index = (int)index,
-                  .checked = checked,
-                  .text = std::string([itemText UTF8String] ?: ""),
-              });
-            }
+            [self emitTaskListItemPress:index checked:checked text:itemText];
           },
           ^(NSString *updatedMarkdown) { [self renderMarkdownContent:updatedMarkdown]; })) {
     return;
@@ -575,16 +592,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
     return;
   }
 
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url) {
-    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
-    if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
-    }
-    return;
-  }
-
-  ENRMClearSelection(textView);
+  ENRMHandleTapOnTextView(textView, recognizer, ^(NSString *url) { [self emitLinkPress:url]; });
 }
 
 #pragma mark - UITextViewDelegate (Link Interaction)
@@ -605,10 +613,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
     return YES;
   }
 
-  auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
-  if (eventEmitter) {
-    eventEmitter->onLinkLongPress({.url = std::string([urlString UTF8String])});
-  }
+  [self emitLinkLongPress:urlString];
   return NO;
 }
 
@@ -623,17 +628,11 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
   ENRMContextMenuPressHandler handler =
       ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
         EnrichedMarkdownText *strongSelf = weakSelf;
-        if (!strongSelf)
-          return;
-        auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(strongSelf->_eventEmitter);
-        if (eventEmitter) {
-          eventEmitter->onContextMenuItemPress({
-              .itemText = std::string(itemText.UTF8String),
-              .selectedText = std::string(selectedText.UTF8String),
-              .selectionStart = (int)selectionStart,
-              .selectionEnd = (int)selectionEnd,
-          });
-        }
+        if (strongSelf)
+          [strongSelf emitContextMenuItemPress:itemText
+                                  selectedText:selectedText
+                                selectionStart:selectionStart
+                                  selectionEnd:selectionEnd];
       };
   NSMutableArray<UIAction *> *customActions =
       ENRMBuildContextMenuActions(_contextMenuItemTexts, _contextMenuItemIcons, textView, range, handler);

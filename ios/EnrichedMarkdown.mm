@@ -1,8 +1,10 @@
 #import "EnrichedMarkdown.h"
 #import "ContextMenuUtils.h"
+#import "ENRMAsyncRenderCoordinator.h"
 #import "ENRMImageAttachment.h"
 #import "ENRMMarkdownParser.h"
 #import "ENRMTailFadeInAnimator.h"
+#import "ENRMTextInteractionUtils.h"
 #import "ENRMTextRenderer.h"
 #import "ENRMTextViewSetup.h"
 #import "ENRMUIKit.h"
@@ -48,7 +50,6 @@
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>
 #import <React/RCTFont.h>
-#import <react/utils/ManagedObjectWrapper.h>
 
 using namespace facebook::react;
 
@@ -61,6 +62,13 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
 static char kENRMSegmentFadeAnimatorKey;
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
+- (void)emitLinkPress:(NSString *)url;
+- (void)emitLinkLongPress:(NSString *)url;
+- (void)emitTaskListItemPress:(NSInteger)index checked:(BOOL)checked text:(NSString *)text;
+- (void)emitContextMenuItemPress:(NSString *)itemText
+                    selectedText:(NSString *)selectedText
+                  selectionStart:(NSUInteger)selectionStart
+                    selectionEnd:(NSUInteger)selectionEnd;
 @end
 
 @implementation EnrichedMarkdown {
@@ -74,9 +82,7 @@ static char kENRMSegmentFadeAnimatorKey;
   ENRMSegmentViewRegistry *_segmentViewRegistry;
   ENRMDirtyFlags _dirtyFlags;
 
-  dispatch_queue_t _renderQueue;
-  NSUInteger _currentRenderId;
-  BOOL _blockAsyncRender;
+  ENRMAsyncRenderCoordinator *_renderCoordinator;
 
   EnrichedMarkdownShadowNode::ConcreteState::Shared _state;
   int _heightUpdateCounter;
@@ -116,8 +122,8 @@ static char kENRMSegmentFadeAnimatorKey;
     _dirtyFlags = ENRMDirtyNone;
     [self configureSegmentViewRegistry];
 
-    _renderQueue = dispatch_queue_create("com.swmansion.enriched.markdown.container.render", DISPATCH_QUEUE_SERIAL);
-    _currentRenderId = 0;
+    _renderCoordinator =
+        [[ENRMAsyncRenderCoordinator alloc] initWithQueueLabel:"com.swmansion.enriched.markdown.container.render"];
 
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
@@ -327,23 +333,15 @@ static char kENRMSegmentFadeAnimatorKey;
 
 - (void)requestHeightUpdate
 {
-  if (_state == nullptr) {
-    return;
-  }
-
-  _heightUpdateCounter++;
-  auto selfRef = wrapManagedObjectWeakly(self);
-  _state->updateState(EnrichedMarkdownState(_heightUpdateCounter, selfRef));
+  ENRMRequestHeightUpdate<EnrichedMarkdownState>(_state, _heightUpdateCounter, self);
 }
 
 - (void)renderMarkdownContent:(NSString *)markdownString
 {
-  if (_blockAsyncRender) {
+  if (_renderCoordinator.blockAsyncRender)
     return;
-  }
 
   _cachedMarkdown = [markdownString copy];
-  NSUInteger renderId = ++_currentRenderId;
 
   StyleConfig *config = [_config copy];
   ENRMMarkdownParser *parser = _parser;
@@ -355,34 +353,28 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL streamingAnimation = _streamingAnimation;
   ENRMTableStreamingMode tableStreamingMode = _tableStreamingMode;
 
-  dispatch_async(_renderQueue, ^{
-    NSString *renderableMarkdown =
-        streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, tableStreamingMode) : markdownString;
-    if (renderableMarkdown.length == 0) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        if (renderId == self->_currentRenderId) {
-          [self applyRenderedSegments:@[] renderedMarkdown:renderableMarkdown];
+  __block NSArray<ENRMRenderedSegment *> *renderedSegments = nil;
+  __block NSString *renderableMarkdown = nil;
+
+  [_renderCoordinator
+      scheduleRender:^BOOL {
+        renderableMarkdown = streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, tableStreamingMode)
+                                                : markdownString;
+
+        if (renderableMarkdown.length == 0) {
+          renderedSegments = @[];
+          return YES;
         }
-      });
-      return;
-    }
 
-    MarkdownASTNode *ast = [parser parseMarkdown:renderableMarkdown flags:md4cFlags];
-    if (!ast) {
-      return;
-    }
+        MarkdownASTNode *ast = [parser parseMarkdown:renderableMarkdown flags:md4cFlags];
+        if (!ast)
+          return NO;
 
-    NSArray<ENRMRenderedSegment *> *renderedSegments =
-        ENRMRenderSegmentsFromAST(ast, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier);
-
-    dispatch_async(dispatch_get_main_queue(), ^{
-      if (renderId != self->_currentRenderId) {
-        return;
+        renderedSegments =
+            ENRMRenderSegmentsFromAST(ast, config, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier);
+        return YES;
       }
-
-      [self applyRenderedSegments:renderedSegments renderedMarkdown:renderableMarkdown];
-    });
-  });
+      apply:^{ [self applyRenderedSegments:renderedSegments renderedMarkdown:renderableMarkdown]; }];
 }
 
 - (NSArray *)parseAndRenderSegments:(NSString *)markdownString
@@ -409,7 +401,7 @@ static char kENRMSegmentFadeAnimatorKey;
   [_segmentViews removeAllObjects];
   [_segmentSignatures removeAllObjects];
 
-  _blockAsyncRender = YES;
+  _renderCoordinator.blockAsyncRender = YES;
   _cachedMarkdown = [markdownString copy];
   NSString *renderableMarkdown =
       _streamingAnimation ? ENRMRenderableMarkdownForStreaming(markdownString, _tableStreamingMode) : markdownString;
@@ -508,15 +500,10 @@ static char kENRMSegmentFadeAnimatorKey;
     NSArray<NSMenuItem *> *customItems = ENRMBuildContextMenuItems(
         strongSelf->_contextMenuItemTexts, strongSelf->_contextMenuItemIcons, textView,
         ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
-          auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
-          if (eventEmitter) {
-            eventEmitter->onContextMenuItemPress({
-                .itemText = std::string(itemText.UTF8String),
-                .selectedText = std::string(selectedText.UTF8String),
-                .selectionStart = (int)selectionStart,
-                .selectionEnd = (int)selectionEnd,
-            });
-          }
+          [strongSelf emitContextMenuItemPress:itemText
+                                  selectedText:selectedText
+                                selectionStart:selectionStart
+                                  selectionEnd:selectionEnd];
         });
     return buildEditMenuForSelection(textView.textStorage, textView.selectedRange, segmentMarkdown, strongSelf->_config,
                                      @[ baseMenu ], customItems, strongSelf -> _selectionMenuConfig);
@@ -538,24 +525,14 @@ static char kENRMSegmentFadeAnimatorKey;
 
   tableView.onLinkPress = ^(NSString *url) {
     EnrichedMarkdown *strongSelf = weakSelf;
-    if (!strongSelf || !url)
-      return;
-
-    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
-    if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
-    }
+    if (strongSelf && url)
+      [strongSelf emitLinkPress:url];
   };
 
   tableView.onLinkLongPress = ^(NSString *url) {
     EnrichedMarkdown *strongSelf = weakSelf;
-    if (!strongSelf || !url)
-      return;
-
-    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
-    if (eventEmitter) {
-      eventEmitter->onLinkLongPress({.url = std::string([url UTF8String])});
-    }
+    if (strongSelf && url)
+      [strongSelf emitLinkLongPress:url];
   };
 
   [tableView applyTableNode:tableSegment.tableNode];
@@ -860,6 +837,42 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 }
 #endif
 
+- (void)emitLinkPress:(NSString *)url
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onLinkPress({.url = std::string(url.UTF8String)});
+}
+
+- (void)emitLinkLongPress:(NSString *)url
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onLinkLongPress({.url = std::string(url.UTF8String)});
+}
+
+- (void)emitTaskListItemPress:(NSInteger)index checked:(BOOL)checked text:(NSString *)text
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onTaskListItemPress({.index = (int)index, .checked = checked, .text = std::string(text.UTF8String ?: "")});
+}
+
+- (void)emitContextMenuItemPress:(NSString *)itemText
+                    selectedText:(NSString *)selectedText
+                  selectionStart:(NSUInteger)selectionStart
+                    selectionEnd:(NSUInteger)selectionEnd
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+  if (emitter)
+    emitter->onContextMenuItemPress({
+        .itemText = std::string(itemText.UTF8String),
+        .selectedText = std::string(selectedText.UTF8String),
+        .selectionStart = (int)selectionStart,
+        .selectionEnd = (int)selectionEnd,
+    });
+}
+
 - (void)textTapped:(ENRMTapRecognizer *)recognizer
 {
   ENRMPlatformTextView *textView = (ENRMPlatformTextView *)recognizer.view;
@@ -867,14 +880,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   if (handleTaskListTapWithSharedLogic(
           textView, recognizer, &self->_cachedMarkdown, self->_config,
           ^(NSInteger index, BOOL checked, NSString *itemText) {
-            auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(self->_eventEmitter);
-            if (eventEmitter) {
-              eventEmitter->onTaskListItemPress({
-                  .index = (int)index,
-                  .checked = checked,
-                  .text = std::string([itemText UTF8String] ?: ""),
-              });
-            }
+            [self emitTaskListItemPress:index checked:checked text:itemText];
           },
           ^(NSString *updatedMarkdown) { [self renderMarkdownContent:updatedMarkdown]; })) {
     return;
@@ -891,16 +897,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     }
   }
 
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url) {
-    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
-    if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
-    }
-    return;
-  }
-
-  ENRMClearSelection(textView);
+  ENRMHandleTapOnTextView(textView, recognizer, ^(NSString *url) { [self emitLinkPress:url]; });
 }
 
 // TODO: Remove API_AVAILABLE(ios(16.0)) guard when the minimum iOS deployment target in RN is bumped to 16.
@@ -913,17 +910,11 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   ENRMContextMenuPressHandler handler =
       ^(NSString *itemText, NSString *selectedText, NSUInteger selectionStart, NSUInteger selectionEnd) {
         EnrichedMarkdown *strongSelf = weakSelf;
-        if (!strongSelf)
-          return;
-        auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
-        if (eventEmitter) {
-          eventEmitter->onContextMenuItemPress({
-              .itemText = std::string(itemText.UTF8String),
-              .selectedText = std::string(selectedText.UTF8String),
-              .selectionStart = (int)selectionStart,
-              .selectionEnd = (int)selectionEnd,
-          });
-        }
+        if (strongSelf)
+          [strongSelf emitContextMenuItemPress:itemText
+                                  selectedText:selectedText
+                                selectionStart:selectionStart
+                                  selectionEnd:selectionEnd];
       };
   NSMutableArray<UIAction *> *customActions =
       ENRMBuildContextMenuActions(_contextMenuItemTexts, _contextMenuItemIcons, textView, range, handler);
@@ -948,10 +939,7 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     return YES;
   }
 
-  auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
-  if (eventEmitter) {
-    eventEmitter->onLinkLongPress({.url = std::string([urlString UTF8String])});
-  }
+  [self emitLinkLongPress:urlString];
   return NO;
 }
 #endif

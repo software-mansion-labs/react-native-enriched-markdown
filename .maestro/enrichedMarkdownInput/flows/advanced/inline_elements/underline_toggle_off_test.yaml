@@ -6,7 +6,7 @@ tags:
 - launchApp
 
 - runFlow:
-    file: '../../subflows/move_to_playground.yaml'
+    file: '../../../../subflows/move_to_playground.yaml'
 
 - tapOn:
     id: toolbar-underline
@@ -25,6 +25,6 @@ tags:
     id: blur-button
 
 - runFlow:
-    file: '../subflows/capture_or_assert_screenshot.yaml'
+    file: '../../../subflows/capture_or_assert_screenshot.yaml'
     env:
       SCREENSHOT_NAME: 'underline_toggle_off_input'

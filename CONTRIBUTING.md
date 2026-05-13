@@ -9,7 +9,8 @@ We want this community to be friendly and respectful to each other. Please follo
 This project is a monorepo managed using [Yarn workspaces](https://yarnpkg.com/features/workspaces). It contains the following packages:
 
 - The library package in the root directory.
-- An example app in the `example/` directory.
+- An example app in the `apps/example/` directory.
+- A Storybook app in the `apps/storybook/` directory.
 
 To get started with the project, make sure you have the correct version of [Node.js](https://nodejs.org/) installed. See the [`.nvmrc`](./.nvmrc) file for the version used in this project.
 
@@ -120,6 +121,31 @@ yarn test:e2e:android:update-screenshots
 
 > Maestro must be installed and a simulator/emulator must be available. Pass `-- --rebuild` to force a fresh build of the example app.
 
+### Storybook
+
+The Storybook app (`apps/storybook/`) lets you develop and inspect individual components in isolation on a real device or simulator.
+
+To start the Storybook Metro server:
+
+```sh
+yarn storybook start
+```
+
+With Metro running, open a new terminal and run on your target platform:
+
+```sh
+yarn storybook android
+yarn storybook ios
+```
+
+Stories live in `apps/storybook/components/`. After adding or removing story files, regenerate the story registry:
+
+```sh
+yarn storybook generate
+```
+
+> The `STORYBOOK_ENABLED=true` env var must be set when Metro starts. All `yarn storybook` scripts handle this automatically — do not use `react-native start` directly inside `apps/storybook/`.
+
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
@@ -163,6 +189,10 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
+- `yarn storybook start`: start the Metro server for the Storybook app.
+- `yarn storybook android`: run the Storybook app on Android.
+- `yarn storybook ios`: run the Storybook app on iOS.
+- `yarn storybook generate`: regenerate the Storybook story registry.
 - `yarn test:e2e:ios`: run all E2E tests on iOS simulator.
 - `yarn test:e2e:android`: run all E2E tests on Android emulator.
 - `yarn test:e2e:mobile`: run all E2E tests on both platforms sequentially.

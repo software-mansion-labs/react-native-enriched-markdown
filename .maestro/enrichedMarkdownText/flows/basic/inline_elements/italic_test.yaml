@@ -2,6 +2,8 @@ appId: swmansion.enriched.markdown.example
 tags:
   - smoke
   - inline
+  - italic
+  - text
 ---
 # checks the parsing of italic/emphasis inline markdown (*text*)
 - launchApp

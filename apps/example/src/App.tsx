@@ -51,7 +51,7 @@ export default function App() {
         <Stack.Screen
           name="Storybook"
           component={StorybookScreen}
-          options={{ title: 'Storybook', headerShown: false }}
+          options={{ title: 'Storybook' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -13,6 +13,7 @@ module.exports = withStorybook(
     mergeConfig(defaultConfig, {
       transformer: {
         babelTransformerPath: require.resolve('react-native-svg-transformer'),
+        unstable_allowRequireContext: true,
       },
       resolver: {
         assetExts: assetExts.filter((ext) => ext !== 'svg'),

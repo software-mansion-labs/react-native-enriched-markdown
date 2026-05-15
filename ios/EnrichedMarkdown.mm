@@ -762,6 +762,34 @@ static char kENRMSegmentFadeAnimatorKey;
   }
 }
 
+- (void)prepareForRecycle
+{
+  // Fabric pools `RCTViewComponentView` instances. Without resetting here, the
+  // segment subviews, signatures, cached markdown and any running tail-fade
+  // animators from the previous mount would leak into the next mount and the
+  // reconciler would reuse stale views against unrelated content.
+  for (RCTUIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      ENRMTailFadeInAnimator *animator =
+          objc_getAssociatedObject(((EnrichedMarkdownInternalText *)segment).textView, &kENRMSegmentFadeAnimatorKey);
+      [animator cancel];
+      objc_setAssociatedObject(((EnrichedMarkdownInternalText *)segment).textView, &kENRMSegmentFadeAnimatorKey, nil,
+                               OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    [segment removeFromSuperview];
+  }
+  [_segmentViews removeAllObjects];
+  [_segmentSignatures removeAllObjects];
+
+  _cachedMarkdown = nil;
+  _renderedMarkdown = nil;
+  _streamingAnimation = NO;
+  _tableStreamingMode = ENRMTableStreamingModeHidden;
+  _dirtyFlags = ENRMDirtyNone;
+
+  [super prepareForRecycle];
+}
+
 Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 {
   return EnrichedMarkdown.class;

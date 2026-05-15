@@ -522,6 +522,30 @@ using namespace facebook::react;
   }
 }
 
+- (void)prepareForRecycle
+{
+  // Fabric pools `RCTViewComponentView` instances. Without resetting here, the
+  // running tail-fade animator, previous text length and cached markdown from
+  // the previous mount would resume against the new content and the text view
+  // would briefly show the prior message.
+  [_fadeAnimator cancel];
+  _fadeAnimator = nil;
+  _previousTextLength = 0;
+  _streamingAnimation = NO;
+  _forceHeightUpdateOnNextRender = NO;
+  _cachedMarkdown = nil;
+  _renderedMarkdown = nil;
+  _accessibilityElements = nil;
+  _accessibilityInfo = nil;
+  _accessibilityNeedsRebuild = NO;
+  if (_textView != nil) {
+    ENRMSetAttributedText(_textView, [[NSAttributedString alloc] initWithString:@""]);
+    _textView.hidden = YES;
+  }
+
+  [super prepareForRecycle];
+}
+
 Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 {
   return EnrichedMarkdownText.class;

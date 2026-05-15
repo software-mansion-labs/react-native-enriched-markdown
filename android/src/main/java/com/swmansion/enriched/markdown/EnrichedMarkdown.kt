@@ -20,6 +20,7 @@ import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.SegmentReconciler
 import com.swmansion.enriched.markdown.utils.common.StreamingMarkdownFilter
 import com.swmansion.enriched.markdown.utils.common.TableStreamingMode
+import com.swmansion.enriched.markdown.utils.common.isReducedMotionEnabled
 import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
 import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.view.SelectionMenuConfig
@@ -367,7 +368,7 @@ class EnrichedMarkdown
           val tableView = view as TableContainerView
           val previousRowCount = tableView.rowCount
           tableView.applyTableNode(segment.node)
-          if (streamingAnimation) {
+          if (streamingAnimation && !isReducedMotionEnabled(context)) {
             tableView.animateNewRows(previousRowCount, BLOCK_FADE_DURATION_MS)
           }
         }
@@ -404,6 +405,7 @@ class EnrichedMarkdown
 
     private fun animateBlockViewFadeIn(view: View) {
       if (!streamingAnimation) return
+      if (isReducedMotionEnabled(context)) return
       view.alpha = 0f
       view
         .animate()

@@ -545,7 +545,7 @@ static char kENRMSegmentFadeAnimatorKey;
   NSUInteger previousRowCount = view.rowCount;
   [view applyTableNode:tableSegment.tableNode];
 
-  if (_streamingAnimation) {
+  if (_streamingAnimation && !ENRMShouldReduceMotion()) {
     [view animateNewRowsFromPreviousCount:previousRowCount duration:0.20];
   }
 }
@@ -565,6 +565,9 @@ static char kENRMSegmentFadeAnimatorKey;
     return;
 
 #if !TARGET_OS_OSX
+  if (ENRMShouldReduceMotion()) {
+    return;
+  }
   view.alpha = 0.0;
   [UIView animateWithDuration:0.20 animations:^{ view.alpha = 1.0; }];
 #endif

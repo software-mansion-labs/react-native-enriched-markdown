@@ -528,6 +528,8 @@ using namespace facebook::react;
   // running tail-fade animator, previous text length and cached markdown from
   // the previous mount would resume against the new content and the text view
   // would briefly show the prior message.
+  [_renderCoordinator invalidate];
+
   [_fadeAnimator cancel];
   _fadeAnimator = nil;
   _previousTextLength = 0;

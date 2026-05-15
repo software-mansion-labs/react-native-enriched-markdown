@@ -768,6 +768,8 @@ static char kENRMSegmentFadeAnimatorKey;
   // segment subviews, signatures, cached markdown and any running tail-fade
   // animators from the previous mount would leak into the next mount and the
   // reconciler would reuse stale views against unrelated content.
+  [_renderCoordinator invalidate];
+
   for (RCTUIView *segment in _segmentViews) {
     if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
       EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;

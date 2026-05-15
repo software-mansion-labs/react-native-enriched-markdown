@@ -770,10 +770,10 @@ static char kENRMSegmentFadeAnimatorKey;
   // reconciler would reuse stale views against unrelated content.
   for (RCTUIView *segment in _segmentViews) {
     if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
-      ENRMTailFadeInAnimator *animator =
-          objc_getAssociatedObject(((EnrichedMarkdownInternalText *)segment).textView, &kENRMSegmentFadeAnimatorKey);
+      EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
+      ENRMTailFadeInAnimator *animator = objc_getAssociatedObject(textSegment.textView, &kENRMSegmentFadeAnimatorKey);
       [animator cancel];
-      objc_setAssociatedObject(((EnrichedMarkdownInternalText *)segment).textView, &kENRMSegmentFadeAnimatorKey, nil,
+      objc_setAssociatedObject(textSegment.textView, &kENRMSegmentFadeAnimatorKey, nil,
                                OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     [segment removeFromSuperview];

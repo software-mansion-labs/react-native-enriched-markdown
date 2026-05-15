@@ -48,6 +48,14 @@ typedef struct {
   if (!storage || tailEnd <= tailStart || tailEnd > storage.length)
     return;
 
+#if !TARGET_OS_OSX
+  // Honor the system-wide accessibility preference: when Reduce Motion is on
+  // we leave the new tail at full alpha instead of running the fade.
+  if (UIAccessibilityIsReduceMotionEnabled()) {
+    return;
+  }
+#endif
+
   NSRange range = NSMakeRange(tailStart, tailEnd - tailStart);
 
   [self snapshotColorsInRange:range storage:storage];

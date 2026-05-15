@@ -7,6 +7,7 @@ import android.text.Spannable
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import com.swmansion.enriched.markdown.spans.FadeInSpan
+import com.swmansion.enriched.markdown.utils.common.isReducedMotionEnabled
 import java.lang.ref.WeakReference
 
 class TailFadeInAnimator(
@@ -24,6 +25,9 @@ class TailFadeInAnimator(
 
     val textView = viewRef.get() ?: return
     val spannable = textView.text as? Spannable ?: return
+
+    // Honor the system accessibility preference and leave the new tail visible.
+    if (isReducedMotionEnabled(textView.context)) return
 
     val fadeSpan = FadeInSpan().apply { alpha = 0f }
     spannable.setSpan(fadeSpan, tailStart, tailEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)

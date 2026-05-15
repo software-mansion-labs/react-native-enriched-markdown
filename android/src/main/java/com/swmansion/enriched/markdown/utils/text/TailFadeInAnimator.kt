@@ -26,7 +26,6 @@ class TailFadeInAnimator(
     val textView = viewRef.get() ?: return
     val spannable = textView.text as? Spannable ?: return
 
-    // Honor the system accessibility preference and leave the new tail visible.
     if (isReducedMotionEnabled(textView.context)) return
 
     val fadeSpan = FadeInSpan().apply { alpha = 0f }

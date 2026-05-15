@@ -540,6 +540,7 @@ using namespace facebook::react;
   _accessibilityElements = nil;
   _accessibilityInfo = nil;
   _accessibilityNeedsRebuild = NO;
+  [_spoilerManager removeAllOverlays];
   if (_textView != nil) {
     ENRMSetAttributedText(_textView, [[NSAttributedString alloc] initWithString:@""]);
     _textView.hidden = YES;

@@ -59,7 +59,6 @@ interface LinkStyleInternal {
 // Mirrors EnrichedMarkdownTextNativeComponent.ts — kept in sync manually (codegen spec files must be self-contained).
 interface LinkVariantEntryInternal {
   pattern: string;
-  fontFamily: string;
   color: ColorValue;
   underline: boolean;
   backgroundColor: ColorValue;

@@ -11,7 +11,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface LinkVariantConfig : NSObject
 @property (nonatomic, copy) NSString *pattern;
 @property (nonatomic, strong) RCTUIColor *color;
-@property (nonatomic, copy) NSString *fontFamily;
 @property (nonatomic, assign) BOOL underline;
 @property (nonatomic, strong, nullable) RCTUIColor *backgroundColor;
 @end

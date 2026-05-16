@@ -47,7 +47,7 @@ class LinkSpan(
 
     val variant = styleCache.resolvedVariantForUrl(url)
 
-    val fontFamily = variant?.fontFamily?.takeIf { it.isNotEmpty() } ?: styleCache.linkFontFamily
+    val fontFamily = styleCache.linkFontFamily
     if (fontFamily.isNotEmpty()) {
       val overriddenBlockStyle = blockStyle.copy(fontFamily = fontFamily)
       textPaint.applyBlockStyleFont(overriddenBlockStyle, context)

@@ -1,6 +1,6 @@
-import type { LinkStyle } from './types/MarkdownStyle';
+import type { LinkVariantStyle } from './types/MarkdownStyle';
 
-type LinkVariantEntry = [pattern: string, style: LinkStyle];
+type LinkVariantEntry = [pattern: string, style: LinkVariantStyle];
 
 // Lookbehind assertions (?<=...) and (?<!...) are not supported by
 // NSRegularExpression on iOS. Warn early so the issue surfaces in JS tests
@@ -18,7 +18,7 @@ function warnAboutUnsafePattern(pattern: string): void {
 }
 
 export function normalizeLinkVariantEntries(
-  linkVariants?: Record<string, LinkStyle>
+  linkVariants?: Record<string, LinkVariantStyle>
 ): LinkVariantEntry[] {
   return Object.entries(linkVariants ?? {})
     .sort(([a], [b]) => b.length - a.length)

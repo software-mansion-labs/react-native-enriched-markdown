@@ -58,7 +58,6 @@ interface LinkStyleInternal {
 
 export interface LinkVariantEntryInternal {
   pattern: string;
-  fontFamily: string;
   color: string;
   underline: boolean;
   backgroundColor: string;

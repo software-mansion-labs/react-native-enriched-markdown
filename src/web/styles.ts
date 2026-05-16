@@ -282,7 +282,7 @@ export function linkStyleForUrl(
   const backgroundColor = resolved.backgroundColor;
   return {
     color: resolved.color,
-    fontFamily: normalizeFontFamily(resolved.fontFamily),
+    fontFamily: normalizeFontFamily(base.fontFamily),
     textDecoration: resolved.underline ? 'underline' : 'none',
     ...(backgroundColor && backgroundColor !== 'transparent'
       ? { backgroundColor }

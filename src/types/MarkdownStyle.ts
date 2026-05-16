@@ -54,6 +54,12 @@ export interface LinkStyle {
   backgroundColor?: string;
 }
 
+export interface LinkVariantStyle {
+  color?: string;
+  underline?: boolean;
+  backgroundColor?: string;
+}
+
 interface StrongStyle {
   fontFamily?: string;
   /**
@@ -231,9 +237,9 @@ export interface MarkdownStyle {
    * against the full URL. Patterns are normalized longest-first so more
    * specific patterns take precedence.
    *
-   * `color`, `fontFamily`, and `underline` inherit from the base `link` style
-   * when omitted. `backgroundColor` defaults to `transparent`
-   * (they do **not** inherit from the base link) so each variant is self-contained.
+   * `color` and `underline` inherit from the base `link` style when omitted.
+   * `backgroundColor` defaults to `transparent`.
+   * `fontFamily` always follows the base `link` style and cannot be overridden per-variant.
    *
    * @example
    * linkVariants: {
@@ -244,7 +250,7 @@ export interface MarkdownStyle {
    *   '\\/user\\/': { color: '#4F46E5', backgroundColor: '#EEF2FF' },
    * }
    */
-  linkVariants?: Record<string, LinkStyle>;
+  linkVariants?: Record<string, LinkVariantStyle>;
   strong?: StrongStyle;
   em?: EmphasisStyle;
   strikethrough?: StrikethroughStyle;

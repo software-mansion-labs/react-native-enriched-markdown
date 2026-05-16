@@ -10,7 +10,6 @@ import com.facebook.react.bridge.ReadableMap
  */
 data class LinkVariantEntry(
   val pattern: String,
-  val fontFamily: String,
   val color: Int,
   val underline: Boolean,
   val backgroundColor: Int,
@@ -22,7 +21,6 @@ data class LinkVariantEntry(
     ): LinkVariantEntry =
       LinkVariantEntry(
         pattern = map.getString("pattern") ?: "",
-        fontFamily = parser.parseString(map, "fontFamily"),
         color = parser.parseColor(map, "color"),
         underline = parser.parseBoolean(map, "underline"),
         backgroundColor = parser.parseColor(map, "backgroundColor"),

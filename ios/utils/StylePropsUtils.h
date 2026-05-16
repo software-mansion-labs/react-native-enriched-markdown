@@ -518,9 +518,8 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
       for (size_t i = 0; i < newStyle.linkVariants.size(); i++) {
         const auto &newVariant = newStyle.linkVariants[i];
         const auto &oldVariant = oldStyle.linkVariants[i];
-        if (newVariant.pattern != oldVariant.pattern || newVariant.fontFamily != oldVariant.fontFamily ||
-            newVariant.color != oldVariant.color || newVariant.underline != oldVariant.underline ||
-            newVariant.backgroundColor != oldVariant.backgroundColor) {
+        if (newVariant.pattern != oldVariant.pattern || newVariant.color != oldVariant.color ||
+            newVariant.underline != oldVariant.underline || newVariant.backgroundColor != oldVariant.backgroundColor) {
           linkVariantsChanged = YES;
           break;
         }
@@ -531,7 +530,6 @@ BOOL applyMarkdownStyleToConfig(StyleConfig *config, const MarkdownStyle &newSty
       for (const auto &entry : newStyle.linkVariants) {
         LinkVariantConfig *variant = [[LinkVariantConfig alloc] init];
         variant.pattern = [[NSString alloc] initWithUTF8String:entry.pattern.c_str()];
-        variant.fontFamily = [[NSString alloc] initWithUTF8String:entry.fontFamily.c_str()];
         variant.color = RCTUIColorFromSharedColor(entry.color);
         variant.underline = entry.underline;
         RCTUIColor *backgroundColor = RCTUIColorFromSharedColor(entry.backgroundColor);

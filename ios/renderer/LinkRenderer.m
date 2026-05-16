@@ -26,7 +26,7 @@
 
   RCTUIColor *linkColor = variant.color ?: [_config linkColor];
   BOOL linkUnderline = variant ? variant.underline : [_config linkUnderline];
-  NSString *linkFontFamily = (variant && variant.fontFamily.length > 0) ? variant.fontFamily : [_config linkFontFamily];
+  NSString *linkFontFamily = [_config linkFontFamily];
   RCTUIColor *backgroundColor = variant ? variant.backgroundColor : [_config linkBackgroundColor];
 
   NSNumber *underlineStyle = @(linkUnderline ? NSUnderlineStyleSingle : NSUnderlineStyleNone);

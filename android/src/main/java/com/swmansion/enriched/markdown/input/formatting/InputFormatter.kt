@@ -49,7 +49,7 @@ class InputFormatter {
         .getSpans(0, spannable.length, CharacterStyle::class.java)
         .filterIsInstance<MarkdownSpan>()
     val linkSpanClasses = handlers[StyleType.LINK]?.spanClasses().orEmpty().toSet()
-    val existingLinkSpans = existingSpans.filter { span -> span::class.java in linkSpanClasses }
+    val existingLinkSpans = existingSpans.filter { span -> linkSpanClasses.any { it.isInstance(span) } }
     for (span in existingLinkSpans) {
       spannable.removeSpan(span as CharacterStyle)
     }

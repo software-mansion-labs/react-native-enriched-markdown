@@ -204,8 +204,16 @@ export interface NativeProps extends ViewProps {
    */
   linkRegex?: Readonly<LinkNativeRegex>;
 
+  /**
+   * List of trigger strings that start a mention flow (e.g. `['@', '#']`).
+   * Detection fires when the cursor is immediately after a token that starts with one of these strings.
+   */
   mentionIndicators?: ReadonlyArray<string>;
 
+  /**
+   * When `true` (default), a space is appended after the inserted mention text
+   * if the character immediately following the mention range is not already whitespace.
+   */
   insertMentionAppendSpace?: boolean;
 
   // Events
@@ -220,8 +228,11 @@ export interface NativeProps extends ViewProps {
   onCaretRectChange?: CodegenTypes.DirectEventHandler<OnCaretRectChangeEvent>;
   onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
   onLinkDetected?: CodegenTypes.DirectEventHandler<OnLinkDetected>;
+  /** Fired when a new mention flow starts — cursor moved into a fresh indicator token. */
   onStartMention?: CodegenTypes.DirectEventHandler<OnStartMentionEvent>;
+  /** Fired on every keystroke while a mention flow is active, with the current query text. */
   onChangeMention?: CodegenTypes.DirectEventHandler<OnChangeMentionEvent>;
+  /** Fired when the active mention flow ends — indicator deleted, whitespace typed, or cursor moved away. */
   onEndMention?: CodegenTypes.DirectEventHandler<OnEndMentionEvent>;
 }
 

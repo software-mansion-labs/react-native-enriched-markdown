@@ -490,7 +490,9 @@ class EnrichedMarkdownTextInputView(
   }
 
   fun setMentionIndicators(indicators: List<String>) {
-    mentionIndicators = LinkedHashSet(indicators)
+    val newIndicators = LinkedHashSet(indicators)
+    if (newIndicators == mentionIndicators) return
+    mentionIndicators = newIndicators
     activeMentionIndicator?.let { indicator ->
       if (indicator !in mentionIndicators) {
         clearActiveMention(emit = true, indicatorOverride = indicator)

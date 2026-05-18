@@ -1,9 +1,9 @@
 appId: swmansion.enriched.markdown.example
 tags:
   - input
-  - advanced
   - inline
   - strikethrough
+  - smoke
 ---
 - launchApp
 

@@ -5,13 +5,11 @@ tags:
   - bold
   - text
 ---
-# checks the parsing of bold/strong inline markdown (**text**)
 - launchApp
 
 - runFlow:
     file: '../../../../subflows/move_to_playground.yaml'
 
-# underline flag is ON by default; tap to disable it so __text__ renders as bold
 - tapOn:
     id: underline-button
 

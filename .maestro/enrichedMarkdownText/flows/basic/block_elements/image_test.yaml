@@ -5,7 +5,6 @@ tags:
   - image
   - text
 ---
-# checks the parsing of Markdown block images (![alt](url))
 - launchApp
 
 - runFlow:

@@ -5,7 +5,6 @@ tags:
   - link
   - text
 ---
-# checks the parsing of inline links ([label](url))
 - launchApp
 
 - runFlow:

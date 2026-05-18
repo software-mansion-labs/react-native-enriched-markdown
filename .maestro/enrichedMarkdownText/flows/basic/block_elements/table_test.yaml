@@ -5,7 +5,6 @@ tags:
   - table
   - text
 ---
-# checks the parsing of Markdown tables (header, body rows, left/center/right alignment)
 - launchApp
 
 - runFlow:

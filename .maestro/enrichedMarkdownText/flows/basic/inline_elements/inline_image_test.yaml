@@ -5,7 +5,6 @@ tags:
   - image
   - text
 ---
-# checks the parsing of Markdown inline images (image inside a paragraph)
 - launchApp
 
 - runFlow:

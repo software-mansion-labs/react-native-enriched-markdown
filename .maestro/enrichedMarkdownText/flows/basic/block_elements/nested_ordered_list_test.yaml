@@ -5,7 +5,6 @@ tags:
   - list
   - text
 ---
-# checks the parsing of Markdown nested ordered lists
 - launchApp
 
 - runFlow:

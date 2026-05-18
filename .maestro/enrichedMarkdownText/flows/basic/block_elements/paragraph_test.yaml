@@ -5,7 +5,6 @@ tags:
   - paragraph
   - text
 ---
-# checks the parsing of Markdown paragraphs (plain text block)
 - launchApp
 
 - runFlow:

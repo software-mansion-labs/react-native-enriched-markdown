@@ -5,7 +5,6 @@ tags:
   - inline_code
   - text
 ---
-# checks the parsing of inline code spans (`code`)
 - launchApp
 
 - runFlow:

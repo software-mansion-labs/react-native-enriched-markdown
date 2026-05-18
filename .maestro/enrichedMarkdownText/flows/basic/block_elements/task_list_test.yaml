@@ -5,7 +5,6 @@ tags:
   - task_list
   - text
 ---
-# checks the parsing of Markdown task lists (- [ ] unchecked / - [x] checked)
 - launchApp
 
 - runFlow:

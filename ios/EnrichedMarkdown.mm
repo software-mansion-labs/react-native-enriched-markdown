@@ -545,7 +545,7 @@ static char kENRMSegmentFadeAnimatorKey;
   NSUInteger previousRowCount = view.rowCount;
   [view applyTableNode:tableSegment.tableNode];
 
-  if (_streamingAnimation) {
+  if (_streamingAnimation && !ENRMShouldReduceMotion()) {
     [view animateNewRowsFromPreviousCount:previousRowCount duration:0.20];
   }
 }
@@ -565,6 +565,9 @@ static char kENRMSegmentFadeAnimatorKey;
     return;
 
 #if !TARGET_OS_OSX
+  if (ENRMShouldReduceMotion()) {
+    return;
+  }
   view.alpha = 0.0;
   [UIView animateWithDuration:0.20 animations:^{ view.alpha = 1.0; }];
 #endif
@@ -760,6 +763,32 @@ static char kENRMSegmentFadeAnimatorKey;
       [self requestHeightUpdate];
     }
   }
+}
+
+- (void)prepareForRecycle
+{
+  [_renderCoordinator invalidate];
+
+  for (RCTUIView *segment in _segmentViews) {
+    if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+      EnrichedMarkdownInternalText *textSegment = (EnrichedMarkdownInternalText *)segment;
+      ENRMTailFadeInAnimator *animator = objc_getAssociatedObject(textSegment.textView, &kENRMSegmentFadeAnimatorKey);
+      [animator cancel];
+      objc_setAssociatedObject(textSegment.textView, &kENRMSegmentFadeAnimatorKey, nil,
+                               OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    [segment removeFromSuperview];
+  }
+  [_segmentViews removeAllObjects];
+  [_segmentSignatures removeAllObjects];
+
+  _cachedMarkdown = nil;
+  _renderedMarkdown = nil;
+  _streamingAnimation = NO;
+  _tableStreamingMode = ENRMTableStreamingModeHidden;
+  _dirtyFlags = ENRMDirtyNone;
+
+  [super prepareForRecycle];
 }
 
 Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)

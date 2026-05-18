@@ -5,7 +5,6 @@ tags:
   - math
   - text
 ---
-# checks the parsing of Markdown math display blocks ($$...$$ LaTeX)
 - launchApp
 
 - runFlow:

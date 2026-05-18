@@ -60,7 +60,7 @@ class EnrichedMarkdown
     private val dirtyFlags = EnumSet.noneOf(DirtyFlag::class.java)
     var streamingAnimation: Boolean = false
 
-    var tableStreamingMode: TableStreamingMode = TableStreamingMode.HIDDEN
+    var tableStreamingMode: TableStreamingMode = TableStreamingMode.PROGRESSIVE
     private var renderPending: Boolean = false
 
     var currentMarkdown: String = ""

@@ -130,7 +130,7 @@ static char kENRMSegmentFadeAnimatorKey;
     _selectable = YES;
     _enableLinkPreview = YES;
     _streamingAnimation = NO;
-    _tableStreamingMode = ENRMTableStreamingModeHidden;
+    _tableStreamingMode = ENRMTableStreamingModeProgressive;
     _selectionMenuConfig = (ENRMSelectionMenuConfig){.copyAsMarkdown = YES, .copyImageURL = YES};
 
     _fontScaleObserver = [[FontScaleObserver alloc] init];
@@ -702,8 +702,8 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL streamingConfigChanged = NO;
   if (newViewProps.streamingConfig.tableMode != oldViewProps.streamingConfig.tableMode) {
     NSString *tableModeStr = [[NSString alloc] initWithUTF8String:newViewProps.streamingConfig.tableMode.c_str()];
-    _tableStreamingMode = [tableModeStr isEqualToString:@"progressive"] ? ENRMTableStreamingModeProgressive
-                                                                        : ENRMTableStreamingModeHidden;
+    _tableStreamingMode =
+        [tableModeStr isEqualToString:@"hidden"] ? ENRMTableStreamingModeHidden : ENRMTableStreamingModeProgressive;
     streamingConfigChanged = YES;
     _dirtyFlags |= ENRMDirtyForceHeight;
   }
@@ -785,7 +785,7 @@ static char kENRMSegmentFadeAnimatorKey;
   _cachedMarkdown = nil;
   _renderedMarkdown = nil;
   _streamingAnimation = NO;
-  _tableStreamingMode = ENRMTableStreamingModeHidden;
+  _tableStreamingMode = ENRMTableStreamingModeProgressive;
   _dirtyFlags = ENRMDirtyNone;
 
   [super prepareForRecycle];

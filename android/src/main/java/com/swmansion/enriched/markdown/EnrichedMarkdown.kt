@@ -399,8 +399,7 @@ class EnrichedMarkdown
       if (!streamingAnimation) return
       val textLength = view.text?.length ?: 0
       if (textLength <= tailStart) return
-      val animator = TailFadeInAnimator(view)
-      animator.animate(tailStart, textLength)
+      TailFadeInAnimator(view).animate(tailStart, textLength)
     }
 
     private fun animateBlockViewFadeIn(view: View) {

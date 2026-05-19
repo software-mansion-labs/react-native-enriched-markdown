@@ -70,7 +70,11 @@ const CHANNEL_DATA: Record<string, ChannelData> = {
         time: '12:10',
         message: '## Heads up\n\ndeployment scheduled for 3pm today',
       },
-      { nick: 'alice', time: '12:11', message: "@bob noted, we'll be ready" },
+      {
+        nick: 'alice',
+        time: '12:11',
+        message: "[@bob](user://u_4) noted, we'll be ready",
+      },
       {
         nick: 'carol',
         time: '12:16',
@@ -83,7 +87,11 @@ const CHANNEL_DATA: Record<string, ChannelData> = {
         time: '12:45',
         message: '||the prod deploy passphrase is hunter2||',
       },
-      { nick: 'dave', time: '12:46', message: '@alice 😂 please no' },
+      {
+        nick: 'dave',
+        time: '12:46',
+        message: '[@alice](user://u_3) 😂 please no',
+      },
       // ── new messages below ──
       { nick: 'alice', time: '14:15', message: 'anything new today?' },
       { nick: 'dave', time: '14:16', message: 'not really, pretty quiet' },
@@ -95,14 +103,14 @@ const CHANNEL_DATA: Record<string, ChannelData> = {
       {
         nick: 'carol',
         time: '14:22',
-        message: '@bob you truly are a silly guy 😂',
+        message: '[@bob](user://u_4) you truly are a silly guy 😂',
       },
       { nick: 'dave', time: '14:23', message: 'wait what 💀' },
       { nick: 'alice', time: '14:23', message: 'I stand by this' },
       {
         nick: 'carol',
         time: '14:24',
-        message: 'someone post this in #general lmao',
+        message: 'someone post this in [#general](channel://general) lmao',
       },
     ],
   },
@@ -129,14 +137,18 @@ const CHANNEL_DATA: Record<string, ChannelData> = {
         nick: 'alice',
         time: '10:10',
         message:
-          "> sounds good, I'm in\n\n@bob finally a quick answer from you 😄",
+          "> sounds good, I'm in\n\n[@bob](user://u_4) finally a quick answer from you 😄",
       },
       {
         nick: 'dave',
         time: '10:12',
         message: "||I'm secretly getting the triple burger||",
       },
-      { nick: 'carol', time: '10:13', message: '@dave I saw that 👀' },
+      {
+        nick: 'carol',
+        time: '10:13',
+        message: '[@dave](user://u_6) I saw that 👀',
+      },
       { nick: 'bob', time: '10:15', message: 'meeting at lobby, 12:30?' },
       { nick: 'alice', time: '10:16', message: '👍 see you there' },
       // ── new messages below ──
@@ -150,7 +162,8 @@ const CHANNEL_DATA: Record<string, ChannelData> = {
       {
         nick: 'bob',
         time: '12:50',
-        message: "@carol @dave @alice we're making this a weekly thing",
+        message:
+          "[@carol](user://u_5) [@dave](user://u_6) [@alice](user://u_3) we're making this a weekly thing",
       },
     ],
   },

@@ -34,6 +34,18 @@ const AVATAR_COLORS = [
 
 const MARKDOWN_STYLE = {
   link: { color: '#2563EB', underline: true },
+  linkVariants: {
+    '^user:': {
+      color: '#1264A3',
+      backgroundColor: '#E8F5FB',
+      underline: false,
+    },
+    '^channel:': {
+      color: '#065F46',
+      backgroundColor: '#D1FAE5',
+      underline: false,
+    },
+  },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

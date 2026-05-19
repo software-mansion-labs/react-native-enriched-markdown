@@ -53,6 +53,14 @@ interface LinkStyleInternal {
   fontFamily: string;
   color: string;
   underline: boolean;
+  backgroundColor: string;
+}
+
+export interface LinkVariantEntryInternal {
+  pattern: string;
+  color: string;
+  underline: boolean;
+  backgroundColor: string;
 }
 
 interface StrongStyleInternal {
@@ -175,6 +183,7 @@ export interface MarkdownStyleInternal {
   list: ListStyleInternal;
   codeBlock: CodeBlockStyleInternal;
   link: LinkStyleInternal;
+  linkVariants: ReadonlyArray<Readonly<LinkVariantEntryInternal>>;
   strong: StrongStyleInternal;
   em: EmphasisStyleInternal;
   strikethrough: StrikethroughStyleInternal;

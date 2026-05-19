@@ -18,8 +18,16 @@ import EnrichedMarkdownTextInputNativeComponent, {
   type OnCaretRectChangeEvent,
   type OnContextMenuItemPressEvent,
   type OnLinkDetected,
+  type OnStartMentionEvent,
+  type OnChangeMentionEvent,
+  type OnEndMentionEvent,
 } from './EnrichedMarkdownTextInputNativeComponent';
-export type { OnLinkDetected } from './EnrichedMarkdownTextInputNativeComponent';
+export type {
+  OnLinkDetected,
+  OnStartMentionEvent,
+  OnChangeMentionEvent,
+  OnEndMentionEvent,
+} from './EnrichedMarkdownTextInputNativeComponent';
 import type {
   HostInstance,
   NativeSyntheticEvent,
@@ -33,6 +41,12 @@ import type { RefObject } from 'react';
 
 type NativeRef = HostInstance;
 
+export interface LinkStyle {
+  color?: string;
+  underline?: boolean;
+  backgroundColor?: string;
+}
+
 export interface MarkdownTextInputStyle {
   strong?: {
     color?: string;
@@ -40,10 +54,8 @@ export interface MarkdownTextInputStyle {
   em?: {
     color?: string;
   };
-  link?: {
-    color?: string;
-    underline?: boolean;
-  };
+  link?: LinkStyle;
+  linkVariants?: Record<string, LinkStyle>;
   spoiler?: {
     color?: string;
     backgroundColor?: string;
@@ -92,6 +104,8 @@ export interface EnrichedMarkdownTextInputInstance {
   toggleSpoiler: () => void;
   setLink: (url: string) => void;
   insertLink: (text: string, url: string) => void;
+  insertMention: (displayText: string, url: string) => void;
+  startMention: (indicator: string) => void;
   removeLink: () => void;
   getMarkdown: () => Promise<string>;
   getCaretRect: () => Promise<CaretRect>;
@@ -117,6 +131,10 @@ export interface EnrichedMarkdownTextInputProps {
   onChangeState?: (state: StyleState) => void;
   onCaretRectChange?: (rect: CaretRect) => void;
   onLinkDetected?: (event: OnLinkDetected) => void;
+  mentionIndicators?: string[];
+  onStartMention?: (event: OnStartMentionEvent) => void;
+  onChangeMention?: (event: OnChangeMentionEvent) => void;
+  onEndMention?: (event: OnEndMentionEvent) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   contextMenuItems?: ContextMenuItem[];
@@ -157,6 +175,10 @@ export const EnrichedMarkdownTextInput = ({
   onChangeState,
   onCaretRectChange,
   onLinkDetected,
+  mentionIndicators,
+  onStartMention,
+  onChangeMention,
+  onEndMention,
   onFocus,
   onBlur,
   contextMenuItems,
@@ -265,6 +287,27 @@ export const EnrichedMarkdownTextInput = ({
     [onCaretRectChange]
   );
 
+  const handleStartMention = useCallback(
+    (e: NativeSyntheticEvent<OnStartMentionEvent>) => {
+      onStartMention?.(e.nativeEvent);
+    },
+    [onStartMention]
+  );
+
+  const handleChangeMention = useCallback(
+    (e: NativeSyntheticEvent<OnChangeMentionEvent>) => {
+      onChangeMention?.(e.nativeEvent);
+    },
+    [onChangeMention]
+  );
+
+  const handleEndMention = useCallback(
+    (e: NativeSyntheticEvent<OnEndMentionEvent>) => {
+      onEndMention?.(e.nativeEvent);
+    },
+    [onEndMention]
+  );
+
   const handleFocus = useCallback(() => {
     onFocus?.();
   }, [onFocus]);
@@ -338,6 +381,9 @@ export const EnrichedMarkdownTextInput = ({
       toggleSpoiler: () => Commands.toggleSpoiler(commandRef),
       setLink: (url) => Commands.setLink(commandRef, url),
       insertLink: (text, url) => Commands.insertLink(commandRef, text, url),
+      insertMention: (displayText, url) =>
+        Commands.insertMention(commandRef, displayText, url),
+      startMention: (indicator) => Commands.startMention(commandRef, indicator),
       removeLink: () => Commands.removeLink(commandRef),
       getMarkdown: () =>
         new Promise<string>((resolve, reject) => {
@@ -392,10 +438,14 @@ export const EnrichedMarkdownTextInput = ({
         handleCaretRectChange as NativeProps['onCaretRectChange']
       }
       contextMenuItems={nativeContextMenuItems}
+      mentionIndicators={mentionIndicators}
       onContextMenuItemPress={
         handleContextMenuItemPress as NativeProps['onContextMenuItemPress']
       }
       linkRegex={linkRegex}
+      onStartMention={handleStartMention as NativeProps['onStartMention']}
+      onChangeMention={handleChangeMention as NativeProps['onChangeMention']}
+      onEndMention={handleEndMention as NativeProps['onEndMention']}
     />
   );
 };

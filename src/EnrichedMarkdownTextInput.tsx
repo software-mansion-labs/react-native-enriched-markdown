@@ -132,7 +132,6 @@ export interface EnrichedMarkdownTextInputProps {
   onCaretRectChange?: (rect: CaretRect) => void;
   onLinkDetected?: (event: OnLinkDetected) => void;
   mentionIndicators?: string[];
-  insertMentionAppendSpace?: boolean;
   onStartMention?: (event: OnStartMentionEvent) => void;
   onChangeMention?: (event: OnChangeMentionEvent) => void;
   onEndMention?: (event: OnEndMentionEvent) => void;
@@ -177,7 +176,6 @@ export const EnrichedMarkdownTextInput = ({
   onCaretRectChange,
   onLinkDetected,
   mentionIndicators,
-  insertMentionAppendSpace = true,
   onStartMention,
   onChangeMention,
   onEndMention,
@@ -441,7 +439,6 @@ export const EnrichedMarkdownTextInput = ({
       }
       contextMenuItems={nativeContextMenuItems}
       mentionIndicators={mentionIndicators}
-      insertMentionAppendSpace={insertMentionAppendSpace}
       onContextMenuItemPress={
         handleContextMenuItemPress as NativeProps['onContextMenuItemPress']
       }

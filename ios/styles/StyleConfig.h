@@ -170,7 +170,6 @@ NS_ASSUME_NONNULL_END
 - (void)setLinkBackgroundColor:(nullable RCTUIColor *)newValue;
 - (NSArray<LinkVariantConfig *> *)linkVariants;
 - (void)setLinkVariants:(NSArray<LinkVariantConfig *> *)newValue;
-/** Returns the resolved variant for the full URL, or nil if no variant matches. */
 - (nullable LinkVariantConfig *)effectiveLinkVariantForURL:(NSString *)url;
 // Strong properties
 - (NSString *)strongFontFamily;

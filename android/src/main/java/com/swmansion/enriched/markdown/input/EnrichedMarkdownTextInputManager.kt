@@ -296,14 +296,6 @@ class EnrichedMarkdownTextInputManager :
     view?.setMentionIndicators(indicators)
   }
 
-  @ReactProp(name = "insertMentionAppendSpace", defaultBoolean = true)
-  override fun setInsertMentionAppendSpace(
-    view: EnrichedMarkdownTextInputView?,
-    value: Boolean,
-  ) {
-    view?.insertMentionAppendSpace = value
-  }
-
   override fun updateProperties(
     view: EnrichedMarkdownTextInputView,
     props: ReactStylesDiffMap,

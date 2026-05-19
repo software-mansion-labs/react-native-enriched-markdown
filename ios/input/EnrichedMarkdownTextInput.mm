@@ -78,7 +78,6 @@ using namespace facebook::react;
   NSArray<NSString *> *_contextMenuItemTexts;
   NSArray<NSString *> *_contextMenuItemIcons;
   NSArray<NSString *> *_mentionIndicators;
-  BOOL _insertMentionAppendSpace;
   NSString *_activeMentionIndicator;
   NSRange _activeMentionRange;
   NSString *_activeMentionText;
@@ -116,7 +115,6 @@ using namespace facebook::react;
     _lastTextLength = 0;
     _lastSelectedRange = NSMakeRange(0, 0);
     _mentionIndicators = @[];
-    _insertMentionAppendSpace = YES;
     _activeMentionRange = NSMakeRange(NSNotFound, 0);
     _activeMentionText = @"";
 
@@ -334,8 +332,6 @@ using namespace facebook::react;
     }
     [self updateActiveMention];
   }
-
-  _insertMentionAppendSpace = newViewProps.insertMentionAppendSpace;
 
   BOOL styleChanged = applyInputStyleProps(_formatterStyle, newViewProps, oldViewProps);
 
@@ -754,9 +750,7 @@ using namespace facebook::react;
   BOOL nextCharIsWhitespace = rangeEnd < plainText.length && [[NSCharacterSet whitespaceAndNewlineCharacterSet]
                                                                  characterIsMember:[plainText
                                                                                        characterAtIndex:rangeEnd]];
-  BOOL shouldAppendSpace = _insertMentionAppendSpace && !nextCharIsWhitespace;
-
-  NSString *replacement = shouldAppendSpace ? [displayText stringByAppendingString:@" "] : displayText;
+  NSString *replacement = nextCharIsWhitespace ? displayText : [displayText stringByAppendingString:@" "];
   ENRMFormattingRange *linkRange = [ENRMFormattingRange rangeWithType:ENRMInputStyleTypeLink
                                                                 range:NSMakeRange(0, displayText.length)
                                                                   url:[self sanitizeLinkURL:url]];

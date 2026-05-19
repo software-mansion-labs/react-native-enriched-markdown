@@ -434,14 +434,6 @@ List of trigger strings that start a mention flow (e.g. `['@', '#']`). See [Ment
 | ---------- | ------------- | -------- |
 | `string[]` | `[]`          | Both     |
 
-### `insertMentionAppendSpace`
-
-When `true`, a space is appended after the inserted mention if the next character is not already whitespace.
-
-| Type      | Default Value | Platform |
-| --------- | ------------- | -------- |
-| `boolean` | `true`        | Both     |
-
 ### `style`
 
 Style for the input view. Accepts `ViewStyle` and `TextStyle` properties (e.g., `fontSize`, `color`, `padding`).

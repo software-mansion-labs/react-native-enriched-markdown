@@ -81,7 +81,6 @@ class EnrichedMarkdownTextInputView(
   private var inputMethodManager: InputMethodManager? = null
   private var detectScrollMovement = false
   var scrollEnabled: Boolean = true
-  var insertMentionAppendSpace: Boolean = true
 
   private var mentionIndicators: LinkedHashSet<String> = linkedSetOf()
   private var activeMentionIndicator: String? = null
@@ -436,9 +435,7 @@ class EnrichedMarkdownTextInputView(
     if (start < 0 || end < start || end > editable.length) return
 
     val sanitizedUrl = sanitizeLinkUrl(url)
-    val shouldAppendSpace =
-      insertMentionAppendSpace &&
-        (end >= editable.length || !editable[end].isWhitespace())
+    val shouldAppendSpace = end >= editable.length || !editable[end].isWhitespace()
     val replacement = if (shouldAppendSpace) "$displayText " else displayText
     val linkEnd = start + displayText.length
 

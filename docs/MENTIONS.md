@@ -42,7 +42,6 @@ ref.current?.insertMention(`@${item.name}`, item.url);
 | Prop | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
 | `mentionIndicators` | `string[]` | `[]` | Trigger strings that start a mention flow. |
-| `insertMentionAppendSpace` | `boolean` | `true` | Append space after inserted mention if next char isn't whitespace. |
 
 ## Events
 

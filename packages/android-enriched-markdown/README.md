@@ -126,6 +126,7 @@ The `markdownStyle` builder supports these blocks:
 | `image` | Block images |
 | `inlineImage` | Inline images |
 | `thematicBreak` | Horizontal rules |
+| `table` | Tables |
 
 Use `MarkdownStyle.copy { }` to layer overrides (e.g. light/dark variants) without rebuilding the full style.
 
@@ -210,6 +211,36 @@ Creates a style that tracks `MaterialTheme.colorScheme` changes. Use inside `Mat
 - Ordered and unordered lists
 - Links and images (block and inline)
 - Thematic breaks (`---`)
+- Tables (GFM), including per-column alignment
+
+### Tables
+
+Tables are laid out and painted by the markdown view itself, so a table can be styled independently
+of the surrounding body text:
+
+```kotlin
+markdownStyle {
+  table {
+    fontSize = 14.sp
+    color = Color(0xFF1F2937)
+    headerBackgroundColor = Color(0xFFF3F4F6)
+    headerTextColor = Color(0xFF111827)
+    rowEvenBackgroundColor = Color.White
+    rowOddBackgroundColor = Color(0xFFF9FAFB)
+    borderColor = Color(0xFFE5E7EB)
+    borderWidth = 1.dp
+    cornerRadius = 6.dp
+    cellPaddingHorizontal = 12.dp
+    cellPaddingVertical = 8.dp
+    align = TableAlignment.CENTER
+  }
+}
+```
+
+A column is sized to its widest cell, within 60dp–300dp. When the whole table is still wider than
+the space available, its columns shrink proportionally and cell text wraps onto more lines — the
+table never scrolls sideways and never overflows the view. `align` places a table that is narrower
+than the available width; it defaults to `TableAlignment.AUTO`, which follows the reading direction.
 
 ## Development
 

@@ -225,6 +225,14 @@ class EnrichedMarkdownText
     }
 
     private fun applyRenderedText(styledText: CharSequence) {
+      val tableSpans = renderer.getCollectedTableSpans()
+      // Tables need a width before the text is measured, otherwise the first layout pass sizes them
+      // against their natural width and the reflow they request afterwards costs an extra pass.
+      if (tableSpans.isNotEmpty()) {
+        val contentWidth = (width - totalPaddingLeft - totalPaddingRight).coerceAtLeast(0).toFloat()
+        tableSpans.forEach { span -> span.setViewportWidth(contentWidth) }
+      }
+
       text = styledText
 
       if (movementMethod !is LinkLongPressMovementMethod) {
@@ -234,6 +242,8 @@ class EnrichedMarkdownText
       renderer.getCollectedImageSpans().forEach { span ->
         span.registerTextView(this)
       }
+
+      tableSpans.forEach { span -> span.registerTextView(this) }
 
       accessibilityHelper.invalidateAccessibilityItems()
       applySelectionColors(selectionColor, selectionHandleColor)

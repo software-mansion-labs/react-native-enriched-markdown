@@ -12,6 +12,7 @@ import com.swmansion.enriched.markdown.styles.ListStyle
 import com.swmansion.enriched.markdown.styles.ParagraphStyle
 import com.swmansion.enriched.markdown.styles.StrongStyle
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.styles.TableStyle
 import com.swmansion.enriched.markdown.styles.ThematicBreakStyle
 import com.swmansion.enriched.markdown.utils.text.TypefaceUtils
 
@@ -28,6 +29,7 @@ internal data class StylePatch(
   val imageStyle: ImageStyle? = null,
   val inlineImageStyle: InlineImageStyle? = null,
   val thematicBreakStyle: ThematicBreakStyle? = null,
+  val tableStyle: TableStyle? = null,
 )
 
 internal object StyleConfigMerger {
@@ -50,6 +52,8 @@ internal object StyleConfigMerger {
         base.headingTypefaces
       }
 
+    val tableStyle = patch.tableStyle ?: base.tableStyle
+
     return StyleConfig(
       paragraphStyleDefault = patch.paragraphStyle ?: base.paragraphStyle,
       headingStyles = headingStyles,
@@ -64,6 +68,19 @@ internal object StyleConfigMerger {
       listStyle = patch.listStyle ?: base.listStyle,
       codeBlockStyle = patch.codeBlockStyle ?: base.codeBlockStyle,
       thematicBreakStyle = patch.thematicBreakStyle ?: base.thematicBreakStyle,
+      tableStyle = tableStyle,
+      tableTypeface =
+        if (patch.tableStyle != null) {
+          TableStyle.bodyTypeface(resolveContext.context, tableStyle)
+        } else {
+          base.tableTypeface
+        },
+      tableHeaderTypeface =
+        if (patch.tableStyle != null) {
+          TableStyle.headerTypeface(resolveContext.context, tableStyle)
+        } else {
+          base.tableHeaderTypeface
+        },
     )
   }
 

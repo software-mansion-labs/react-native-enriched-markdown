@@ -5,6 +5,7 @@ import android.text.SpannableStringBuilder
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.ImageSpan
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
 interface NodeRenderer {
@@ -26,6 +27,7 @@ class RendererFactory(
   private val config: RendererConfig,
   val context: Context,
   private val onImageSpanCreated: (ImageSpan) -> Unit,
+  private val onTableSpanCreated: (TableSpan) -> Unit,
 ) {
   val blockStyleContext = BlockStyleContext()
   val styleCache = SpanStyleCache(config.style, context)
@@ -96,11 +98,16 @@ class RendererFactory(
       put(MarkdownASTNode.NodeType.SoftBreak, softBreakRenderer)
       put(MarkdownASTNode.NodeType.ThematicBreak, ThematicBreakRenderer(config))
       put(MarkdownASTNode.NodeType.BlankLine, BlankLineRenderer(config))
+      put(MarkdownASTNode.NodeType.Table, TableRenderer(config))
     }
   }
 
   fun registerImageSpan(span: ImageSpan) {
     onImageSpanCreated(span)
+  }
+
+  fun registerTableSpan(span: TableSpan) {
+    onTableSpanCreated(span)
   }
 
   fun getRenderer(node: MarkdownASTNode): NodeRenderer =

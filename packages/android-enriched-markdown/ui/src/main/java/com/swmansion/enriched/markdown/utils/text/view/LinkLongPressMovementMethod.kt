@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.widget.TextView
 import com.swmansion.enriched.markdown.spans.LinkSpan
+import com.swmansion.enriched.markdown.spans.TableSpan
 import kotlin.math.abs
 
 /**
@@ -43,7 +44,7 @@ class LinkLongPressMovementMethod : ArrowKeyMovementMethod() {
 
         pressedLink = findLinkSpan(widget, buffer, event)
         isLinkTouchActive = pressedLink != null
-        isTouchWithinTextBounds = charOffsetAt(widget, event) != null
+        isTouchWithinTextBounds = charOffsetAt(widget, event) != null || pressedLink != null
         pressedLink?.let { scheduleLongPress(widget, it) }
       }
 
@@ -135,8 +136,38 @@ class LinkLongPressMovementMethod : ArrowKeyMovementMethod() {
     buffer: Spannable,
     event: MotionEvent,
   ): LinkSpan? {
+    findTableLinkSpan(widget, buffer, event)?.let { return it }
     val offset = charOffsetAt(widget, event) ?: return null
     return buffer.getSpans(offset, offset, LinkSpan::class.java).firstOrNull()
+  }
+
+  /**
+   * Resolves a link inside a table cell.
+   *
+   * A [TableSpan] paints its own cells and takes no horizontal advance, so its links have no
+   * character offsets in the host layout to hit-test against — the span has to map the point onto
+   * its grid itself.
+   */
+  private fun findTableLinkSpan(
+    widget: TextView,
+    buffer: Spannable,
+    event: MotionEvent,
+  ): LinkSpan? {
+    val tables = buffer.getSpans(0, buffer.length, TableSpan::class.java)
+    if (tables.isEmpty()) return null
+
+    val layout = widget.layout ?: return null
+    val x = event.x - widget.totalPaddingLeft + widget.scrollX
+    val y = event.y - widget.totalPaddingTop + widget.scrollY
+    if (y < 0f || y > layout.height) return null
+
+    val line = layout.getLineForVertical(y.toInt())
+    for (table in tables) {
+      val spanStart = buffer.getSpanStart(table)
+      if (spanStart < 0 || layout.getLineForOffset(spanStart) != line) continue
+      return table.linkAt(x - layout.getLineLeft(line), y - layout.getLineTop(line))
+    }
+    return null
   }
 
   companion object {

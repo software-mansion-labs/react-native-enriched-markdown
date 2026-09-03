@@ -14,6 +14,7 @@ class MarkdownStyleBuilder internal constructor() {
   private var image: ImageStylePatch? = null
   private var inlineImage: InlineImageStylePatch? = null
   private var thematicBreak: ThematicBreakStylePatch? = null
+  private var table: TableStylePatch? = null
 
   fun paragraph(block: ParagraphStyleScope.() -> Unit) {
     paragraph = TextStyleScope.merge(paragraph, block)
@@ -71,6 +72,10 @@ class MarkdownStyleBuilder internal constructor() {
     thematicBreak = ThematicBreakStyleScope.merge(thematicBreak, block)
   }
 
+  fun table(block: TableStyleScope.() -> Unit) {
+    table = TableStyleScope.merge(table, block)
+  }
+
   internal fun captureLayer(): MarkdownStyleLayer =
     MarkdownStyleLayer(
       paragraph = paragraph,
@@ -85,6 +90,7 @@ class MarkdownStyleBuilder internal constructor() {
       image = image,
       inlineImage = inlineImage,
       thematicBreak = thematicBreak,
+      table = table,
     )
 
   private fun heading(

@@ -1,6 +1,7 @@
 package com.swmansion.enriched.markdown.utils.text.conversion
 
 import android.graphics.Typeface
+import android.text.Layout
 import android.text.Spannable
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
@@ -13,8 +14,10 @@ import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.styles.TableStyle
 
 /** Generates semantic HTML with inline styles from Spannable text. */
 object HTMLGenerator {
@@ -76,6 +79,9 @@ object HTMLGenerator {
     val imageMarginBottom: Int
     val imageBorderRadius: Int
 
+    // Table
+    val table: CachedTableStyles
+
     // Fixed HTML values (not from StyleConfig)
     val blockquotePaddingVertical = "8px"
     val blockquoteBorderRadiusCorners = "border-start-end-radius: 8px; border-end-end-radius: 8px"
@@ -94,6 +100,8 @@ object HTMLGenerator {
     val headingMarginBottoms: IntArray
 
     init {
+      table = CachedTableStyles(style.tableStyle, ::fontPx, ::dimPx)
+
       // Paragraph
       val pStyle = style.paragraphStyle
       paragraphColor = colorToCSS(pStyle.color)
@@ -189,6 +197,25 @@ object HTMLGenerator {
     }
   }
 
+  /** Table style values pre-converted to CSS pixels and color strings. */
+  private class CachedTableStyles(
+    style: TableStyle,
+    fontPx: (Float) -> Int,
+    dimPx: (Float) -> Int,
+  ) {
+    val fontSize = fontPx(style.fontSize)
+    val color = colorToCSS(style.color)
+    val headerTextColor = colorToCSS(style.headerTextColor)
+    val headerBackgroundColor = colorToCSS(style.headerBackgroundColor)
+    val rowEvenBackgroundColor = colorToCSS(style.rowEvenBackgroundColor)
+    val rowOddBackgroundColor = colorToCSS(style.rowOddBackgroundColor)
+    val borderColor = colorToCSS(style.borderColor)
+    val borderWidth = dimPx(style.borderWidth)
+    val borderRadius = dimPx(style.borderRadius)
+    val cellPaddingHorizontal = dimPx(style.cellPaddingHorizontal)
+    val cellPaddingVertical = dimPx(style.cellPaddingVertical)
+  }
+
   private class GeneratorState {
     var inCodeBlock = false
     var previousWasCodeBlock = false
@@ -210,6 +237,7 @@ object HTMLGenerator {
   private const val TYPE_BLOCKQUOTE = 8
   private const val TYPE_ORDERED_LIST = 9
   private const val TYPE_UNORDERED_LIST = 10
+  private const val TYPE_TABLE = 11
 
   private data class ParagraphInfo(
     val start: Int,
@@ -275,10 +303,12 @@ object HTMLGenerator {
     // Get content range (trim trailing newline)
     val contentEnd = if (para.end > para.start && text[para.end - 1] == '\n') para.end - 1 else para.end
     val isCodeBlock = para.type == TYPE_CODE_BLOCK
-    val inlineContent = generateInlineHTML(text, para.start, contentEnd, styles, isCodeBlock)
+    val inlineContent =
+      if (para.type == TYPE_TABLE) "" else generateInlineHTML(text, para.start, contentEnd, styles, isCodeBlock)
 
     // Handle different paragraph types
     when (para.type) {
+      TYPE_TABLE -> handleTable(html, text, para, styles, state)
       TYPE_CODE_BLOCK -> handleCodeBlock(inlineContent, state)
       TYPE_BLOCKQUOTE -> handleBlockquote(html, inlineContent, para, styles, state)
       TYPE_ORDERED_LIST, TYPE_UNORDERED_LIST -> handleList(html, inlineContent, para, styles, state)
@@ -286,6 +316,109 @@ object HTMLGenerator {
       else -> handleNormalParagraph(html, inlineContent, styles, state)
     }
   }
+
+  private fun handleTable(
+    html: StringBuilder,
+    text: Spannable,
+    para: ParagraphInfo,
+    styles: CachedStyles,
+    state: GeneratorState,
+  ) {
+    closeCodeBlockIfOpen(html, state, styles)
+    closeAllBlockquotes(html, state)
+    closeListsIfOpen(html, state)
+
+    val table = text.getSpans(para.start, para.start + 1, TableSpan::class.java).firstOrNull() ?: return
+    appendTableHTML(html, table, styles)
+
+    state.previousWasBlockquote = false
+    state.previousWasCodeBlock = false
+  }
+
+  private fun appendTableHTML(
+    html: StringBuilder,
+    table: TableSpan,
+    styles: CachedStyles,
+  ) {
+    if (table.rows.isEmpty()) return
+    val tableStyles = styles.table
+
+    html
+      .append("<table style=\"border-collapse: separate; border-spacing: 0; border: ")
+      .append(tableStyles.borderWidth)
+      .append("px solid ")
+      .append(tableStyles.borderColor)
+      .append("; border-radius: ")
+      .append(tableStyles.borderRadius)
+      .append("px; overflow: hidden; font-size: ")
+      .append(tableStyles.fontSize)
+      .append("px;\">")
+
+    var hasOpenedBody = false
+    var bodyRowIndex = 0
+
+    for (row in table.rows) {
+      if (row.cells.isEmpty()) continue
+
+      if (row.isHeader) {
+        html.append("<thead>")
+      } else if (!hasOpenedBody) {
+        html.append("<tbody>")
+        hasOpenedBody = true
+      }
+      html.append("<tr>")
+
+      for (cell in row.cells) {
+        val backgroundColor =
+          when {
+            cell.isHeader -> tableStyles.headerBackgroundColor
+            bodyRowIndex % 2 == 0 -> tableStyles.rowEvenBackgroundColor
+            else -> tableStyles.rowOddBackgroundColor
+          }
+        val tag = if (cell.isHeader) "th" else "td"
+
+        html
+          .append('<')
+          .append(tag)
+          .append(" style=\"padding: ")
+          .append(tableStyles.cellPaddingVertical)
+          .append("px ")
+          .append(tableStyles.cellPaddingHorizontal)
+          .append("px; text-align: ")
+          .append(alignmentToCSS(cell.alignment))
+          .append("; background-color: ")
+          .append(backgroundColor)
+          .append("; color: ")
+          .append(if (cell.isHeader) tableStyles.headerTextColor else tableStyles.color)
+          .append("; border: ")
+          .append(tableStyles.borderWidth)
+          .append("px solid ")
+          .append(tableStyles.borderColor)
+          .append("; font-weight: ")
+          .append(if (cell.isHeader) "bold" else "normal")
+          .append(";\">")
+
+        if (cell.text.isNotEmpty()) {
+          html.append(generateInlineHTML(cell.text, 0, cell.text.length, styles, false))
+        }
+
+        html.append("</").append(tag).append('>')
+      }
+
+      html.append("</tr>")
+      if (row.isHeader) html.append("</thead>") else bodyRowIndex++
+    }
+
+    if (hasOpenedBody) html.append("</tbody>")
+    html.append("</table>")
+  }
+
+  private fun alignmentToCSS(alignment: Layout.Alignment): String =
+    when (alignment) {
+      Layout.Alignment.ALIGN_CENTER -> "center"
+      Layout.Alignment.ALIGN_OPPOSITE -> "right"
+      else -> "left"
+    }
 
   private fun handleCodeBlock(
     content: String,
@@ -781,6 +914,7 @@ object HTMLGenerator {
     val end = minOf(start + 1, text.length)
 
     if (text.getSpans(start, end, CodeBlockSpan::class.java).isNotEmpty()) return TYPE_CODE_BLOCK
+    if (text.getSpans(start, end, TableSpan::class.java).isNotEmpty()) return TYPE_TABLE
 
     val headingSpans = text.getSpans(start, end, HeadingSpan::class.java)
     if (headingSpans.isNotEmpty()) return headingSpans[0].level.coerceIn(1, 6)

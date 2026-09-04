@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.SystemClock
 import android.text.Layout
 import android.text.Spannable
 import android.text.Spanned
@@ -13,6 +14,7 @@ import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.text.style.ReplacementSpan
 import android.widget.TextView
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withSave
 import com.swmansion.enriched.markdown.styles.TableAlignment
 import com.swmansion.enriched.markdown.styles.TableStyle
@@ -27,10 +29,14 @@ import kotlin.math.min
  * font metrics, so the table gets a line of its own — the same technique [ThematicBreakSpan] uses.
  *
  * Column widths follow the same rules as the React Native renderer: a column is as wide as its
- * widest cell, clamped to `[60dp, 300dp]` plus horizontal padding. A TextView cannot scroll
- * horizontally, so where the React Native renderer hands an oversized table to a
- * `HorizontalScrollView` this one shrinks columns until the table fits — see [columnFloors] for
- * how far a column may be squeezed.
+ * widest cell, clamped to `[60dp, 300dp]` plus horizontal padding. Where the React Native renderer
+ * hands an oversized table to a `HorizontalScrollView`, this span scrolls its own content: the
+ * table keeps its natural width and is drawn through a viewport-sized window, offset by [scrollX].
+ * The host view feeds it drag and fling gestures — see `EnrichedMarkdownText.onTouchEvent`.
+ *
+ * The table's frame — the rounded clip and the outer border — is pinned to that window rather than
+ * to the content, so a table wider than the viewport still reads as a framed widget while its cells
+ * slide underneath. When the table fits, window and content coincide and nothing scrolls.
  */
 class TableSpan(
   val rows: List<Row>,
@@ -69,19 +75,18 @@ class TableSpan(
       strokeWidth = tableStyle.borderWidth
       color = tableStyle.borderColor
     }
+  private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
   private val clipPath = Path()
   private val rect = RectF()
 
-  /** Width the cached layout was built for; negative means nothing has been measured yet. */
-  private var laidOutForWidth: Float = -1f
+  /** Cells are measured once: their widths are natural, so the viewport never invalidates them. */
+  private var isLaidOut = false
   private var viewportWidth: Float = 0f
   private var columnWidths: FloatArray = FloatArray(0)
-
-  /** Width-independent measurements, so a change of viewport only redoes the fitting. */
-  private val naturalColumnWidths: FloatArray by lazy { measureNaturalColumnWidths() }
-  private val longestWordWidths: FloatArray by lazy { measureLongestWordWidths() }
   private var rowHeights: FloatArray = FloatArray(0)
   private var cellLayouts: List<List<StaticLayout?>> = emptyList()
+  private var hasAppliedInitialScroll = false
+  private var scrollIndicatorShownAt = 0L
 
   var totalWidth: Float = 0f
     private set
@@ -89,15 +94,31 @@ class TableSpan(
   var totalHeight: Float = 0f
     private set
 
+  /** How far the content is scrolled inside the viewport, always measured from its left edge. */
+  var scrollX: Float = 0f
+    private set
+
+  /** The largest useful [scrollX]; `0` while the table fits its viewport. */
+  val maxScrollX: Float
+    get() = max(0f, totalWidth - frameWidth())
+
   /**
-   * Sets the width the table may occupy. Returns `true` when an already-measured layout became
-   * stale, meaning the host has to lay its text out again.
+   * Sets the width the table is shown through. Returns `true` when the value changed, so the host
+   * can redraw. Column widths do not depend on it — an oversized table scrolls instead of being
+   * squeezed — so a viewport change never invalidates the measured layout, only the scroll bounds.
    */
   fun setViewportWidth(width: Float): Boolean {
     val sanitized = width.coerceAtLeast(0f)
     if (sanitized == viewportWidth) return false
+
+    // A table parked at its trailing edge (where an RTL one starts) stays there when the window
+    // grows or shrinks, rather than drifting back towards the leading edge.
+    val wasAtTrailingEdge = maxScrollX > 0f && scrollX >= maxScrollX
     viewportWidth = sanitized
-    return laidOutForWidth >= 0f && sanitized != laidOutForWidth
+    if (wasAtTrailingEdge) scrollX = maxScrollX
+    scrollX = scrollX.coerceIn(0f, maxScrollX)
+    applyInitialScroll()
+    return true
   }
 
   /**
@@ -112,7 +133,9 @@ class TableSpan(
 
   private fun applyWidthFrom(view: TextView) {
     if (setViewportWidth(availableWidth(view))) {
-      requestReflow(view)
+      // Only the visible window moved; the table's own measurements — and so the line height the
+      // host laid out for — are unchanged, so a repaint is enough and no relayout is requested.
+      view.invalidate()
     }
   }
 
@@ -128,21 +151,6 @@ class TableSpan(
         .getSpans(start, end, LeadingMarginSpan::class.java)
         .sumOf { it.getLeadingMargin(true) }
     return (baseWidth - leadingMargin).coerceAtLeast(0).toFloat()
-  }
-
-  private fun requestReflow(view: TextView) {
-    val text = view.text
-    if (text is Spannable) {
-      val start = text.getSpanStart(this)
-      val end = text.getSpanEnd(this)
-      if (start != -1 && end != -1) {
-        // Re-setting the span makes the TextView rebuild its layout with the new measurements.
-        text.setSpan(this, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return
-      }
-    }
-    view.invalidate()
-    view.requestLayout()
   }
 
   override fun getSize(
@@ -177,78 +185,168 @@ class TableSpan(
     ensureLayout()
     if (rows.isEmpty() || columnCount == 0) return
 
+    val frameWidth = frameWidth()
     canvas.withSave {
       translate(x + horizontalOffset(), top.toFloat())
-      drawCells(this)
-      drawOuterBorder(this)
+      withSave {
+        clipToFrame(this, frameWidth)
+        translate(-scrollX, 0f)
+        drawCells(this)
+      }
+      // Frame and indicator belong to the window, not to the content, so they are drawn outside
+      // the scrolled layer and stay put while the cells move.
+      drawOuterBorder(this, frameWidth)
+      drawScrollIndicator(this, frameWidth)
+    }
+  }
+
+  /** Restricts drawing to the visible window, rounding it the way the table's corners are rounded. */
+  private fun clipToFrame(
+    canvas: Canvas,
+    frameWidth: Float,
+  ) {
+    val radius = tableStyle.borderRadius
+    if (radius > 0f) {
+      rect.set(0f, 0f, frameWidth, totalHeight)
+      clipPath.reset()
+      clipPath.addRoundRect(rect, radius, radius, Path.Direction.CW)
+      canvas.clipPath(clipPath)
+    } else {
+      canvas.clipRect(0f, 0f, frameWidth, totalHeight)
     }
   }
 
   private fun drawCells(canvas: Canvas) {
     val borderWidth = tableStyle.borderWidth
-    val radius = tableStyle.borderRadius
 
-    canvas.withSave {
-      if (radius > 0f) {
-        rect.set(0f, 0f, totalWidth, totalHeight)
-        clipPath.reset()
-        clipPath.addRoundRect(rect, radius, radius, Path.Direction.CW)
-        clipPath(clipPath)
-      }
-
-      var rowTop = 0f
-      var bodyRowIndex = 0
-      rows.forEachIndexed { rowIndex, row ->
-        val rowHeight = rowHeights[rowIndex]
-        backgroundPaint.color =
-          when {
-            row.isHeader -> tableStyle.headerBackgroundColor
-            bodyRowIndex % 2 == 0 -> tableStyle.rowEvenBackgroundColor
-            else -> tableStyle.rowOddBackgroundColor
-          }
-
-        for (column in 0 until columnCount) {
-          val cellLeft = columnLeft(column)
-          val cellRight = cellLeft + columnWidths[column] + borderWidth
-          val cellBottom = rowTop + rowHeight + borderWidth
-
-          drawRect(cellLeft, rowTop, cellRight, cellBottom, backgroundPaint)
-          if (borderWidth > 0f) {
-            val halfStroke = borderWidth / 2f
-            drawRect(
-              cellLeft + halfStroke,
-              rowTop + halfStroke,
-              cellRight - halfStroke,
-              cellBottom - halfStroke,
-              borderPaint,
-            )
-          }
-
-          val cellLayout = cellLayouts.getOrNull(rowIndex)?.getOrNull(column) ?: continue
-          withSave {
-            translate(cellLeft + tableStyle.cellPaddingHorizontal, rowTop + tableStyle.cellPaddingVertical)
-            cellLayout.draw(this)
-          }
+    var rowTop = 0f
+    var bodyRowIndex = 0
+    rows.forEachIndexed { rowIndex, row ->
+      val rowHeight = rowHeights[rowIndex]
+      backgroundPaint.color =
+        when {
+          row.isHeader -> tableStyle.headerBackgroundColor
+          bodyRowIndex % 2 == 0 -> tableStyle.rowEvenBackgroundColor
+          else -> tableStyle.rowOddBackgroundColor
         }
 
-        if (!row.isHeader) bodyRowIndex++
-        rowTop += rowHeight
+      for (column in 0 until columnCount) {
+        val cellLeft = columnLeft(column)
+        val cellRight = cellLeft + columnWidths[column] + borderWidth
+        val cellBottom = rowTop + rowHeight + borderWidth
+
+        canvas.drawRect(cellLeft, rowTop, cellRight, cellBottom, backgroundPaint)
+        if (borderWidth > 0f) {
+          val halfStroke = borderWidth / 2f
+          canvas.drawRect(
+            cellLeft + halfStroke,
+            rowTop + halfStroke,
+            cellRight - halfStroke,
+            cellBottom - halfStroke,
+            borderPaint,
+          )
+        }
+
+        val cellLayout = cellLayouts.getOrNull(rowIndex)?.getOrNull(column) ?: continue
+        canvas.withSave {
+          translate(cellLeft + tableStyle.cellPaddingHorizontal, rowTop + tableStyle.cellPaddingVertical)
+          cellLayout.draw(this)
+        }
       }
+
+      if (!row.isHeader) bodyRowIndex++
+      rowTop += rowHeight
     }
   }
 
-  private fun drawOuterBorder(canvas: Canvas) {
+  private fun drawOuterBorder(
+    canvas: Canvas,
+    frameWidth: Float,
+  ) {
     if (tableStyle.borderWidth <= 0f) return
     val radius = tableStyle.borderRadius
     if (radius > 0f) {
       val halfStroke = tableStyle.borderWidth / 2f
-      rect.set(halfStroke, halfStroke, totalWidth - halfStroke, totalHeight - halfStroke)
+      rect.set(halfStroke, halfStroke, frameWidth - halfStroke, totalHeight - halfStroke)
       canvas.drawRoundRect(rect, radius, radius, borderPaint)
     } else {
-      rect.set(0f, 0f, totalWidth, totalHeight)
+      rect.set(0f, 0f, frameWidth, totalHeight)
       canvas.drawRect(rect, borderPaint)
     }
   }
+
+  /**
+   * Draws the horizontal scroll indicator, a thumb along the bottom of the window that fades out
+   * once the table has been still for [INDICATOR_HOLD_MS].
+   */
+  private fun drawScrollIndicator(
+    canvas: Canvas,
+    frameWidth: Float,
+  ) {
+    val alpha = scrollIndicatorAlpha()
+    if (alpha == 0) return
+
+    val inset = INDICATOR_INSET_DP * density
+    val thickness = INDICATOR_THICKNESS_DP * density
+    val trackWidth = frameWidth - inset * 2f
+    if (trackWidth <= 0f) return
+
+    val thumbWidth =
+      max(INDICATOR_MIN_LENGTH_DP * density, trackWidth * frameWidth / totalWidth)
+        .coerceAtMost(trackWidth)
+    val progress = (scrollX / maxScrollX).coerceIn(0f, 1f)
+    val left = inset + (trackWidth - thumbWidth) * progress
+    val bottom = totalHeight - inset
+
+    indicatorPaint.color =
+      ColorUtils.setAlphaComponent(tableStyle.color, alpha * INDICATOR_OPACITY / 255)
+    rect.set(left, bottom - thickness, left + thumbWidth, bottom)
+    canvas.drawRoundRect(rect, thickness / 2f, thickness / 2f, indicatorPaint)
+  }
+
+  private fun scrollIndicatorAlpha(): Int {
+    if (maxScrollX <= 0f || scrollIndicatorShownAt == 0L) return 0
+    val elapsed = SystemClock.uptimeMillis() - scrollIndicatorShownAt
+    if (elapsed <= INDICATOR_HOLD_MS) return 255
+    val fading = elapsed - INDICATOR_HOLD_MS
+    if (fading >= INDICATOR_FADE_MS) return 0
+    return (255f * (1f - fading.toFloat() / INDICATOR_FADE_MS)).toInt()
+  }
+
+  /** Whether the indicator still owes the host another frame to finish fading out. */
+  fun isScrollIndicatorAnimating(): Boolean = scrollIndicatorAlpha() > 0
+
+  /** Whether the table is wider than its viewport and so has somewhere to scroll to. */
+  fun canScrollHorizontally(): Boolean {
+    ensureLayout()
+    return maxScrollX > 0f
+  }
+
+  /** Scrolls to an absolute offset, clamped to the content. Returns `true` when it moved. */
+  fun scrollTo(offset: Float): Boolean {
+    ensureLayout()
+    val clamped = offset.coerceIn(0f, maxScrollX)
+    scrollIndicatorShownAt = SystemClock.uptimeMillis()
+    if (clamped == scrollX) return false
+    scrollX = clamped
+    return true
+  }
+
+  /** Scrolls by a delta in content pixels — positive reveals content further to the right. */
+  fun scrollBy(delta: Float): Boolean = scrollTo(scrollX + delta)
+
+  /**
+   * RTL tables open at their trailing edge, where the first column sits, mirroring what the React
+   * Native renderer does in `TableContainerView.onLayout`.
+   */
+  private fun applyInitialScroll() {
+    if (hasAppliedInitialScroll || !isLaidOut || viewportWidth <= 0f) return
+    hasAppliedInitialScroll = true
+    if (isRtl) scrollX = maxScrollX
+  }
+
+  /** Width of the window the table is seen through: the viewport, or the table when it is narrower. */
+  private fun frameWidth(): Float = if (viewportWidth > 0f) min(totalWidth, viewportWidth) else totalWidth
 
   /** Horizontal offset of the table within the viewport, honouring [TableStyle.align]. */
   private fun horizontalOffset(): Float {
@@ -273,8 +371,8 @@ class TableSpan(
   }
 
   private fun ensureLayout() {
-    if (laidOutForWidth == viewportWidth) return
-    laidOutForWidth = viewportWidth
+    if (isLaidOut) return
+    isLaidOut = true
 
     if (rows.isEmpty() || columnCount == 0) {
       columnWidths = FloatArray(0)
@@ -285,7 +383,7 @@ class TableSpan(
       return
     }
 
-    columnWidths = fitColumnWidths(naturalColumnWidths)
+    columnWidths = measureNaturalColumnWidths()
     cellLayouts =
       rows.map { row ->
         List(columnCount) { column ->
@@ -300,6 +398,8 @@ class TableSpan(
 
     totalWidth = columnWidths.sum() + tableStyle.borderWidth
     totalHeight = rowHeights.sum() + tableStyle.borderWidth
+    scrollX = scrollX.coerceIn(0f, maxScrollX)
+    applyInitialScroll()
   }
 
   private fun contentWidth(column: Int): Int = (columnWidths[column] - horizontalPadding).toInt().coerceAtLeast(1)
@@ -324,82 +424,6 @@ class TableSpan(
     return widths
   }
 
-  /**
-   * Shrinks columns proportionally so the table fits [viewportWidth], never going below the floors
-   * from [columnFloors].
-   */
-  private fun fitColumnWidths(natural: FloatArray): FloatArray {
-    val available = viewportWidth - tableStyle.borderWidth
-    val naturalTotal = natural.sum()
-    if (available <= 0f || naturalTotal <= available) return natural
-
-    val floors = columnFloors(natural, available)
-    val shrinkable = FloatArray(natural.size) { natural[it] - floors[it] }
-    val totalShrinkable = shrinkable.sum()
-    if (totalShrinkable <= 0f) return floors
-
-    val ratio = min(1f, (naturalTotal - available) / totalShrinkable)
-    return FloatArray(natural.size) { natural[it] - shrinkable[it] * ratio }
-  }
-
-  /**
-   * How narrow each column may get.
-   *
-   * The preferred floor is the column's widest unbreakable run — its longest word — so shrinking
-   * wraps between words instead of chopping through them. A table too wide to keep every word
-   * intact eases those floors down towards a flat [MIN_SHRUNK_COLUMN_WIDTH_DP], breaking words
-   * only as far as it must: the table cannot scroll sideways, so fitting the view wins.
-   */
-  private fun columnFloors(
-    natural: FloatArray,
-    available: Float,
-  ): FloatArray {
-    val hardFloorWidth = MIN_SHRUNK_COLUMN_WIDTH_DP * density + horizontalPadding
-    val wordFloors = longestWordWidths
-    val hardFloors = FloatArray(columnCount) { min(natural[it], hardFloorWidth) }
-    val preferred = FloatArray(columnCount) { min(natural[it], max(wordFloors[it], hardFloorWidth)) }
-    val preferredTotal = preferred.sum()
-    if (preferredTotal <= available) return preferred
-
-    val slack = FloatArray(columnCount) { preferred[it] - hardFloors[it] }
-    val totalSlack = slack.sum()
-    if (totalSlack <= 0f) return hardFloors
-
-    val ratio = min(1f, (preferredTotal - available) / totalSlack)
-    return FloatArray(columnCount) { preferred[it] - slack[it] * ratio }
-  }
-
-  /**
-   * Per column, the width of the widest whitespace-delimited run in it — measured with each cell's
-   * own spans, so bold or larger inline text counts for what it really takes — plus cell padding.
-   */
-  private fun measureLongestWordWidths(): FloatArray {
-    val widths = FloatArray(columnCount)
-    rows.forEach { row ->
-      row.cells.forEachIndexed { column, cell ->
-        widths[column] = max(widths[column], ceil(longestWordWidth(cell)) + horizontalPadding)
-      }
-    }
-    return widths
-  }
-
-  private fun longestWordWidth(cell: Cell): Float {
-    val text = cell.text
-    var widest = 0f
-    var index = 0
-
-    while (index < text.length) {
-      while (index < text.length && text[index].isWhitespace()) index++
-      if (index >= text.length) break
-
-      var wordEnd = index
-      while (wordEnd < text.length && !text[wordEnd].isWhitespace()) wordEnd++
-      widest = max(widest, Layout.getDesiredWidth(text, index, wordEnd, cellPaint))
-      index = wordEnd
-    }
-    return widest
-  }
-
   private fun buildCellLayout(
     cell: Cell,
     width: Int,
@@ -411,9 +435,26 @@ class TableSpan(
       .build()
 
   /**
+   * Whether a point expressed relative to the line's leading edge and top falls inside the table's
+   * visible window. Used by the host to decide which table, if any, a gesture belongs to.
+   */
+  fun containsPoint(
+    localX: Float,
+    localY: Float,
+  ): Boolean {
+    if (rows.isEmpty() || columnCount == 0) return false
+    ensureLayout()
+    val viewportX = localX - horizontalOffset()
+    return viewportX >= 0f && viewportX <= frameWidth() && localY >= 0f && localY <= totalHeight
+  }
+
+  /**
    * Returns the link at a point expressed relative to the line's leading edge and top. Cells are
    * drawn straight onto the host's canvas, so link hits are resolved here rather than by the
    * character-offset lookup the host's movement method uses for ordinary text.
+   *
+   * The point is in viewport space, so [scrollX] is folded in and anything outside the visible
+   * window misses — a link scrolled out of sight cannot be tapped through the table's edge.
    */
   fun linkAt(
     localX: Float,
@@ -422,8 +463,9 @@ class TableSpan(
     if (rows.isEmpty() || columnCount == 0) return null
     ensureLayout()
 
-    val tableX = localX - horizontalOffset()
-    if (tableX < 0f || tableX > totalWidth || localY < 0f || localY > totalHeight) return null
+    val viewportX = localX - horizontalOffset()
+    if (viewportX < 0f || viewportX > frameWidth() || localY < 0f || localY > totalHeight) return null
+    val tableX = viewportX + scrollX
 
     var rowTop = 0f
     for ((rowIndex, row) in rows.withIndex()) {
@@ -459,14 +501,22 @@ class TableSpan(
     return cell.text.getSpans(offset, offset, LinkSpan::class.java).firstOrNull()
   }
 
-  /** Bounds of each row relative to the table line's top, for exposing rows to a screen reader. */
+  /**
+   * Bounds of each row relative to the table line's top, for exposing rows to a screen reader.
+   *
+   * A row is clamped to the visible window rather than to the table's natural width: the node has
+   * to be where the finger can find it. The bounds do not otherwise depend on [scrollX] — each node
+   * still reads out its whole row, columns currently off-screen included — so scrolling never
+   * invalidates them.
+   */
   fun rowBounds(): List<RectF> {
     ensureLayout()
     val offset = horizontalOffset()
+    val width = frameWidth()
     var rowTop = 0f
     return rows.indices.map { rowIndex ->
       val rowHeight = rowHeights[rowIndex]
-      RectF(offset, rowTop, offset + totalWidth, rowTop + rowHeight).also { rowTop += rowHeight }
+      RectF(offset, rowTop, offset + width, rowTop + rowHeight).also { rowTop += rowHeight }
     }
   }
 
@@ -476,6 +526,15 @@ class TableSpan(
   companion object {
     private const val MIN_COLUMN_WIDTH_DP = 60f
     private const val MAX_COLUMN_WIDTH_DP = 300f
-    private const val MIN_SHRUNK_COLUMN_WIDTH_DP = 40f
+
+    private const val INDICATOR_THICKNESS_DP = 3f
+    private const val INDICATOR_INSET_DP = 2f
+    private const val INDICATOR_MIN_LENGTH_DP = 16f
+
+    /** Opacity of a fully-shown indicator, over the cell text colour. */
+    private const val INDICATOR_OPACITY = 140
+
+    private const val INDICATOR_HOLD_MS = 350L
+    private const val INDICATOR_FADE_MS = 300L
   }
 }

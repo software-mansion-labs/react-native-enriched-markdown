@@ -45,6 +45,24 @@ class TableRendererTest {
         ),
     )
 
+  /** A two-column table whose cells are far too wide for a phone viewport. */
+  private fun wideTableSpan(): TableSpan {
+    val longText = "A fairly long cell that wants far more room than a phone screen can give it. ".repeat(6)
+    return tableSpanOf(
+      table(
+        head = tableHead(tableRow(tableHeaderCell("default", text(longText)), tableHeaderCell("default", text(longText)))),
+        body = tableBody(tableRow(tableCell("default", text(longText)), tableCell("default", text(longText)))),
+      ),
+    )
+  }
+
+  /** Measures a span the way a first layout pass would: viewport first, then [TableSpan.getSize]. */
+  private fun TableSpan.measureIn(viewportWidth: Float): TableSpan {
+    setViewportWidth(viewportWidth)
+    getSize(TextPaint(), " ", 0, 1, Paint.FontMetricsInt())
+    return this
+  }
+
   private fun tableSpanOf(node: MarkdownASTNode): TableSpan {
     val rendered = render(document(node))
     val spans = rendered.getSpans(0, rendered.length, TableSpan::class.java)
@@ -172,25 +190,76 @@ class TableRendererTest {
   }
 
   @Test
-  fun shrinksWideColumnsToFitTheViewport() {
-    val longText = "A fairly long cell that wants far more room than a phone screen can give it. ".repeat(6)
-    val span =
-      tableSpanOf(
-        table(
-          head = tableHead(tableRow(tableHeaderCell("default", text(longText)), tableHeaderCell("default", text(longText)))),
-          body = tableBody(tableRow(tableCell("default", text(longText)), tableCell("default", text(longText)))),
-        ),
-      )
-
-    span.setViewportWidth(2000f)
-    span.getSize(TextPaint(), " ", 0, 1, Paint.FontMetricsInt())
+  fun keepsTheNaturalWidthOfAWideTableAndScrollsIt() {
+    val span = wideTableSpan().measureIn(2000f)
     val naturalWidth = span.totalWidth
 
-    span.setViewportWidth(320f)
-    span.getSize(TextPaint(), " ", 0, 1, Paint.FontMetricsInt())
+    span.measureIn(320f)
 
-    assertTrue("Columns should shrink to fit a narrow viewport", span.totalWidth < naturalWidth)
-    assertTrue("The shrunk table should fit the viewport", span.totalWidth <= 320f)
+    // Columns are measured once and never squeezed: a narrow viewport scrolls instead.
+    assertEquals(naturalWidth, span.totalWidth, 0.01f)
+    assertTrue("A table wider than its viewport should overflow it", span.totalWidth > 320f)
+    assertTrue("An overflowing table should be scrollable", span.canScrollHorizontally())
+    assertEquals(naturalWidth - 320f, span.maxScrollX, 0.01f)
+  }
+
+  @Test
+  fun doesNotScrollATableThatFitsItsViewport() {
+    val span = tableSpanOf(simpleTable()).measureIn(2000f)
+
+    assertFalse("A table that fits has nowhere to scroll", span.canScrollHorizontally())
+    assertEquals(0f, span.maxScrollX, 0.01f)
+    assertFalse("Scrolling a table that fits should be a no-op", span.scrollBy(200f))
+    assertEquals(0f, span.scrollX, 0.01f)
+  }
+
+  @Test
+  fun clampsScrollingToTheContent() {
+    val span = wideTableSpan().measureIn(320f)
+    val maxScrollX = span.maxScrollX
+
+    assertTrue(span.scrollBy(80f))
+    assertEquals(80f, span.scrollX, 0.01f)
+
+    span.scrollBy(maxScrollX * 2f)
+    assertEquals("Scrolling past the trailing edge should stop there", maxScrollX, span.scrollX, 0.01f)
+
+    span.scrollBy(-maxScrollX * 2f)
+    assertEquals("Scrolling past the leading edge should stop at zero", 0f, span.scrollX, 0.01f)
+  }
+
+  @Test
+  fun reclampsScrollWhenTheViewportGrows() {
+    val span = wideTableSpan().measureIn(320f)
+    span.scrollBy(span.maxScrollX)
+
+    span.setViewportWidth(span.totalWidth - 40f)
+
+    assertEquals(40f, span.maxScrollX, 0.01f)
+    assertEquals("Scroll should follow the shrinking bounds", 40f, span.scrollX, 0.01f)
+
+    span.setViewportWidth(span.totalWidth + 100f)
+
+    assertEquals(0f, span.maxScrollX, 0.01f)
+    assertEquals(0f, span.scrollX, 0.01f)
+  }
+
+  @Test
+  fun startsAnLtrTableAtItsLeadingEdge() {
+    val span = wideTableSpan().measureIn(320f)
+
+    assertTrue("The table should have somewhere to scroll", span.maxScrollX > 0f)
+    assertEquals(0f, span.scrollX, 0.01f)
+  }
+
+  @Test
+  @Config(sdk = [28], qualifiers = "ar-rEG-ldrtl")
+  fun startsAnRtlTableAtItsTrailingEdge() {
+    val span = wideTableSpan().measureIn(320f)
+
+    assertTrue("The table should have somewhere to scroll", span.maxScrollX > 0f)
+    // Right-to-left reading starts at the trailing edge, where the first column sits.
+    assertEquals(span.maxScrollX, span.scrollX, 0.01f)
   }
 
   @Test

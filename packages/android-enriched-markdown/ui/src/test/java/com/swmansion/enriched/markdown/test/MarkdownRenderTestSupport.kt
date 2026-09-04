@@ -8,7 +8,10 @@ import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
 object MarkdownRenderTestSupport {
-  private val context: Context = ApplicationProvider.getApplicationContext()
+  // Resolved per call, not cached: a @Config qualifier (a locale, an RTL layout direction) is
+  // applied to the current test's context, and a singleton would pin the first test's one.
+  private val context: Context
+    get() = ApplicationProvider.getApplicationContext()
 
   fun render(document: MarkdownASTNode): SpannableString {
     val renderer = Renderer()

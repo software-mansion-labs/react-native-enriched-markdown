@@ -2,17 +2,23 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Canvas
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Layout
+import android.text.Spanned
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
+import android.view.VelocityTracker
+import android.view.ViewConfiguration
+import android.widget.OverScroller
 import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.SelectionMenuConfig
@@ -20,6 +26,8 @@ import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
 import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
 import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
+import kotlin.math.abs
+import kotlin.math.ceil
 
 class EnrichedMarkdownText
   @JvmOverloads
@@ -52,6 +60,21 @@ class EnrichedMarkdownText
     private var selectionHandleColor: Int? = null
     private var isSelectable = true
     private var selectionMenuConfig = SelectionMenuConfig()
+
+    /**
+     * Horizontal scrolling for tables. A [TableSpan] is wider than the view whenever its columns
+     * do not fit, and scrolls its own content; the gesture has to be arbitrated here because a
+     * [android.text.style.ReplacementSpan] never sees touch events.
+     */
+    private val tableScroller = OverScroller(context)
+    private var tableSpans: List<TableSpan> = emptyList()
+    private var draggedTable: TableSpan? = null
+    private var flingingTable: TableSpan? = null
+    private var tableVelocityTracker: VelocityTracker? = null
+    private var isDraggingTable = false
+    private var tableTouchDownX = 0f
+    private var tableTouchDownY = 0f
+    private var lastTableTouchX = 0f
 
     init {
       setupAsMarkdownTextView()
@@ -131,6 +154,9 @@ class EnrichedMarkdownText
       setMarkdownContent("")
       text = ""
       pendingStyledText = null
+      abortTableFling()
+      resetTableTouch()
+      tableSpans = emptyList()
     }
 
     fun setSelectionColor(color: Int?) {
@@ -226,8 +252,9 @@ class EnrichedMarkdownText
 
     private fun applyRenderedText(styledText: CharSequence) {
       val tableSpans = renderer.getCollectedTableSpans()
-      // Tables need a width before the text is measured, otherwise the first layout pass sizes them
-      // against their natural width and the reflow they request afterwards costs an extra pass.
+      this.tableSpans = tableSpans
+      // Tables need their viewport before the first draw, otherwise they paint one frame with no
+      // scroll bounds and an alignment offset computed against a zero-width window.
       if (tableSpans.isNotEmpty()) {
         val contentWidth = (width - totalPaddingLeft - totalPaddingRight).coerceAtLeast(0).toFloat()
         tableSpans.forEach { span -> span.setViewportWidth(contentWidth) }
@@ -257,9 +284,178 @@ class EnrichedMarkdownText
       }
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean = super.onTouchEvent(event)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+      when (event.actionMasked) {
+        MotionEvent.ACTION_DOWN -> {
+          beginTableTouch(event)
+        }
+
+        MotionEvent.ACTION_MOVE -> {
+          if (handleTableDrag(event)) return true
+        }
+
+        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+          val wasDragging = isDraggingTable
+          finishTableTouch(event)
+          // The gesture scrolled a table, so it must not also land as a tap on a cell link.
+          if (wasDragging) return true
+        }
+      }
+
+      return super.onTouchEvent(event)
+    }
+
+    private fun beginTableTouch(event: MotionEvent) {
+      abortTableFling()
+      resetTableTouch()
+      tableTouchDownX = event.x
+      tableTouchDownY = event.y
+      lastTableTouchX = event.x
+      draggedTable = scrollableTableAt(event)
+      if (draggedTable != null) {
+        tableVelocityTracker = VelocityTracker.obtain().apply { addMovement(event) }
+      }
+    }
+
+    /**
+     * Claims the gesture for a table once it is unambiguously a horizontal drag, then feeds it to
+     * that table. Returns `true` while the drag is owned here, so the event never reaches the text
+     * selection machinery.
+     */
+    private fun handleTableDrag(event: MotionEvent): Boolean {
+      val table = draggedTable ?: return false
+      tableVelocityTracker?.addMovement(event)
+
+      if (!isDraggingTable) {
+        val dx = event.x - tableTouchDownX
+        val dy = event.y - tableTouchDownY
+        // Horizontal, past the slop, and more horizontal than vertical: anything else is a tap, a
+        // text selection drag, or the parent's vertical scroll, and is left alone.
+        if (abs(dx) <= ViewConfiguration.get(context).scaledTouchSlop || abs(dx) <= abs(dy)) return false
+
+        // A long press has already handed the gesture to the selection editor, which is now
+        // dragging a handle; taking it away mid-selection would strand the action mode.
+        if (event.eventTime - event.downTime >= ViewConfiguration.getLongPressTimeout()) {
+          resetTableTouch()
+          return false
+        }
+
+        isDraggingTable = true
+        lastTableTouchX = event.x
+        // The view lives inside a Compose `verticalScroll`; keep it from stealing the drag back.
+        parent?.requestDisallowInterceptTouchEvent(true)
+        cancelPendingSelection(event)
+      }
+
+      val delta = lastTableTouchX - event.x
+      lastTableTouchX = event.x
+      if (table.scrollBy(delta)) invalidate()
+      return true
+    }
+
+    private fun finishTableTouch(event: MotionEvent) {
+      val table = draggedTable
+      if (isDraggingTable && table != null && event.actionMasked == MotionEvent.ACTION_UP) {
+        val config = ViewConfiguration.get(context)
+        tableVelocityTracker?.let { tracker ->
+          tracker.addMovement(event)
+          tracker.computeCurrentVelocity(VELOCITY_UNITS, config.scaledMaximumFlingVelocity.toFloat())
+          val velocityX = tracker.xVelocity
+          if (abs(velocityX) > config.scaledMinimumFlingVelocity) {
+            startTableFling(table, -velocityX)
+          }
+        }
+      }
+      if (isDraggingTable) parent?.requestDisallowInterceptTouchEvent(false)
+      resetTableTouch()
+    }
+
+    private fun resetTableTouch() {
+      isDraggingTable = false
+      draggedTable = null
+      tableVelocityTracker?.recycle()
+      tableVelocityTracker = null
+    }
+
+    /**
+     * Tells the superclass the gesture is over. The editor placed a cursor on `ACTION_DOWN` and
+     * would keep extending a selection from it; a cancel unwinds that cleanly, and leaves selection
+     * everywhere outside a table untouched.
+     */
+    private fun cancelPendingSelection(event: MotionEvent) {
+      val cancel = MotionEvent.obtain(event)
+      cancel.action = MotionEvent.ACTION_CANCEL
+      super.onTouchEvent(cancel)
+      cancel.recycle()
+    }
+
+    /** The scrollable table under the event, if the point is inside one. */
+    private fun scrollableTableAt(event: MotionEvent): TableSpan? {
+      if (tableSpans.isEmpty()) return null
+      val buffer = text as? Spanned ?: return null
+      val layout = layout ?: return null
+
+      val x = event.x - totalPaddingLeft + scrollX
+      val y = event.y - totalPaddingTop + scrollY
+      if (y < 0f || y > layout.height) return null
+
+      val line = layout.getLineForVertical(y.toInt())
+      for (table in tableSpans) {
+        val start = buffer.getSpanStart(table)
+        if (start < 0 || layout.getLineForOffset(start) != line) continue
+        if (!table.canScrollHorizontally()) return null
+        val localX = x - layout.getLineLeft(line)
+        val localY = y - layout.getLineTop(line)
+        return table.takeIf { it.containsPoint(localX, localY) }
+      }
+      return null
+    }
+
+    private fun startTableFling(
+      table: TableSpan,
+      velocityX: Float,
+    ) {
+      flingingTable = table
+      tableScroller.fling(
+        table.scrollX.toInt(),
+        0,
+        velocityX.toInt(),
+        0,
+        0,
+        ceil(table.maxScrollX).toInt(),
+        0,
+        0,
+      )
+      postInvalidateOnAnimation()
+    }
+
+    private fun abortTableFling() {
+      if (!tableScroller.isFinished) tableScroller.abortAnimation()
+      flingingTable = null
+    }
+
+    override fun computeScroll() {
+      super.computeScroll()
+      val table = flingingTable ?: return
+      if (!tableScroller.computeScrollOffset()) {
+        flingingTable = null
+        return
+      }
+      table.scrollTo(tableScroller.currX.toFloat())
+      postInvalidateOnAnimation()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+      super.onDraw(canvas)
+      // Tables fade their scroll indicator out on a clock of their own, so keep frames coming
+      // while one is still animating.
+      if (tableSpans.any { it.isScrollIndicatorAnimating() }) postInvalidateOnAnimation()
+    }
 
     companion object {
+      /** Pixels per second, the unit [VelocityTracker.computeCurrentVelocity] is asked for. */
+      private const val VELOCITY_UNITS = 1000
+
       private const val TAG = "EnrichedMarkdownText"
     }
   }

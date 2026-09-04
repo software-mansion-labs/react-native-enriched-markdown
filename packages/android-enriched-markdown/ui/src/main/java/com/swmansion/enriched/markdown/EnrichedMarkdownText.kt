@@ -7,7 +7,11 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Layout
+import android.text.Spannable
 import android.text.Spanned
+import android.text.TextPaint
+import android.text.style.CharacterStyle
+import android.text.style.UpdateAppearance
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -75,6 +79,31 @@ class EnrichedMarkdownText
     private var tableTouchDownX = 0f
     private var tableTouchDownY = 0f
     private var lastTableTouchX = 0f
+    private val tableRepaintSpan = TableRepaintSpan()
+
+    /**
+     * Advances a fling by one frame. Posted rather than driven from [computeScroll], because a step
+     * reports a span change (see [repaintTable]) and that must not happen inside a draw pass.
+     */
+    private val tableFlingStep =
+      object : Runnable {
+        override fun run() {
+          val table = flingingTable ?: return
+          if (!tableScroller.computeScrollOffset()) {
+            flingingTable = null
+            return
+          }
+          table.scrollTo(tableScroller.currX.toFloat())
+          repaintTable(table)
+          postOnAnimation(this)
+        }
+      }
+
+    /** Keeps frames coming while a table is fading its scroll indicator out. */
+    private val tableIndicatorStep =
+      Runnable {
+        tableSpans.forEach { if (it.isScrollIndicatorAnimating()) repaintTable(it) }
+      }
 
     init {
       setupAsMarkdownTextView()
@@ -156,6 +185,7 @@ class EnrichedMarkdownText
       pendingStyledText = null
       abortTableFling()
       resetTableTouch()
+      removeCallbacks(tableIndicatorStep)
       tableSpans = emptyList()
     }
 
@@ -349,7 +379,7 @@ class EnrichedMarkdownText
 
       val delta = lastTableTouchX - event.x
       lastTableTouchX = event.x
-      if (table.scrollBy(delta)) invalidate()
+      if (table.scrollBy(delta)) repaintTable(table)
       return true
     }
 
@@ -426,30 +456,56 @@ class EnrichedMarkdownText
         0,
         0,
       )
-      postInvalidateOnAnimation()
+      postOnAnimation(tableFlingStep)
     }
 
     private fun abortTableFling() {
       if (!tableScroller.isFinished) tableScroller.abortAnimation()
       flingingTable = null
+      removeCallbacks(tableFlingStep)
     }
 
-    override fun computeScroll() {
-      super.computeScroll()
-      val table = flingingTable ?: return
-      if (!tableScroller.computeScrollOffset()) {
-        flingingTable = null
+    /**
+     * Repaints a table whose [TableSpan.scrollX] moved.
+     *
+     * A selectable [android.widget.TextView] hands drawing to the platform `Editor`, which caches
+     * each block of its `DynamicLayout` in a `RenderNode` and replays it for as long as the text is
+     * unchanged. A bare [invalidate] therefore repaints the cache and never calls [TableSpan.draw]
+     * again, leaving a scrolled table frozen on screen. Reporting a span change over the table's
+     * range is what drops that block from the cache — the same trick
+     * [com.swmansion.enriched.markdown.spans.ImageSpan] uses when an image finishes loading, except
+     * that [tableRepaintSpan] is not `UpdateLayout`, so this costs a repaint and no text reflow.
+     */
+    private fun repaintTable(table: TableSpan) {
+      val buffer = text as? Spannable
+      val start = buffer?.getSpanStart(table) ?: -1
+      val end = buffer?.getSpanEnd(table) ?: -1
+      if (buffer == null || start < 0 || end <= start) {
+        invalidate()
         return
       }
-      table.scrollTo(tableScroller.currX.toFloat())
-      postInvalidateOnAnimation()
+      buffer.setSpan(tableRepaintSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 
     override fun onDraw(canvas: Canvas) {
       super.onDraw(canvas)
       // Tables fade their scroll indicator out on a clock of their own, so keep frames coming
-      // while one is still animating.
-      if (tableSpans.any { it.isScrollIndicatorAnimating() }) postInvalidateOnAnimation()
+      // while one is still animating. The repaint is posted, never issued here: it reports a span
+      // change, which must not happen inside a draw pass.
+      if (tableSpans.any { it.isScrollIndicatorAnimating() }) {
+        removeCallbacks(tableIndicatorStep)
+        postOnAnimation(tableIndicatorStep)
+      }
+    }
+
+    /**
+     * Carries no styling. It exists only so that re-setting it reports a span change, which is what
+     * evicts the cached render node for that stretch of text. See [repaintTable].
+     */
+    private class TableRepaintSpan :
+      CharacterStyle(),
+      UpdateAppearance {
+      override fun updateDrawState(tp: TextPaint?) = Unit
     }
 
     companion object {

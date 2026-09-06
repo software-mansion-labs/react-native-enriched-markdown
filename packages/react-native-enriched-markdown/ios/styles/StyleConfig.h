@@ -231,8 +231,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setVideoBorderRadius:(CGFloat)newValue;
 - (CGFloat)videoAspectRatio;
 - (void)setVideoAspectRatio:(CGFloat)newValue;
-- (UIColor *)videoBackgroundColor;
-- (void)setVideoBackgroundColor:(UIColor *)newValue;
+- (RCTUIColor *)videoBackgroundColor;
+- (void)setVideoBackgroundColor:(RCTUIColor *)newValue;
 // Inline image properties
 - (CGFloat)inlineImageSize;
 - (void)setInlineImageSize:(CGFloat)newValue;

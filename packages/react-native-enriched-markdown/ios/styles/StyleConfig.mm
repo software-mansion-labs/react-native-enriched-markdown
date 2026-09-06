@@ -1657,12 +1657,12 @@ static inline NSString *normalizedFontWeight(NSString *fontWeight)
   _videoAspectRatio = newValue;
 }
 
-- (UIColor *)videoBackgroundColor
+- (RCTUIColor *)videoBackgroundColor
 {
   return _videoBackgroundColor;
 }
 
-- (void)setVideoBackgroundColor:(UIColor *)newValue
+- (void)setVideoBackgroundColor:(RCTUIColor *)newValue
 {
   _videoBackgroundColor = newValue;
 }

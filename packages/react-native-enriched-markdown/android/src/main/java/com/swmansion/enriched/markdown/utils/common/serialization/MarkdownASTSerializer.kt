@@ -92,7 +92,9 @@ object MarkdownASTSerializer {
         buffer.append(")")
       }
 
-      NodeType.Image -> {
+      NodeType.Image,
+      NodeType.Video,
+      -> {
         val alt = node.getAttribute("alt") ?: ""
         val url = node.getAttribute("url") ?: ""
         buffer.append("![")

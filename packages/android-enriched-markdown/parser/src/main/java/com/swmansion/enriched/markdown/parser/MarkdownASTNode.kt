@@ -40,6 +40,7 @@ data class MarkdownASTNode(
     SoftBreak,
     BlankLine,
     Admonition,
+    Video,
   }
 
   fun getAttribute(key: String): String? = attributes[key]

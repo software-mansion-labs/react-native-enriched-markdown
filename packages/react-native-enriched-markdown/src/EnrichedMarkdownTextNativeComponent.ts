@@ -138,6 +138,14 @@ interface ImageStyleInternal {
   marginBottom: CodegenTypes.Float;
 }
 
+interface VideoStyleInternal {
+  marginTop: CodegenTypes.Float;
+  marginBottom: CodegenTypes.Float;
+  borderRadius: CodegenTypes.Float;
+  aspectRatio: CodegenTypes.Float;
+  backgroundColor: ColorValue;
+}
+
 interface InlineImageStyleInternal {
   size: CodegenTypes.Float;
 }
@@ -237,6 +245,7 @@ export interface MarkdownStyleInternal {
   underline: UnderlineStyleInternal;
   code: CodeStyleInternal;
   image: ImageStyleInternal;
+  video: VideoStyleInternal;
   inlineImage: InlineImageStyleInternal;
   thematicBreak: ThematicBreakStyleInternal;
   table: TableStyleInternal;

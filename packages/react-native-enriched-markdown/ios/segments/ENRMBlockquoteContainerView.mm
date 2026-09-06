@@ -12,6 +12,9 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
 #endif
+#if ENRICHED_MARKDOWN_VIDEO
+#import "ENRMVideoContainerView.h"
+#endif
 
 // Inner content is rendered with trailing margins disabled; the quote's own
 // vertical inset provides the bottom gap, and per-segment margins between children
@@ -292,6 +295,21 @@ static UIEdgeInsets ENRMBlockquoteContentInsets(StyleConfig *config)
                             [(ENRMMathContainerView *)view applyLatex:segment.mathSegment.latex];
                           }]];
 #endif
+#endif
+
+#if ENRICHED_MARKDOWN_VIDEO
+  [handlers addObject:[ENRMSegmentViewHandler handlerWithKind:ENRMSegmentKindVideo
+                          matchesView:^BOOL(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            return [view isKindOfClass:[ENRMVideoContainerView class]];
+                          }
+                          createView:^RCTUIView *(ENRMRenderedSegment *segment) {
+                            ENRMVideoContainerView *view = [[ENRMVideoContainerView alloc] initWithConfig:config];
+                            [view applyVideoNode:segment.videoSegment.videoNode];
+                            return view;
+                          }
+                          updateView:^(RCTUIView *view, ENRMRenderedSegment *segment) {
+                            [(ENRMVideoContainerView *)view applyVideoNode:segment.videoSegment.videoNode];
+                          }]];
 #endif
 
   return [[ENRMSegmentViewRegistry alloc] initWithHandlers:handlers];

@@ -181,6 +181,28 @@ function LatexMathDisplayRenderer({
   );
 }
 
+function VideoRenderer({ node, styles }: RendererProps) {
+  const url = node.attributes?.url;
+  if (!url) return null;
+
+  const title = node.attributes?.title;
+  const alt = extractNodeText(node).trim();
+  const label = alt || title || 'Video';
+
+  return (
+    <video
+      controls
+      playsInline
+      preload="metadata"
+      style={styles.video}
+      title={title}
+      aria-label={label}
+    >
+      <source src={url} />
+    </video>
+  );
+}
+
 export const blockRenderers: RendererMap = {
   Paragraph: ParagraphRenderer,
   Heading: HeadingRenderer,
@@ -191,4 +213,5 @@ export const blockRenderers: RendererMap = {
   BlankLine: BlankLineRenderer,
   Image: ImageRenderer,
   LatexMathDisplay: LatexMathDisplayRenderer,
+  Video: VideoRenderer,
 };

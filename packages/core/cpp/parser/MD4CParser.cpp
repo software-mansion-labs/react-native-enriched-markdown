@@ -1,5 +1,6 @@
 #include "MD4CParser.hpp"
 #include "../md4c/md4c.h"
+#include <cctype>
 #include <cstring>
 #include <vector>
 
@@ -525,9 +526,79 @@ bool isBlockNode(const MarkdownASTNode &node) {
     case NodeType::TableRow:
     case NodeType::TableHeaderCell:
     case NodeType::TableCell:
+    case NodeType::Video:
       return true;
     default:
       return false;
+  }
+}
+
+// Returns true when the URL's path (before any query/fragment) ends with a
+// known video file extension, case-insensitively.
+bool hasVideoExtension(const std::string &url) {
+  if (url.empty())
+    return false;
+
+  // Find where the path ends (before any query string or fragment).
+  size_t pathEnd = url.find_first_of("?#");
+  if (pathEnd == std::string::npos)
+    pathEnd = url.size();
+  if (pathEnd == 0)
+    return false;
+
+  // Find the last dot in the path portion to isolate the extension.
+  size_t dotPos = url.rfind('.', pathEnd - 1);
+  if (dotPos == std::string::npos)
+    return false;
+
+  // Lower-case the extension (including the dot) for comparison.
+  std::string ext;
+  ext.reserve(pathEnd - dotPos);
+  for (size_t i = dotPos; i < pathEnd; ++i) {
+    ext += static_cast<char>(std::tolower(static_cast<unsigned char>(url[i])));
+  }
+
+  static const char *videoExtensions[] = {
+      ".mp4", ".mov", ".webm", ".m4v", ".avi", ".mkv", ".ogv", ".3gp",
+  };
+  for (const char *vidExt : videoExtensions) {
+    if (ext == vidExt)
+      return true;
+  }
+  return false;
+}
+
+// Post-processing pass: promote Image nodes whose URL points to a video file
+// to Video nodes. Recurses into block containers (blockquotes, admonitions,
+// list items) so videos at any nesting depth are detected.
+//
+// Only standalone images (sole child of a Paragraph) are promoted; an image
+// mixed with text in the same paragraph stays as an inline Image — there is no
+// sensible way to render a video player inline with text.
+void promoteVideoImages(MarkdownASTNode &node) {
+  auto &children = node.children;
+
+  for (size_t i = 0; i < children.size(); ++i) {
+    auto &child = children[i];
+
+    // Recurse into block containers so nested videos are also detected.
+    if (child->type == NodeType::Blockquote || child->type == NodeType::Admonition ||
+        child->type == NodeType::UnorderedList || child->type == NodeType::OrderedList ||
+        child->type == NodeType::ListItem) {
+      promoteVideoImages(*child);
+      continue;
+    }
+
+    // Promote a Paragraph whose sole child is a video-URL Image.
+    if (child->type == NodeType::Paragraph && child->children.size() == 1 &&
+        child->children[0]->type == NodeType::Image) {
+      auto &img = child->children[0];
+      auto urlIt = img->attributes.find("url");
+      if (urlIt != img->attributes.end() && hasVideoExtension(urlIt->second)) {
+        img->type = NodeType::Video;
+        children[i] = std::move(img);
+      }
+    }
   }
 }
 
@@ -669,6 +740,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
 
   if (impl_->root) {
     promoteDisplayMathFromParagraphs(*impl_->root);
+    promoteVideoImages(*impl_->root);
     wrapListItemInlineRuns(*impl_->root);
   }
 

@@ -247,6 +247,7 @@ class BlockquoteContainerView(
         is RenderedSegment.Math -> SegmentViewCreators.isMathContainerView(view)
         is RenderedSegment.CodeBlock -> view is CodeBlockContainerView
         is RenderedSegment.Blockquote -> view is BlockquoteContainerView
+        is RenderedSegment.Video -> SegmentViewCreators.isVideoContainerView(view)
       }
 
     override fun createView(segment: RenderedSegment): View =
@@ -270,6 +271,10 @@ class BlockquoteContainerView(
         is RenderedSegment.Blockquote -> {
           SegmentViewCreators.createBlockquoteView(segment, parentConfig).apply { nested = true }
         }
+
+        is RenderedSegment.Video -> {
+          SegmentViewCreators.createVideoView(segment, parentConfig)
+        }
       }
 
     override fun updateView(
@@ -282,6 +287,7 @@ class BlockquoteContainerView(
         is RenderedSegment.Math -> SegmentViewCreators.updateMathView(view, segment)
         is RenderedSegment.CodeBlock -> (view as CodeBlockContainerView).applyCodeBlockNode(segment.node)
         is RenderedSegment.Blockquote -> (view as BlockquoteContainerView).applyBlockquoteNode(segment.node)
+        is RenderedSegment.Video -> SegmentViewCreators.updateVideoView(view, segment)
       }
     }
 

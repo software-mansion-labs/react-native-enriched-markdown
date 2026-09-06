@@ -8,6 +8,9 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
 #endif
+#if ENRICHED_MARKDOWN_VIDEO
+#import "ENRMVideoContainerView.h"
+#endif
 
 CGFloat ENRMMeasureSegmentsHeightViewFree(NSArray<ENRMRenderedSegment *> *segments, StyleConfig *config,
                                           CGFloat contentWidth, BOOL allowTrailingMargin, CGFloat pointScaleFactor,
@@ -70,6 +73,17 @@ CGFloat ENRMMeasureSegmentsHeightViewFree(NSArray<ENRMRenderedSegment *> *segmen
                                                          maxWidth:contentWidth];
       if (shouldAddBottomMargin) {
         totalHeight += config.mathMarginBottom;
+      }
+    }
+#endif
+#if ENRICHED_MARKDOWN_VIDEO
+    else if (segment.kind == ENRMSegmentKindVideo && segment.videoSegment) {
+      totalHeight += config.videoMarginTop;
+      totalHeight += [ENRMVideoContainerView measureHeightForVideoNode:segment.videoSegment.videoNode
+                                                                config:config
+                                                              maxWidth:contentWidth];
+      if (shouldAddBottomMargin) {
+        totalHeight += config.videoMarginBottom;
       }
     }
 #endif

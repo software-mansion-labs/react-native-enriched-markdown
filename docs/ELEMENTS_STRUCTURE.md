@@ -19,6 +19,7 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Task Lists | `- [x] Done`, `- [ ] Todo` | `taskList` | Interactive checkboxes (requires `flavor="github"`) |
 | Thematic Break | `---`, `***`, or `___` | `thematicBreak` | Horizontal rule separator |
 | Images | `![alt](url)` | `image` | Block-level images with spacing |
+| Videos | `![alt](video-url)` | `video` | Native video player, auto-detected from image syntax when the URL has a video file extension (requires `flavor="github"` and `enableVideo`) |
 | Tables | `| col | col |` | `table` | GFM tables with alignment support (requires `flavor="github"`) |
 | Math Block | `$$...$$` | `math` | Block-level LaTeX math (display equations) (requires `flavor="github"`) |
 
@@ -167,6 +168,24 @@ Images are automatically detected as block or inline based on context:
 - **Inline images**: When an image appears alongside other text content, it's treated as inline and aligns with the text baseline
 
 You don't need to specify which type—the renderer automatically determines this based on the image's position in the content. Note that a single newline doesn't split a paragraph, so an image on its own source line directly below text is still inline; separate it with a blank line to make it a block image.
+
+## Videos
+
+Videos use the same image markdown syntax (`![alt](url)`) and are automatically promoted to native video players when the URL ends with a known video file extension:
+
+`.mp4`, `.mov`, `.webm`, `.m4v`, `.avi`, `.mkv`, `.ogv`, `.3gp`
+
+```markdown
+![Ocean waves](https://example.com/ocean.mp4)
+```
+
+Only **standalone** block images are promoted — the image must be the sole child of its paragraph (same rule as block images). Video URLs mixed inline with text remain inline images.
+
+Video requires:
+- `flavor="github"` for native segment rendering
+- `enableVideo` in your app's `package.json` `"enriched-markdown"` config (enabled by default)
+
+On iOS, videos render via `AVPlayerViewController`; on Android, via ExoPlayer (`PlayerView`). On web, videos render as `<video>` elements with native browser controls. Styles are configured via `markdownStyle.video` — see [Style Properties Reference](./STYLES.md#video-specific).
 
 ## Nested Elements
 

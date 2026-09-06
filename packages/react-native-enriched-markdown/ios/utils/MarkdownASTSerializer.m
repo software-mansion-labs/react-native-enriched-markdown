@@ -85,7 +85,8 @@ static void serializeNode(MarkdownASTNode *node, NSMutableString *buffer)
       break;
     }
 
-    case MarkdownNodeTypeImage: {
+    case MarkdownNodeTypeImage:
+    case MarkdownNodeTypeVideo: {
       NSString *alt = node.attributes[@"alt"] ?: @"";
       NSString *url = node.attributes[@"url"] ?: @"";
       [buffer appendFormat:@"![%@](%@)", alt, url];

@@ -742,6 +742,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
     promoteDisplayMathFromParagraphs(*impl_->root);
     promoteVideoImages(*impl_->root);
     wrapListItemInlineRuns(*impl_->root);
+    promoteVideoImages(*impl_->root);
   }
 
   return impl_->root ? impl_->root : std::make_shared<MarkdownASTNode>(NodeType::Document);

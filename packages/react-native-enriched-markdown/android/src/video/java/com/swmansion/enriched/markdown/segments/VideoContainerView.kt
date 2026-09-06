@@ -39,9 +39,9 @@ class VideoContainerView(
   fun applyVideoNode(node: MarkdownASTNode) {
     val url = node.getAttribute("url") ?: return
     if (url == currentUrl) return
-    currentUrl = url
 
     releasePlayer()
+    currentUrl = url
 
     val exoPlayer = ExoPlayer.Builder(context).build()
     exoPlayer.playWhenReady = false

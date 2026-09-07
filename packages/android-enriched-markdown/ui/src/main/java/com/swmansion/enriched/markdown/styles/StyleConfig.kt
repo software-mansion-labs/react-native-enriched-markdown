@@ -10,6 +10,8 @@ class StyleConfig(
   val linkStyle: LinkStyle,
   val strongStyle: StrongStyle,
   val emphasisStyle: EmphasisStyle,
+  val strikethroughStyle: StrikethroughStyle = StrikethroughStyle(),
+  val underlineStyle: UnderlineStyle = UnderlineStyle(),
   val superscriptStyle: SuperscriptStyle,
   val subscriptStyle: SubscriptStyle,
   val codeStyle: CodeStyle,
@@ -51,6 +53,8 @@ class StyleConfig(
       linkStyle == other.linkStyle &&
       strongStyle == other.strongStyle &&
       emphasisStyle == other.emphasisStyle &&
+      strikethroughStyle == other.strikethroughStyle &&
+      underlineStyle == other.underlineStyle &&
       superscriptStyle == other.superscriptStyle &&
       subscriptStyle == other.subscriptStyle &&
       codeStyle == other.codeStyle &&
@@ -68,6 +72,8 @@ class StyleConfig(
     result = 31 * result + linkStyle.hashCode()
     result = 31 * result + strongStyle.hashCode()
     result = 31 * result + emphasisStyle.hashCode()
+    result = 31 * result + strikethroughStyle.hashCode()
+    result = 31 * result + underlineStyle.hashCode()
     result = 31 * result + superscriptStyle.hashCode()
     result = 31 * result + subscriptStyle.hashCode()
     result = 31 * result + codeStyle.hashCode()

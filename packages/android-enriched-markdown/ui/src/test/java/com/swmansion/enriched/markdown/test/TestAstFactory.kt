@@ -14,6 +14,11 @@ object TestAstFactory {
 
   fun emphasis(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.Emphasis, children = children.toList())
 
+  fun strikethrough(vararg children: MarkdownASTNode): MarkdownASTNode =
+    MarkdownASTNode(NodeType.Strikethrough, children = children.toList())
+
+  fun underline(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.Underline, children = children.toList())
+
   fun superscript(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.Superscript, children = children.toList())
 
   fun subscript(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.Subscript, children = children.toList())

@@ -119,6 +119,8 @@ The `markdownStyle` builder supports these blocks:
 | `link` | Links |
 | `strong` | Bold text |
 | `emphasis` | Italic text |
+| `strikethrough` | Struck-through text |
+| `underline` | Underlined text (requires `Md4cFlags(underline = true)`) |
 | `superscript` | Superscript text (`^text^`) |
 | `subscript` | Subscript text (`~text~`) |
 | `code` | Inline code |
@@ -158,6 +160,7 @@ fun EnrichedMarkdownText(
   markdown: String,
   modifier: Modifier = Modifier,
   style: MarkdownStyle = MarkdownTheme.style,
+  flags: Md4cFlags = Md4cFlags.DEFAULT,
   selectable: Boolean = true,
   imageRequestHeaders: Map<String, String> = emptyMap(),
   onLinkPress: ((String) -> Unit)? = null,
@@ -169,6 +172,7 @@ fun EnrichedMarkdownText(
 |-----------|-------------|
 | `markdown` | Markdown source string |
 | `style` | Per-instance style override |
+| `flags` | Optional parser extensions (see `Md4cFlags`) |
 | `selectable` | Enable text selection |
 | `imageRequestHeaders` | HTTP headers attached to remote image requests (e.g. `Referer`) |
 | `onLinkPress` | Called when a link is tapped |
@@ -177,6 +181,31 @@ fun EnrichedMarkdownText(
 Style defaults come from the nearest `MarkdownTheme`.
 
 > **Note:** Renders nothing in `@Preview` because it relies on `AndroidView`.
+
+### `Md4cFlags`
+
+```kotlin
+data class Md4cFlags(
+  val underline: Boolean = false,  // _text_ and __text__ render underlined instead of italic and bold
+  // … further md4c extensions
+) {
+  companion object {
+    val DEFAULT: Md4cFlags
+  }
+}
+```
+
+
+Pass flags per instance:
+
+```kotlin
+import com.swmansion.enriched.markdown.compose.Md4cFlags
+
+EnrichedMarkdownText(
+  markdown = "_underlined_",
+  flags = Md4cFlags(underline = true),
+)
+```
 
 ### `MarkdownTheme`
 
@@ -223,7 +252,7 @@ Creates a style that tracks `MaterialTheme.colorScheme` changes. Use inside `Mat
 
 - Headings (`#`–`######`)
 - Paragraphs, line breaks
-- **Bold**, *italic*, `inline code`
+- **Bold**, *italic*, `inline code`, __underline__, ~~strikethrough~~
 - Fenced code blocks
 - Block quotes
 - Ordered and unordered lists

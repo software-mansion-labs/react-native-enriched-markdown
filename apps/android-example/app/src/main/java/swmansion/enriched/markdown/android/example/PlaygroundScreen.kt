@@ -56,6 +56,7 @@ fun PlaygroundScreen(modifier: Modifier = Modifier) {
   var markdown by remember { mutableStateOf("") }
   var setMarkdownModalVisible by remember { mutableStateOf(false) }
   var rawInput by remember { mutableStateOf("") }
+  var pendingLink by remember { mutableStateOf<PendingLink?>(null) }
   var blockImageUri by remember { mutableStateOf<String?>(null) }
   var inlineImageUri by remember { mutableStateOf<String?>(null) }
 
@@ -177,10 +178,14 @@ fun PlaygroundScreen(modifier: Modifier = Modifier) {
               .padding(14.dp)
               .testTag("preview-text"),
           style = PlaygroundMarkdownStyle,
+          onLinkPress = { url -> pendingLink = PendingLink(url, isLongPress = false) },
+          onLinkLongPress = { url -> pendingLink = PendingLink(url, isLongPress = true) },
         )
       }
     }
   }
+
+  LinkPressDialog(pendingLink) { pendingLink = null }
 
   if (setMarkdownModalVisible) {
     Dialog(onDismissRequest = { setMarkdownModalVisible = false }) {

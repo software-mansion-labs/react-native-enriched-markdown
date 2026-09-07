@@ -2,7 +2,9 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.text.SpannableString
+import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.text.style.LeadingMarginSpan
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -175,6 +177,33 @@ class TaskListInteractionTest {
       "The item's own ~~strikethrough~~ is markdown, not checked-state decoration",
       text.hasDecoration<MarkdownStrikethroughSpan>("Struck item"),
     )
+  }
+
+  @Test
+  fun keepsTheMarkerOrderWhenTogglingANestedItem() {
+    val style = decoratedStyle()
+    val nested =
+      document(
+        unorderedList(
+          taskListItem(
+            checked = true,
+            paragraph(text("Parent task")),
+            unorderedList(
+              taskListItem(checked = false, paragraph(text("First nested"))),
+              taskListItem(checked = false, paragraph(text("Second nested"))),
+            ),
+          ),
+        ),
+      )
+    val textView = laidOutTextView(render(nested, style))
+    val before = textView.leadingMarginSpans()
+
+    TaskListTapUtils.updateTaskListItemCheckedState(textView, 2, newChecked = true, style)
+
+    // Layout.draw walks LeadingMarginSpans in buffer order, accumulating each
+    // one's margin, so reordering them moves where a marker is painted.
+    assertEquals("Toggling must not reorder the list markers", before, textView.leadingMarginSpans())
+    assertTrue((textView.text as SpannableString).taskSpanCovering("Second nested").isChecked)
   }
 
   @Test
@@ -359,6 +388,11 @@ class TaskListInteractionTest {
     x: Float,
     y: Float,
   ): MotionEvent = MotionEvent.obtain(0L, 0L, action, x, y, 0)
+
+  private fun TextView.leadingMarginSpans(): List<LeadingMarginSpan> {
+    val spanned = text as Spanned
+    return spanned.getSpans(0, spanned.length, LeadingMarginSpan::class.java).toList()
+  }
 
   private fun SpannableString.taskSpanCovering(text: String): TaskListSpan {
     val start = indexOf(text)

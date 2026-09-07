@@ -2,15 +2,12 @@ package com.swmansion.enriched.markdown.utils.text.interaction
 
 import android.text.Layout
 import android.text.Spannable
-import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StrikethroughSpan
 import android.widget.TextView
-import com.swmansion.enriched.markdown.renderer.SpanStyleCache
 import com.swmansion.enriched.markdown.spans.BaseListSpan
 import com.swmansion.enriched.markdown.spans.CodeBlockSpan
-import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.TaskListSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
@@ -119,12 +116,8 @@ object TaskListTapUtils {
     newChecked: Boolean,
     styleConfig: StyleConfig,
   ): Boolean {
-    val text = textView.text
-    if (text !is Spannable) {
-      return false
-    }
+    val spannable = textView.text as? Spannable ?: return false
 
-    val spannable = SpannableStringBuilder(text)
     val targetSpans =
       spannable
         .getSpans(0, spannable.length, TaskListSpan::class.java)
@@ -141,27 +134,12 @@ object TaskListTapUtils {
     val spanStart = targetSpans.minOf { spannable.getSpanStart(it) }
     val spanEnd = targetSpans.maxOf { spannable.getSpanEnd(it) }
 
-    val styleCache = SpanStyleCache(styleConfig, textView.context)
-
-    for (old in targetSpans) {
-      val start = spannable.getSpanStart(old)
-      val end = spannable.getSpanEnd(old)
-      spannable.removeSpan(old)
-      spannable.setSpan(
-        TaskListSpan(
-          taskStyle = styleConfig.taskListStyle,
-          listStyle = styleConfig.listStyle,
-          depth = old.depth,
-          context = textView.context,
-          styleCache = styleCache,
-          taskIndex = targetIndex,
-          isChecked = newChecked,
-        ),
-        start,
-        end,
-        SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE,
-      )
-    }
+    // Mutate the span rather than re-attaching a toggled copy: Layout paints
+    // LeadingMarginSpans in the buffer's span order, advancing x by each one's
+    // margin, so re-adding a span sends it to the end of that order and a
+    // nested item would draw its checkbox an indent too far right, over its
+    // own text.
+    targetSpans.forEach { it.isChecked = newChecked }
 
     // Nested items and code blocks keep their own styling, exactly as on the
     // initial render in ListItemRenderer.
@@ -180,23 +158,6 @@ object TaskListTapUtils {
       isChecked = newChecked,
       styleConfig = styleConfig,
     )
-
-    // TextView.setText re-parcels the spannable, so the ImageSpans the view is
-    // driving are replaced by copies; re-register them against the new text.
-    val imageSpans = text.getSpans(0, text.length, ImageSpan::class.java).toList()
-    val originalSpanStarts = imageSpans.associateWith { text.getSpanStart(it) }
-
-    textView.text = spannable
-
-    val newImageSpans = spannable.getSpans(0, spannable.length, ImageSpan::class.java)
-    imageSpans.forEach { originalSpan ->
-      val matchingSpan =
-        newImageSpans.firstOrNull {
-          it.imageUrl == originalSpan.imageUrl &&
-            spannable.getSpanStart(it) == originalSpanStarts[originalSpan]
-        }
-      (matchingSpan ?: originalSpan).registerTextView(textView)
-    }
 
     textView.invalidate()
 

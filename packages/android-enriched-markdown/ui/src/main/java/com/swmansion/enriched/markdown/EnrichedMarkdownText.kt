@@ -14,6 +14,10 @@ import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListHitTestResult
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListTapUtils
+import com.swmansion.enriched.markdown.utils.text.interaction.TaskListToggleUtils
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.SelectionMenuConfig
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
@@ -32,6 +36,8 @@ class EnrichedMarkdownText
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
+    private var onTaskListItemPressCallback: ((TaskListItemPressEvent) -> Unit)? = null
+    private val checkboxTouchHelper = CheckboxTouchHelper(this)
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -40,8 +46,20 @@ class EnrichedMarkdownText
     var markdownStyle: StyleConfig = StyleConfig.default(context)
       private set
 
+    /**
+     * The markdown this view currently renders: [baseMarkdown] plus any
+     * checkbox toggles applied since it was set.
+     */
     var currentMarkdown: String = ""
       private set
+
+    /**
+     * The markdown last handed to [setMarkdownContent]. Setting the same string
+     * again is a no-op, so checkbox toggles survive a caller that re-supplies
+     * its unchanged source on every recomposition; a different string wins and
+     * drops them.
+     */
+    private var baseMarkdown: String = ""
 
     var md4cFlags: Md4cFlags = Md4cFlags.DEFAULT
       private set
@@ -55,6 +73,7 @@ class EnrichedMarkdownText
 
     init {
       setupAsMarkdownTextView()
+      checkboxTouchHelper.onCheckboxTap = ::toggleTaskListItem
       customSelectionActionModeCallback =
         createSelectionActionModeCallback(
           this,
@@ -63,7 +82,8 @@ class EnrichedMarkdownText
     }
 
     fun setMarkdownContent(markdown: String) {
-      if (currentMarkdown == markdown) return
+      if (baseMarkdown == markdown) return
+      baseMarkdown = markdown
       currentMarkdown = markdown
       scheduleRender()
     }
@@ -109,6 +129,21 @@ class EnrichedMarkdownText
       onLinkLongPressCallback = callback
     }
 
+    /** Called after a tap on a task-list checkbox has toggled the item. */
+    fun setOnTaskListItemPressCallback(callback: ((TaskListItemPressEvent) -> Unit)?) {
+      onTaskListItemPressCallback = callback
+    }
+
+    /**
+     * Controls whether tapping a task-list checkbox toggles its checked state.
+     * When `false` the tap is fully inert: no visual toggle and no
+     * `onTaskListItemPress`. Defaults to `true`. Text selection and links are
+     * unaffected.
+     */
+    fun setEnableTaskListItemToggle(enabled: Boolean) {
+      checkboxTouchHelper.isEnabled = enabled
+    }
+
     fun setIsSelectable(selectable: Boolean) {
       if (isSelectable == selectable) return
       isSelectable = selectable
@@ -121,6 +156,8 @@ class EnrichedMarkdownText
 
     fun setOnLinkLongPressListener(listener: ((String) -> Unit)?) = setOnLinkLongPressCallback(listener)
 
+    fun setOnTaskListItemPressListener(listener: ((TaskListItemPressEvent) -> Unit)?) = setOnTaskListItemPressCallback(listener)
+
     /**
      * Resets transient state when this view is recycled in a Compose [AndroidView] pool.
      */
@@ -128,6 +165,8 @@ class EnrichedMarkdownText
       ++currentRenderId
       setOnLinkPressCallback(null)
       setOnLinkLongPressCallback(null)
+      setOnTaskListItemPressCallback(null)
+      setEnableTaskListItemToggle(true)
       setMarkdownContent("")
       text = ""
       pendingStyledText = null
@@ -156,6 +195,30 @@ class EnrichedMarkdownText
 
     fun emitOnLinkLongPress(url: String) {
       onLinkLongPressCallback?.invoke(url)
+    }
+
+    /**
+     * Flips the tapped item's checkbox and its checked-text decoration, then
+     * reports the new state. The toggle is view-local — the markdown handed to
+     * [setMarkdownContent] is never mutated — so persist it from the callback
+     * if it has to survive a new source string.
+     */
+    private fun toggleTaskListItem(hit: TaskListHitTestResult) {
+      val newChecked = !hit.checked
+      currentMarkdown = TaskListToggleUtils.toggleAtIndex(currentMarkdown, hit.taskIndex, newChecked)
+
+      val toggledInPlace =
+        TaskListTapUtils.updateTaskListItemCheckedState(this, hit.taskIndex, newChecked, markdownStyle)
+      if (toggledInPlace) {
+        accessibilityHelper.invalidateAccessibilityItems()
+      } else {
+        // No spans to patch (text not rendered yet); fall back to the rewritten source.
+        scheduleRender()
+      }
+
+      onTaskListItemPressCallback?.invoke(
+        TaskListItemPressEvent(index = hit.taskIndex, checked = newChecked, text = hit.itemText),
+      )
     }
 
     private fun scheduleRenderIfNeeded() {
@@ -247,7 +310,10 @@ class EnrichedMarkdownText
       }
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean = super.onTouchEvent(event)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+      if (checkboxTouchHelper.onTouchEvent(event)) return true
+      return super.onTouchEvent(event)
+    }
 
     companion object {
       private const val TAG = "EnrichedMarkdownText"

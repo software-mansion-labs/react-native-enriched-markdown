@@ -147,6 +147,8 @@ fun EnrichedMarkdownText(
   imageRequestHeaders: Map<String, String> = emptyMap(),
   onLinkPress: ((String) -> Unit)? = null,
   onLinkLongPress: ((String) -> Unit)? = null,
+  onTaskListItemPress: ((TaskListItemPressEvent) -> Unit)? = null,
+  enableTaskListItemToggle: Boolean = true,
 )
 ```
 
@@ -159,10 +161,40 @@ fun EnrichedMarkdownText(
 | `imageRequestHeaders` | HTTP headers attached to remote image requests (e.g. `Referer`) |
 | `onLinkPress` | Called when a link is tapped |
 | `onLinkLongPress` | Called when a link is long-pressed |
+| `onTaskListItemPress` | Called after a task list checkbox tap toggles the item |
+| `enableTaskListItemToggle` | Render the checkboxes read-only (default `true`) |
 
 Style defaults come from the nearest `MarkdownTheme`.
 
 > **Note:** Renders nothing in `@Preview` because it relies on `AndroidView`.
+
+#### Task list checkboxes
+
+```kotlin
+data class TaskListItemPressEvent(
+  val index: Int,     // 0-based, in document order
+  val checked: Boolean, // state after the toggle
+  val text: String,   // first line of the item's plain text
+)
+```
+
+Tapping anywhere in a task item's checkbox margin toggles its checked state in
+place — checkbox and checked-item text decoration alike — and calls
+`onTaskListItemPress` with the new state. The toggle is visual: the view never
+rewrites the `markdown` string you pass it, so persist the change from the
+handler if it has to survive a new source string. Re-supplying the *same*
+string on recomposition keeps the toggles.
+
+```kotlin
+EnrichedMarkdownText(
+  markdown = checklist,
+  onTaskListItemPress = { (index, checked, _) -> store.setDone(index, checked) },
+)
+```
+
+`enableTaskListItemToggle = false` makes checkbox taps fully inert: no visual
+toggle and no `onTaskListItemPress`. Text selection and links are unaffected
+either way.
 
 ### `Md4cFlags`
 
@@ -238,7 +270,7 @@ Creates a style that tracks `MaterialTheme.colorScheme` changes. Use inside `Mat
 - Fenced code blocks
 - Block quotes
 - Ordered and unordered lists
-- Task lists (`- [ ]` / `- [x]`)
+- Task lists (`- [ ]` / `- [x]`, tap to toggle — see `onTaskListItemPress`)
 - Links and images (block and inline)
 - Thematic breaks (`---`)
 

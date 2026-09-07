@@ -16,9 +16,12 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.swmansion.enriched.markdown.EnrichedMarkdownText as NativeMarkdownTextView
+import com.swmansion.enriched.markdown.TaskListItemPressEvent as TaskListItemPressEventInternal
 import com.swmansion.enriched.markdown.parser.Md4cFlags as Md4cFlagsInternal
 
 typealias Md4cFlags = Md4cFlagsInternal
+
+typealias TaskListItemPressEvent = TaskListItemPressEventInternal
 
 /**
  * Renders [markdown] using the native markdown TextView inside Compose.
@@ -27,6 +30,11 @@ typealias Md4cFlags = Md4cFlagsInternal
  * parameter, or nest [MarkdownTheme] to scope styles to a subtree.
  *
  * [flags] selects the optional md4c syntax extensions.
+ *
+ * Tapping a task-list checkbox toggles it in place and reports the new state to
+ * [onTaskListItemPress]; [markdown] itself is never rewritten, so persist the
+ * change from the callback if it has to survive a new source string. Set
+ * [enableTaskListItemToggle] to `false` to render the checkboxes read-only.
  *
  * **Previews:** This component renders nothing in `@Preview` because it relies on [AndroidView].
  */
@@ -40,6 +48,8 @@ fun EnrichedMarkdownText(
   imageRequestHeaders: Map<String, String> = emptyMap(),
   onLinkPress: ((String) -> Unit)? = null,
   onLinkLongPress: ((String) -> Unit)? = null,
+  onTaskListItemPress: ((TaskListItemPressEvent) -> Unit)? = null,
+  enableTaskListItemToggle: Boolean = true,
 ) {
   val context = LocalContext.current
   val configuration = LocalConfiguration.current
@@ -61,6 +71,7 @@ fun EnrichedMarkdownText(
 
   val onLinkPressState by rememberUpdatedState(onLinkPress)
   val onLinkLongPressState by rememberUpdatedState(onLinkLongPress)
+  val onTaskListItemPressState by rememberUpdatedState(onTaskListItemPress)
 
   AndroidView(
     modifier = modifier,
@@ -68,6 +79,8 @@ fun EnrichedMarkdownText(
       NativeMarkdownTextView(viewContext).apply {
         setOnLinkPressCallback { url -> onLinkPressState?.invoke(url) }
         setOnLinkLongPressCallback { url -> onLinkLongPressState?.invoke(url) }
+        setOnTaskListItemPressCallback { event -> onTaskListItemPressState?.invoke(event) }
+        setEnableTaskListItemToggle(enableTaskListItemToggle)
         setMarkdownStyle(styleConfig)
         setMd4cFlags(flags)
         setIsSelectable(selectable)
@@ -78,6 +91,8 @@ fun EnrichedMarkdownText(
     update = { view ->
       view.setOnLinkPressCallback { url -> onLinkPressState?.invoke(url) }
       view.setOnLinkLongPressCallback { url -> onLinkLongPressState?.invoke(url) }
+      view.setOnTaskListItemPressCallback { event -> onTaskListItemPressState?.invoke(event) }
+      view.setEnableTaskListItemToggle(enableTaskListItemToggle)
       view.setMarkdownStyle(styleConfig)
       view.setMd4cFlags(flags)
       view.setIsSelectable(selectable)

@@ -38,7 +38,7 @@ import android.text.style.StrikethroughSpan as AndroidStrikethroughSpan
 import com.swmansion.enriched.markdown.spans.StrikethroughSpan as MarkdownStrikethroughSpan
 
 @RunWith(AndroidJUnit4::class)
-@Config(sdk = [28])
+@Config(sdk = [28, 35])
 class TaskListInteractionTest {
   private val context = ApplicationProvider.getApplicationContext<Context>()
 
@@ -350,8 +350,8 @@ class TaskListInteractionTest {
     line: Int,
   ) {
     val y = lineCenterY(view, line)
-    view.onTouchEvent(motionEvent(MotionEvent.ACTION_DOWN, 1f, y))
-    view.onTouchEvent(motionEvent(MotionEvent.ACTION_UP, 1f, y))
+    view.dispatchTouchEvent(motionEvent(MotionEvent.ACTION_DOWN, 1f, y))
+    view.dispatchTouchEvent(motionEvent(MotionEvent.ACTION_UP, 1f, y))
   }
 
   private fun motionEvent(

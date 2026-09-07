@@ -109,12 +109,15 @@ object MarkdownTextViewTestSupport {
     Selection.setSelection(textView.text as Spannable, selectionStart, selectionEnd)
   }
 
+  /** Mirrors what [EnrichedMarkdownText.setMarkdownContent] stores, without the async render. */
   private fun setCurrentMarkdown(
     textView: EnrichedMarkdownText,
     markdown: String,
   ) {
-    val field = EnrichedMarkdownText::class.java.getDeclaredField("currentMarkdown")
-    field.isAccessible = true
-    field.set(textView, markdown)
+    listOf("currentMarkdown", "baseMarkdown").forEach { name ->
+      val field = EnrichedMarkdownText::class.java.getDeclaredField(name)
+      field.isAccessible = true
+      field.set(textView, markdown)
+    }
   }
 }

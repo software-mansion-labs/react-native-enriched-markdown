@@ -17,6 +17,8 @@ class TaskListSpan(
   depth: Int,
   context: Context,
   styleCache: SpanStyleCache,
+  /** 0-based position of this item among the document's task items, in document order. */
+  val taskIndex: Int,
   val isChecked: Boolean,
 ) : BaseListSpan(
     depth = depth,

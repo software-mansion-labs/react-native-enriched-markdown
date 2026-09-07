@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.swmansion.enriched.markdown.compose.test.ComposeStyleTestSupport
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,5 +74,41 @@ class MarkdownStyleBuilderTest {
     assertEquals(true, taskList.checkedStrikethrough)
     assertEquals(defaults.borderColor, taskList.borderColor)
     assertEquals(defaults.checkmarkColor, taskList.checkmarkColor)
+  }
+
+  @Test
+  fun resolvesStrikethroughAndUnderlineColors() {
+    var resolveContext: com.swmansion.enriched.markdown.compose.style.StyleResolveContext? = null
+
+    composeRule.setContent {
+      resolveContext = ComposeStyleTestSupport.rememberResolveContext()
+    }
+    composeRule.waitForIdle()
+
+    val style =
+      markdownStyle {
+        strikethrough { color = Color(0xFFFF0000) }
+        underline { color = Color(0xFF0000FF) }
+      }
+
+    val resolved = style.resolve(requireNotNull(resolveContext))
+
+    assertEquals(0xFFFF0000.toInt(), resolved.strikethroughStyle.color)
+    assertEquals(0xFF0000FF.toInt(), resolved.underlineStyle.color)
+  }
+
+  @Test
+  fun leavesStrikethroughAndUnderlineColorsUnsetByDefault() {
+    var resolveContext: com.swmansion.enriched.markdown.compose.style.StyleResolveContext? = null
+
+    composeRule.setContent {
+      resolveContext = ComposeStyleTestSupport.rememberResolveContext()
+    }
+    composeRule.waitForIdle()
+
+    val resolved = markdownStyle { paragraph { fontSize = 16.sp } }.resolve(requireNotNull(resolveContext))
+
+    assertNull(resolved.strikethroughStyle.color)
+    assertNull(resolved.underlineStyle.color)
   }
 }

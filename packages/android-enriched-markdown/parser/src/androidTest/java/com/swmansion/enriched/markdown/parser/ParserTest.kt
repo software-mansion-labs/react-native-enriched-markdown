@@ -151,7 +151,7 @@ class ParserTest {
 
   @Test
   fun nodeTypeEnumCountMatches() {
-    assertEquals(32, MarkdownASTNode.NodeType.entries.size)
+    assertEquals(33, MarkdownASTNode.NodeType.entries.size)
   }
 
   @Test

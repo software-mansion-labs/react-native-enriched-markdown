@@ -134,12 +134,23 @@ object TaskListTapUtils {
     val spanStart = targetSpans.minOf { spannable.getSpanStart(it) }
     val spanEnd = targetSpans.maxOf { spannable.getSpanEnd(it) }
 
-    // Mutate the span rather than re-attaching a toggled copy: Layout paints
-    // LeadingMarginSpans in the buffer's span order, advancing x by each one's
-    // margin, so re-adding a span sends it to the end of that order and a
-    // nested item would draw its checkbox an indent too far right, over its
-    // own text.
-    targetSpans.forEach { it.isChecked = newChecked }
+    // Flip the span in place, then re-set it over the range it already holds.
+    // Re-setting an attached span keeps its slot in the buffer's span array —
+    // Layout paints LeadingMarginSpans in that order, advancing x by each one's
+    // margin, so a remove + add would send this span to the end and a nested
+    // item would draw its checkbox an indent too far right, over its own text.
+    // The setSpan still reports a span change, and that is what makes TextView
+    // drop the render node its Editor caches the drawn text in; a bare
+    // invalidate() re-runs onDraw off that cache and repaints the old checkbox.
+    targetSpans.forEach { span ->
+      span.isChecked = newChecked
+      spannable.setSpan(
+        span,
+        spannable.getSpanStart(span),
+        spannable.getSpanEnd(span),
+        spannable.getSpanFlags(span),
+      )
+    }
 
     // Nested items and code blocks keep their own styling, exactly as on the
     // initial render in ListItemRenderer.

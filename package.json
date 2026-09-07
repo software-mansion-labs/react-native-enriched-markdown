@@ -58,6 +58,7 @@
     "@react-native/babel-preset": "0.85.0",
     "@react-native/eslint-config": "0.85.0",
     "@release-it/conventional-changelog": "^10.0.6",
+    "clang-format": "^1.8.0",
     "commitlint": "^20.5.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",

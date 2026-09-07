@@ -21,9 +21,9 @@ class TaskListSpan(
   val taskIndex: Int,
   /**
    * Flipped in place by a checkbox tap. Mutable so a toggle never has to
-   * re-attach the span: [android.text.Layout] paints leading margins in buffer
-   * order, accumulating each one's width, so re-adding a span moves it to the
-   * end of that order and shifts where its marker lands.
+   * detach the span: [android.text.Layout] paints leading margins in buffer
+   * order, accumulating each one's width, so removing and re-adding a span
+   * moves it to the end of that order and shifts where its marker lands.
    */
   var isChecked: Boolean,
 ) : BaseListSpan(

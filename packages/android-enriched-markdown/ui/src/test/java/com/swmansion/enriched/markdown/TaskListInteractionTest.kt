@@ -1,6 +1,8 @@
 package com.swmansion.enriched.markdown
 
 import android.content.Context
+import android.text.SpanWatcher
+import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -204,6 +206,54 @@ class TaskListInteractionTest {
     // one's margin, so reordering them moves where a marker is painted.
     assertEquals("Toggling must not reorder the list markers", before, textView.leadingMarginSpans())
     assertTrue((textView.text as SpannableString).taskSpanCovering("Second nested").isChecked)
+  }
+
+  @Test
+  fun reportsTheSpanChangeWhenTogglingSoTheViewRepaints() {
+    val style = decoratedStyle()
+    val textView = laidOutTextView(render(checklist(), style))
+    val spannable = textView.text as SpannableString
+    val target = spannable.taskSpanCovering("Open item")
+    val changed = mutableListOf<Any>()
+    spannable.setSpan(
+      object : SpanWatcher {
+        override fun onSpanAdded(
+          text: Spannable,
+          what: Any,
+          start: Int,
+          end: Int,
+        ) = Unit
+
+        override fun onSpanRemoved(
+          text: Spannable,
+          what: Any,
+          start: Int,
+          end: Int,
+        ) = Unit
+
+        override fun onSpanChanged(
+          text: Spannable,
+          what: Any,
+          ostart: Int,
+          oend: Int,
+          nstart: Int,
+          nend: Int,
+        ) {
+          changed += what
+        }
+      },
+      0,
+      spannable.length,
+      Spanned.SPAN_INCLUSIVE_INCLUSIVE,
+    )
+
+    TaskListTapUtils.updateTaskListItemCheckedState(textView, target.taskIndex, newChecked = true, style)
+
+    // A selectable TextView draws its text from a render node its Editor caches
+    // and only re-records on a reported span change, so flipping the span
+    // silently leaves the old checkbox on screen however often it is
+    // invalidated.
+    assertTrue("Toggling must report the checkbox span change", changed.contains(target))
   }
 
   @Test

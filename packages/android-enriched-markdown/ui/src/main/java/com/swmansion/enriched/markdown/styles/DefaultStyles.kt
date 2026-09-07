@@ -79,8 +79,8 @@ internal object DefaultStyles {
       emphasisStyle = EmphasisStyle(fontFamily = "", fontStyle = "italic", color = null),
       strikethroughStyle = StrikethroughStyle(color = null),
       underlineStyle = UnderlineStyle(color = null),
-      superscriptStyle = SuperscriptStyle(fontScale = 0.65f, baselineOffsetScale = 0.35f),
-      subscriptStyle = SubscriptStyle(fontScale = 0.65f, baselineOffsetScale = 0.2f),
+      superscriptStyle = SuperscriptStyle(),
+      subscriptStyle = SubscriptStyle(),
       codeStyle =
         CodeStyle(
           fontFamily = "",

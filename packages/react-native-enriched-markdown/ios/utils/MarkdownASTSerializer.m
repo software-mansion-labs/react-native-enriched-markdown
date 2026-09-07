@@ -104,33 +104,13 @@ static void serializeNode(MarkdownASTNode *node, NSMutableString *buffer)
 
 // --- Block-level serialization ---
 
-static BOOL isBlockNodeType(MarkdownNodeType type)
-{
-  switch (type) {
-    case MarkdownNodeTypeParagraph:
-    case MarkdownNodeTypeHeading:
-    case MarkdownNodeTypeCodeBlock:
-    case MarkdownNodeTypeBlockquote:
-    case MarkdownNodeTypeAdmonition:
-    case MarkdownNodeTypeTable:
-    case MarkdownNodeTypeUnorderedList:
-    case MarkdownNodeTypeOrderedList:
-    case MarkdownNodeTypeThematicBreak:
-    case MarkdownNodeTypeBlankLine:
-    case MarkdownNodeTypeLatexMathDisplay:
-      return YES;
-    default:
-      return NO;
-  }
-}
-
 static void serializeBlockChildren(MarkdownASTNode *node, NSMutableString *buffer)
 {
   NSArray<MarkdownASTNode *> *children = node.children;
   for (NSUInteger i = 0; i < children.count; i++) {
     MarkdownASTNode *child = children[i];
     appendBlockNode(child, buffer);
-    if (i < children.count - 1 && isBlockNodeType(child.type)) {
+    if (i < children.count - 1 && ENRMIsTopLevelBlockType(child.type)) {
       [buffer appendString:@"\n"];
     }
   }

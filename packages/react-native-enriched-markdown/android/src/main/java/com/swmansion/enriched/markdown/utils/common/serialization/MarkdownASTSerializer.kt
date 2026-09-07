@@ -2,6 +2,7 @@ package com.swmansion.enriched.markdown.utils.common.serialization
 
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode.NodeType
+import com.swmansion.enriched.markdown.parser.isTopLevelBlock
 import com.swmansion.enriched.markdown.utils.common.CodeBlockNode
 
 object MarkdownASTSerializer {
@@ -97,30 +98,12 @@ object MarkdownASTSerializer {
     val children = node.children
     for ((index, child) in children.withIndex()) {
       appendBlockNode(child, buffer)
-      if (index < children.size - 1 && isBlockNode(child)) {
+      if (index < children.size - 1 && child.type.isTopLevelBlock()) {
         buffer.append("\n")
       }
     }
     return buffer.toString()
   }
-
-  private fun isBlockNode(node: MarkdownASTNode): Boolean =
-    when (node.type) {
-      NodeType.Paragraph,
-      NodeType.Heading,
-      NodeType.CodeBlock,
-      NodeType.Blockquote,
-      NodeType.Admonition,
-      NodeType.Table,
-      NodeType.UnorderedList,
-      NodeType.OrderedList,
-      NodeType.ThematicBreak,
-      NodeType.BlankLine,
-      NodeType.LatexMathDisplay,
-      -> true
-
-      else -> false
-    }
 
   private fun appendBlockNode(
     node: MarkdownASTNode,

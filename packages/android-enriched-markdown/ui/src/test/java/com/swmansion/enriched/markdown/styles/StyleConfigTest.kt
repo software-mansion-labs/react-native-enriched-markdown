@@ -25,6 +25,7 @@ class StyleConfigTest {
         inlineImageStyle = InlineImageStyle(size = 20f),
         blockquoteStyle = sampleBlockquote(),
         listStyle = sampleList(),
+        taskListStyle = sampleTaskList(),
         codeBlockStyle = sampleCodeBlock(),
         thematicBreakStyle = sampleThematicBreak(),
         tableStyle = sampleTable(),
@@ -43,6 +44,7 @@ class StyleConfigTest {
         inlineImageStyle = InlineImageStyle(size = 20f),
         blockquoteStyle = sampleBlockquote(),
         listStyle = sampleList(),
+        taskListStyle = sampleTaskList(),
         codeBlockStyle = sampleCodeBlock(),
         thematicBreakStyle = sampleThematicBreak(),
         tableStyle = sampleTable(),
@@ -68,6 +70,7 @@ class StyleConfigTest {
         inlineImageStyle = InlineImageStyle(size = 20f),
         blockquoteStyle = sampleBlockquote(),
         listStyle = sampleList(),
+        taskListStyle = sampleTaskList(),
         codeBlockStyle = sampleCodeBlock(),
         thematicBreakStyle = sampleThematicBreak(),
         tableStyle = sampleTable(),
@@ -89,6 +92,7 @@ class StyleConfigTest {
       inlineImageStyle = InlineImageStyle(size = 20f),
       blockquoteStyle = sampleBlockquote(),
       listStyle = sampleList(),
+      taskListStyle = sampleTaskList(),
       codeBlockStyle = sampleCodeBlock(),
       thematicBreakStyle = sampleThematicBreak(),
       tableStyle = sampleTable(),
@@ -174,6 +178,17 @@ class StyleConfigTest {
       markerFontWeight = "500",
       gapWidth = 8f,
       marginLeft = 24f,
+    )
+
+  private fun sampleTaskList() =
+    TaskListStyle(
+      checkedColor = 0xFF2196F3.toInt(),
+      borderColor = 0xFF9E9E9E.toInt(),
+      checkboxSize = 14f,
+      checkboxBorderRadius = 3f,
+      checkmarkColor = 0xFFFFFFFF.toInt(),
+      checkedTextColor = 0,
+      checkedStrikethrough = false,
     )
 
   private fun sampleCodeBlock() =

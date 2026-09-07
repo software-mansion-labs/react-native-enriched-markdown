@@ -10295,6 +10295,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.85.0"
     "@react-native/eslint-config": "npm:0.85.0"
     "@release-it/conventional-changelog": "npm:^10.0.6"
+    clang-format: "npm:^1.8.0"
     commitlint: "npm:^20.5.0"
     eslint: "npm:^9.39.4"
     eslint-config-prettier: "npm:^10.1.8"

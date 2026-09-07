@@ -10,11 +10,14 @@ class StyleConfig(
   val linkStyle: LinkStyle,
   val strongStyle: StrongStyle,
   val emphasisStyle: EmphasisStyle,
+  val strikethroughStyle: StrikethroughStyle = StrikethroughStyle(),
+  val underlineStyle: UnderlineStyle = UnderlineStyle(),
   val codeStyle: CodeStyle,
   val imageStyle: ImageStyle,
   val inlineImageStyle: InlineImageStyle,
   val blockquoteStyle: BlockquoteStyle,
   val listStyle: ListStyle,
+  val taskListStyle: TaskListStyle,
   val codeBlockStyle: CodeBlockStyle,
   val thematicBreakStyle: ThematicBreakStyle,
   val tableStyle: TableStyle,
@@ -73,11 +76,14 @@ class StyleConfig(
       linkStyle == other.linkStyle &&
       strongStyle == other.strongStyle &&
       emphasisStyle == other.emphasisStyle &&
+      strikethroughStyle == other.strikethroughStyle &&
+      underlineStyle == other.underlineStyle &&
       codeStyle == other.codeStyle &&
       imageStyle == other.imageStyle &&
       inlineImageStyle == other.inlineImageStyle &&
       blockquoteStyle == other.blockquoteStyle &&
       listStyle == other.listStyle &&
+      taskListStyle == other.taskListStyle &&
       codeBlockStyle == other.codeBlockStyle &&
       thematicBreakStyle == other.thematicBreakStyle &&
       tableStyle == other.tableStyle
@@ -89,11 +95,14 @@ class StyleConfig(
     result = 31 * result + linkStyle.hashCode()
     result = 31 * result + strongStyle.hashCode()
     result = 31 * result + emphasisStyle.hashCode()
+    result = 31 * result + strikethroughStyle.hashCode()
+    result = 31 * result + underlineStyle.hashCode()
     result = 31 * result + codeStyle.hashCode()
     result = 31 * result + imageStyle.hashCode()
     result = 31 * result + inlineImageStyle.hashCode()
     result = 31 * result + blockquoteStyle.hashCode()
     result = 31 * result + listStyle.hashCode()
+    result = 31 * result + taskListStyle.hashCode()
     result = 31 * result + codeBlockStyle.hashCode()
     result = 31 * result + thematicBreakStyle.hashCode()
     result = 31 * result + tableStyle.hashCode()

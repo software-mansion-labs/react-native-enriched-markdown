@@ -186,7 +186,9 @@ Style defaults come from the nearest `MarkdownTheme`.
 
 ```kotlin
 data class Md4cFlags(
-  val underline: Boolean = false,  // _text_ and __text__ render underlined instead of italic and bold
+  val underline: Boolean = false,    // _text_ and __text__ render underlined instead of italic and bold
+  val superscript: Boolean = false,  // ^text^ renders raised above the baseline
+  val subscript: Boolean = false,    // ~text~ renders lowered below the baseline
   // … further md4c extensions
 ) {
   companion object {
@@ -252,7 +254,7 @@ Creates a style that tracks `MaterialTheme.colorScheme` changes. Use inside `Mat
 
 - Headings (`#`–`######`)
 - Paragraphs, line breaks
-- **Bold**, *italic*, `inline code`, __underline__, ~~strikethrough~~
+- **Bold**, *italic*, `inline code`, __underline__, ~~strikethrough~~, ^superscript^, ~subscript~
 - Fenced code blocks
 - Block quotes
 - Ordered and unordered lists

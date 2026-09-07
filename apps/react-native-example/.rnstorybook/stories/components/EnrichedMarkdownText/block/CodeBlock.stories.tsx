@@ -148,7 +148,12 @@ export const Events: TextStory<CodeBlockStyleControls> = {
       args,
       codeBlockStyledDefaults
     );
-    // Alert if the payload is ever an array, else forward the object to Actions.
+    // Regression guard: onCodeBlockPress must deliver a single { code, language }
+    // object, never an array. Storybook's Actions layer has previously coerced
+    // native event payloads into array-wrapped shapes, so we keep this explicit
+    // check to surface any recurrence loudly (via Alert) instead of silently
+    // logging a malformed payload. Do not remove - it is an intentional canary,
+    // not leftover debug code.
     const logCodeBlockPress = action('onCodeBlockPress');
     return (
       <EnrichedMarkdownTextStory

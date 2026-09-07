@@ -19,6 +19,7 @@ class StyleConfig(
   val inlineImageStyle: InlineImageStyle,
   val blockquoteStyle: BlockquoteStyle,
   val listStyle: ListStyle,
+  val taskListStyle: TaskListStyle,
   val codeBlockStyle: CodeBlockStyle,
   val thematicBreakStyle: ThematicBreakStyle,
 ) {
@@ -62,6 +63,7 @@ class StyleConfig(
       inlineImageStyle == other.inlineImageStyle &&
       blockquoteStyle == other.blockquoteStyle &&
       listStyle == other.listStyle &&
+      taskListStyle == other.taskListStyle &&
       codeBlockStyle == other.codeBlockStyle &&
       thematicBreakStyle == other.thematicBreakStyle
   }
@@ -81,6 +83,7 @@ class StyleConfig(
     result = 31 * result + inlineImageStyle.hashCode()
     result = 31 * result + blockquoteStyle.hashCode()
     result = 31 * result + listStyle.hashCode()
+    result = 31 * result + taskListStyle.hashCode()
     result = 31 * result + codeBlockStyle.hashCode()
     result = 31 * result + thematicBreakStyle.hashCode()
     return result

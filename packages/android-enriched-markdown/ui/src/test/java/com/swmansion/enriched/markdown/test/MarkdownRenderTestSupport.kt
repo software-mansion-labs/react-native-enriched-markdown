@@ -7,6 +7,7 @@ import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.renderer.Renderer
 import com.swmansion.enriched.markdown.styles.StrikethroughStyle
 import com.swmansion.enriched.markdown.styles.StyleConfig
+import com.swmansion.enriched.markdown.styles.TaskListStyle
 import com.swmansion.enriched.markdown.styles.UnderlineStyle
 
 object MarkdownRenderTestSupport {
@@ -27,6 +28,22 @@ object MarkdownRenderTestSupport {
   fun styleWithDecorationColors(
     strikethroughColor: Int? = null,
     underlineColor: Int? = null,
+  ): StyleConfig =
+    copyOfDefault(
+      strikethroughStyle = StrikethroughStyle(color = strikethroughColor),
+      underlineStyle = UnderlineStyle(color = underlineColor),
+    )
+
+  /** [defaultStyle] with only its [TaskListStyle] replaced. */
+  fun styleWithTaskList(taskListStyle: TaskListStyle): StyleConfig = copyOfDefault(taskListStyle = taskListStyle)
+
+  fun defaultTaskListStyle(): TaskListStyle = defaultStyle.taskListStyle
+
+  /** [StyleConfig] has no `copy`, so rebuild it field by field from [defaultStyle]. */
+  private fun copyOfDefault(
+    strikethroughStyle: StrikethroughStyle? = null,
+    underlineStyle: UnderlineStyle? = null,
+    taskListStyle: TaskListStyle? = null,
   ): StyleConfig {
     val base = defaultStyle
     return StyleConfig(
@@ -36,8 +53,8 @@ object MarkdownRenderTestSupport {
       linkStyle = base.linkStyle,
       strongStyle = base.strongStyle,
       emphasisStyle = base.emphasisStyle,
-      strikethroughStyle = StrikethroughStyle(color = strikethroughColor),
-      underlineStyle = UnderlineStyle(color = underlineColor),
+      strikethroughStyle = strikethroughStyle ?: base.strikethroughStyle,
+      underlineStyle = underlineStyle ?: base.underlineStyle,
       superscriptStyle = base.superscriptStyle,
       subscriptStyle = base.subscriptStyle,
       codeStyle = base.codeStyle,
@@ -45,6 +62,7 @@ object MarkdownRenderTestSupport {
       inlineImageStyle = base.inlineImageStyle,
       blockquoteStyle = base.blockquoteStyle,
       listStyle = base.listStyle,
+      taskListStyle = taskListStyle ?: base.taskListStyle,
       codeBlockStyle = base.codeBlockStyle,
       thematicBreakStyle = base.thematicBreakStyle,
     )

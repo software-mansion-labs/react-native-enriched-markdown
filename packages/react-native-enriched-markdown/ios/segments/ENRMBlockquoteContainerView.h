@@ -81,6 +81,9 @@ typedef void (^ENRMBlockquoteLinkBlock)(NSString *url);
 @property (nonatomic, assign) BOOL enableCodeBlockPress;
 @property (nonatomic, copy, nullable) ENRMCodeBlockPressBlock onCodeBlockPress;
 
+// Block-level context menu (Copy / Copy as Markdown) on long press.
+@property (nonatomic, assign) BOOL enableBlockContextMenu;
+
 // Re-applies the current copy labels and onCopyPress to already-created
 // children when the labels change without a remount.
 - (void)pushCopyLabelsToChildren;

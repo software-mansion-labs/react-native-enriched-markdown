@@ -322,6 +322,11 @@ class EnrichedMarkdown(
           view.copyAsMarkdownLabel = copyAsMarkdownLabel
         }
 
+        view is BlockquoteContainerView -> {
+          view.copyLabel = copyLabel
+          view.copyAsMarkdownLabel = copyAsMarkdownLabel
+        }
+
         isMathContainerView(view) -> {
           runCatching {
             view.javaClass.getMethod("setCopyLabel", String::class.java).invoke(view, copyLabel)
@@ -342,6 +347,10 @@ class EnrichedMarkdown(
         }
 
         view is CodeBlockContainerView -> {
+          view.enableBlockContextMenu = enableBlockContextMenu
+        }
+
+        view is BlockquoteContainerView -> {
           view.enableBlockContextMenu = enableBlockContextMenu
         }
 

@@ -7,10 +7,13 @@ class MarkdownStyleBuilder internal constructor() {
   private var link: LinkStylePatch? = null
   private var strong: StrongStylePatch? = null
   private var emphasis: EmphasisStylePatch? = null
+  private var strikethrough: StrikethroughStylePatch? = null
+  private var underline: UnderlineStylePatch? = null
   private var code: CodeStylePatch? = null
   private var codeBlock: CodeBlockStylePatch? = null
   private var blockquote: BlockquoteStylePatch? = null
   private var list: ListStylePatch? = null
+  private var taskList: TaskListStylePatch? = null
   private var image: ImageStylePatch? = null
   private var inlineImage: InlineImageStylePatch? = null
   private var thematicBreak: ThematicBreakStylePatch? = null
@@ -43,6 +46,14 @@ class MarkdownStyleBuilder internal constructor() {
     emphasis = EmphasisStyleScope.merge(emphasis, block)
   }
 
+  fun strikethrough(block: StrikethroughStyleScope.() -> Unit) {
+    strikethrough = StrikethroughStyleScope.merge(strikethrough, block)
+  }
+
+  fun underline(block: UnderlineStyleScope.() -> Unit) {
+    underline = UnderlineStyleScope.merge(underline, block)
+  }
+
   fun code(block: CodeStyleScope.() -> Unit) {
     code = CodeStyleScope.merge(code, block)
   }
@@ -57,6 +68,10 @@ class MarkdownStyleBuilder internal constructor() {
 
   fun list(block: ListStyleScope.() -> Unit) {
     list = ListStyleScope.merge(list, block)
+  }
+
+  fun taskList(block: TaskListStyleScope.() -> Unit) {
+    taskList = TaskListStyleScope.merge(taskList, block)
   }
 
   fun image(block: ImageStyleScope.() -> Unit) {
@@ -78,10 +93,13 @@ class MarkdownStyleBuilder internal constructor() {
       link = link,
       strong = strong,
       emphasis = emphasis,
+      strikethrough = strikethrough,
+      underline = underline,
       code = code,
       codeBlock = codeBlock,
       blockquote = blockquote,
       list = list,
+      taskList = taskList,
       image = image,
       inlineImage = inlineImage,
       thematicBreak = thematicBreak,

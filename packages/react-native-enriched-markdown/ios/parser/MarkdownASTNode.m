@@ -30,3 +30,23 @@
 }
 
 @end
+
+BOOL ENRMIsTopLevelBlockType(MarkdownNodeType type)
+{
+  switch (type) {
+    case MarkdownNodeTypeParagraph:
+    case MarkdownNodeTypeHeading:
+    case MarkdownNodeTypeCodeBlock:
+    case MarkdownNodeTypeBlockquote:
+    case MarkdownNodeTypeAdmonition:
+    case MarkdownNodeTypeTable:
+    case MarkdownNodeTypeUnorderedList:
+    case MarkdownNodeTypeOrderedList:
+    case MarkdownNodeTypeThematicBreak:
+    case MarkdownNodeTypeBlankLine:
+    case MarkdownNodeTypeLatexMathDisplay:
+      return YES;
+    default:
+      return NO;
+  }
+}

@@ -332,6 +332,7 @@ static char kENRMSegmentFadeAnimatorKey;
   view.lineBreakStrategy = _lineBreakStrategy;
   view.copyLabel = _selectionMenuLabels.copyLabel;
   view.copyAsMarkdownLabel = _selectionMenuLabels.copyAsMarkdownLabel;
+  view.enableBlockContextMenu = _enableBlockContextMenu;
 
   view.enableCodeBlockPress = _enableCodeBlockPress;
 
@@ -623,6 +624,8 @@ static char kENRMSegmentFadeAnimatorKey;
 #endif
     else if ([segment isKindOfClass:[ENRMCodeBlockContainerView class]]) {
       ((ENRMCodeBlockContainerView *)segment).enableBlockContextMenu = _enableBlockContextMenu;
+    } else if ([segment isKindOfClass:[ENRMBlockquoteContainerView class]]) {
+      ((ENRMBlockquoteContainerView *)segment).enableBlockContextMenu = _enableBlockContextMenu;
     }
   }
 }

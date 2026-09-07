@@ -170,7 +170,7 @@ Works in both flavors: `flavor="github"` fires on the container-based code block
 
 ### `enableBlockContextMenu`
 
-Controls the long-press copy popup on code blocks, tables, and block math.
+Controls the long-press copy popup on code blocks, tables, block math, and blockquotes/admonitions.
 Setting it to `false` leaves the code-block header copy button, accessibility
 copy action, and system text-selection menu unchanged.
 
@@ -362,7 +362,7 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown features: 
 >
 > With `'github'`, a fenced code block renders as a dedicated component: a header bar with the language display name (` ```python ` shows "Python") and a copy-code button, a divider, and the code below. Long lines do not wrap — the code pane scrolls horizontally while the header stays fixed. Long-pressing the block opens the Copy / Copy as Markdown menu. With `'commonmark'`, code blocks stay inside the single TextView, styled via spans, and long lines wrap.
 >
-> With `'github'`, a blockquote also renders as a dedicated component — a recursive container that draws its own box (padding, `backgroundColor`, and accent border with `borderRadius`) and splits its own content into segments. A code block, table, or math block quoted inside therefore becomes a real nested block component, and each nesting level is its own box. With `'commonmark'`, blockquotes stay inside the single TextView, styled via spans.
+> With `'github'`, a blockquote also renders as a dedicated component — a recursive container that draws its own box (padding, `backgroundColor`, and accent border with `borderRadius`) and splits its own content into segments. A code block, table, or math block quoted inside therefore becomes a real nested block component, and each nesting level is its own box. Long-pressing a blockquote or admonition opens the Copy / Copy as Markdown menu. With `'commonmark'`, blockquotes stay inside the single TextView, styled via spans.
 
 ### `streamingAnimation`
 

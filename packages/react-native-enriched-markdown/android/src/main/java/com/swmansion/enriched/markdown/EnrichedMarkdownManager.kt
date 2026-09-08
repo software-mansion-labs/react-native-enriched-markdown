@@ -18,6 +18,7 @@ import com.swmansion.enriched.markdown.utils.common.CodeBlockStreamingMode
 import com.swmansion.enriched.markdown.utils.common.TableStreamingMode
 import com.swmansion.enriched.markdown.utils.common.emitContextMenuItemPress
 import com.swmansion.enriched.markdown.utils.common.emitCopyPress
+import com.swmansion.enriched.markdown.utils.common.emitLatexError
 import com.swmansion.enriched.markdown.utils.common.emitLinkLongPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkPress
 import com.swmansion.enriched.markdown.utils.common.emitTaskListItemPress
@@ -63,6 +64,10 @@ class EnrichedMarkdownManager :
 
     view.setOnCopyPressCallback { code, language ->
       emitCopyPress(view, code, language)
+    }
+
+    view.setOnLatexErrorCallback { source, message, displayMode ->
+      emitLatexError(view, source, message, displayMode)
     }
 
     return view

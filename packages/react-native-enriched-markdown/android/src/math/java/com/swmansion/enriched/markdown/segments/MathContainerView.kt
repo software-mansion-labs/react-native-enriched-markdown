@@ -12,6 +12,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import com.swmansion.enriched.markdown.accessibility.AccessibilityLabels
+import com.swmansion.enriched.markdown.math.LatexErrorReporter
 import com.swmansion.enriched.markdown.spans.MathMeasureHelper
 import com.swmansion.enriched.markdown.spans.MathMeasureRequest
 import com.swmansion.enriched.markdown.spans.MathRenderMode
@@ -42,6 +43,7 @@ class MathContainerView(
   var copyLabel: String = ""
   var copyAsMarkdownLabel: String = ""
   var enableBlockContextMenu: Boolean = true
+  var onLatexError: LatexErrorReporter? = null
 
   override val segmentMarginTop: Int get() = mathStyle.marginTop.toInt()
   override val segmentMarginBottom: Int get() = mathStyle.marginBottom.toInt()
@@ -100,6 +102,7 @@ class MathContainerView(
     } catch (e: Exception) {
       Log.e(TAG, "Failed to render LaTeX", e)
       mathView.renderer = null
+      onLatexError?.report(latex, e.message ?: "", true)
     }
     mathView.requestLayout()
     mathView.invalidate()

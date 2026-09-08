@@ -15,6 +15,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.StateWrapper
 import com.swmansion.enriched.markdown.accessibility.AccessibilityLabels
 import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
+import com.swmansion.enriched.markdown.math.LatexErrorReporter
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
@@ -57,6 +58,23 @@ class EnrichedMarkdownText
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
+    private var onLatexErrorCallback: LatexErrorReporter? = null
+
+    // Distinct math failures (keyed by displayMode + source) already reported for
+    // this view instance. Persists for the view's lifetime - not cleared on
+    // content change - so a given failure is reported once even across streaming
+    // updates that re-parse the same expression. A fresh mount starts empty.
+    private val reportedLatexErrors = HashSet<String>()
+
+    // Deduping reporter shared with the renderer; invoked on the main thread from
+    // the inline math span's getSize/draw.
+    private val latexErrorReporter =
+      LatexErrorReporter { source, message, displayMode ->
+        val key = (if (displayMode) "B " else "I ") + source
+        if (reportedLatexErrors.add(key)) {
+          onLatexErrorCallback?.report(source, message, displayMode)
+        }
+      }
     private val checkboxTouchHelper = CheckboxTouchHelper(this)
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -251,7 +269,7 @@ class EnrichedMarkdownText
               return@execute
             }
 
-          renderer.configure(style, context)
+          renderer.configure(style, context, latexErrorReporter)
           val styledText = renderer.renderDocument(ast, onLinkPressCallback, onLinkLongPressCallback)
 
           mainHandler.post {
@@ -373,6 +391,10 @@ class EnrichedMarkdownText
 
     fun setOnLinkLongPressCallback(callback: (String) -> Unit) {
       onLinkLongPressCallback = callback
+    }
+
+    fun setOnLatexErrorCallback(callback: LatexErrorReporter) {
+      onLatexErrorCallback = callback
     }
 
     fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {

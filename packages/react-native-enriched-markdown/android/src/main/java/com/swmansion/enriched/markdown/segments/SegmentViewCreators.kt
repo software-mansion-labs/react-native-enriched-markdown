@@ -8,6 +8,7 @@ import android.util.TypedValue
 import android.view.View
 import com.swmansion.enriched.markdown.EnrichedMarkdownInternalText
 import com.swmansion.enriched.markdown.accessibility.AccessibilityLabels
+import com.swmansion.enriched.markdown.math.LatexErrorReporter
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.BreakStrategyUtils
 import com.swmansion.enriched.markdown.utils.common.FeatureFlags
@@ -41,6 +42,7 @@ data class SegmentViewConfig(
   val onCopyPress: ((code: String, language: String) -> Unit)?,
   val onTaskListItemPress: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?,
   val onContextMenuItemPress: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)?,
+  val onLatexError: LatexErrorReporter? = null,
 )
 
 /**
@@ -162,6 +164,12 @@ object SegmentViewCreators {
       resolvedClass
         .getMethod("setEnableBlockContextMenu", Boolean::class.javaPrimitiveType)
         .invoke(view, config.enableBlockContextMenu)
+      // Must be set before applyLatex so a first-render failure is reported.
+      runCatching {
+        resolvedClass
+          .getMethod("setOnLatexError", LatexErrorReporter::class.java)
+          .invoke(view, config.onLatexError)
+      }
       resolvedClass.getMethod("applyLatex", String::class.java).invoke(view, segment.latex)
       view
     } catch (e: Exception) {

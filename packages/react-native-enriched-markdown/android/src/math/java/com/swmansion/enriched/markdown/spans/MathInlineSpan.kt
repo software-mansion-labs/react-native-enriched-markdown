@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.text.style.ReplacementSpan
+import com.swmansion.enriched.markdown.math.LatexErrorReporter
 import io.ratex.RaTeXEngine
 import io.ratex.RaTeXFontLoader
 import io.ratex.RaTeXRenderer
@@ -15,6 +16,7 @@ class MathInlineSpan(
   internal val latex: String,
   internal val fontSize: Float,
   private val textColor: Int,
+  private val onLatexError: LatexErrorReporter? = null,
 ) : ReplacementSpan() {
   private var cachedBitmap: Bitmap? = null
   private var cachedWidth = 0
@@ -43,12 +45,13 @@ class MathInlineSpan(
 
       renderer.draw(Canvas(bitmap))
       cachedBitmap = bitmap
-    } catch (_: Exception) {
+    } catch (e: Exception) {
       renderFailed = true
       val estimatedHeight = fontSize * 1.2f
       cachedWidth = (fontSize * latex.length * 0.6f).toInt().coerceAtLeast(1)
       mathAscent = estimatedHeight * 0.7f
       mathDescent = estimatedHeight * 0.3f
+      onLatexError?.report(latex, e.message ?: "", false)
     }
   }
 

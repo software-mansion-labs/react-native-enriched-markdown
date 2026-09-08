@@ -141,6 +141,11 @@ class BlockStyleContext {
       )
   }
 
+  // Non-throwing variant for renderers that can run without an enclosing block,
+  // e.g. isolated display math promoted to the document top level in the
+  // single-TextView (commonmark) path, where no paragraph context is pushed.
+  fun currentBlockStyleOrNull(): BlockStyle? = blockStyleStack.lastOrNull()?.blockStyle
+
   fun resetForNewRender() {
     blockStyleStack.clear()
     currentBlockType = BlockType.NONE

@@ -3,8 +3,41 @@ package com.swmansion.enriched.markdown.utils.common.serialization
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode.NodeType
 
-/** Turns inline AST back into markdown source, used to rebuild the markdown of a table cell. */
+/**
+ * Turns AST back into markdown source. The standalone package needs this because AST nodes carry no
+ * source offsets, so a rendered block cannot be sliced back out of the original document.
+ */
 object MarkdownASTSerializer {
+  /**
+   * Rebuilds a table's markdown, used when copying the table out of the view. Built from the AST
+   * rather than from the laid-out rows so alignment markers stay correct in RTL, where a
+   * right-aligned column resolves to a start-aligned layout.
+   */
+  fun serializeTable(node: MarkdownASTNode): String =
+    buildString {
+      node.children.forEach { section ->
+        section.children.filter { it.type == NodeType.TableRow }.forEach { row ->
+          append("| ")
+          append(row.children.joinToString(" | ") { serializeChildren(it) })
+          append(" |\n")
+
+          if (row.children.firstOrNull()?.type == NodeType.TableHeaderCell) {
+            append("| ")
+            append(row.children.joinToString(" | ") { alignmentMarker(it.getAttribute("align")) })
+            append(" |\n")
+          }
+        }
+      }
+    }
+
+  private fun alignmentMarker(align: String?): String =
+    when (align) {
+      "center" -> ":---:"
+      "right" -> "---:"
+      "left" -> ":---"
+      else -> "---"
+    }
+
   fun serializeChildren(node: MarkdownASTNode): String {
     val buffer = StringBuilder()
     node.children.forEach { appendNode(it, buffer) }

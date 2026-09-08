@@ -42,10 +42,6 @@ class StyleConfig(
     }
   }
 
-  /**
-   * Paragraph style used to render the inline content of a single table cell, so cells inherit the
-   * table's typography instead of the document's body typography.
-   */
   fun tableCellParagraphStyle(isHeader: Boolean): ParagraphStyle =
     paragraphStyleDefault.copy(
       fontSize = tableStyle.fontSize,

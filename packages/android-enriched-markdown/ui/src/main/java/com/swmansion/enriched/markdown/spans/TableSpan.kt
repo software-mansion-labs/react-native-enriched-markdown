@@ -28,15 +28,9 @@ import kotlin.math.min
  * The span takes zero horizontal advance and reports the table's full height through the line's
  * font metrics, so the table gets a line of its own — the same technique [ThematicBreakSpan] uses.
  *
- * Column widths follow the same rules as the React Native renderer: a column is as wide as its
- * widest cell, clamped to `[60dp, 300dp]` plus horizontal padding. Where the React Native renderer
- * hands an oversized table to a `HorizontalScrollView`, this span scrolls its own content: the
- * table keeps its natural width and is drawn through a viewport-sized window, offset by [scrollX].
- * The host view feeds it drag and fling gestures — see `EnrichedMarkdownText.onTouchEvent`.
- *
- * The table's frame — the rounded clip and the outer border — is pinned to that window rather than
- * to the content, so a table wider than the viewport still reads as a framed widget while its cells
- * slide underneath. When the table fits, window and content coincide and nothing scrolls.
+ * A table keeps its natural width and is drawn through a viewport-sized window offset by [scrollX],
+ * rather than being squeezed to fit. The frame is pinned to that window, so the cells slide
+ * underneath it. `TableScrollController` feeds the span its drag and fling gestures.
  */
 class TableSpan(
   val rows: List<Row>,
@@ -345,10 +339,8 @@ class TableSpan(
     if (isRtl) scrollX = maxScrollX
   }
 
-  /** Width of the window the table is seen through: the viewport, or the table when it is narrower. */
   private fun frameWidth(): Float = if (viewportWidth > 0f) min(totalWidth, viewportWidth) else totalWidth
 
-  /** Horizontal offset of the table within the viewport, honouring [TableStyle.align]. */
   private fun horizontalOffset(): Float {
     val freeSpace = (viewportWidth - totalWidth).coerceAtLeast(0f)
     if (freeSpace == 0f) return 0f

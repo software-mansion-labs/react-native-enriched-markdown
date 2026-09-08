@@ -49,7 +49,7 @@ class TableRenderer(
         bodyTypeface = config.style.tableTypeface,
         isRtl = resources.isLayoutRTL(),
         density = resources.displayMetrics.density,
-        tableMarkdown = buildTableMarkdown(node),
+        tableMarkdown = MarkdownASTSerializer.serializeTable(node),
       )
     builder.setSpan(span, start, builder.length, SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE)
     factory.registerTableSpan(span)
@@ -64,26 +64,21 @@ class TableRenderer(
     onLinkLongPress: ((String) -> Unit)?,
   ): List<TableSpan.Row> =
     node.children.flatMap { section ->
-      val isHeadSection = section.type == NodeType.TableHead
       section.children
         .filter { it.type == NodeType.TableRow }
         .map { row ->
-          val cells =
-            row.children.map { cell ->
-              buildCell(cell, isHeadSection, factory, onLinkPress, onLinkLongPress)
-            }
+          val cells = row.children.map { cell -> buildCell(cell, factory, onLinkPress, onLinkLongPress) }
           TableSpan.Row(cells = cells, isHeader = cells.firstOrNull()?.isHeader == true)
         }
     }
 
   private fun buildCell(
     node: MarkdownASTNode,
-    isHeadSection: Boolean,
     factory: RendererFactory,
     onLinkPress: ((String) -> Unit)?,
     onLinkLongPress: ((String) -> Unit)?,
   ): TableSpan.Cell {
-    val isHeader = isHeadSection || node.type == NodeType.TableHeaderCell
+    val isHeader = node.type == NodeType.TableHeaderCell
     return TableSpan.Cell(
       text = renderCellText(node, isHeader, factory, onLinkPress, onLinkLongPress),
       plainText = plainText(node),
@@ -146,38 +141,6 @@ class TableRenderer(
   }
 
   private fun plainText(node: MarkdownASTNode): String = node.content + node.children.joinToString("") { plainText(it) }
-
-  /**
-   * Rebuilds the table's markdown source, used when copying the table out of the view. Built from
-   * the AST rather than from the laid-out rows so the alignment markers stay correct in RTL, where
-   * a right-aligned column resolves to a start-aligned layout.
-   */
-  private fun buildTableMarkdown(node: MarkdownASTNode): String =
-    buildString {
-      node.children.forEach { section ->
-        val isHeadSection = section.type == NodeType.TableHead
-        section.children.filter { it.type == NodeType.TableRow }.forEach { row ->
-          append("| ")
-          append(row.children.joinToString(" | ") { MarkdownASTSerializer.serializeChildren(it) })
-          append(" |\n")
-
-          val isHeaderRow = isHeadSection || row.children.firstOrNull()?.type == NodeType.TableHeaderCell
-          if (isHeaderRow) {
-            append("| ")
-            append(row.children.joinToString(" | ") { alignmentMarker(it.getAttribute("align")) })
-            append(" |\n")
-          }
-        }
-      }
-    }
-
-  private fun alignmentMarker(align: String?): String =
-    when (align) {
-      "center" -> ":---:"
-      "right" -> "---:"
-      "left" -> ":---"
-      else -> "---"
-    }
 
   private fun SpannableStringBuilder.ensureNewline() {
     if (isNotEmpty() && this[length - 1] != '\n') {

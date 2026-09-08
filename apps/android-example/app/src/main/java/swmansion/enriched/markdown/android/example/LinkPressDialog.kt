@@ -15,13 +15,6 @@ data class PendingLink(
   val isLongPress: Boolean,
 )
 
-/**
- * Confirms a link activation before anything leaves the app.
- *
- * The example app deliberately does not open a browser straight from a link callback: the dialog
- * names which callback fired — tap or long press — and on which URL, so link handling stays visible
- * even when no browser is installed or the intent fails.
- */
 @Composable
 fun LinkPressDialog(
   pending: PendingLink?,

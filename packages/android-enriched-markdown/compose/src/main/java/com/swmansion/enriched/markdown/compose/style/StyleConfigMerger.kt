@@ -59,6 +59,18 @@ internal object StyleConfigMerger {
       }
 
     val tableStyle = patch.tableStyle ?: base.tableStyle
+    val tableTypeface =
+      if (patch.tableStyle != null) {
+        TableStyle.bodyTypeface(resolveContext.context, tableStyle)
+      } else {
+        base.tableTypeface
+      }
+    val tableHeaderTypeface =
+      if (patch.tableStyle != null) {
+        TableStyle.headerTypeface(resolveContext.context, tableStyle)
+      } else {
+        base.tableHeaderTypeface
+      }
 
     return StyleConfig(
       paragraphStyleDefault = patch.paragraphStyle ?: base.paragraphStyle,
@@ -78,18 +90,8 @@ internal object StyleConfigMerger {
       codeBlockStyle = patch.codeBlockStyle ?: base.codeBlockStyle,
       thematicBreakStyle = patch.thematicBreakStyle ?: base.thematicBreakStyle,
       tableStyle = tableStyle,
-      tableTypeface =
-        if (patch.tableStyle != null) {
-          TableStyle.bodyTypeface(resolveContext.context, tableStyle)
-        } else {
-          base.tableTypeface
-        },
-      tableHeaderTypeface =
-        if (patch.tableStyle != null) {
-          TableStyle.headerTypeface(resolveContext.context, tableStyle)
-        } else {
-          base.tableHeaderTypeface
-        },
+      tableTypeface = tableTypeface,
+      tableHeaderTypeface = tableHeaderTypeface,
     )
   }
 

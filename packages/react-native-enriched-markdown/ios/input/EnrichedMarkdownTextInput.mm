@@ -1601,7 +1601,7 @@ static const NSTimeInterval kENRMAtomicSnapPollInterval = 0.1;
 
 - (void)emitOnLinkPress:(NSString *)url
 {
-  auto emitter = [self getEventEmitter];
+  auto emitter = [self fabricEventEmitter];
   if (emitter == nullptr) {
     return;
   }

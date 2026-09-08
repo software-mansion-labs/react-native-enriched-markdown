@@ -23,6 +23,7 @@ import type {
   ImagePressEvent,
   TaskListItemPressEvent,
   CopyPressEvent,
+  LatexErrorEvent,
   OnContextMenuItemPressEvent,
 } from '../types/events';
 
@@ -40,6 +41,7 @@ export type {
   ImagePressEvent,
   TaskListItemPressEvent,
   CopyPressEvent,
+  LatexErrorEvent,
 };
 
 // Default English labels for the built-in selection menu actions. Defaults are
@@ -124,6 +126,7 @@ export const EnrichedMarkdownText = ({
   onTaskListItemPress,
   enableTaskListItemToggle = true,
   onCopyPress,
+  onLatexError,
   enableBlockContextMenu = true,
   enableLinkPreview,
   selectable = true,
@@ -257,6 +260,14 @@ export const EnrichedMarkdownText = ({
     [onCopyPress]
   );
 
+  const handleLatexError = useCallback(
+    (e: NativeSyntheticEvent<LatexErrorEvent>) => {
+      const { source, message, displayMode } = e.nativeEvent;
+      onLatexError?.({ source, message: message || undefined, displayMode });
+    },
+    [onLatexError]
+  );
+
   const tableMode = streamingConfig?.tableMode ?? 'progressive';
   const codeBlockMode = streamingConfig?.codeBlockMode ?? 'progressive';
   const normalizedStreamingConfig = useMemo(
@@ -325,6 +336,7 @@ export const EnrichedMarkdownText = ({
     onTaskListItemPress: handleTaskListItemPress,
     enableTaskListItemToggle,
     onCopyPress: handleCopyPress,
+    onLatexError: handleLatexError,
     enableBlockContextMenu,
     enableLinkPreview: onLinkLongPress == null && (enableLinkPreview ?? true),
     selectable,

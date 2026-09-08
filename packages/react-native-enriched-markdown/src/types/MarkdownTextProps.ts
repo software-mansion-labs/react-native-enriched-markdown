@@ -7,6 +7,7 @@ import type {
   ImagePressEvent,
   TaskListItemPressEvent,
   CopyPressEvent,
+  LatexErrorEvent,
 } from './events';
 
 /**
@@ -203,6 +204,24 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @platform ios, android, macos
    */
   onCopyPress?: (event: CopyPressEvent) => void;
+  /**
+   * Callback fired when a math expression cannot be parsed or rendered by the
+   * LaTeX engine.
+   *
+   * Receives the raw LaTeX `source` of the failing expression (no `$`/`$$`
+   * delimiters), the engine's error `message` (omitted when the engine gives
+   * none), and `displayMode` (`false` for inline `$...$`, `true` for block
+   * `$$...$$`). The whole expression is the unit of failure - the engine does
+   * not report a single offending command, so there is no `command` field.
+   *
+   * De-duplicated per component instance (keyed by `displayMode` + `source`):
+   * fires at most once per distinct failing expression, and the cache is kept
+   * across `markdown` changes so streaming does not re-report the same failure.
+   * A remount (new instance) reports again, so de-duplicate on your side if you
+   * aggregate app-wide. Requires `md4cFlags.latexMath` (on by default).
+   * @platform ios, android
+   */
+  onLatexError?: (event: LatexErrorEvent) => void;
   /**
    * Controls the long-press context menu on block views (code blocks, tables,
    * and block math). When false, long-pressing a block does not open the copy

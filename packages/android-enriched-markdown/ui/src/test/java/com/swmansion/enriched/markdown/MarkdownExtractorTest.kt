@@ -22,6 +22,12 @@ import com.swmansion.enriched.markdown.test.TestAstFactory.orderedList
 import com.swmansion.enriched.markdown.test.TestAstFactory.paragraph
 import com.swmansion.enriched.markdown.test.TestAstFactory.strikethrough
 import com.swmansion.enriched.markdown.test.TestAstFactory.strong
+import com.swmansion.enriched.markdown.test.TestAstFactory.table
+import com.swmansion.enriched.markdown.test.TestAstFactory.tableBody
+import com.swmansion.enriched.markdown.test.TestAstFactory.tableCell
+import com.swmansion.enriched.markdown.test.TestAstFactory.tableHead
+import com.swmansion.enriched.markdown.test.TestAstFactory.tableHeaderCell
+import com.swmansion.enriched.markdown.test.TestAstFactory.tableRow
 import com.swmansion.enriched.markdown.test.TestAstFactory.text
 import com.swmansion.enriched.markdown.test.TestAstFactory.thematicBreak
 import com.swmansion.enriched.markdown.test.TestAstFactory.underline
@@ -514,4 +520,103 @@ class MarkdownExtractorTest {
       ),
     )
   }
+
+  @Test
+  fun keepsAHeadingAboveTheTableItIntroduces() {
+    val markdown =
+      extractFromFullSelection(
+        document(
+          heading(2, text("Forest Statistics by Type")),
+          forestTable(),
+        ),
+      )
+
+    assertEquals(
+      """
+      ## Forest Statistics by Type
+
+      | Forest Type | Coverage |
+      | --- | --- |
+      | Tropical Rainforest | ~7% of land |
+      """.trimIndent() + "\n",
+      markdown,
+    )
+  }
+
+  @Test
+  fun keepsAHeadingAboveTheThematicBreakBelowIt() {
+    val markdown =
+      extractFromFullSelection(
+        document(
+          heading(2, text("Forest Statistics by Type")),
+          thematicBreak(),
+        ),
+      )
+
+    assertEquals("## Forest Statistics by Type\n\n---\n", markdown)
+  }
+
+  @Test
+  fun keepsAHeadingAboveTheImageBelowIt() {
+    val markdown =
+      extractFromFullSelection(
+        document(
+          heading(2, text("Forest Statistics by Type")),
+          paragraph(image("https://example.com/forest.png")),
+        ),
+      )
+
+    assertEquals("## Forest Statistics by Type\n\n![image](https://example.com/forest.png)\n", markdown)
+  }
+
+  @Test
+  fun keepsAParagraphAboveTheTableItIntroduces() {
+    val markdown =
+      extractFromFullSelection(
+        document(
+          paragraph(text("Forest statistics by type:")),
+          forestTable(),
+        ),
+      )
+
+    assertEquals(
+      """
+      Forest statistics by type:
+
+      | Forest Type | Coverage |
+      | --- | --- |
+      | Tropical Rainforest | ~7% of land |
+      """.trimIndent() + "\n",
+      markdown,
+    )
+  }
+
+  @Test
+  fun keepsAHeadingBelowTheTableItFollows() {
+    val markdown =
+      extractFromFullSelection(
+        document(
+          forestTable(),
+          heading(2, text("Boreal Forests")),
+        ),
+      )
+
+    assertEquals(
+      """
+      | Forest Type | Coverage |
+      | --- | --- |
+      | Tropical Rainforest | ~7% of land |
+
+      ## Boreal Forests
+      """.trimIndent() + "\n",
+      markdown,
+    )
+  }
+
+  /** A cut-down version of the sample table that surfaced the heading/table ordering bug. */
+  private fun forestTable() =
+    table(
+      head = tableHead(tableRow(tableHeaderCell("default", text("Forest Type")), tableHeaderCell("default", text("Coverage")))),
+      body = tableBody(tableRow(tableCell("default", text("Tropical Rainforest")), tableCell("default", text("~7% of land")))),
+    )
 }

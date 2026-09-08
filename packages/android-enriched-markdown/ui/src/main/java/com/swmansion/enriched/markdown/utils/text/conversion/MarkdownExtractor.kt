@@ -91,12 +91,14 @@ object MarkdownExtractor {
   ): Boolean {
     val thematicBreakSpans = spannable.getSpans(segmentStart, segmentEnd, ThematicBreakSpan::class.java)
     if (thematicBreakSpans.isNotEmpty()) {
+      headingAccumulator.flush(result, state)
       appendThematicBreak(result, state)
       return true
     }
 
     val tableSpans = spannable.getSpans(segmentStart, segmentEnd, TableSpan::class.java)
     if (tableSpans.isNotEmpty()) {
+      headingAccumulator.flush(result, state)
       appendTable(tableSpans[0], result, state)
       return true
     }
@@ -104,6 +106,7 @@ object MarkdownExtractor {
     if (segmentText == "\uFFFC" || segmentText == "\u200B") {
       val imageSpans = spannable.getSpans(segmentStart, segmentEnd, ImageSpan::class.java)
       if (imageSpans.isNotEmpty()) {
+        if (!imageSpans[0].isInline) headingAccumulator.flush(result, state)
         appendImage(imageSpans[0], result, state)
         return true
       }

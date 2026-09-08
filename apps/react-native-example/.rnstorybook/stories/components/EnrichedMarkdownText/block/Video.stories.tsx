@@ -14,15 +14,15 @@ import {
 import type { TextStory } from '../shared/storyTypes';
 
 const MARKDOWN =
-  '![Flower close-up](https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4)';
+  '<video src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>';
 
 const MULTIPLE_MARKDOWN = `Some text before the video.
 
-![Flower close-up](https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4)
+<video src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>
 
 Text between two videos.
 
-![Friday](https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4)
+<video src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4"></video>
 
 And some text after.`;
 
@@ -71,7 +71,7 @@ export const Default: TextStory<VideoStyleControls> = {
     return (
       <EnrichedMarkdownTextStory
         title="Video"
-        description="Block videos via ![alt](url.mp4). Auto-detected from image syntax when URL has a video extension. Use the controls to tune markdownStyle.video."
+        description='Block videos via <video src="url"> HTML tag. Use the controls to tune markdownStyle.video.'
         {...rest}
         style={{ video: toVideoStyle(controls) }}
       />

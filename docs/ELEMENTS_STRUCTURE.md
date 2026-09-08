@@ -19,7 +19,7 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 | Task Lists | `- [x] Done`, `- [ ] Todo` | `taskList` | Interactive checkboxes (requires `flavor="github"`) |
 | Thematic Break | `---`, `***`, or `___` | `thematicBreak` | Horizontal rule separator |
 | Images | `![alt](url)` | `image` | Block-level images with spacing |
-| Videos | `![alt](video-url)` | `video` | Native video player, auto-detected from image syntax when the URL has a video file extension (requires `flavor="github"` and `enableVideo`) |
+| Videos | `<video src="url">` | `video` | Native video player via HTML `<video>` tag (requires `flavor="github"` and `enableVideo`) |
 | Tables | `| col | col |` | `table` | GFM tables with alignment support (requires `flavor="github"`) |
 | Math Block | `$$...$$` | `math` | Block-level LaTeX math (display equations) (requires `flavor="github"`) |
 
@@ -171,21 +171,21 @@ You don't need to specify which type—the renderer automatically determines thi
 
 ## Videos
 
-Videos use the same image markdown syntax (`![alt](url)`) and are automatically promoted to native video players when the URL ends with a known video file extension:
-
-`.mp4`, `.mov`, `.webm`, `.m4v`, `.avi`, `.mkv`, `.ogv`, `.3gp`
+Videos are embedded using the standard HTML `<video>` tag, which is the most common way to include video in markdown:
 
 ```markdown
-![Ocean waves](https://example.com/ocean.mp4)
+<video src="https://example.com/ocean.mp4"></video>
 ```
 
-Only **standalone** block images are promoted — the image must be the sole child of its paragraph (same rule as block images). Video URLs mixed inline with text remain inline images.
+The parser recognizes block-level `<video>` tags and renders them as native video players. Other HTML tags are silently ignored — only `<video>` is allowlisted. Inline HTML remains disabled.
+
+> **Note:** HTML attributes like `width`, `height`, `controls`, `autoplay`, etc. on the `<video>` tag are ignored — only `src` is used. All video styling (dimensions, aspect ratio, border radius, margins, background color) is controlled via the `markdownStyle.video` prop. See [Style Properties Reference](./STYLES.md#video-specific).
 
 Video requires:
 - `flavor="github"` for native segment rendering
 - `enableVideo` in your app's `package.json` `"enriched-markdown"` config (enabled by default)
 
-On iOS, videos render via `AVPlayerViewController`; on Android, via ExoPlayer (`PlayerView`). On web, videos render as `<video>` elements with native browser controls. Styles are configured via `markdownStyle.video` — see [Style Properties Reference](./STYLES.md#video-specific).
+On iOS, videos render via `AVPlayerViewController`; on Android, via ExoPlayer (`PlayerView`). On web, videos render as `<video>` elements with native browser controls.
 
 ## Nested Elements
 

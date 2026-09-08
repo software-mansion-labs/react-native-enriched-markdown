@@ -439,7 +439,7 @@ Styles for highlighted text (`==text==`). Requires `md4cFlags={{ highlight: true
 
 ### Video-specific
 
-Styles for block-level videos. Videos are auto-detected from standard image markdown syntax (`![alt](url)`) when the URL ends with a known video file extension (`.mp4`, `.mov`, `.webm`, `.m4v`, `.avi`, `.mkv`, `.ogv`, `.3gp`). Requires `flavor="github"` and the `enableVideo` opt-in in your app's `package.json`.
+Styles for block-level videos embedded via the HTML `<video>` tag (e.g. `<video src="url"></video>`). Requires `flavor="github"` and the `enableVideo` opt-in in your app's `package.json`.
 
 | Property | Type | Description |
 |----------|------|-------------|

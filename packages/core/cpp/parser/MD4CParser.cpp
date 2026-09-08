@@ -6,12 +6,23 @@
 
 namespace Markdown {
 
+namespace {
+struct HtmlTag {
+  std::string name;
+  std::unordered_map<std::string, std::string> attributes;
+};
+HtmlTag parseHtmlOpenTag(const std::string &html);
+std::shared_ptr<MarkdownASTNode> tryPromoteHtmlBlock(const std::string &html);
+} // namespace
+
 class MD4CParser::Impl {
 public:
   std::shared_ptr<MarkdownASTNode> root;
   std::vector<std::shared_ptr<MarkdownASTNode>> nodeStack;
   std::string currentText;
   const char *inputText = nullptr;
+  bool inHtmlBlock = false;
+  std::string htmlBlockContent;
 
   static const std::string ATTR_LEVEL;
   static const std::string ATTR_URL;
@@ -34,6 +45,8 @@ public:
     nodeStack.push_back(root);
     currentText.clear();
     currentText.reserve(256);
+    inHtmlBlock = false;
+    htmlBlockContent.clear();
   }
 
   void flushText() {
@@ -243,6 +256,12 @@ public:
         break;
       }
 
+      case MD_BLOCK_HTML: {
+        impl->inHtmlBlock = true;
+        impl->htmlBlockContent.clear();
+        break;
+      }
+
       default:
         // Other block types not yet implemented
         break;
@@ -256,6 +275,16 @@ public:
     if (!userdata)
       return 1;
     auto *impl = static_cast<Impl *>(userdata);
+
+    if (type == MD_BLOCK_HTML) {
+      impl->inHtmlBlock = false;
+      auto node = tryPromoteHtmlBlock(impl->htmlBlockContent);
+      impl->htmlBlockContent.clear();
+      if (node && !impl->nodeStack.empty()) {
+        impl->nodeStack.back()->addChild(std::move(node));
+      }
+      return 0;
+    }
 
     if (type != MD_BLOCK_DOC && !impl->nodeStack.empty()) {
       impl->popNode();
@@ -390,6 +419,13 @@ public:
       return 0;
     }
 
+    if (type == MD_TEXT_HTML) {
+      if (impl->inHtmlBlock) {
+        impl->htmlBlockContent.append(text, size);
+      }
+      return 0;
+    }
+
     // Handle text content (normal text, code text, LaTeX math, etc.)
     if (type == MD_TEXT_NORMAL || type == MD_TEXT_CODE || type == MD_TEXT_LATEXMATH) {
       impl->currentText.append(text, size);
@@ -400,6 +436,107 @@ public:
 };
 
 namespace {
+
+HtmlTag parseHtmlOpenTag(const std::string &html) {
+  HtmlTag tag;
+  size_t pos = 0;
+
+  while (pos < html.size() && std::isspace(static_cast<unsigned char>(html[pos])))
+    ++pos;
+  if (pos >= html.size() || html[pos] != '<')
+    return tag;
+  ++pos;
+
+  if (pos < html.size() && html[pos] == '/')
+    return tag;
+
+  while (pos < html.size() && std::isspace(static_cast<unsigned char>(html[pos])))
+    ++pos;
+
+  size_t nameStart = pos;
+  while (pos < html.size() && !std::isspace(static_cast<unsigned char>(html[pos])) && html[pos] != '>' &&
+         html[pos] != '/') {
+    ++pos;
+  }
+  if (pos == nameStart)
+    return tag;
+  tag.name.reserve(pos - nameStart);
+  for (size_t i = nameStart; i < pos; ++i)
+    tag.name += static_cast<char>(std::tolower(static_cast<unsigned char>(html[i])));
+
+  while (pos < html.size()) {
+    while (pos < html.size() && std::isspace(static_cast<unsigned char>(html[pos])))
+      ++pos;
+    if (pos >= html.size() || html[pos] == '>' || html[pos] == '/')
+      break;
+
+    size_t attrStart = pos;
+    while (pos < html.size() && html[pos] != '=' && !std::isspace(static_cast<unsigned char>(html[pos])) &&
+           html[pos] != '>' && html[pos] != '/') {
+      ++pos;
+    }
+
+    if (pos == attrStart) {
+      ++pos;
+      continue;
+    }
+
+    std::string attrName;
+    attrName.reserve(pos - attrStart);
+    for (size_t i = attrStart; i < pos; ++i)
+      attrName += static_cast<char>(std::tolower(static_cast<unsigned char>(html[i])));
+
+    while (pos < html.size() && std::isspace(static_cast<unsigned char>(html[pos])))
+      ++pos;
+
+    if (pos < html.size() && html[pos] == '=') {
+      ++pos;
+      while (pos < html.size() && std::isspace(static_cast<unsigned char>(html[pos])))
+        ++pos;
+
+      std::string attrValue;
+      if (pos < html.size() && (html[pos] == '"' || html[pos] == '\'')) {
+        char quote = html[pos++];
+        size_t valueStart = pos;
+        while (pos < html.size() && html[pos] != quote)
+          ++pos;
+        attrValue = html.substr(valueStart, pos - valueStart);
+        if (pos < html.size())
+          ++pos;
+      } else {
+        size_t valueStart = pos;
+        while (pos < html.size() && !std::isspace(static_cast<unsigned char>(html[pos])) && html[pos] != '>' &&
+               html[pos] != '/') {
+          ++pos;
+        }
+        attrValue = html.substr(valueStart, pos - valueStart);
+      }
+      tag.attributes[attrName] = attrValue;
+    } else {
+      tag.attributes[attrName] = "";
+    }
+  }
+
+  return tag;
+}
+
+std::shared_ptr<MarkdownASTNode> tryPromoteHtmlBlock(const std::string &html) {
+  auto tag = parseHtmlOpenTag(html);
+  if (tag.name.empty())
+    return nullptr;
+
+  if (tag.name == "video") {
+    auto srcIt = tag.attributes.find("src");
+    if (srcIt == tag.attributes.end() || srcIt->second.empty()) {
+      return nullptr;
+    }
+    auto node = std::make_shared<MarkdownASTNode>(NodeType::Video);
+    node->setAttribute("url", srcIt->second);
+    return node;
+  }
+
+  return nullptr;
+}
 
 using NodeList = std::vector<std::shared_ptr<MarkdownASTNode>>;
 
@@ -533,75 +670,6 @@ bool isBlockNode(const MarkdownASTNode &node) {
   }
 }
 
-// Returns true when the URL's path (before any query/fragment) ends with a
-// known video file extension, case-insensitively.
-bool hasVideoExtension(const std::string &url) {
-  if (url.empty())
-    return false;
-
-  // Find where the path ends (before any query string or fragment).
-  size_t pathEnd = url.find_first_of("?#");
-  if (pathEnd == std::string::npos)
-    pathEnd = url.size();
-  if (pathEnd == 0)
-    return false;
-
-  // Find the last dot in the path portion to isolate the extension.
-  size_t dotPos = url.rfind('.', pathEnd - 1);
-  if (dotPos == std::string::npos)
-    return false;
-
-  // Lower-case the extension (including the dot) for comparison.
-  std::string ext;
-  ext.reserve(pathEnd - dotPos);
-  for (size_t i = dotPos; i < pathEnd; ++i) {
-    ext += static_cast<char>(std::tolower(static_cast<unsigned char>(url[i])));
-  }
-
-  static const char *videoExtensions[] = {
-      ".mp4", ".mov", ".webm", ".m4v", ".avi", ".mkv", ".ogv", ".3gp",
-  };
-  for (const char *vidExt : videoExtensions) {
-    if (ext == vidExt)
-      return true;
-  }
-  return false;
-}
-
-// Post-processing pass: promote Image nodes whose URL points to a video file
-// to Video nodes. Recurses into block containers (blockquotes, admonitions,
-// list items) so videos at any nesting depth are detected.
-//
-// Only standalone images (sole child of a Paragraph) are promoted; an image
-// mixed with text in the same paragraph stays as an inline Image — there is no
-// sensible way to render a video player inline with text.
-void promoteVideoImages(MarkdownASTNode &node) {
-  auto &children = node.children;
-
-  for (size_t i = 0; i < children.size(); ++i) {
-    auto &child = children[i];
-
-    // Recurse into block containers so nested videos are also detected.
-    if (child->type == NodeType::Blockquote || child->type == NodeType::Admonition ||
-        child->type == NodeType::UnorderedList || child->type == NodeType::OrderedList ||
-        child->type == NodeType::ListItem) {
-      promoteVideoImages(*child);
-      continue;
-    }
-
-    // Promote a Paragraph whose sole child is a video-URL Image.
-    if (child->type == NodeType::Paragraph && child->children.size() == 1 &&
-        child->children[0]->type == NodeType::Image) {
-      auto &img = child->children[0];
-      auto urlIt = img->attributes.find("url");
-      if (urlIt != img->attributes.end() && hasVideoExtension(urlIt->second)) {
-        img->type = NodeType::Video;
-        children[i] = std::move(img);
-      }
-    }
-  }
-}
-
 // md4c omits Paragraph wrappers around the inline content of tight list items.
 // Wrap each run of consecutive inline children of a ListItem in a synthetic
 // Paragraph (marked "tight") so renderers only ever see block children.
@@ -688,7 +756,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   impl_->reset(estimatedDepth);
   impl_->inputText = markdown.c_str();
 
-  unsigned flags = MD_FLAG_NOHTML | MD_FLAG_SPOILERS;
+  unsigned flags = MD_FLAG_NOHTMLSPANS | MD_FLAG_SPOILERS;
   if (isGFM) {
     flags |= MD_FLAG_TABLES | MD_FLAG_STRIKETHROUGH | MD_FLAG_TASKLISTS;
   }
@@ -740,9 +808,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
 
   if (impl_->root) {
     promoteDisplayMathFromParagraphs(*impl_->root);
-    promoteVideoImages(*impl_->root);
     wrapListItemInlineRuns(*impl_->root);
-    promoteVideoImages(*impl_->root);
   }
 
   return impl_->root ? impl_->root : std::make_shared<MarkdownASTNode>(NodeType::Document);

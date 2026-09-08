@@ -27,7 +27,7 @@
 - 👤 Renders mentions as styled links (compatible with `EnrichedMarkdownTextInput` mention output)
 - 🙈 Spoiler text with animated particle overlay and tap-to-reveal
 - 🖼️ Native image interactions (iOS: Copy, Save to Camera Roll)
-- 🎬 Native video playback — block-level videos auto-detected from image markdown URLs
+- 🎬 Native video playback — block-level videos via HTML `<video>` tag
 - 🌐 Native platform features (Translate, Look Up, Search Web, Share)
 - 🗣️ Accessibility support (VoiceOver on iOS, TalkBack on Android, semantic HTML on web)
 - 🔄 Full RTL (right-to-left) support including text, lists, blockquotes, tables, and task lists

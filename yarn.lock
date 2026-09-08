@@ -3350,9 +3350,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@enriched-markdown/android@workspace:packages/android-enriched-markdown":
+"@enriched-markdown/android@workspace:packages/enriched-markdown-android":
   version: 0.0.0-use.local
-  resolution: "@enriched-markdown/android@workspace:packages/android-enriched-markdown"
+  resolution: "@enriched-markdown/android@workspace:packages/enriched-markdown-android"
   languageName: unknown
   linkType: soft
 
@@ -10295,6 +10295,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.85.0"
     "@react-native/eslint-config": "npm:0.85.0"
     "@release-it/conventional-changelog": "npm:^10.0.6"
+    clang-format: "npm:^1.8.0"
     commitlint: "npm:^20.5.0"
     eslint: "npm:^9.39.4"
     eslint-config-prettier: "npm:^10.1.8"

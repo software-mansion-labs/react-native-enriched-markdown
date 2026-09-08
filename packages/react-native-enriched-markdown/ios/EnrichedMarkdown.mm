@@ -93,12 +93,7 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL _isGFM;
   NSString *_cachedMarkdown;
   NSString *_renderedMarkdown;
-  // Distinct math failures already reported for this view instance (key =
-  // displayMode + source). Persists for the view's lifetime so a failure is
-  // reported once, even across streaming content updates; a fresh mount starts
-  // empty.
   NSMutableSet<NSString *> *_reportedLatexErrors;
-  // Failures detected before the event emitter attached; flushed once it arrives.
   NSMutableArray<NSDictionary *> *_pendingLatexErrors;
   NSMutableArray<RCTUIView *> *_segmentViews;
   NSMutableArray<NSNumber *> *_segmentSignatures;
@@ -944,7 +939,6 @@ static char kENRMSegmentFadeAnimatorKey;
   mathView.accessibilityLabels = _accessibilityLabels;
   mathView.copyLabel = _selectionMenuLabels.copyLabel;
   mathView.copyAsMarkdownLabel = _selectionMenuLabels.copyAsMarkdownLabel;
-  // Must be set before applyLatex so a first-render failure is reported.
   __weak __typeof(self) weakSelf = self;
   mathView.onLatexError = ^(NSString *source, NSString *message, BOOL displayMode) {
     [weakSelf reportLatexErrorWithSource:source message:message displayMode:displayMode];
@@ -1405,8 +1399,6 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     });
 }
 
-// Injects one deduping reporter into every math object from a render so a
-// parse failure surfaces through onLatexError. Runs on the main thread.
 - (void)wireLatexErrorReporters:(NSArray<id<ENRMLatexErrorReporting>> *)reporters
 {
   if (reporters.count == 0)
@@ -1417,8 +1409,6 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   };
   for (id<ENRMLatexErrorReporting> reporter in reporters) {
     reporter.onLatexError = handler;
-    // Inline math is parsed during background measurement, before this wiring,
-    // so drain any failure detected then.
     [reporter reportLatexErrorIfNeeded];
   }
 }
@@ -1434,8 +1424,6 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   }
 }
 
-// Returns NO when the event emitter is not attached yet, so the caller can
-// buffer the failure and flush it once updateEventEmitter: provides one.
 - (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
 {
   auto emitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);

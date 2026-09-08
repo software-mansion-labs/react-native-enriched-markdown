@@ -27,9 +27,6 @@
   attachment.latex = latex;
   attachment.fontSize = currentFont ? currentFont.pointSize : [_config paragraphFontSize];
   attachment.mathTextColor = [_config inlineMathColor];
-  // Collected so the host view can inject one onLatexError reporter after render.
-  // Text-flow math is typeset inline (displayMode NO), including mid-paragraph
-  // display math; block-level display math uses ENRMMathContainerView.
   [context.mathReporters addObject:attachment];
 
 #if TARGET_OS_OSX

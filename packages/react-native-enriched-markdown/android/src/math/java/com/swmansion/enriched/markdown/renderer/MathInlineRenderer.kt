@@ -23,10 +23,6 @@ class MathInlineRenderer(
     val latex = extractLatex(node)
     if (latex.isEmpty()) return
 
-    // Isolated display math is promoted to the document top level, where the
-    // single-TextView (commonmark) path renders it without pushing a paragraph
-    // block context. Fall back to the display-math font size instead of throwing
-    // (which would blank the entire document); mid-line math keeps its block style.
     val fontSize =
       factory.blockStyleContext.currentBlockStyleOrNull()?.fontSize
         ?: config.style.mathStyle.fontSize

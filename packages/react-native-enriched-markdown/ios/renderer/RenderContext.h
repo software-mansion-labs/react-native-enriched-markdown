@@ -46,8 +46,6 @@ typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 @property (nonatomic, assign) BOOL allowFontScaling;
 @property (nonatomic, assign) CGFloat maxFontSizeMultiplier;
 @property (nonatomic, assign) NSInteger taskItemCount;
-// Inline math attachments produced this render, drained by the host view so it
-// can inject one onLatexError reporter into each after rendering.
 @property (nonatomic, strong) NSMutableArray<id<ENRMLatexErrorReporting>> *mathReporters;
 
 - (instancetype)init;

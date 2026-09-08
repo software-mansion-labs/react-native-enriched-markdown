@@ -44,8 +44,6 @@
   if (!result) {
     _parseFailed = YES;
     _parseMessage = error.localizedDescription ?: @"";
-    // Fires now if the reporter is already wired; otherwise the host view drains
-    // it via reportLatexErrorIfNeeded once it wires onLatexError.
     [self reportLatexErrorIfNeeded];
     _fallbackSource = ENRMMathFallbackString(self.latex, @"$", self.fontSize, color);
     UIFont *font = [_fallbackSource attribute:NSFontAttributeName atIndex:0 effectiveRange:NULL];

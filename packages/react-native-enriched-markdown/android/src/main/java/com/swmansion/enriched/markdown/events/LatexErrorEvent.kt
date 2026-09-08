@@ -13,9 +13,6 @@ class LatexErrorEvent(
 ) : Event<LatexErrorEvent>(surfaceId, viewId) {
   override fun getEventName(): String = EVENT_NAME
 
-  // A single render can fail several math expressions in the same frame. The base
-  // Event coalesces same-named events per view (keeping only the last), which
-  // would drop all but one failure - so opt out of coalescing.
   override fun canCoalesce(): Boolean = false
 
   override fun getEventData(): WritableMap {

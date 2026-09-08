@@ -164,7 +164,6 @@ object SegmentViewCreators {
       resolvedClass
         .getMethod("setEnableBlockContextMenu", Boolean::class.javaPrimitiveType)
         .invoke(view, config.enableBlockContextMenu)
-      // Must be set before applyLatex so a first-render failure is reported.
       runCatching {
         resolvedClass
           .getMethod("setOnLatexError", LatexErrorReporter::class.java)

@@ -60,14 +60,8 @@ class EnrichedMarkdownText
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
     private var onLatexErrorCallback: LatexErrorReporter? = null
 
-    // Distinct math failures (keyed by displayMode + source) already reported for
-    // this view instance. Persists for the view's lifetime - not cleared on
-    // content change - so a given failure is reported once even across streaming
-    // updates that re-parse the same expression. A fresh mount starts empty.
     private val reportedLatexErrors = HashSet<String>()
 
-    // Deduping reporter shared with the renderer; invoked on the main thread from
-    // the inline math span's getSize/draw.
     private val latexErrorReporter =
       LatexErrorReporter { source, message, displayMode ->
         val key = (if (displayMode) "B " else "I ") + source

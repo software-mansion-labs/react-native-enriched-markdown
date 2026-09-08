@@ -51,9 +51,6 @@ public final class ENRMRaTeXBridge: NSObject {
     parse(latex, displayMode: displayMode, fontSize: fontSize, color: color, error: nil)
   }
 
-  /// Same as `parse(_:displayMode:fontSize:color:)` but writes the engine's error
-  /// message into `error` when the expression cannot be parsed, so callers can
-  /// surface it through `onLatexError`.
   @objc(parse:displayMode:fontSize:color:error:)
   public static func parse(
     _ latex: String,

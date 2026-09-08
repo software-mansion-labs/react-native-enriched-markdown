@@ -27,7 +27,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString *cachedLatex;
 @property (nonatomic, strong, nullable) ENRMAccessibilityLabels *accessibilityLabels;
 @property (nonatomic, assign) BOOL enableBlockContextMenu;
-// Set by the host view so a parse failure in applyLatex: is reported.
 @property (nonatomic, copy, nullable) ENRMLatexErrorHandler onLatexError;
 
 // Renamed getters avoid the Cocoa `copy` method family (which signals +1

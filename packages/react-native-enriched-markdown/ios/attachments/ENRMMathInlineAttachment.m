@@ -19,6 +19,14 @@
   return _cachedSize.height;
 }
 
+- (void)reportLatexErrorIfNeeded
+{
+  if (_parseFailed && !_didReportError && self.onLatexError) {
+    _didReportError = YES;
+    self.onLatexError(self.latex, _parseMessage ?: @"", self.displayMode);
+  }
+}
+
 #if !TARGET_OS_OSX
 
 - (void)prepareIfNeeded
@@ -27,8 +35,18 @@
     return;
 
   RCTUIColor *color = self.mathTextColor ?: [RCTUIColor blackColor];
-  ENRMRaTeXRenderResult *result = [ENRMRaTeXBridge parse:self.latex displayMode:NO fontSize:self.fontSize color:color];
+  NSError *error = nil;
+  ENRMRaTeXRenderResult *result = [ENRMRaTeXBridge parse:self.latex
+                                             displayMode:self.displayMode
+                                                fontSize:self.fontSize
+                                                   color:color
+                                                   error:&error];
   if (!result) {
+    _parseFailed = YES;
+    _parseMessage = error.localizedDescription ?: @"";
+    // Fires now if the reporter is already wired; otherwise the host view drains
+    // it via reportLatexErrorIfNeeded once it wires onLatexError.
+    [self reportLatexErrorIfNeeded];
     _fallbackSource = ENRMMathFallbackString(self.latex, @"$", self.fontSize, color);
     UIFont *font = [_fallbackSource attribute:NSFontAttributeName atIndex:0 effectiveRange:NULL];
     CGRect bounds = [_fallbackSource boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)

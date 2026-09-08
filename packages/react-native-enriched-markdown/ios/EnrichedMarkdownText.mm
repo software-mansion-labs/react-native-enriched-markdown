@@ -25,6 +25,7 @@
 #import "MarkdownExtractor.h"
 #import "MeasurementCache.h"
 #import "ParagraphStyleUtils.h"
+#import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "SelectionColorUtils.h"
 #import "StylePropsUtils.h"
@@ -62,6 +63,7 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
                     selectedText:(NSString *)selectedText
                   selectionStart:(NSUInteger)selectionStart
                     selectionEnd:(NSUInteger)selectionEnd;
+- (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode;
 @end
 
 @implementation EnrichedMarkdownText {
@@ -119,6 +121,16 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
   ENRMDirtyFlags _dirtyFlags;
 
   ENRMAtomicSize _lastCommittedSize;
+
+  // Distinct math failures already reported for this view instance (key =
+  // displayMode + source). Persists for the view's lifetime so a failure is
+  // reported once, even across streaming content updates; a fresh mount starts
+  // empty.
+  NSMutableSet<NSString *> *_reportedLatexErrors;
+  // Failures detected before the event emitter was attached. A render can fail
+  // math before updateEventEmitter: runs; those are buffered here and flushed
+  // once the emitter arrives, so no failure is silently dropped.
+  NSMutableArray<NSDictionary *> *_pendingLatexErrors;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -238,6 +250,8 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
     _renderCoordinator =
         [[ENRMAsyncRenderCoordinator alloc] initWithQueueLabel:"com.swmansion.enriched.markdown.render"];
 
+    _reportedLatexErrors = [NSMutableSet set];
+    _pendingLatexErrors = [NSMutableArray array];
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
     _enableLinkPreview = YES;
@@ -371,6 +385,7 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
         self->_lastElementMarginBottom = result.lastElementMarginBottom;
         self->_accessibilityInfo = result.accessibilityInfo;
         self->_renderedStyleFingerprint = self->_pendingStyleFingerprint;
+        [self wireLatexErrorReporters:result.context.mathReporters];
         [self applyRenderedText:result.attributedText];
       }];
 }
@@ -776,6 +791,67 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
         .selectionStart = (int)selectionStart,
         .selectionEnd = (int)selectionEnd,
     });
+}
+
+// Injects one deduping reporter into every math object from a render so a
+// parse failure surfaces through onLatexError. Runs on the main thread.
+- (void)wireLatexErrorReporters:(NSArray<id<ENRMLatexErrorReporting>> *)reporters
+{
+  if (reporters.count == 0)
+    return;
+  __weak __typeof(self) weakSelf = self;
+  ENRMLatexErrorHandler handler = ^(NSString *source, NSString *message, BOOL displayMode) {
+    [weakSelf reportLatexErrorWithSource:source message:message displayMode:displayMode];
+  };
+  for (id<ENRMLatexErrorReporting> reporter in reporters) {
+    reporter.onLatexError = handler;
+    // Inline math is parsed during background measurement, before this wiring,
+    // so drain any failure detected then.
+    [reporter reportLatexErrorIfNeeded];
+  }
+}
+
+- (void)reportLatexErrorWithSource:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
+{
+  NSString *key = [NSString stringWithFormat:@"%@ %@", displayMode ? @"B" : @"I", source];
+  if ([_reportedLatexErrors containsObject:key])
+    return;
+  [_reportedLatexErrors addObject:key];
+  if (![self emitLatexError:source message:message displayMode:displayMode]) {
+    [_pendingLatexErrors addObject:@{@"source" : source, @"message" : message, @"displayMode" : @(displayMode)}];
+  }
+}
+
+// Returns NO when the event emitter is not attached yet, so the caller can
+// buffer the failure and flush it once updateEventEmitter: provides one.
+- (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (!emitter)
+    return NO;
+  emitter->onLatexError({
+      .source = std::string(source.UTF8String ?: ""),
+      .message = std::string(message.UTF8String ?: ""),
+      .displayMode = displayMode ? true : false,
+  });
+  return YES;
+}
+
+- (void)flushPendingLatexErrors
+{
+  if (_pendingLatexErrors.count == 0)
+    return;
+  NSArray<NSDictionary *> *pending = [_pendingLatexErrors copy];
+  [_pendingLatexErrors removeAllObjects];
+  for (NSDictionary *e in pending) {
+    [self emitLatexError:e[@"source"] message:e[@"message"] displayMode:[e[@"displayMode"] boolValue]];
+  }
+}
+
+- (void)updateEventEmitter:(const facebook::react::EventEmitter::Shared &)eventEmitter
+{
+  [super updateEventEmitter:eventEmitter];
+  [self flushPendingLatexErrors];
 }
 
 - (void)textTapped:(ENRMTapRecognizer *)recognizer

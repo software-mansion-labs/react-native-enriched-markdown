@@ -1,13 +1,18 @@
 #pragma once
+#import "ENRMLatexErrorReporting.h"
 #import "ENRMUIKit.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ENRMMathInlineAttachment : NSTextAttachment
+@interface ENRMMathInlineAttachment : NSTextAttachment <ENRMLatexErrorReporting>
 
 @property (nonatomic, strong) NSString *latex;
 @property (nonatomic, assign) CGFloat fontSize;
 @property (nonatomic, strong, nullable) RCTUIColor *mathTextColor;
+// NO for inline `$...$`, YES for block `$$...$$` rendered in the text flow.
+@property (nonatomic, assign) BOOL displayMode;
+// Set by the host view after a render so a parse failure is reported once.
+@property (nonatomic, copy, nullable) ENRMLatexErrorHandler onLatexError;
 
 @property (nonatomic, readonly) CGFloat boxHeight;
 

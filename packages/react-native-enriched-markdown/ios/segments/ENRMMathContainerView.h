@@ -1,4 +1,5 @@
 #pragma once
+#import "ENRMLatexErrorReporting.h"
 #import "ENRMUIKit.h"
 #import "StyleConfig.h"
 
@@ -6,7 +7,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ENRMMathContainerView : RCTUIView
+@interface ENRMMathContainerView : RCTUIView <ENRMLatexErrorReporting>
 
 - (instancetype)initWithConfig:(StyleConfig *)config;
 
@@ -26,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString *cachedLatex;
 @property (nonatomic, strong, nullable) ENRMAccessibilityLabels *accessibilityLabels;
 @property (nonatomic, assign) BOOL enableBlockContextMenu;
+// Set by the host view so a parse failure in applyLatex: is reported.
+@property (nonatomic, copy, nullable) ENRMLatexErrorHandler onLatexError;
 
 // Renamed getters avoid the Cocoa `copy` method family (which signals +1
 // retained returns). Property names are unchanged so call sites stay the same.

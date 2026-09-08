@@ -12,19 +12,24 @@ object MarkdownASTSerializer {
    * Rebuilds a table's markdown, used when copying the table out of the view. Built from the AST
    * rather than from the laid-out rows so alignment markers stay correct in RTL, where a
    * right-aligned column resolves to a start-aligned layout.
+   *
+   * Only the first header row is followed by an alignment separator: a second one would make the
+   * output invalid GFM.
    */
   fun serializeTable(node: MarkdownASTNode): String =
     buildString {
+      var headerDone = false
       node.children.forEach { section ->
         section.children.filter { it.type == NodeType.TableRow }.forEach { row ->
           append("| ")
           append(row.children.joinToString(" | ") { serializeChildren(it) })
           append(" |\n")
 
-          if (row.children.firstOrNull()?.type == NodeType.TableHeaderCell) {
+          if (!headerDone && row.children.firstOrNull()?.type == NodeType.TableHeaderCell) {
             append("| ")
             append(row.children.joinToString(" | ") { alignmentMarker(it.getAttribute("align")) })
             append(" |\n")
+            headerDone = true
           }
         }
       }

@@ -268,10 +268,10 @@ markdownStyle {
 }
 ```
 
-A column is sized to its widest cell, within 60dp–300dp. When the whole table is still wider than
-the space available, its columns shrink proportionally and cell text wraps onto more lines — the
-table never scrolls sideways and never overflows the view. `align` places a table that is narrower
-than the available width; it defaults to `TableAlignment.AUTO`, which follows the reading direction.
+A column is sized to its widest cell, within 60dp–300dp. A table wider than the space available
+keeps those widths and scrolls sideways inside the view, with a scroll indicator that fades in while
+it moves. `align` places a table that is narrower than the available width; it defaults to
+`TableAlignment.AUTO`, which follows the reading direction.
 
 ## Development
 

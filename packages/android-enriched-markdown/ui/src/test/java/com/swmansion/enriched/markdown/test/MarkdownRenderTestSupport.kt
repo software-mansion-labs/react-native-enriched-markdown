@@ -67,6 +67,8 @@ object MarkdownRenderTestSupport {
       codeBlockStyle = base.codeBlockStyle,
       thematicBreakStyle = base.thematicBreakStyle,
       tableStyle = base.tableStyle,
+      tableTypeface = base.tableTypeface,
+      tableHeaderTypeface = base.tableHeaderTypeface,
     )
   }
 }

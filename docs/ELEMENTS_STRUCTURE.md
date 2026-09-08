@@ -187,6 +187,9 @@ Video requires:
 
 On iOS, videos render via `AVPlayerViewController`; on Android, via ExoPlayer (`PlayerView`). On web, videos render as `<video>` elements with native browser controls.
 
+> [!NOTE]
+> Videos inside **blockquotes** and **admonitions** are fully supported. Videos inside **lists** are currently promoted out of the list and rendered as standalone blocks above the remaining list items — the list bullet/marker is not shown for video items. This behavior may change in a future release.
+
 ## Nested Elements
 
 Some elements support unlimited nesting depth with automatic indentation:

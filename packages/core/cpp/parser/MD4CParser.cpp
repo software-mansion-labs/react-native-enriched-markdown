@@ -731,6 +731,67 @@ void wrapListItemInlineRuns(MarkdownASTNode &node) {
   node.children = std::move(newChildren);
 }
 
+bool isVideoOnlyListItem(const MarkdownASTNode &item) {
+  return item.type == NodeType::ListItem && item.children.size() == 1 && item.children[0]->type == NodeType::Video;
+}
+
+void promoteVideosFromListItems(MarkdownASTNode &node) {
+  for (auto &child : node.children) {
+    if (child->type == NodeType::Blockquote || child->type == NodeType::Admonition) {
+      promoteVideosFromListItems(*child);
+    }
+  }
+
+  auto &children = node.children;
+  for (size_t i = 0; i < children.size();) {
+    auto &list = children[i];
+    if (list->type != NodeType::UnorderedList && list->type != NodeType::OrderedList) {
+      ++i;
+      continue;
+    }
+
+    bool hasVideoItem = false;
+    for (auto &item : list->children) {
+      if (isVideoOnlyListItem(*item)) {
+        hasVideoItem = true;
+        break;
+      }
+    }
+    if (!hasVideoItem) {
+      ++i;
+      continue;
+    }
+
+    std::vector<std::shared_ptr<MarkdownASTNode>> replacement;
+    std::vector<std::shared_ptr<MarkdownASTNode>> currentItems;
+    NodeType listType = list->type;
+
+    for (auto &item : list->children) {
+      if (isVideoOnlyListItem(*item)) {
+        if (!currentItems.empty()) {
+          auto sublist = std::make_shared<MarkdownASTNode>(listType);
+          sublist->children = std::move(currentItems);
+          currentItems.clear();
+          replacement.push_back(std::move(sublist));
+        }
+        replacement.push_back(item->children[0]);
+      } else {
+        currentItems.push_back(std::move(item));
+      }
+    }
+
+    if (!currentItems.empty()) {
+      auto sublist = std::make_shared<MarkdownASTNode>(listType);
+      sublist->children = std::move(currentItems);
+      replacement.push_back(std::move(sublist));
+    }
+
+    auto position = children.erase(children.begin() + static_cast<NodeList::difference_type>(i));
+    children.insert(position, replacement.begin(), replacement.end());
+    i += replacement.size();
+  }
+}
+
 } // anonymous namespace
 
 MD4CParser::MD4CParser() : impl_(std::make_unique<Impl>()) {}
@@ -809,6 +870,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   if (impl_->root) {
     promoteDisplayMathFromParagraphs(*impl_->root);
     wrapListItemInlineRuns(*impl_->root);
+    promoteVideosFromListItems(*impl_->root);
   }
 
   return impl_->root ? impl_->root : std::make_shared<MarkdownASTNode>(NodeType::Document);

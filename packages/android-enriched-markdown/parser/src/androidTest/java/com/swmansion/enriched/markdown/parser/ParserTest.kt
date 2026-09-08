@@ -75,6 +75,30 @@ class ParserTest {
   }
 
   @Test
+  fun parsesTaskListItems() {
+    val markdown =
+      """
+      - [x] done
+      - [ ] open
+      - plain
+      """.trimIndent()
+
+    val ast = requireNotNull(parser.parseMarkdown(markdown))
+
+    val listItems = ast.allOfType(MarkdownASTNode.NodeType.ListItem)
+    assertEquals(3, listItems.size)
+
+    assertEquals("true", listItems[0].getAttribute("isTask"))
+    assertEquals("true", listItems[0].getAttribute("taskChecked"))
+    assertEquals("true", listItems[1].getAttribute("isTask"))
+    assertEquals("false", listItems[1].getAttribute("taskChecked"))
+    assertNull(listItems[2].getAttribute("isTask"))
+
+    assertEquals("done", listItems[0].firstOfType(MarkdownASTNode.NodeType.Text)?.content)
+    assertEquals("open", listItems[1].firstOfType(MarkdownASTNode.NodeType.Text)?.content)
+  }
+
+  @Test
   fun parsesCodeBlock() {
     val ast = requireNotNull(parser.parseMarkdown("```\nval x = 1\n```"))
 
@@ -127,7 +151,20 @@ class ParserTest {
 
   @Test
   fun nodeTypeEnumCountMatches() {
-    assertEquals(30, MarkdownASTNode.NodeType.entries.size)
+    assertEquals(33, MarkdownASTNode.NodeType.entries.size)
+  }
+
+  @Test
+  fun respectsPreserveBlankLinesFlag() {
+    val collapsed = requireNotNull(parser.parseMarkdown("one\n\n\n\ntwo"))
+    assertNull(collapsed.firstOfType(MarkdownASTNode.NodeType.BlankLine))
+
+    val preserved =
+      requireNotNull(
+        parser.parseMarkdown("one\n\n\n\ntwo", Md4cFlags(preserveBlankLines = true)),
+      )
+    val blankLine = requireNotNull(preserved.firstOfType(MarkdownASTNode.NodeType.BlankLine))
+    assertEquals("3", blankLine.getAttribute("count"))
   }
 
   @Test

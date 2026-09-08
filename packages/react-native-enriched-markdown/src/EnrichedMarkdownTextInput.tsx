@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
 } from 'react';
@@ -13,6 +14,7 @@ import EnrichedMarkdownTextInputNativeComponent, {
   type OnChangeMarkdownEvent,
   type OnChangeSelectionEvent,
   type OnChangeStateEvent,
+  type OnKeyPressEvent,
   type OnRequestMarkdownResultEvent,
   type OnRequestCaretRectResultEvent,
   type OnCaretRectChangeEvent,
@@ -24,6 +26,7 @@ import EnrichedMarkdownTextInputNativeComponent, {
   type OnEndMentionEvent,
 } from './EnrichedMarkdownTextInputNativeComponent';
 export type {
+  OnKeyPressEvent,
   OnLinkDetected,
   OnLinkPressEvent,
   OnStartMentionEvent,
@@ -41,6 +44,7 @@ import type {
 import { normalizeMarkdownTextInputStyle } from './normalizeMarkdownTextInputStyle';
 import { normalizeMenuItem } from './normalizeMenuItem';
 import { toNativeRegexConfig } from './utils/regexParser';
+import { TextInputState } from './utils/textInputState';
 import type { RefObject } from 'react';
 
 type NativeRef = HostInstance;
@@ -89,6 +93,15 @@ export interface MarkdownTextInputStyle {
   h4?: HeadingStyle;
   h5?: HeadingStyle;
   h6?: HeadingStyle;
+  /** List styling shared by bullet and numbered lists. */
+  list?: {
+    /**
+     * Vertical spacing (points) added above each list item so items read as
+     * separate rows. iOS uses `paragraphSpacingBefore`; Android a `LineHeightSpan`.
+     * @default 0
+     */
+    itemSpacing?: number;
+  };
 }
 
 export interface StyleState {
@@ -99,6 +112,8 @@ export interface StyleState {
   spoiler: { isActive: boolean };
   link: { isActive: boolean };
   heading: { isActive: boolean; level: HeadingLevel };
+  unorderedList: { isActive: boolean; depth: number };
+  orderedList: { isActive: boolean; depth: number };
 }
 
 export interface ContextMenuItem {
@@ -133,8 +148,13 @@ export interface EnrichedMarkdownTextInputInstance {
   toggleStrikethrough: () => void;
   toggleSpoiler: () => void;
   toggleHeading: (level: HeadingLevel) => void;
+  toggleUnorderedList: () => void;
+  toggleOrderedList: () => void;
+  indentList: () => void;
+  outdentList: () => void;
   setLink: (url: string) => void;
   insertLink: (text: string, url: string) => void;
+  insertText: (text: string) => void;
   insertMention: (displayText: string, url: string) => void;
   startMention: (indicator: string) => void;
   removeLink: () => void;
@@ -201,6 +221,7 @@ export interface EnrichedMarkdownTextInputProps extends Omit<
   onChangeMarkdown?: (markdown: string) => void;
   onChangeSelection?: (selection: { start: number; end: number }) => void;
   onChangeState?: (state: StyleState) => void;
+  onKeyPress?: (e: NativeSyntheticEvent<OnKeyPressEvent>) => void;
   onCaretRectChange?: (rect: CaretRect) => void;
   onLinkDetected?: (event: OnLinkDetected) => void;
   /**
@@ -285,6 +306,7 @@ export const EnrichedMarkdownTextInput = ({
   onChangeMarkdown,
   onChangeSelection,
   onChangeState,
+  onKeyPress,
   onCaretRectChange,
   onLinkDetected,
   onLinkPress,
@@ -342,6 +364,27 @@ export const EnrichedMarkdownTextInput = ({
       pending.clear();
       pendingCaretRect.forEach(({ reject }) => reject(err));
       pendingCaretRect.clear();
+    };
+  }, []);
+
+  /**
+   * Mirrors the built-in TextInput's TextInputState integration so scroll
+   * containers' keyboardShouldPersistTaps logic and Keyboard.dismiss treat
+   * this input like a native TextInput. See utils/textInputState.ts for the
+   * full rationale. The unmount cleanup blurs through blurTextInput so both
+   * the registry entry and the native focus are released, matching the
+   * TextInput unmount path.
+   */
+  useLayoutEffect(() => {
+    const instance = nativeRef.current;
+    if (instance == null) return;
+
+    TextInputState.registerInput(instance);
+    return () => {
+      if (TextInputState.currentlyFocusedInput() === instance) {
+        TextInputState.blurTextInput(instance);
+      }
+      TextInputState.unregisterInput(instance);
     };
   }, []);
 
@@ -445,8 +488,17 @@ export const EnrichedMarkdownTextInput = ({
 
   const handleChangeState = useCallback(
     (e: NativeSyntheticEvent<OnChangeStateEvent>) => {
-      const { bold, italic, underline, strikethrough, spoiler, link, heading } =
-        e.nativeEvent;
+      const {
+        bold,
+        italic,
+        underline,
+        strikethrough,
+        spoiler,
+        link,
+        heading,
+        unorderedList,
+        orderedList,
+      } = e.nativeEvent;
       onChangeState?.({
         bold,
         italic,
@@ -455,6 +507,8 @@ export const EnrichedMarkdownTextInput = ({
         spoiler,
         link,
         heading: { ...heading, level: toHeadingLevel(heading.level) },
+        unorderedList,
+        orderedList,
       });
     },
     [onChangeState]
@@ -490,10 +544,12 @@ export const EnrichedMarkdownTextInput = ({
   );
 
   const handleFocus = useCallback(() => {
+    TextInputState.focusInput(nativeRef.current);
     onFocus?.();
   }, [onFocus]);
 
   const handleBlur = useCallback(() => {
+    TextInputState.blurInput(nativeRef.current);
     onBlur?.();
   }, [onBlur]);
 
@@ -567,8 +623,13 @@ export const EnrichedMarkdownTextInput = ({
       toggleStrikethrough: () => Commands.toggleStrikethrough(commandRef),
       toggleSpoiler: () => Commands.toggleSpoiler(commandRef),
       toggleHeading: (level) => Commands.toggleHeading(commandRef, level),
+      toggleUnorderedList: () => Commands.toggleUnorderedList(commandRef),
+      toggleOrderedList: () => Commands.toggleOrderedList(commandRef),
+      indentList: () => Commands.indentList(commandRef),
+      outdentList: () => Commands.outdentList(commandRef),
       setLink: (url) => Commands.setLink(commandRef, url),
       insertLink: (text, url) => Commands.insertLink(commandRef, text, url),
+      insertText: (text) => Commands.insertText(commandRef, text),
       insertMention: (displayText, url) =>
         Commands.insertMention(commandRef, displayText, url),
       startMention: (indicator) => Commands.startMention(commandRef, indicator),
@@ -615,6 +676,7 @@ export const EnrichedMarkdownTextInput = ({
         handleChangeSelection as NativeProps['onChangeSelection']
       }
       onChangeState={handleChangeState as NativeProps['onChangeState']}
+      onInputKeyPress={onKeyPress as NativeProps['onInputKeyPress']}
       onLinkDetected={handleLinkDetected as NativeProps['onLinkDetected']}
       onLinkPress={handleLinkPress as NativeProps['onLinkPress']}
       onInputFocus={handleFocus as NativeProps['onInputFocus']}

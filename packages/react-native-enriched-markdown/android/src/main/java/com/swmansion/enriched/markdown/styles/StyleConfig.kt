@@ -166,6 +166,8 @@ class StyleConfig(
     ImageStyle.fromReadableMap(map, styleParser)
   }
 
+  var imageRequestHeaders: Map<String, String> = emptyMap()
+
   val inlineImageStyle: InlineImageStyle by lazy {
     val map =
       requireNotNull(style.getMap("inlineImage")) {
@@ -337,7 +339,8 @@ class StyleConfig(
       spoilerStyle == other.spoilerStyle &&
       superscriptStyle == other.superscriptStyle &&
       subscriptStyle == other.subscriptStyle &&
-      highlightStyle == other.highlightStyle
+      highlightStyle == other.highlightStyle &&
+      imageRequestHeaders == other.imageRequestHeaders
   }
 
   override fun hashCode(): Int {
@@ -364,6 +367,7 @@ class StyleConfig(
     result = 31 * result + superscriptStyle.hashCode()
     result = 31 * result + subscriptStyle.hashCode()
     result = 31 * result + highlightStyle.hashCode()
+    result = 31 * result + imageRequestHeaders.hashCode()
     return result
   }
 }

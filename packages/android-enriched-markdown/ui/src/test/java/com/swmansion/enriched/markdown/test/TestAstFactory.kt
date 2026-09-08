@@ -14,6 +14,11 @@ object TestAstFactory {
 
   fun emphasis(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.Emphasis, children = children.toList())
 
+  fun strikethrough(vararg children: MarkdownASTNode): MarkdownASTNode =
+    MarkdownASTNode(NodeType.Strikethrough, children = children.toList())
+
+  fun underline(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.Underline, children = children.toList())
+
   fun link(
     url: String,
     vararg children: MarkdownASTNode,
@@ -46,6 +51,17 @@ object TestAstFactory {
 
   fun listItem(vararg children: MarkdownASTNode): MarkdownASTNode = MarkdownASTNode(NodeType.ListItem, children = children.toList())
 
+  /** A GFM task-list item — what md4c produces for `- [ ]` / `- [x]`. */
+  fun taskListItem(
+    checked: Boolean,
+    vararg children: MarkdownASTNode,
+  ): MarkdownASTNode =
+    MarkdownASTNode(
+      type = NodeType.ListItem,
+      attributes = mapOf("isTask" to "true", "taskChecked" to checked.toString()),
+      children = children.toList(),
+    )
+
   fun image(
     url: String,
     alt: String = "",
@@ -57,4 +73,8 @@ object TestAstFactory {
     )
 
   fun thematicBreak(): MarkdownASTNode = MarkdownASTNode(NodeType.ThematicBreak)
+
+  fun softBreak(): MarkdownASTNode = MarkdownASTNode(NodeType.SoftBreak)
+
+  fun lineBreak(): MarkdownASTNode = MarkdownASTNode(NodeType.LineBreak)
 }

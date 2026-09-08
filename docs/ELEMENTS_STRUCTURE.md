@@ -12,8 +12,8 @@ Markdown elements in `react-native-enriched-markdown` are organized into block a
 |---------|--------|----------------|-------------|
 | Headings | `# H1` to `###### H6` | `h1` - `h6` | Six levels of headings |
 | Paragraphs | Plain text | `paragraph` | Default text container |
-| Blockquotes | `> Quote` | `blockquote` | Quoted content with accent bar, unlimited nesting |
-| Code Blocks | ` ``` code ``` ` | `codeBlock` | Multi-line code containers |
+| Blockquotes | `> Quote` | `blockquote` | Quoted content with accent bar, unlimited nesting; with `flavor="github"` rendered as a recursive block container (own padding/background box, and quoted code blocks/tables become real nested block components) |
+| Code Blocks | ` ``` code ``` ` | `codeBlock` | Multi-line code containers; with `flavor="github"` rendered as a block component with a language header and copy-code button |
 | Unordered Lists | `- Item`, `* Item`, or `+ Item` | `list` | Bullet lists with unlimited nesting |
 | Ordered Lists | `1. Item` | `list` | Numbered lists with unlimited nesting |
 | Task Lists | `- [x] Done`, `- [ ] Todo` | `taskList` | Interactive checkboxes (requires `flavor="github"`) |
@@ -110,6 +110,55 @@ Block elements are structural containers that define the layout and establish th
 
 Inline elements modify text within blocks and apply additional styling on top of the block's typography.
 
+## Line Breaks
+
+Newlines follow standard CommonMark semantics by default:
+
+- **Blank line**: Starts a new paragraph.
+- **Single newline (soft break)**: Renders as a space — consecutive lines flow together into one wrapped paragraph, matching how GitHub and other CommonMark renderers display Markdown.
+- **Hard break**: Ends a line with two spaces or a backslash to force a line break within the paragraph.
+
+```markdown
+This line and
+this line render as one continuous sentence.
+
+A blank line starts a new paragraph.
+
+Two trailing spaces  
+or a trailing backslash\
+force a line break within the paragraph.
+```
+
+### Preserving single newlines
+
+When displaying content authored in `EnrichedMarkdownTextInput`, pressing Enter produces a single newline in the serialized markdown. By default, `EnrichedMarkdownText` collapses these to spaces (per CommonMark). To preserve them as visible line breaks, enable the `hardSoftBreaks` flag:
+
+```tsx
+<EnrichedMarkdownText
+  markdown={markdownFromInput}
+  md4cFlags={{ hardSoftBreaks: true }}
+/>
+```
+
+This forces the parser to treat every soft break as a hard break, so single newlines render as line breaks on all platforms.
+
+### Blank Lines
+
+By default, CommonMark collapses any run of consecutive blank lines between two blocks into a single paragraph break, so pressing Enter several times renders the same as pressing it once. To keep the extra spacing, enable the `preserveBlankLines` flag:
+
+```tsx
+<EnrichedMarkdownText
+  markdown={markdownFromInput}
+  markdownStyle={{ paragraph: { marginTop: 0, marginBottom: 0 } }}
+  md4cFlags={{ preserveBlankLines: true }}
+/>
+```
+
+Each blank line in the source renders as one empty line, so the output keeps the exact number of blank lines that were typed - four blank lines between two paragraphs render as four empty lines. This makes `EnrichedMarkdownText` reproduce content authored in `EnrichedMarkdownTextInput` line for line, which is useful for chat-style apps.
+
+> [!NOTE]
+> Paragraph margins stack on top of the blank-line spacing. Set `paragraph.marginTop` and `paragraph.marginBottom` to `0` in `markdownStyle` so that spacing is driven purely by blank lines; otherwise even a standard single-blank-line paragraph break will render with extra height.
+
 ## Images: Block vs Inline
 
 Images are automatically detected as block or inline based on context:
@@ -117,7 +166,7 @@ Images are automatically detected as block or inline based on context:
 - **Block images**: When an image is the only content in a paragraph (standalone), it's treated as a block image and uses block-level spacing
 - **Inline images**: When an image appears alongside other text content, it's treated as inline and aligns with the text baseline
 
-You don't need to specify which type—the renderer automatically determines this based on the image's position in the content.
+You don't need to specify which type—the renderer automatically determines this based on the image's position in the content. Note that a single newline doesn't split a paragraph, so an image on its own source line directly below text is still inline; separate it with a blank line to make it a block image.
 
 ## Nested Elements
 

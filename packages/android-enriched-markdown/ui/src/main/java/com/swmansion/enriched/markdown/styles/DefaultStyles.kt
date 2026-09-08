@@ -77,6 +77,8 @@ internal object DefaultStyles {
         ),
       strongStyle = StrongStyle(fontFamily = "", fontWeight = "bold", color = null),
       emphasisStyle = EmphasisStyle(fontFamily = "", fontStyle = "italic", color = null),
+      strikethroughStyle = StrikethroughStyle(color = null),
+      underlineStyle = UnderlineStyle(color = null),
       codeStyle =
         CodeStyle(
           fontFamily = "",
@@ -106,6 +108,8 @@ internal object DefaultStyles {
           borderWidth = parser.toPixelFromDIP(3f),
           gapWidth = parser.toPixelFromDIP(16f),
           backgroundColor = parser.color("#F9FAFB"),
+          borderRadius = 0f,
+          padding = 0f,
         ),
       listStyle =
         ListStyle(
@@ -123,6 +127,16 @@ internal object DefaultStyles {
           markerFontWeight = "500",
           gapWidth = parser.toPixelFromDIP(12f),
           marginLeft = parser.toPixelFromDIP(24f),
+        ),
+      taskListStyle =
+        TaskListStyle(
+          checkedColor = parser.color("#2196F3"),
+          borderColor = parser.color("#9E9E9E"),
+          checkboxSize = parser.toPixelFromDIP(14f),
+          checkboxBorderRadius = parser.toPixelFromDIP(3f),
+          checkmarkColor = parser.color("#FFFFFF"),
+          checkedTextColor = 0,
+          checkedStrikethrough = false,
         ),
       codeBlockStyle =
         CodeBlockStyle(

@@ -14,6 +14,7 @@ import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
+import com.swmansion.enriched.markdown.spans.TaskListSpan
 
 class MarkdownAccessibilityHelper(
   private val textView: TextView,
@@ -47,6 +48,7 @@ class MarkdownAccessibilityHelper(
     val isOrdered: Boolean,
     val itemNumber: Int,
     val depth: Int,
+    val taskChecked: Boolean? = null,
   )
 
   private data class SpanRange(
@@ -81,6 +83,17 @@ class MarkdownAccessibilityHelper(
       }
     pendingLayoutListener = listener
     observer.addOnGlobalLayoutListener(listener)
+  }
+
+  /**
+   * Drops the pending global-layout listener, if any is still registered.
+   *
+   * Must run while the view is attached: `textView.viewTreeObserver` returns
+   * the window's observer only until detach, and the listener was merged into
+   * it from the view's floating observer when the view attached.
+   */
+  fun cleanup() {
+    removePendingLayoutListener()
   }
 
   private fun removePendingLayoutListener() {
@@ -347,6 +360,9 @@ class MarkdownAccessibilityHelper(
   private val ListItemInfo.listAnnouncement: String
     get() {
       val prefix = if (depth > 0) "nested " else ""
+      taskChecked?.let { checked ->
+        return "${prefix}task, ${if (checked) "checked" else "not checked"}"
+      }
       return if (isOrdered) "${prefix}list item $itemNumber" else "${prefix}bullet point"
     }
 
@@ -457,6 +473,7 @@ class MarkdownAccessibilityHelper(
       isOrdered = deepest is OrderedListSpan,
       itemNumber = (deepest as? OrderedListSpan)?.itemNumber ?: 0,
       depth = deepest.depth,
+      taskChecked = (deepest as? TaskListSpan)?.isChecked,
     )
   }
 }

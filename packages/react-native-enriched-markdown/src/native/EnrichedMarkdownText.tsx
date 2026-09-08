@@ -20,7 +20,9 @@ import type {
 import type {
   LinkPressEvent,
   LinkLongPressEvent,
+  ImagePressEvent,
   TaskListItemPressEvent,
+  CopyPressEvent,
   OnContextMenuItemPressEvent,
 } from '../types/events';
 
@@ -32,7 +34,13 @@ export type {
   SelectionMenuConfig,
   SelectionMenuPluralLabels,
 };
-export type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent };
+export type {
+  LinkPressEvent,
+  LinkLongPressEvent,
+  ImagePressEvent,
+  TaskListItemPressEvent,
+  CopyPressEvent,
+};
 
 // Default English labels for the built-in selection menu actions. Defaults are
 // resolved here (JS-side) so the native code always receives a concrete string.
@@ -101,6 +109,9 @@ const defaultMd4cFlags: Md4cFlags = {
   subscript: false,
   latexMath: true,
   highlight: false,
+  hardSoftBreaks: false,
+  preserveBlankLines: false,
+  admonitions: true,
 };
 
 export const EnrichedMarkdownText = ({
@@ -109,7 +120,11 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   onLinkPress,
   onLinkLongPress,
+  onImagePress,
   onTaskListItemPress,
+  enableTaskListItemToggle = true,
+  onCopyPress,
+  enableBlockContextMenu = true,
   enableLinkPreview,
   selectable = true,
   md4cFlags = defaultMd4cFlags,
@@ -121,6 +136,7 @@ export const EnrichedMarkdownText = ({
   streamingConfig,
   spoilerOverlay = 'particles',
   contextMenuItems,
+  imageRequestHeaders,
   selectionMenuConfig,
   accessibilityLabels,
   selectionColor,
@@ -146,8 +162,14 @@ export const EnrichedMarkdownText = ({
       subscript: md4cFlags.subscript ?? false,
       latexMath: md4cFlags.latexMath ?? true,
       highlight: md4cFlags.highlight ?? false,
+      hardSoftBreaks: md4cFlags.hardSoftBreaks ?? false,
+      preserveBlankLines: md4cFlags.preserveBlankLines ?? false,
+      // Admonitions are a GitHub-flavor feature; force them off in commonmark so
+      // `> [!NOTE]` renders as a plain blockquote.
+      admonitions:
+        flavor === 'github' ? (md4cFlags.admonitions ?? true) : false,
     }),
-    [md4cFlags]
+    [md4cFlags, flavor]
   );
 
   const contextMenuCallbacksRef = useRef<
@@ -170,6 +192,16 @@ export const EnrichedMarkdownText = ({
         ?.filter((item) => item.visible !== false)
         .map((item) => ({ text: item.text, icon: item.icon })),
     [contextMenuItems]
+  );
+
+  const nativeImageRequestHeaders = useMemo(
+    () =>
+      imageRequestHeaders
+        ? Object.entries(imageRequestHeaders)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+        : undefined,
+    [imageRequestHeaders]
   );
 
   const handleContextMenuItemPress = useCallback(
@@ -201,6 +233,14 @@ export const EnrichedMarkdownText = ({
     [onLinkLongPress]
   );
 
+  const handleImagePress = useCallback(
+    (e: NativeSyntheticEvent<ImagePressEvent>) => {
+      const { url, altText } = e.nativeEvent;
+      onImagePress?.({ url, altText });
+    },
+    [onImagePress]
+  );
+
   const handleTaskListItemPress = useCallback(
     (e: NativeSyntheticEvent<TaskListItemPressEvent>) => {
       const { index, checked, text } = e.nativeEvent;
@@ -209,8 +249,20 @@ export const EnrichedMarkdownText = ({
     [onTaskListItemPress]
   );
 
+  const handleCopyPress = useCallback(
+    (e: NativeSyntheticEvent<CopyPressEvent>) => {
+      const { code, language } = e.nativeEvent;
+      onCopyPress?.({ code, language });
+    },
+    [onCopyPress]
+  );
+
   const tableMode = streamingConfig?.tableMode ?? 'progressive';
-  const normalizedStreamingConfig = useMemo(() => ({ tableMode }), [tableMode]);
+  const codeBlockMode = streamingConfig?.codeBlockMode ?? 'progressive';
+  const normalizedStreamingConfig = useMemo(
+    () => ({ tableMode, codeBlockMode }),
+    [tableMode, codeBlockMode]
+  );
   const normalizedSelectionMenuConfig = useMemo(() => {
     // The boolean acceptance is confined to this wrapper boundary via a single
     // `as unknown` cast; the public type only exposes the object shape.
@@ -268,10 +320,16 @@ export const EnrichedMarkdownText = ({
     markdownStyle: normalizedStyle,
     onLinkPress: handleLinkPress,
     onLinkLongPress: handleLinkLongPress,
+    onImagePress: handleImagePress,
+    enableImagePress: onImagePress != null,
     onTaskListItemPress: handleTaskListItemPress,
+    enableTaskListItemToggle,
+    onCopyPress: handleCopyPress,
+    enableBlockContextMenu,
     enableLinkPreview: onLinkLongPress == null && (enableLinkPreview ?? true),
     selectable,
     md4cFlags: normalizedMd4cFlags,
+    isGFM: flavor === 'github',
     allowFontScaling,
     maxFontSizeMultiplier,
     allowTrailingMargin,
@@ -280,6 +338,7 @@ export const EnrichedMarkdownText = ({
     spoilerOverlay,
     style: containerStyle,
     contextMenuItems: nativeContextMenuItems,
+    imageRequestHeaders: nativeImageRequestHeaders,
     selectionMenuConfig: normalizedSelectionMenuConfig,
     accessibilityLabels: resolvedAccessibilityLabels,
     onContextMenuItemPress: handleContextMenuItemPress,

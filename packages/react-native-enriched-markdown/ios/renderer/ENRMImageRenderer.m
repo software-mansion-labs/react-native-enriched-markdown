@@ -40,13 +40,15 @@ static const unichar kZeroWidthSpace = 0x200B;
 
   NSMutableString *buffer = [NSMutableString string];
   [self _appendChildTextFromNode:node toBuffer:buffer];
-  return [buffer copy];
+  return [buffer stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 }
 
 - (void)_appendChildTextFromNode:(MarkdownASTNode *)node toBuffer:(NSMutableString *)buffer
 {
   if (node.content.length > 0) {
     [buffer appendString:node.content];
+  } else if (node.type == MarkdownNodeTypeSoftBreak || node.type == MarkdownNodeTypeLineBreak) {
+    [buffer appendString:@" "];
   }
 
   for (MarkdownASTNode *child in node.children) {

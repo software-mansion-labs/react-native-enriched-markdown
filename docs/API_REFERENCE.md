@@ -69,6 +69,27 @@ Callback when a link is long pressed. Access URL via `event.url`. On iOS, automa
 />
 ```
 
+### `onImagePress`
+
+Callback when a rendered image is tapped or clicked. Access the image URL via `event.url` and its Markdown alt text via `event.altText` (`""` when the image has no alt text). Use it to open a lightbox or full-screen viewer.
+
+Fires for block and inline images, including images inside headings, lists, and blockquotes. An image that is also a link (`[![alt](img)](dest)`) keeps link behavior and fires [`onLinkPress`](#onlinkpress) instead, so a single tap never fires both. Not fired for images inside GFM tables.
+
+Setting this callback makes images interactive on the native side; leaving it unset keeps the existing tap, text-selection, and long-press menu behavior unchanged. On web the image becomes focusable, exposes a button role for screen readers, and can be activated with Enter/Space, while the browser's right-click menu is preserved.
+
+| Type                                  | Default Value | Platform         |
+| ------------------------------------- | ------------- | ---------------- |
+| `(event: ImagePressEvent) => void`    | -             | Both, macOS, Web |
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownText
+  markdown="![A cat](https://example.com/cat.png)"
+  onImagePress={({ url, altText }) => openLightbox({ url, altText })}
+/>
+```
+
 ### `onTaskListItemPress`
 
 Callback when a task list checkbox is tapped. Receives `index` (0-based), `checked` (new state after toggling), and `text` (item text).
@@ -76,6 +97,69 @@ Callback when a task list checkbox is tapped. Receives `index` (0-based), `check
 | Type                                            | Default Value | Platform |
 | ----------------------------------------------- | ------------- | -------- |
 | `(event: TaskListItemPressEvent) => void`      | -             | Both     |
+
+### `enableTaskListItemToggle`
+
+Controls whether tapping a task list checkbox toggles its checked state.
+
+When `false`, the checkbox renders its markdown state read-only and the tap is **fully inert** — there is no visual toggle and `onTaskListItemPress` does not fire. Text selection and links in the same row are unaffected.
+
+| Type      | Default Value | Platform          |
+| --------- | ------------- | ----------------- |
+| `boolean` | `true`        | Both, Web         |
+
+**Example:**
+
+```tsx
+// Render checkboxes that reflect the markdown but cannot be toggled by the user
+<EnrichedMarkdownText
+  markdown={content}
+  flavor="github"
+  enableTaskListItemToggle={false}
+/>
+```
+
+> **Note:** On web the checkbox keeps its normal appearance and is marked `readOnly` / `aria-disabled` rather than `disabled`, so it stays visually consistent with iOS and Android. It is also made pointer-inert (`pointer-events: none`), so the browser paints no hover or active state on a checkbox that cannot be toggled.
+
+### `onCopyPress`
+
+Callback when code is copied from a fenced code block, via the header copy button, the long-press context-menu **Copy** action, or the VoiceOver copy action. Receives `code` (the copied code) and `language` (the fence language, or `""` if none). Does not fire for **Copy as Markdown**.
+
+Only fires when `flavor="github"` — the copy button is part of the GitHub flavor's code block renderer.
+
+| Type                                  | Default Value | Platform         |
+| ------------------------------------- | ------------- | ---------------- |
+| `(event: CopyPressEvent) => void`     | -             | Both, macOS      |
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownText
+  flavor="github"
+  markdown={"```ts\nconst x = 1;\n```"}
+  onCopyPress={({ code, language }) => {
+    console.log(`Copied ${language} code:`, code);
+  }}
+/>
+```
+
+### `enableBlockContextMenu`
+
+Controls the long-press copy popup on code blocks, tables, block math, and blockquotes/admonitions.
+Setting it to `false` leaves the code-block header copy button, accessibility
+copy action, and system text-selection menu unchanged.
+
+| Type      | Default Value | Platform            |
+| --------- | ------------- | ------------------- |
+| `boolean` | `true`        | iOS, Android, macOS |
+
+```tsx
+<EnrichedMarkdownText
+  flavor="github"
+  markdown={content}
+  enableBlockContextMenu={false}
+/>
+```
 
 ### `enableLinkPreview`
 
@@ -127,7 +211,7 @@ Configuration for md4c parser extension flags.
 
 | Type          | Default Value            | Platform |
 | ------------- | ------------------------ | -------- |
-| `Md4cFlags`   | `{ underline: false, superscript: false, subscript: false, highlight: false, latexMath: true }` | Both |
+| `Md4cFlags`   | `{ underline: false, superscript: false, subscript: false, highlight: false, latexMath: true, hardSoftBreaks: false, preserveBlankLines: false }` | Both |
 
 **Properties:**
 
@@ -136,6 +220,8 @@ Configuration for md4c parser extension flags.
 - **`subscript`**: When `true`, parses `~text~` as subscript. When disabled, single and double tildes remain strikethrough markers. Visual appearance can be tuned with the `subscript` style prop — see [Subscript-specific](./STYLES.md#subscript-specific).
 - **`highlight`**: When `true`, parses `==text==` as highlighted spans. When disabled, double equals signs are treated as plain text. Visual appearance can be tuned with the `highlight` style prop — see [Highlight-specific](./STYLES.md#highlight-specific).
 - **`latexMath`**: When `true`, parses `$...$` and `$$...$$` as LaTeX math spans.
+- **`hardSoftBreaks`**: When `true`, treats single newlines (soft breaks) as hard breaks, rendering them as visible line breaks instead of collapsing them to spaces. Useful when displaying content authored in `EnrichedMarkdownTextInput`, where pressing Enter produces a single newline. See [Line Breaks](./ELEMENTS_STRUCTURE.md#line-breaks) for details.
+- **`preserveBlankLines`**: When `true`, preserves runs of consecutive blank lines from the source instead of collapsing them into a single paragraph break (per CommonMark). Each blank line renders as one empty line, so the output keeps the exact line count that was typed. See [Blank Lines](./ELEMENTS_STRUCTURE.md#blank-lines) for details.
 
 **Example:**
 
@@ -149,6 +235,12 @@ Configuration for md4c parser extension flags.
 <EnrichedMarkdownText
   markdown="This is _underlined_ and *italic* text"
   md4cFlags={{ underline: true }}
+/>
+
+// Preserve single newlines as visible line breaks
+<EnrichedMarkdownText
+  markdown={markdownFromInput}
+  md4cFlags={{ hardSoftBreaks: true }}
 />
 ```
 
@@ -233,7 +325,7 @@ Code blocks are always rendered left-to-right regardless of this prop. Per-parag
 
 ### `flavor`
 
-Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table support.
+Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown features: tables, block-style code blocks, and block-style blockquotes.
 
 | Type                              | Default Value   | Platform |
 | --------------------------------- | --------------- | -------- |
@@ -241,7 +333,11 @@ Markdown flavor. Set to `'github'` to enable GitHub Flavored Markdown table supp
 
 > **Note:** 
 > - **`'commonmark'`**: All Markdown content is rendered as a single TextView. Selecting text will select all content in the view.
-> - **`'github'`**: The Markdown AST is split into segments. Consecutive text blocks (paragraphs, headings, lists, etc.) are grouped into separate TextView segments, while tables are rendered as separate table views. This allows for granular text selection within each segment and enables interactive table features (horizontal scrolling, context menus). Text selection cannot span across segments.
+> - **`'github'`**: The Markdown AST is split into segments. Consecutive text blocks (paragraphs, headings, lists, etc.) are grouped into separate TextView segments, while tables, fenced code blocks, math blocks, and blockquotes are rendered as separate block views. This allows for granular text selection within each segment and enables interactive block features (horizontal table scrolling, context menus, the code block header). Text selection cannot span across segments.
+>
+> With `'github'`, a fenced code block renders as a dedicated component: a header bar with the language display name (` ```python ` shows "Python") and a copy-code button, a divider, and the code below. Long lines do not wrap — the code pane scrolls horizontally while the header stays fixed. Long-pressing the block opens the Copy / Copy as Markdown menu. With `'commonmark'`, code blocks stay inside the single TextView, styled via spans, and long lines wrap.
+>
+> With `'github'`, a blockquote also renders as a dedicated component — a recursive container that draws its own box (padding, `backgroundColor`, and accent border with `borderRadius`) and splits its own content into segments. A code block, table, or math block quoted inside therefore becomes a real nested block component, and each nesting level is its own box. Long-pressing a blockquote or admonition opens the Copy / Copy as Markdown menu. With `'commonmark'`, blockquotes stay inside the single TextView, styled via spans.
 
 ### `streamingAnimation`
 
@@ -253,11 +349,11 @@ When `true`, newly appended content fades in during streaming updates. Only the 
 
 ### `streamingConfig`
 
-Configuration for streaming behavior. Currently controls how incomplete tables are handled during streaming with `flavor="github"`.
+Configuration for streaming behavior. Controls how incomplete tables and fenced code blocks are handled during streaming with `flavor="github"`.
 
-| Type                    | Default Value            | Platform |
-| ----------------------- | ------------------------ | -------- |
-| `{ tableMode: string }` | `{ tableMode: 'progressive' }` | Both     |
+| Type                                        | Default Value                                          | Platform |
+| ------------------------------------------- | ------------------------------------------------------ | -------- |
+| `{ tableMode?: string, codeBlockMode?: string }` | `{ tableMode: 'progressive', codeBlockMode: 'progressive' }` | Both     |
 
 #### `tableMode`
 
@@ -275,6 +371,15 @@ Controls how incomplete (still-streaming) tables are rendered:
 />
 ```
 
+#### `codeBlockMode`
+
+Controls how a fenced code block whose closing fence has not arrived yet is rendered:
+
+- **`'progressive'`** (default): The code streams in line-by-line with its header (language label + copy button) visible but non-interactive — copying is disabled until the block completes. Syntax highlighting is deferred until the closing fence arrives, so it applies once instead of flickering on every token.
+- **`'hidden'`**: The entire code block is hidden until its closing fence arrives, then it appears complete (the same all-or-nothing behavior block math uses).
+
+Both modes only take effect when `streamingAnimation` is `true`.
+
 ### `spoilerOverlay`
 
 Controls how spoiler text (`||hidden text||`) is displayed before being revealed.
@@ -287,6 +392,29 @@ Controls how spoiler text (`||hidden text||`) is displayed before being revealed
 - **`'solid'`**: Opaque rectangle covering the text (Discord-style).
 
 Both modes support tap-to-reveal.
+
+### `imageRequestHeaders`
+
+HTTP headers attached to remote image requests, e.g. a `Referer` required by CDN hotlink protection or an `Authorization` token.
+
+| Type                     | Default Value | Platform |
+| ------------------------ | ------------- | -------- |
+| `Record<string, string>` | -             | Both     |
+
+Headers participate in image cache identity, so the same URL requested with different headers is fetched and cached separately — see [Image Caching](./IMAGE_CACHING.md).
+
+> **Web**: Not supported — browsers don't allow custom headers on `<img>` requests.
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownText
+  markdown={markdown}
+  imageRequestHeaders={{
+    Referer: 'https://example.com',
+  }}
+/>
+```
 
 ### `contextMenuItems`
 
@@ -566,6 +694,7 @@ Style configuration for formatted text in the input.
 - `spoiler.color` — text color for spoiler text.
 - `spoiler.backgroundColor` — background color for spoiler text.
 - `h1`–`h6` — per-level heading styling, each accepting `fontSize`, `fontWeight`, and `color`. Defaults match the read-only renderer (sizes `30/24/20/18/16/14`, bold).
+- `list.itemSpacing` — vertical spacing (points) added above each list item (bullet and numbered alike) so items read as separate rows; defaults to `0`. iOS applies it via `paragraphSpacingBefore`; Android via a `LineHeightSpan`.
 
 ### `mentionIndicators`
 
@@ -611,7 +740,7 @@ Fires when the text selection changes.
 
 ### `onChangeState`
 
-Fires when the active style state changes. The payload provides a nested object for each style with an `isActive` property; `heading` additionally carries the cursor paragraph's `level` (`0` when it is not a heading).
+Fires when the active style state changes. The payload provides a nested object for each style with an `isActive` property; `heading` additionally carries the cursor paragraph's `level` (`0` when it is not a heading) and `unorderedList` / `orderedList` their 0-based nesting `depth`.
 
 | Type                              | Default Value | Platform |
 | --------------------------------- | ------------- | -------- |
@@ -629,7 +758,31 @@ interface StyleState {
   link: { isActive: boolean };
   // Heading level of the cursor's paragraph: 0 = none, 1-6 = H1-H6.
   heading: { isActive: boolean; level: number };
+  // `depth` is the 0-based nesting level while `isActive` is true, and is
+  // always `0` when `isActive` is false (i.e. the cursor is not in a list).
+  // This differs from `heading.level`, where `0` is itself a meaningful value
+  // (no heading); read `depth` only when `isActive` is true.
+  unorderedList: { isActive: boolean; depth: number };
+  orderedList: { isActive: boolean; depth: number };
 }
+```
+
+### `onKeyPress`
+
+Fires on every keystroke, before the change is applied to the input content — mirroring React Native TextInput's `onKeyPress`. `nativeEvent.key` is the pressed character, or a named key: `Backspace`, `Enter`, `Tab` (iOS additionally reports `Escape`). On Android the key reported for soft keyboard input may lag actual typing when autocomplete suggestions are involved. Paste operations do not fire the event.
+
+| Type                                                          | Default Value | Platform |
+| ------------------------------------------------------------- | ------------- | -------- |
+| `(e: NativeSyntheticEvent<{ key: string }>) => void`          | -             | Both     |
+
+**Example:**
+
+```tsx
+<EnrichedMarkdownTextInput
+  onKeyPress={({ nativeEvent: { key } }) => {
+    console.log('Pressed key:', key);
+  }}
+/>
 ```
 
 ### `onCaretRectChange`
@@ -700,6 +853,8 @@ Fires when the input loses focus.
 | Type           | Default Value | Platform |
 | -------------- | ------------- | -------- |
 | `() => void`   | -             | Both     |
+
+The input participates in React Native's text-input focus tracking (`TextInput.State`), so blur also happens through the platform's standard keyboard-dismiss paths: taps outside the input inside a `ScrollView` (per its `keyboardShouldPersistTaps` setting) and `Keyboard.dismiss()`. See [Keyboard Dismissal](INPUT.md#keyboard-dismissal).
 
 ### `onStartMention`
 
@@ -943,6 +1098,22 @@ Toggles spoiler on the current selection or cursor.
 
 Toggles a heading of the given level (`1`–`6`) on the cursor's paragraph. Calling it with the level already applied turns the paragraph back into regular text. Unlike the inline `toggle*` methods, this operates on the whole paragraph, not a character range.
 
+### `toggleUnorderedList()`
+
+Turns the cursor's paragraph(s) into bullet list items, or back into regular paragraphs if they already are. Operates on the whole paragraph. List items are single-line — each item is exactly one paragraph, and Markdown imported with multi-paragraph (loose) items keeps only each item's first line as a list item.
+
+### `toggleOrderedList()`
+
+Turns the cursor's paragraph(s) into numbered list items, or back into regular paragraphs if they already are. Numbering derives from an item's position among its adjacent same-depth siblings. Toggling one list type on a line carrying the other replaces it, keeping the item's nesting depth.
+
+### `indentList()`
+
+Nests the current list item one level deeper (up to a maximum depth). Called on a non-list paragraph, it starts a bullet list at depth 0. Equivalent to pressing **Tab** with a hardware keyboard.
+
+### `outdentList()`
+
+Lifts the current list item out one nesting level. Outdenting a depth-0 item removes the bullet, turning it back into a regular paragraph. Equivalent to **Shift+Tab**.
+
 ### `setLink(url: string)`
 
 Applies a link URL to the currently selected text.
@@ -954,6 +1125,10 @@ Inserts a link with the given text and URL at the current cursor position. Usefu
 ### `removeLink()`
 
 Removes the link from the current selection.
+
+### `insertText(text: string)`
+
+Parses the given string as Markdown and inserts it literally at the current cursor position, replacing the selection if there is one. Leading and trailing newlines are preserved, so wrap block content (lists, headings) in newlines to keep it on its own lines when inserting mid-paragraph — `insertText('\n- item\n')` in the middle of `test` yields `te`, a `- item` bullet, and `st` on separate lines. Calling it with an empty string is a no-op.
 
 ### `copyToClipboard()`
 

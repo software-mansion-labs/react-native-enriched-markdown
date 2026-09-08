@@ -1,6 +1,7 @@
 import type { MarkdownStyle } from 'react-native-enriched-markdown';
 import type { StoryArgs } from './storyTypes';
 import type {
+  AdmonitionStyleControls,
   BlockquoteStyleControls,
   CodeBlockStyleControls,
   EmphasisStyleControls,
@@ -104,6 +105,41 @@ export function toBlockquoteStyle(
     borderWidth: controls.borderWidth,
     gapWidth: controls.gapWidth,
     backgroundColor: controls.backgroundColor,
+    borderRadius: controls.borderRadius,
+    padding: controls.padding,
+  };
+}
+
+function admonitionColors(color: string, backgroundColor: string) {
+  return {
+    ...(color ? { color } : {}),
+    ...(backgroundColor ? { backgroundColor } : {}),
+  };
+}
+
+// Blockquote style with the admonition palette nested under it. Admonitions
+// reuse the blockquote geometry and only theme colors per type.
+export function toAdmonitionStyle(
+  controls: AdmonitionStyleControls
+): NonNullable<MarkdownStyle['blockquote']> {
+  return {
+    ...toBlockquoteStyle(controls),
+    admonitions: {
+      note: admonitionColors(controls.noteColor, controls.noteBackgroundColor),
+      tip: admonitionColors(controls.tipColor, controls.tipBackgroundColor),
+      important: admonitionColors(
+        controls.importantColor,
+        controls.importantBackgroundColor
+      ),
+      warning: admonitionColors(
+        controls.warningColor,
+        controls.warningBackgroundColor
+      ),
+      caution: admonitionColors(
+        controls.cautionColor,
+        controls.cautionBackgroundColor
+      ),
+    },
   };
 }
 
@@ -142,6 +178,11 @@ export function toImageStyle(
 ): NonNullable<MarkdownStyle['image']> {
   return {
     height: controls.height,
+    // Only forward the new sizing knobs when set, so the default story keeps
+    // the exact legacy behavior (backward-compat demo).
+    ...(controls.maxHeight > 0 ? { maxHeight: controls.maxHeight } : {}),
+    ...(controls.aspectRatio > 0 ? { aspectRatio: controls.aspectRatio } : {}),
+    ...(controls.resizeMode ? { resizeMode: controls.resizeMode } : {}),
     borderRadius: controls.borderRadius,
     marginTop: controls.marginTop,
     marginBottom: controls.marginBottom,
@@ -171,6 +212,8 @@ export function toTableStyle(
     borderRadius: controls.borderRadius,
     cellPaddingHorizontal: controls.cellPaddingHorizontal,
     cellPaddingVertical: controls.cellPaddingVertical,
+    horizontalOverflow: controls.horizontalOverflow,
+    ...(controls.align ? { align: controls.align } : {}),
   };
 }
 
@@ -222,6 +265,7 @@ export function toListStyle(
       : {}),
     gapWidth: controls.gapWidth,
     marginLeft: controls.marginLeft,
+    itemSpacing: controls.itemSpacing,
   };
 }
 

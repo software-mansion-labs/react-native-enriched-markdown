@@ -40,6 +40,9 @@ struct MeasurementCacheKey {
   bool md4cFlagsSubscript;
   bool md4cFlagsHighlight;
   bool md4cFlagsLatexMath;
+  bool md4cFlagsHardSoftBreaks;
+  bool md4cFlagsPreserveBlankLines;
+  bool md4cFlagsAdmonitions;
   size_t styleFingerprint;
   CGFloat fontScale;
   MarkdownFlavor flavor;
@@ -50,10 +53,12 @@ struct MeasurementCacheKey {
   {
     return std::tie(markdown, maxWidth, allowTrailingMargin, allowFontScaling, maxFontSizeMultiplier,
                     md4cFlagsUnderline, md4cFlagsSuperscript, md4cFlagsSubscript, md4cFlagsHighlight,
-                    md4cFlagsLatexMath, styleFingerprint, fontScale, flavor, lineBreakStrategyIOS, writingDirection) ==
+                    md4cFlagsLatexMath, md4cFlagsHardSoftBreaks, md4cFlagsPreserveBlankLines, md4cFlagsAdmonitions,
+                    styleFingerprint, fontScale, flavor, lineBreakStrategyIOS, writingDirection) ==
            std::tie(other.markdown, other.maxWidth, other.allowTrailingMargin, other.allowFontScaling,
                     other.maxFontSizeMultiplier, other.md4cFlagsUnderline, other.md4cFlagsSuperscript,
                     other.md4cFlagsSubscript, other.md4cFlagsHighlight, other.md4cFlagsLatexMath,
+                    other.md4cFlagsHardSoftBreaks, other.md4cFlagsPreserveBlankLines, other.md4cFlagsAdmonitions,
                     other.styleFingerprint, other.fontScale, other.flavor, other.lineBreakStrategyIOS,
                     other.writingDirection);
   }
@@ -73,6 +78,9 @@ struct MeasurementCacheKeyHash {
     HashUtils::hash_one(h, key.md4cFlagsSubscript);
     HashUtils::hash_one(h, key.md4cFlagsHighlight);
     HashUtils::hash_one(h, key.md4cFlagsLatexMath);
+    HashUtils::hash_one(h, key.md4cFlagsHardSoftBreaks);
+    HashUtils::hash_one(h, key.md4cFlagsPreserveBlankLines);
+    HashUtils::hash_one(h, key.md4cFlagsAdmonitions);
     HashUtils::hash_one(h, key.styleFingerprint);
     HashUtils::hash_one(h, key.fontScale);
     HashUtils::hash_one(h, static_cast<uint8_t>(key.flavor));
@@ -113,10 +121,11 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
   hashFields(s.h6.textAlign);
 
   hashTextLayout(s.blockquote);
-  hashFields(s.blockquote.borderWidth, s.blockquote.gapWidth);
+  hashFields(s.blockquote.borderWidth, s.blockquote.gapWidth, s.blockquote.padding, s.blockquote.borderRadius);
 
   hashTextLayout(s.list);
-  hashFields(s.list.bulletSize, s.list.markerMinWidth, s.list.markerFontWeight, s.list.gapWidth, s.list.marginLeft);
+  hashFields(s.list.bulletSize, s.list.markerMinWidth, s.list.markerFontWeight, s.list.gapWidth, s.list.marginLeft,
+             s.list.itemSpacing);
 
   // Code & Inlines
   hashFields(s.codeBlock.fontFamily, s.codeBlock.fontSize, s.codeBlock.fontWeight, s.codeBlock.marginTop,
@@ -127,14 +136,14 @@ template <typename StyleStruct> inline size_t computeStyleFingerprint(const Styl
   hashFields(s.highlight.backgroundColor, s.highlight.color);
 
   // Visual/Spacing Elements
-  hashFields(s.image.height, s.image.marginTop, s.image.marginBottom);
+  hashFields(s.image.height, s.image.maxHeight, s.image.aspectRatio, s.image.marginTop, s.image.marginBottom);
   hashFields(s.inlineImage.size);
   hashFields(s.thematicBreak.height, s.thematicBreak.marginTop, s.thematicBreak.marginBottom);
 
   // Complex Components
   hashTextLayout(s.table);
   hashFields(s.table.headerFontFamily, s.table.cellPaddingHorizontal, s.table.cellPaddingVertical, s.table.borderWidth,
-             s.table.borderRadius);
+             s.table.borderRadius, s.table.horizontalOverflow);
   hashFields(s.math.fontSize, s.math.padding, s.math.marginTop, s.math.marginBottom, s.math.textAlign);
   hashFields(s.taskList.checkboxSize, s.taskList.checkboxBorderRadius);
 
@@ -156,6 +165,9 @@ inline MeasurementCacheKey buildMeasurementCacheKey(const PropsType &props, CGFl
       .md4cFlagsSubscript = props.md4cFlags.subscript,
       .md4cFlagsHighlight = props.md4cFlags.highlight,
       .md4cFlagsLatexMath = props.md4cFlags.latexMath,
+      .md4cFlagsHardSoftBreaks = props.md4cFlags.hardSoftBreaks,
+      .md4cFlagsPreserveBlankLines = props.md4cFlags.preserveBlankLines,
+      .md4cFlagsAdmonitions = props.md4cFlags.admonitions,
       .styleFingerprint = computeStyleFingerprint(props.markdownStyle),
       .fontScale = fontScale,
       .flavor = flavor,
@@ -214,6 +226,20 @@ public:
       auto &lastEntry = list_.back();
       map_.erase(lastEntry.key);
       list_.pop_back();
+    }
+  }
+
+  void removeMatchingMarkdown(const std::string &markdown)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    for (auto it = list_.begin(); it != list_.end();) {
+      if (it->key.markdown == markdown) {
+        map_.erase(it->key);
+        it = list_.erase(it);
+      } else {
+        ++it;
+      }
     }
   }
 

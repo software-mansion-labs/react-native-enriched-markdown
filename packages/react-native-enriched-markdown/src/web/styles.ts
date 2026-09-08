@@ -103,7 +103,12 @@ function paragraphStyle(style: MarkdownStyleInternal): CSSProperties {
 function paragraphInBlockquoteStyle(
   style: MarkdownStyleInternal
 ): CSSProperties {
-  return { ...baseBlock(style.paragraph), marginTop: 0, marginBottom: 0 };
+  // Keep the paragraph's block margins so spacing between blocks inside a quote
+  // matches the top-level document (e.g. the gap before a heading). The last
+  // child's trailing margin is zeroed by a global blockquote :last-child rule
+  // (see globalStyles), mirroring native's trailing-margin trim - the quote is a
+  // flex-item BFC, so that margin would otherwise not collapse out of the box.
+  return baseBlock(style.paragraph);
 }
 
 function headingStyle(
@@ -125,8 +130,12 @@ function blockquoteStyle(style: MarkdownStyleInternal): CSSProperties {
     marginBottom: blockquote.marginBottom,
     marginInlineStart: 0, // reset UA default (40px in LTR, auto in RTL)
     marginInlineEnd: 0,
-    paddingInlineStart: blockquote.gapWidth,
+    paddingInlineStart: blockquote.gapWidth + blockquote.padding,
+    paddingInlineEnd: blockquote.padding,
+    paddingTop: blockquote.padding,
+    paddingBottom: blockquote.padding,
     borderInlineStart: `${blockquote.borderWidth}px solid ${blockquote.borderColor}`,
+    borderRadius: blockquote.borderRadius,
     backgroundColor: blockquote.backgroundColor,
   };
 }
@@ -180,16 +189,55 @@ function thematicBreakStyle(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
+const RESIZE_MODE_TO_OBJECT_FIT: Record<
+  Exclude<MarkdownStyleInternal['image']['resizeMode'], ''>,
+  NonNullable<CSSProperties['objectFit']>
+> = {
+  contain: 'contain',
+  cover: 'cover',
+  stretch: 'fill',
+  center: 'scale-down',
+  none: 'none',
+};
+
 function imageStyle(style: MarkdownStyleInternal): CSSProperties {
   const image = style.image;
-  return {
-    height: image.height,
+  const base: CSSProperties = {
     borderRadius: image.borderRadius,
     marginTop: image.marginTop,
     marginBottom: image.marginBottom,
     maxWidth: '100%',
     display: 'block',
   };
+
+  // Sizing precedence: aspectRatio > maxHeight > height. resizeMode '' means
+  // legacy sizing — emit today's exact CSS for backward compatibility.
+  if (image.resizeMode === '') {
+    return { ...base, height: image.height };
+  }
+
+  const objectFit = RESIZE_MODE_TO_OBJECT_FIT[image.resizeMode] ?? 'cover';
+
+  if (image.aspectRatio > 0) {
+    return {
+      ...base,
+      width: '100%',
+      aspectRatio: image.aspectRatio,
+      objectFit,
+    };
+  }
+
+  if (image.maxHeight > 0) {
+    return {
+      ...base,
+      width: '100%',
+      height: 'auto',
+      maxHeight: image.maxHeight,
+      objectFit,
+    };
+  }
+
+  return { ...base, width: '100%', height: image.height, objectFit };
 }
 
 function inlineImageStyle(style: MarkdownStyleInternal): CSSProperties {
@@ -364,8 +412,17 @@ function tableStyle(style: MarkdownStyleInternal): CSSProperties {
   };
 }
 
-export function listItemStyle(isTask: boolean): CSSProperties | undefined {
-  return isTask ? { listStyle: 'none' } : undefined;
+export function listItemStyle(
+  style: MarkdownStyleInternal,
+  isTask: boolean,
+  isFirstChild: boolean
+): CSSProperties | undefined {
+  const { itemSpacing } = style.list;
+  const marginTop = !isFirstChild && itemSpacing > 0 ? itemSpacing : undefined;
+  if (isTask) {
+    return { listStyle: 'none', marginTop };
+  }
+  return marginTop !== undefined ? { marginTop } : undefined;
 }
 
 export function checkedTaskTextStyle(
@@ -377,6 +434,21 @@ export function checkedTaskTextStyle(
     textDecorationLine: taskList.checkedStrikethrough
       ? 'line-through'
       : undefined,
+  };
+}
+
+/**
+ * Checkbox style used when `enableTaskListItemToggle` is `false`. Pointer-inert
+ * so the browser paints no hover/active state on a checkbox that cannot be
+ * toggled; appearance is otherwise identical to the enabled checkbox.
+ */
+function taskCheckboxDisabledStyle(
+  style: MarkdownStyleInternal
+): CSSProperties {
+  return {
+    ...taskCheckboxStyle(style),
+    pointerEvents: 'none',
+    cursor: 'default',
   };
 }
 
@@ -407,11 +479,20 @@ export function tableBodyRowStyle(
 
 function tableWrapperStyle(style: MarkdownStyleInternal): CSSProperties {
   const table = style.table;
+  const alignment: CSSProperties = table.align
+    ? {
+        width: 'fit-content',
+        maxWidth: '100%',
+        marginLeft: table.align === 'left' ? 0 : 'auto',
+        marginRight: table.align === 'right' ? 0 : 'auto',
+      }
+    : {};
   return {
     overflowX: 'auto',
     overflowY: 'hidden',
     marginTop: table.marginTop,
     marginBottom: table.marginBottom,
+    ...alignment,
     // borderRadius must live on the wrapper, not the <table> — border-collapse:
     // collapse causes browsers to ignore border-radius on the table element itself.
     borderRadius: table.borderRadius,
@@ -487,6 +568,7 @@ export interface Styles {
   tableHeaderCell: Record<ColumnAlign, CSSProperties>;
   tableCell: Record<ColumnAlign, CSSProperties>;
   taskCheckbox: CSSProperties;
+  taskCheckboxDisabled: CSSProperties;
 }
 
 type ColumnAlign = 'left' | 'center' | 'right' | 'default';
@@ -509,7 +591,13 @@ export function buildStyles(style: MarkdownStyleInternal): Styles {
     h6: headingStyle(style, '6'),
     blockquote: blockquoteStyle(style),
     list: listStyle(style),
-    listNested: { ...listStyle(style), marginBottom: 0 },
+    listNested: {
+      ...listStyle(style),
+      // A nested list sits directly under its parent item's text; itemSpacing
+      // (not the list's outer margins) controls that gap, like on native.
+      marginTop: Math.max(0, style.list.itemSpacing),
+      marginBottom: 0,
+    },
     listTask: listStyle(style, true),
     codeBlock,
     codeBlockFont: { fontFamily: codeBlock.fontFamily },
@@ -542,6 +630,7 @@ export function buildStyles(style: MarkdownStyleInternal): Styles {
       default: tableCellStyle(style, 'default'),
     },
     taskCheckbox: taskCheckboxStyle(style),
+    taskCheckboxDisabled: taskCheckboxDisabledStyle(style),
   };
 
   stylesStore.set(style, result);

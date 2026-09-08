@@ -1,7 +1,10 @@
+#include "CodeBlockHighlighter.hpp"
+#include "CodeBlockLanguages.hpp"
 #include "MD4CParser.hpp"
 #include <android/log.h>
 #include <jni.h>
 #include <string>
+#include <vector>
 
 using namespace Markdown;
 
@@ -72,6 +75,12 @@ static jint nodeTypeToJavaOrdinal(NodeType type) {
       return 28;
     case NodeType::Highlight:
       return 29;
+    case NodeType::SoftBreak:
+      return 30;
+    case NodeType::BlankLine:
+      return 31;
+    case NodeType::Admonition:
+      return 32;
     default:
       return 0;
   }
@@ -183,10 +192,8 @@ static jobject createJavaNode(JNIEnv *env, std::shared_ptr<MarkdownASTNode> node
 
 extern "C" {
 
-JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nativeParseMarkdown(JNIEnv *env,
-                                                                                                 jobject /* this */,
-                                                                                                 jstring markdown,
-                                                                                                 jobject flags) {
+JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nativeParseMarkdown(
+    JNIEnv *env, jobject /* this */, jstring markdown, jobject flags, jboolean isGFM) {
   if (!markdown) {
     LOGE("Markdown string is null");
     return nullptr;
@@ -228,12 +235,24 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
         if (permissiveAutolinksField) {
           md4cFlags.permissiveAutolinks = env->GetBooleanField(flags, permissiveAutolinksField) == JNI_TRUE;
         }
+        jfieldID hardSoftBreaksField = env->GetFieldID(flagsClass, "hardSoftBreaks", "Z");
+        if (hardSoftBreaksField) {
+          md4cFlags.hardSoftBreaks = env->GetBooleanField(flags, hardSoftBreaksField) == JNI_TRUE;
+        }
+        jfieldID preserveBlankLinesField = env->GetFieldID(flagsClass, "preserveBlankLines", "Z");
+        if (preserveBlankLinesField) {
+          md4cFlags.preserveBlankLines = env->GetBooleanField(flags, preserveBlankLinesField) == JNI_TRUE;
+        }
+        jfieldID admonitionsField = env->GetFieldID(flagsClass, "admonitions", "Z");
+        if (admonitionsField) {
+          md4cFlags.admonitions = env->GetBooleanField(flags, admonitionsField) == JNI_TRUE;
+        }
         env->DeleteLocalRef(flagsClass);
       }
     }
 
     MD4CParser parser;
-    auto ast = parser.parse(std::string(markdownStr), md4cFlags);
+    auto ast = parser.parse(std::string(markdownStr), md4cFlags, isGFM == JNI_TRUE);
 
     env->ReleaseStringUTFChars(markdown, markdownStr);
 
@@ -259,6 +278,71 @@ JNIEXPORT jobject JNICALL Java_com_swmansion_enriched_markdown_parser_Parser_nat
     LOGE("Unknown exception during parsing");
     return nullptr;
   }
+}
+
+JNIEXPORT jstring JNICALL Java_com_swmansion_enriched_markdown_utils_common_CodeBlockNode_nativeDisplayLanguageName(
+    JNIEnv *env, jobject /* this */, jstring language) {
+  if (!language) {
+    return nullptr;
+  }
+  const char *languageStr = env->GetStringUTFChars(language, nullptr);
+  if (!languageStr) {
+    return nullptr;
+  }
+  std::string display = displayNameForLanguage(languageStr);
+  env->ReleaseStringUTFChars(language, languageStr);
+  return env->NewStringUTF(display.c_str());
+}
+
+// Returns highlight tokens as (start, end, type) int triplets with UTF-16
+// offsets, or null when highlighting is unavailable. See
+// cpp/highlight/CodeBlockHighlighter.hpp for the seam contract.
+JNIEXPORT jintArray JNICALL Java_com_swmansion_enriched_markdown_utils_common_CodeBlockHighlighter_nativeHighlightCode(
+    JNIEnv *env, jobject /* this */, jstring code, jstring language) {
+  if (!code) {
+    return nullptr;
+  }
+
+  const char *codeStr = env->GetStringUTFChars(code, nullptr);
+  if (!codeStr) {
+    return nullptr;
+  }
+  const char *languageStr = language ? env->GetStringUTFChars(language, nullptr) : nullptr;
+
+  std::vector<HighlightToken> tokens;
+  try {
+    tokens = highlightCode(codeStr, languageStr ? languageStr : "");
+  } catch (const std::exception &e) {
+    LOGE("Exception during highlighting: %s", e.what());
+    tokens.clear();
+  } catch (...) {
+    LOGE("Unknown exception during highlighting");
+    tokens.clear();
+  }
+
+  env->ReleaseStringUTFChars(code, codeStr);
+  if (languageStr) {
+    env->ReleaseStringUTFChars(language, languageStr);
+  }
+
+  if (tokens.empty()) {
+    return nullptr;
+  }
+
+  std::vector<jint> flat;
+  flat.reserve(tokens.size() * 3);
+  for (const auto &token : tokens) {
+    flat.push_back(static_cast<jint>(token.start));
+    flat.push_back(static_cast<jint>(token.end));
+    flat.push_back(static_cast<jint>(token.type));
+  }
+
+  jintArray result = env->NewIntArray(static_cast<jsize>(flat.size()));
+  if (!result) {
+    return nullptr;
+  }
+  env->SetIntArrayRegion(result, 0, static_cast<jsize>(flat.size()), flat.data());
+  return result;
 }
 
 } // extern "C"

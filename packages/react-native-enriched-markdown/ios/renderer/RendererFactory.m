@@ -1,4 +1,5 @@
 #import "RendererFactory.h"
+#import "BlankLineRenderer.h"
 #import "BlockquoteRenderer.h"
 #import "CodeBlockRenderer.h"
 #import "CodeRenderer.h"
@@ -98,6 +99,9 @@
     case MarkdownNodeTypeImage:
       return [[ENRMImageRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeBlockquote:
+    // A list-nested admonition falls back to the inline blockquote renderer
+    // (no themed header); top-level admonitions use the segment container path.
+    case MarkdownNodeTypeAdmonition:
       return [[BlockquoteRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeListItem:
       return [[ListItemRenderer alloc] initWithRendererFactory:self config:_config];
@@ -109,6 +113,8 @@
       return [[CodeBlockRenderer alloc] initWithRendererFactory:self config:_config];
     case MarkdownNodeTypeThematicBreak:
       return [[ThematicBreakRenderer alloc] initWithRendererFactory:self config:_config];
+    case MarkdownNodeTypeBlankLine:
+      return [[BlankLineRenderer alloc] initWithRendererFactory:self config:_config];
 #if ENRICHED_MARKDOWN_MATH
     case MarkdownNodeTypeLatexMathInline:
       return [[ENRMMathInlineRenderer alloc] initWithRendererFactory:self config:_config];
@@ -141,6 +147,12 @@
       NSAttributedString *lineBreak = [[NSAttributedString alloc] initWithString:@"\u2028"
                                                                       attributes:[context getTextAttributes]];
       [output appendAttributedString:lineBreak];
+      continue;
+    }
+    if (child.type == MarkdownNodeTypeSoftBreak) {
+      NSAttributedString *softBreak = [[NSAttributedString alloc] initWithString:@" "
+                                                                      attributes:[context getTextAttributes]];
+      [output appendAttributedString:softBreak];
       continue;
     }
     id<NodeRenderer> renderer = [self rendererForNodeType:child.type];

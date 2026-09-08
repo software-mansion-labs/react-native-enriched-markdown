@@ -19,6 +19,7 @@ interface NodeRenderer {
 
 data class RendererConfig(
   val style: StyleConfig,
+  val imageRequestHeaders: Map<String, String> = emptyMap(),
 )
 
 class RendererFactory(
@@ -68,10 +69,12 @@ class RendererFactory(
       styleConfig = config.style,
       isInline = isInline,
       altText = altText,
+      requestHeaders = config.imageRequestHeaders,
     )
 
   private val textRenderer = TextRenderer()
   private val lineBreakRenderer = LineBreakRenderer()
+  private val softBreakRenderer = SoftBreakRenderer()
 
   private val renderers: Map<MarkdownASTNode.NodeType, NodeRenderer> by lazy {
     buildMap {
@@ -87,10 +90,14 @@ class RendererFactory(
       put(MarkdownASTNode.NodeType.Link, LinkRenderer(config))
       put(MarkdownASTNode.NodeType.Strong, StrongRenderer(config))
       put(MarkdownASTNode.NodeType.Emphasis, EmphasisRenderer(config))
+      put(MarkdownASTNode.NodeType.Strikethrough, StrikethroughRenderer())
+      put(MarkdownASTNode.NodeType.Underline, UnderlineRenderer())
       put(MarkdownASTNode.NodeType.Code, CodeRenderer(config))
       put(MarkdownASTNode.NodeType.Image, ImageRenderer())
       put(MarkdownASTNode.NodeType.LineBreak, lineBreakRenderer)
+      put(MarkdownASTNode.NodeType.SoftBreak, softBreakRenderer)
       put(MarkdownASTNode.NodeType.ThematicBreak, ThematicBreakRenderer(config))
+      put(MarkdownASTNode.NodeType.BlankLine, BlankLineRenderer(config))
     }
   }
 

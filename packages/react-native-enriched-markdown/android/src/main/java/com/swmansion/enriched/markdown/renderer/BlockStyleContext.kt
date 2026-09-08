@@ -44,6 +44,8 @@ class BlockStyleContext {
   var taskItemCount = 0
   var accumulatedIndent = 0
 
+  val listItemStarts = mutableListOf<Int>()
+
   private val orderedListItemNumbers = ArrayDeque<Int>()
 
   enum class ListType { UNORDERED, ORDERED }
@@ -101,8 +103,6 @@ class BlockStyleContext {
 
   fun setCodeBlockStyle(style: CodeBlockStyle) = pushBlockStyle(BlockType.CODE_BLOCK, style)
 
-  fun isInsideBlockElement(): Boolean = blockquoteDepth > 0 || listDepth > 0
-
   fun incrementListItemNumber() {
     listItemNumber++
   }
@@ -151,6 +151,7 @@ class BlockStyleContext {
     listItemNumber = 0
     taskItemCount = 0
     accumulatedIndent = 0
+    listItemStarts.clear()
     orderedListItemNumbers.clear()
   }
 }

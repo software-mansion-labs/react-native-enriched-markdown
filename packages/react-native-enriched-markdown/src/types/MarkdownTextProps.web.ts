@@ -3,6 +3,7 @@ import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
 import type {
   LinkPressEvent,
   LinkLongPressEvent,
+  ImagePressEvent,
   TaskListItemPressEvent,
 } from './events';
 
@@ -48,6 +49,18 @@ export interface EnrichedMarkdownTextProps extends Omit<
    */
   onLinkLongPress?: (event: LinkLongPressEvent) => void;
   /**
+   * Callback fired when a rendered image is clicked or activated with the
+   * keyboard (Enter/Space). Receives the image URL and its alt text (empty
+   * string when the image has no alt text).
+   *
+   * Images that are also links keep link behavior and fire `onLinkPress`
+   * instead, so a single activation never fires both. When set, images become
+   * focusable and expose a button role for screen readers; when unset, images
+   * stay non-interactive. The browser's right-click menu is preserved.
+   * @platform ios, android, macos, web
+   */
+  onImagePress?: (event: ImagePressEvent) => void;
+  /**
    * Callback fired when a task list checkbox is tapped.
    *
    * The checkbox is toggled on the native side automatically.
@@ -58,6 +71,25 @@ export interface EnrichedMarkdownTextProps extends Omit<
    * @platform ios, android, web
    */
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
+  /**
+   * Controls whether tapping a task list checkbox toggles its checked state.
+   *
+   * When `true` (default), tapping the checkbox toggles it and fires
+   * `onTaskListItemPress`. When `false`, the checkbox renders its markdown
+   * state read-only: the tap is fully inert — no visual toggle and no
+   * `onTaskListItemPress` emission. Text selection and links in the same row
+   * are unaffected.
+   *
+   * On web the checkbox keeps its normal appearance and is marked
+   * `readOnly` / `aria-disabled` rather than `disabled`, so it stays visually
+   * consistent with iOS and Android. It is also made pointer-inert
+   * (`pointer-events: none`) so the browser cannot paint hover or active
+   * states on a checkbox that cannot be toggled.
+   *
+   * @default true
+   * @platform ios, android, web
+   */
+  enableTaskListItemToggle?: boolean;
   /**
    * Controls text selection.
    * - iOS: Controls text selection and link previews on long press.

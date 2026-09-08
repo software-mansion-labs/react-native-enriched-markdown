@@ -6,10 +6,20 @@ export interface LinkLongPressEvent {
   url: string;
 }
 
+export interface ImagePressEvent {
+  url: string;
+  altText: string;
+}
+
 export interface TaskListItemPressEvent {
   index: number;
   checked: boolean;
   text: string;
+}
+
+export interface CopyPressEvent {
+  code: string;
+  language: string;
 }
 
 /**

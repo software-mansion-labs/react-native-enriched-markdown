@@ -24,11 +24,27 @@ interface HeadingStyleInternal extends BaseBlockStyleInternal {
   textAlign: string;
 }
 
+interface AdmonitionColorsInternal {
+  color: ColorValue;
+  backgroundColor: ColorValue;
+}
+
+interface AdmonitionsStyleInternal {
+  note: AdmonitionColorsInternal;
+  tip: AdmonitionColorsInternal;
+  important: AdmonitionColorsInternal;
+  warning: AdmonitionColorsInternal;
+  caution: AdmonitionColorsInternal;
+}
+
 interface BlockquoteStyleInternal extends BaseBlockStyleInternal {
   borderColor: ColorValue;
   borderWidth: CodegenTypes.Float;
   gapWidth: CodegenTypes.Float;
   backgroundColor: ColorValue;
+  borderRadius: CodegenTypes.Float;
+  padding: CodegenTypes.Float;
+  admonitions: AdmonitionsStyleInternal;
 }
 
 interface ListStyleInternal extends BaseBlockStyleInternal {
@@ -39,6 +55,24 @@ interface ListStyleInternal extends BaseBlockStyleInternal {
   markerFontWeight: string;
   gapWidth: CodegenTypes.Float;
   marginLeft: CodegenTypes.Float;
+  itemSpacing: CodegenTypes.Float;
+}
+
+interface CodeBlockSyntaxColorsInternal {
+  keyword: ColorValue;
+  operatorColor: ColorValue;
+  punctuation: ColorValue;
+  string: ColorValue;
+  number: ColorValue;
+  constant: ColorValue;
+  comment: ColorValue;
+  function: ColorValue;
+  type: ColorValue;
+  variable: ColorValue;
+  property: ColorValue;
+  tag: ColorValue;
+  attribute: ColorValue;
+  embedded: ColorValue;
 }
 
 interface CodeBlockStyleInternal extends BaseBlockStyleInternal {
@@ -47,6 +81,7 @@ interface CodeBlockStyleInternal extends BaseBlockStyleInternal {
   borderRadius: CodegenTypes.Float;
   borderWidth: CodegenTypes.Float;
   padding: CodegenTypes.Float;
+  syntaxColors: CodeBlockSyntaxColorsInternal;
 }
 
 interface LinkStyleInternal {
@@ -94,6 +129,9 @@ interface CodeStyleInternal {
 
 interface ImageStyleInternal {
   height: CodegenTypes.Float;
+  maxHeight: CodegenTypes.Float;
+  aspectRatio: CodegenTypes.Float;
+  resizeMode: string;
   borderRadius: CodegenTypes.Float;
   marginTop: CodegenTypes.Float;
   marginBottom: CodegenTypes.Float;
@@ -121,6 +159,8 @@ interface TableStyleInternal extends BaseBlockStyleInternal {
   borderRadius: CodegenTypes.Float;
   cellPaddingHorizontal: CodegenTypes.Float;
   cellPaddingVertical: CodegenTypes.Float;
+  horizontalOverflow: CodegenTypes.Float;
+  align: string;
 }
 
 interface TaskListStyleInternal {
@@ -216,15 +256,30 @@ export interface LinkLongPressEvent {
   url: string;
 }
 
+export interface ImagePressEvent {
+  url: string;
+  altText: string;
+}
+
 export interface TaskListItemPressEvent {
   index: CodegenTypes.Int32;
   checked: boolean;
   text: string;
 }
 
+export interface CopyPressEvent {
+  code: string;
+  language: string;
+}
+
 export interface ContextMenuItemConfig {
   text: string;
   icon?: string;
+}
+
+export interface ImageRequestHeaderInternal {
+  name: string;
+  value: string;
 }
 
 export interface SelectionMenuConfig {
@@ -308,10 +363,27 @@ export interface Md4cFlagsInternal {
    * @default false
    */
   highlight: boolean;
+  /**
+   * Treat soft breaks (single newlines) as hard breaks (visible line breaks).
+   * @default false
+   */
+  hardSoftBreaks: boolean;
+  /**
+   * Preserve runs of consecutive blank lines as extra empty lines.
+   * @default false
+   */
+  preserveBlankLines: boolean;
+  /**
+   * Enable GitHub-style admonitions/alerts extension.
+   * Forced off for `flavor="commonmark"`.
+   * @default true
+   */
+  admonitions: boolean;
 }
 
 interface StreamingConfigInternal {
   tableMode: string;
+  codeBlockMode: string;
 }
 
 export interface NativeProps extends ViewProps {
@@ -338,10 +410,46 @@ export interface NativeProps extends ViewProps {
    */
   onLinkLongPress?: CodegenTypes.BubblingEventHandler<LinkLongPressEvent>;
   /**
+   * Callback fired when a rendered image is tapped.
+   * Receives the image URL and its alt text (empty string when the image has
+   * no alt text). Images that are also links keep link behavior and emit
+   * `onLinkPress` instead, so a single tap never fires both.
+   */
+  onImagePress?: CodegenTypes.BubblingEventHandler<ImagePressEvent>;
+  /**
+   * Gates native image tap handling. Set automatically to `true` by the JS
+   * wrapper when `onImagePress` is provided. When `false` (default), images are
+   * inert: taps fall through to text selection and the iOS Copy/Save menu
+   * exactly as before, and no image span becomes interactive on Android.
+   *
+   * @default false
+   */
+  enableImagePress?: CodegenTypes.WithDefault<boolean, false>;
+  /**
    * Callback fired when a task list checkbox is tapped.
    * Receives the 0-based task index, current checked state, and the item's plain text.
    */
   onTaskListItemPress?: CodegenTypes.BubblingEventHandler<TaskListItemPressEvent>;
+  /**
+   * Controls whether tapping a task list checkbox toggles its checked state.
+   *
+   * When `false`, the tap is fully inert: no visual toggle and no
+   * `onTaskListItemPress` emission. Text selection and links are unaffected.
+   *
+   * @default true
+   */
+  enableTaskListItemToggle?: CodegenTypes.WithDefault<boolean, true>;
+  /**
+   * Callback fired when code is copied from a fenced code block's header copy
+   * button, its long-press context-menu "Copy" action, or the VoiceOver copy
+   * action. Receives the copied code and its language.
+   */
+  onCopyPress?: CodegenTypes.BubblingEventHandler<CopyPressEvent>;
+  /**
+   * Controls the long-press copy menu on code blocks, tables, block math, and blockquotes/admonitions.
+   * @default true
+   */
+  enableBlockContextMenu?: CodegenTypes.WithDefault<boolean, true>;
   /**
    * Controls whether the system link preview is shown on long press (iOS only).
    *
@@ -383,6 +491,8 @@ export interface NativeProps extends ViewProps {
    * Controls how the markdown parser interprets certain syntax.
    */
   md4cFlags: Md4cFlagsInternal;
+  /** Enables the GFM table, strikethrough, and task-list extensions. */
+  isGFM?: CodegenTypes.WithDefault<boolean, true>;
   /**
    * Specifies whether fonts should scale to respect Text Size accessibility settings.
    * When false, text will not scale with the user's accessibility settings.
@@ -426,6 +536,10 @@ export interface NativeProps extends ViewProps {
    * Custom items to show in the text selection context menu.
    */
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+  /**
+   * HTTP headers attached to remote image requests, as name/value pairs.
+   */
+  imageRequestHeaders?: ReadonlyArray<Readonly<ImageRequestHeaderInternal>>;
   /**
    * Built-in items to show in the text selection context menu.
    */

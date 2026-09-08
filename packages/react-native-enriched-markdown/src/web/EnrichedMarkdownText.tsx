@@ -20,7 +20,9 @@ export const EnrichedMarkdownText = ({
   md4cFlags = {},
   onLinkPress,
   onLinkLongPress,
+  onImagePress,
   onTaskListItemPress,
+  enableTaskListItemToggle = true,
   allowTrailingMargin = false,
   containerStyle,
   selectable = true,
@@ -43,6 +45,9 @@ export const EnrichedMarkdownText = ({
     superscript = false,
     subscript = false,
     highlight = false,
+    hardSoftBreaks = false,
+    preserveBlankLines = false,
+    admonitions = true,
   } = md4cFlags;
 
   useEffect(() => {
@@ -57,6 +62,9 @@ export const EnrichedMarkdownText = ({
         superscript,
         subscript,
         highlight,
+        hardSoftBreaks,
+        preserveBlankLines,
+        admonitions,
       }),
       katexPromise,
     ])
@@ -85,14 +93,27 @@ export const EnrichedMarkdownText = ({
     return () => {
       cancelled = true;
     };
-  }, [markdown, underline, latexMath, superscript, subscript, highlight]);
+  }, [
+    markdown,
+    underline,
+    latexMath,
+    superscript,
+    subscript,
+    highlight,
+    hardSoftBreaks,
+    preserveBlankLines,
+    admonitions,
+  ]);
 
   const callbacks = useMemo<RendererCallbacks>(
-    () => ({ onLinkPress, onLinkLongPress, onTaskListItemPress }),
-    [onLinkPress, onLinkLongPress, onTaskListItemPress]
+    () => ({ onLinkPress, onLinkLongPress, onImagePress, onTaskListItemPress }),
+    [onLinkPress, onLinkLongPress, onImagePress, onTaskListItemPress]
   );
 
-  const capabilities = useMemo<RenderCapabilities>(() => ({ katex }), [katex]);
+  const capabilities = useMemo<RenderCapabilities>(
+    () => ({ katex, enableTaskListItemToggle }),
+    [katex, enableTaskListItemToggle]
+  );
 
   const lastChildStyle = useMemo(
     () =>

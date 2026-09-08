@@ -1,3 +1,9 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/502ff54f-93c9-4ce5-801d-df079174ea92">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/0f9fc1e6-82f5-4116-8ff6-d19d574e3760">
+  <img alt="Enriched Markdown by Software Mansion" src="https://github.com/user-attachments/assets/502ff54f-93c9-4ce5-801d-df079174ea92">
+</picture>
+
 # Enriched Markdown Android
 
 Standalone Android library for rendering enriched Markdown in Jetpack Compose. This package is separate from the React Native npm package and is published to Maven Central.
@@ -113,10 +119,13 @@ The `markdownStyle` builder supports these blocks:
 | `link` | Links |
 | `strong` | Bold text |
 | `emphasis` | Italic text |
+| `strikethrough` | Struck-through text |
+| `underline` | Underlined text (requires `Md4cFlags(underline = true)`) |
 | `code` | Inline code |
 | `codeBlock` | Fenced code blocks |
 | `blockquote` | Block quotes |
 | `list` | Ordered and unordered lists |
+| `taskList` | Task list checkboxes |
 | `image` | Block images |
 | `inlineImage` | Inline images |
 | `thematicBreak` | Horizontal rules |
@@ -133,7 +142,9 @@ fun EnrichedMarkdownText(
   markdown: String,
   modifier: Modifier = Modifier,
   style: MarkdownStyle = MarkdownTheme.style,
+  flags: Md4cFlags = Md4cFlags.DEFAULT,
   selectable: Boolean = true,
+  imageRequestHeaders: Map<String, String> = emptyMap(),
   onLinkPress: ((String) -> Unit)? = null,
   onLinkLongPress: ((String) -> Unit)? = null,
 )
@@ -143,13 +154,40 @@ fun EnrichedMarkdownText(
 |-----------|-------------|
 | `markdown` | Markdown source string |
 | `style` | Per-instance style override |
+| `flags` | Optional parser extensions (see `Md4cFlags`) |
 | `selectable` | Enable text selection |
+| `imageRequestHeaders` | HTTP headers attached to remote image requests (e.g. `Referer`) |
 | `onLinkPress` | Called when a link is tapped |
 | `onLinkLongPress` | Called when a link is long-pressed |
 
 Style defaults come from the nearest `MarkdownTheme`.
 
 > **Note:** Renders nothing in `@Preview` because it relies on `AndroidView`.
+
+### `Md4cFlags`
+
+```kotlin
+data class Md4cFlags(
+  val underline: Boolean = false,  // _text_ and __text__ render underlined instead of italic and bold
+  // … further md4c extensions
+) {
+  companion object {
+    val DEFAULT: Md4cFlags
+  }
+}
+```
+
+
+Pass flags per instance:
+
+```kotlin
+import com.swmansion.enriched.markdown.compose.Md4cFlags
+
+EnrichedMarkdownText(
+  markdown = "_underlined_",
+  flags = Md4cFlags(underline = true),
+)
+```
 
 ### `MarkdownTheme`
 
@@ -196,10 +234,11 @@ Creates a style that tracks `MaterialTheme.colorScheme` changes. Use inside `Mat
 
 - Headings (`#`–`######`)
 - Paragraphs, line breaks
-- **Bold**, *italic*, `inline code`
+- **Bold**, *italic*, `inline code`, __underline__, ~~strikethrough~~
 - Fenced code blocks
 - Block quotes
 - Ordered and unordered lists
+- Task lists (`- [ ]` / `- [x]`)
 - Links and images (block and inline)
 - Thematic breaks (`---`)
 

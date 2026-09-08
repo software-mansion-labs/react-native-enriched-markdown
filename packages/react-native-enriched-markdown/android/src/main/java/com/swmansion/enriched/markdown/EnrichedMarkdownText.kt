@@ -9,8 +9,10 @@ import android.os.Looper
 import android.text.Layout
 import android.util.AttributeSet
 import android.util.Log
+import android.util.TypedValue
 import android.view.MotionEvent
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.uimanager.StateWrapper
 import com.swmansion.enriched.markdown.accessibility.AccessibilityLabels
 import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 import com.swmansion.enriched.markdown.parser.Md4cFlags
@@ -23,6 +25,7 @@ import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.common.BreakStrategyUtils
 import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
+import com.swmansion.enriched.markdown.utils.text.view.ImagePressHost
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.SelectionMenuConfig
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
@@ -30,6 +33,7 @@ import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
+import com.swmansion.enriched.markdown.utils.text.view.emitImagePressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.reallowParentInterceptIfLinkReleased
@@ -47,7 +51,8 @@ class EnrichedMarkdownText
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
   ) : AccessibleMarkdownTextView(context, attrs, defStyleAttr),
-    SpoilerCapable {
+    SpoilerCapable,
+    ImagePressHost {
     private val parser = Parser.shared
     private val renderer = Renderer()
     private var onLinkPressCallback: ((String) -> Unit)? = null
@@ -60,6 +65,9 @@ class EnrichedMarkdownText
 
     val layoutManager = EnrichedMarkdownTextLayoutManager(this)
 
+    // used to force a Yoga re-measure when a block image resolves its box height
+    var stateWrapper: StateWrapper? = null
+
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
 
@@ -71,6 +79,7 @@ class EnrichedMarkdownText
 
     var md4cFlags: Md4cFlags = Md4cFlags.DEFAULT
       private set
+    private var isGFM: Boolean = false
 
     private var lastKnownFontScale: Float = context.resources.configuration.fontScale
     private var markdownStyleMap: ReadableMap? = null
@@ -78,6 +87,7 @@ class EnrichedMarkdownText
     private var allowFontScaling: Boolean = true
     private var maxFontSizeMultiplier: Float = 0f
     private var allowTrailingMargin: Boolean = false
+    private var imageRequestHeaders: Map<String, String> = emptyMap()
 
     private var streamingAnimation: Boolean = false
     private var previousTextLength: Int = 0
@@ -116,10 +126,18 @@ class EnrichedMarkdownText
       // Register font scaling settings when style is set (view should have ID by now)
       updateMeasurementStoreFontScaling()
       val newStyle = style?.let { StyleConfig(it, context, allowFontScaling, maxFontSizeMultiplier) }
+      newStyle?.imageRequestHeaders = imageRequestHeaders
       if (markdownStyle == newStyle) return
       markdownStyle = newStyle
       updateJustificationMode(newStyle)
       scheduleRender()
+    }
+
+    fun setImageRequestHeaders(headers: Map<String, String>) {
+      if (imageRequestHeaders == headers) return
+      imageRequestHeaders = headers
+      markdownStyle?.imageRequestHeaders = headers
+      scheduleRenderIfNeeded()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -140,6 +158,12 @@ class EnrichedMarkdownText
     fun setMd4cFlags(flags: Md4cFlags) {
       if (md4cFlags == flags) return
       md4cFlags = flags
+      scheduleRenderIfNeeded()
+    }
+
+    fun setIsGFM(value: Boolean) {
+      if (isGFM == value) return
+      isGFM = value
       scheduleRenderIfNeeded()
     }
 
@@ -177,6 +201,10 @@ class EnrichedMarkdownText
       }
     }
 
+    fun commitProps() {
+      updateMeasurementStoreFontScaling()
+    }
+
     private fun updateMeasurementStoreFontScaling() {
       MeasurementStore.updateFontScalingSettings(id, allowFontScaling, maxFontSizeMultiplier)
     }
@@ -189,7 +217,10 @@ class EnrichedMarkdownText
 
     private fun recreateStyleConfig() {
       markdownStyleMap?.let { styleMap ->
-        markdownStyle = StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier)
+        markdownStyle =
+          StyleConfig(styleMap, context, allowFontScaling, maxFontSizeMultiplier).also {
+            it.imageRequestHeaders = imageRequestHeaders
+          }
         updateJustificationMode(markdownStyle)
       }
     }
@@ -215,7 +246,7 @@ class EnrichedMarkdownText
       executor.execute {
         try {
           val ast =
-            parser.parseMarkdown(markdown, md4cFlags) ?: run {
+            parser.parseMarkdown(markdown, md4cFlags, isGFM) ?: run {
               mainHandler.post { if (renderId == currentRenderId && isAttachedToWindow) text = "" }
               return@execute
             }
@@ -242,6 +273,10 @@ class EnrichedMarkdownText
     private fun applyRenderedText(styledText: CharSequence) {
       val tailStart = previousTextLength
 
+      markdownStyle?.paragraphStyle?.fontSize?.let {
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, it)
+      }
+
       text = styledText
 
       if (movementMethod !is LinkLongPressMovementMethod) {
@@ -267,6 +302,10 @@ class EnrichedMarkdownText
 
       applySelectionColors(selectionColor, selectionHandleColor)
     }
+
+    // Trailing bottom margin included in the shadow-node measurement — must be
+    // mirrored when re-storing the measurement from the display text.
+    fun trailingMarginBottomPx(): Float = if (allowTrailingMargin) renderer.getLastElementMarginBottom() else 0f
 
     fun setContextMenuItems(items: List<String>) {
       contextMenuItemTexts = items
@@ -314,6 +353,20 @@ class EnrichedMarkdownText
       emitLinkLongPressEvent(url)
     }
 
+    override var imagePressEnabled: Boolean = false
+      private set
+
+    override fun emitOnImagePress(
+      url: String,
+      altText: String,
+    ) {
+      emitImagePressEvent(url, altText)
+    }
+
+    fun setEnableImagePress(enabled: Boolean) {
+      imagePressEnabled = enabled
+    }
+
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
       onLinkPressCallback = callback
     }
@@ -324,6 +377,19 @@ class EnrichedMarkdownText
 
     fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
       checkboxTouchHelper.onCheckboxTap = callback
+    }
+
+    fun setEnableTaskListItemToggle(enabled: Boolean) {
+      checkboxTouchHelper.isEnabled = enabled
+    }
+
+    fun cleanup() {
+      currentRenderId++
+      executor.shutdownNow()
+      mainHandler.removeCallbacksAndMessages(null)
+      pendingStyledText = null
+      fadeAnimator?.cancelAll()
+      fadeAnimator = null
     }
 
     override fun onAttachedToWindow() {

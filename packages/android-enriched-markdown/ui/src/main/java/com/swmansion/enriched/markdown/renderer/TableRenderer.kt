@@ -13,12 +13,9 @@ import com.swmansion.enriched.markdown.utils.text.span.applyMarginBottom
 import com.swmansion.enriched.markdown.utils.text.span.applyMarginTop
 
 /**
- * Renders a GFM table.
- *
- * Cells are laid out and painted by a single [TableSpan] rather than by the surrounding text
- * layout, so the whole table is anchored to one placeholder character on a line of its own. The
- * cells' inline content still goes through the normal renderers, with the paragraph style
- * temporarily swapped for the table's own typography.
+ * Renders a GFM table into a single [TableSpan] anchored to one placeholder character, so the grid
+ * is laid out by the span rather than by the surrounding text layout. Cell content still goes
+ * through the normal inline renderers, with the table's typography swapped in.
  */
 class TableRenderer(
   private val config: RendererConfig,

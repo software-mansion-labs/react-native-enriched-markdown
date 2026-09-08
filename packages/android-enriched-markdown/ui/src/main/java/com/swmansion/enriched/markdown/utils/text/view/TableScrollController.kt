@@ -20,8 +20,7 @@ import kotlin.math.ceil
  *
  * A table wider than the view scrolls its own content, but a
  * [android.text.style.ReplacementSpan] never sees touch events, so the gesture has to be claimed
- * here and handed to the span. The host view forwards [onTouchEvent], [onDraw] and [reset]; every
- * table stays inert until one of them actually overflows.
+ * here and handed to the span. A table that fits its viewport never claims a gesture.
  *
  * @param dispatchToTextView delivers an event to the view's own `super.onTouchEvent`, used to
  *   cancel a selection the editor started before the gesture turned out to be a table drag.
@@ -60,7 +59,6 @@ internal class TableScrollController(
       }
     }
 
-  /** Keeps frames coming while a table is fading its scroll indicator out. */
   private val indicatorStep =
     Runnable {
       tables.forEach { if (it.isScrollIndicatorAnimating()) repaint(it) }
@@ -113,7 +111,6 @@ internal class TableScrollController(
     }
   }
 
-  /** Drops every table and any animation still running against one. */
   fun reset() {
     abortFling()
     resetTouch()
@@ -204,7 +201,6 @@ internal class TableScrollController(
     cancel.recycle()
   }
 
-  /** The scrollable table under the event, if the point is inside one. */
   private fun scrollableTableAt(event: MotionEvent): TableSpan? {
     if (tables.isEmpty()) return null
     val buffer = view.text as? Spanned ?: return null

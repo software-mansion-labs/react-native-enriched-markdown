@@ -194,7 +194,6 @@ class TableSpan(
     }
   }
 
-  /** Restricts drawing to the visible window, rounding it the way the table's corners are rounded. */
   private fun clipToFrame(
     canvas: Canvas,
     frameWidth: Float,
@@ -307,10 +306,8 @@ class TableSpan(
     return (255f * (1f - fading.toFloat() / INDICATOR_FADE_MS)).toInt()
   }
 
-  /** Whether the indicator still owes the host another frame to finish fading out. */
   fun isScrollIndicatorAnimating(): Boolean = scrollIndicatorAlpha() > 0
 
-  /** Whether the table is wider than its viewport and so has somewhere to scroll to. */
   fun canScrollHorizontally(): Boolean {
     ensureLayout()
     return maxScrollX > 0f

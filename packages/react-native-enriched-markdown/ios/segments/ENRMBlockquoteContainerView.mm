@@ -173,6 +173,18 @@ static UIEdgeInsets ENRMBlockquoteContentInsets(StyleConfig *config)
   }
 }
 
+- (void)pushCodeBlockPressEnabledToChildren:(BOOL)enabled
+{
+  self.enableCodeBlockPress = enabled;
+  for (RCTUIView *child in self.subviews) {
+    if ([child isKindOfClass:[ENRMCodeBlockContainerView class]]) {
+      ((ENRMCodeBlockContainerView *)child).enableCodeBlockPress = enabled;
+    } else if ([child isKindOfClass:[ENRMBlockquoteContainerView class]]) {
+      [(ENRMBlockquoteContainerView *)child pushCodeBlockPressEnabledToChildren:enabled];
+    }
+  }
+}
+
 // Child registry for this quote's own content. It reuses static creators for
 // every kind and, for a nested Blockquote, creates another
 // ENRMBlockquoteContainerView (the recursion). Streaming is static: no
@@ -245,10 +257,16 @@ static UIEdgeInsets ENRMBlockquoteContentInsets(StyleConfig *config)
                       ENRMBlockquoteContainerView *strongSelf = weakSelf;
                       view.copyLabel = strongSelf.menuCopyLabel;
                       view.copyAsMarkdownLabel = strongSelf.menuCopyAsMarkdownLabel;
+                      view.enableCodeBlockPress = strongSelf.enableCodeBlockPress;
                       view.onCopyPress = ^(NSString *code, NSString *language) {
                         ENRMBlockquoteContainerView *s = weakSelf;
                         if (s.onCopyPress)
                           s.onCopyPress(code, language);
+                      };
+                      view.onCodeBlockPress = ^(NSString *code, NSString *language) {
+                        ENRMBlockquoteContainerView *s = weakSelf;
+                        if (s.onCodeBlockPress)
+                          s.onCodeBlockPress(code, language);
                       };
                       [view applyCodeBlockNode:segment.codeBlockSegment.codeBlockNode];
                       return view;
@@ -273,6 +291,8 @@ static UIEdgeInsets ENRMBlockquoteContentInsets(StyleConfig *config)
                               view.copyAsMarkdownLabel = strongSelf.menuCopyAsMarkdownLabel;
                               view.enableBlockContextMenu = strongSelf.enableBlockContextMenu;
                               view.onCopyPress = strongSelf.onCopyPress;
+                              view.enableCodeBlockPress = strongSelf.enableCodeBlockPress;
+                              view.onCodeBlockPress = strongSelf.onCodeBlockPress;
                               view.onLinkPress = ^(NSString *url) {
                                 ENRMBlockquoteContainerView *s = weakSelf;
                                 if (s.onLinkPress && url)

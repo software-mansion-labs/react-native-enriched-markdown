@@ -37,9 +37,11 @@ data class SegmentViewConfig(
   val selectionHandleColor: Int?,
   val contextMenuItemTexts: List<String>,
   val enableBlockContextMenu: Boolean,
+  val enableCodeBlockPress: Boolean,
   val onLinkPress: ((String) -> Unit)?,
   val onLinkLongPress: ((String) -> Unit)?,
   val onCopyPress: ((code: String, language: String) -> Unit)?,
+  val onCodeBlockPress: ((code: String, language: String) -> Unit)?,
   val onTaskListItemPress: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?,
   val onContextMenuItemPress: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)?,
   val onLatexError: LatexErrorReporter? = null,
@@ -118,9 +120,11 @@ object SegmentViewCreators {
     config: SegmentViewConfig,
   ) = CodeBlockContainerView(config.context, config.style).apply {
     enableBlockContextMenu = config.enableBlockContextMenu
+    enableCodeBlockPress = config.enableCodeBlockPress
     copyLabel = config.selectionMenuConfig.copyLabel
     copyAsMarkdownLabel = config.selectionMenuConfig.copyAsMarkdownLabel
     onCopyPress = { code, language -> config.onCopyPress?.invoke(code, language) }
+    onCodeBlockPress = { code, language -> config.onCodeBlockPress?.invoke(code, language) }
     applyCodeBlockNode(segment.node)
   }
 

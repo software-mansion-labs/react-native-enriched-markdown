@@ -279,6 +279,11 @@ export interface LatexErrorEvent {
   displayMode: boolean;
 }
 
+export interface CodeBlockPressEvent {
+  code: string;
+  language: string;
+}
+
 export interface ContextMenuItemConfig {
   text: string;
   icon?: string;
@@ -452,6 +457,14 @@ export interface NativeProps extends ViewProps {
    * action. Receives the copied code and its language.
    */
   onCopyPress?: CodegenTypes.BubblingEventHandler<CopyPressEvent>;
+  /** Fired when a fenced code block is tapped. Receives its code and language. */
+  onCodeBlockPress?: CodegenTypes.BubblingEventHandler<CodeBlockPressEvent>;
+  /**
+   * Gates native code block tap handling; set to `true` by the JS wrapper when
+   * `onCodeBlockPress` is provided.
+   * @default false
+   */
+  enableCodeBlockPress?: CodegenTypes.WithDefault<boolean, false>;
   /**
    * Callback fired when a math expression cannot be parsed or rendered by the
    * LaTeX engine. Receives the raw LaTeX `source` of the failing inline span or

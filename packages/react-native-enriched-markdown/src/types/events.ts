@@ -22,6 +22,11 @@ export interface CopyPressEvent {
   language: string;
 }
 
+export interface CodeBlockPressEvent {
+  code: string;
+  language: string;
+}
+
 /**
  * Event payload fired when a math expression fails to parse or render.
  *

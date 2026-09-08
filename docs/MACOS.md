@@ -8,6 +8,7 @@ The macOS implementation supports the same rendering elements as iOS — CommonM
 
 These will be addressed in upcoming releases:
 
+- **Video playback** is not yet available on macOS. The native `AVPlayerView` integration will be added in a future release.
 - **LaTeX math** (both inline and block) is not available on macOS. The math engine (RaTeX) is distributed as a Swift Package, which requires `use_frameworks!` in CocoaPods. `react-native-macos` does not currently support `use_frameworks!` due to circular dependencies between `React-Core` and `React-RCTText` ([microsoft/react-native-macos#1969](https://github.com/microsoft/react-native-macos/issues/1969)). Math will be enabled once this upstream issue is resolved.
 - **Tail fade-in animation** falls back to instant reveal (no `CADisplayLink` on macOS)
 - **VoiceOver** accessibility is stubbed (pending `NSAccessibility` implementation)

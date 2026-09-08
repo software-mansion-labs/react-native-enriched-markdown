@@ -52,6 +52,7 @@ class EnrichedMarkdown(
   private val mainHandler = Handler(Looper.getMainLooper())
   private val executor: ExecutorService = Executors.newSingleThreadExecutor()
   private val mathContainerClass: Class<*>? by lazy { SegmentViewCreators.mathContainerClass() }
+  private val videoContainerClass: Class<*>? by lazy { SegmentViewCreators.videoContainerClass() }
 
   private var currentRenderId = 0L
   private val dirtyFlags = EnumSet.noneOf(DirtyFlag::class.java)
@@ -483,6 +484,8 @@ class EnrichedMarkdown(
 
   private fun isMathContainerView(view: View): Boolean = mathContainerClass?.isInstance(view) == true
 
+  private fun isVideoContainerView(view: View): Boolean = videoContainerClass?.isInstance(view) == true
+
   private fun segmentViewConfig(): SegmentViewConfig =
     SegmentViewConfig(
       context = context,
@@ -521,6 +524,7 @@ class EnrichedMarkdown(
         is RenderedSegment.Math -> isMathContainerView(view)
         is RenderedSegment.CodeBlock -> view is CodeBlockContainerView
         is RenderedSegment.Blockquote -> view is BlockquoteContainerView
+        is RenderedSegment.Video -> isVideoContainerView(view)
       }
 
     override fun createView(segment: RenderedSegment): View {
@@ -549,6 +553,10 @@ class EnrichedMarkdown(
 
         is RenderedSegment.Blockquote -> {
           SegmentViewCreators.createBlockquoteView(segment, config)
+        }
+
+        is RenderedSegment.Video -> {
+          SegmentViewCreators.createVideoView(segment, config)
         }
       }
     }
@@ -588,6 +596,10 @@ class EnrichedMarkdown(
         is RenderedSegment.Blockquote -> {
           (view as BlockquoteContainerView).applyBlockquoteNode(segment.node)
         }
+
+        is RenderedSegment.Video -> {
+          SegmentViewCreators.updateVideoView(view, segment)
+        }
       }
     }
 
@@ -603,6 +615,7 @@ class EnrichedMarkdown(
         is RenderedSegment.Math,
         is RenderedSegment.CodeBlock,
         is RenderedSegment.Blockquote,
+        is RenderedSegment.Video,
         -> animateBlockViewFadeIn(view)
       }
     }

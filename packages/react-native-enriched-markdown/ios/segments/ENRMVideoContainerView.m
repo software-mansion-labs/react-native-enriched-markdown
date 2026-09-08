@@ -1,0 +1,231 @@
+#import "ENRMFeatureFlags.h"
+
+#if ENRICHED_MARKDOWN_VIDEO
+
+#import "ENRMVideoContainerView.h"
+#import "MarkdownASTNode.h"
+#import <AVKit/AVKit.h>
+
+static const CGFloat kDefaultVideoAspectRatio = 16.0 / 9.0;
+
+static inline CGFloat ENRMVideoAspectRatio(StyleConfig *config)
+{
+  CGFloat aspectRatio = [config videoAspectRatio];
+  return aspectRatio > 0 ? aspectRatio : kDefaultVideoAspectRatio;
+}
+
+// A thin wrapper VC that hosts AVPlayerViewController as a child with correct
+// containment. RNSScreen (react-native-screens) overrides
+// shouldAutomaticallyForwardAppearanceMethods, so using our own intermediate VC
+// lets us trigger appearance transitions explicitly and guarantees the player
+// controls render.
+@interface ENRMVideoHostController : UIViewController
+@property (nonatomic, strong, readonly) AVPlayerViewController *playerViewController;
+- (void)applyCornerRadius:(CGFloat)radius backgroundColor:(UIColor *)color;
+@end
+
+@implementation ENRMVideoHostController
+
+- (void)viewDidLoad
+{
+  [super viewDidLoad];
+  self.view.backgroundColor = [UIColor clearColor];
+
+  _playerViewController = [[AVPlayerViewController alloc] init];
+  _playerViewController.showsPlaybackControls = YES;
+  _playerViewController.entersFullScreenWhenPlaybackBegins = NO;
+  _playerViewController.exitsFullScreenWhenPlaybackEnds = YES;
+  _playerViewController.view.layer.masksToBounds = YES;
+
+  [self addChildViewController:_playerViewController];
+  [self.view addSubview:_playerViewController.view];
+  [_playerViewController didMoveToParentViewController:self];
+}
+
+- (void)applyCornerRadius:(CGFloat)radius backgroundColor:(UIColor *)color
+{
+  _playerViewController.view.layer.cornerRadius = radius;
+  _playerViewController.view.backgroundColor = color ?: [UIColor blackColor];
+}
+
+- (void)viewDidLayoutSubviews
+{
+  [super viewDidLayoutSubviews];
+  _playerViewController.view.frame = self.view.bounds;
+}
+
+@end
+
+@implementation ENRMVideoContainerView {
+  ENRMVideoHostController *_hostController;
+  UIView *_playIconOverlay;
+  NSString *_currentURL;
+  BOOL _hostInstalled;
+  BOOL _hasBeenTapped;
+}
+
+- (instancetype)initWithConfig:(StyleConfig *)config
+{
+  if (self = [super init]) {
+    _config = config;
+    self.userInteractionEnabled = YES;
+
+    _hostController = [[ENRMVideoHostController alloc] init];
+    [_hostController loadViewIfNeeded];
+    [_hostController applyCornerRadius:[config videoBorderRadius] backgroundColor:[config videoBackgroundColor]];
+    [self addSubview:_hostController.view];
+
+    _playIconOverlay = [ENRMVideoContainerView createPlayIconOverlay];
+    _playIconOverlay.userInteractionEnabled = NO;
+    [self addSubview:_playIconOverlay];
+  }
+  return self;
+}
+
++ (UIView *)createPlayIconOverlay
+{
+  CGFloat size = 52;
+  UIView *circle = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size, size)];
+  circle.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
+  circle.layer.cornerRadius = size / 2.0;
+  circle.userInteractionEnabled = NO;
+
+  CGFloat inset = size * 0.3;
+  CGFloat triLeft = inset + size * 0.04;
+  CGFloat triTop = inset - size * 0.04;
+  CGFloat triRight = size - inset + size * 0.04;
+  CGFloat triMid = size / 2.0;
+
+  UIBezierPath *triangle = [UIBezierPath bezierPath];
+  [triangle moveToPoint:CGPointMake(triLeft, triTop)];
+  [triangle addLineToPoint:CGPointMake(triRight, triMid)];
+  [triangle addLineToPoint:CGPointMake(triLeft, size - triTop)];
+  [triangle closePath];
+
+  CAShapeLayer *triLayer = [CAShapeLayer layer];
+  triLayer.path = triangle.CGPath;
+  triLayer.fillColor = [UIColor whiteColor].CGColor;
+  [circle.layer addSublayer:triLayer];
+
+  return circle;
+}
+
+#pragma mark - Touch Forwarding
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+  if (!self.userInteractionEnabled || self.hidden || self.alpha < 0.01) {
+    return nil;
+  }
+  if ([self pointInside:point withEvent:event]) {
+    if (!_hasBeenTapped) {
+      _hasBeenTapped = YES;
+      _playIconOverlay.hidden = YES;
+    }
+    return [_hostController.view hitTest:[self convertPoint:point toView:_hostController.view] withEvent:event];
+  }
+  return nil;
+}
+
+#pragma mark - View Controller Containment
+
+- (void)didMoveToWindow
+{
+  [super didMoveToWindow];
+  if (self.window && !_hostInstalled) {
+    UIViewController *parentVC = [self enrm_closestViewController];
+    if (parentVC) {
+      [parentVC addChildViewController:_hostController];
+      [_hostController beginAppearanceTransition:YES animated:NO];
+      [_hostController didMoveToParentViewController:parentVC];
+      [_hostController endAppearanceTransition];
+      _hostInstalled = YES;
+    }
+  } else if (!self.window && _hostInstalled) {
+    [_hostController beginAppearanceTransition:NO animated:NO];
+    [_hostController endAppearanceTransition];
+    [_hostController willMoveToParentViewController:nil];
+    [_hostController removeFromParentViewController];
+    _hostInstalled = NO;
+  }
+}
+
+- (UIViewController *)enrm_closestViewController
+{
+  UIResponder *responder = self.nextResponder;
+  while (responder) {
+    if ([responder isKindOfClass:[UIViewController class]]) {
+      return (UIViewController *)responder;
+    }
+    responder = responder.nextResponder;
+  }
+  return nil;
+}
+
+#pragma mark - Style Updates
+
+- (void)reapplyStyle
+{
+  [_hostController applyCornerRadius:[_config videoBorderRadius] backgroundColor:[_config videoBackgroundColor]];
+}
+
+#pragma mark - Video Loading
+
+- (void)applyVideoNode:(MarkdownASTNode *)node
+{
+  NSString *url = [node.attributes objectForKey:@"url"];
+  if (!url || [url isEqualToString:_currentURL]) {
+    return;
+  }
+  _currentURL = [url copy];
+  _hasBeenTapped = NO;
+  _playIconOverlay.hidden = NO;
+
+  AVPlayerViewController *playerVC = _hostController.playerViewController;
+  [playerVC.player pause];
+
+  NSURL *videoURL = [NSURL URLWithString:url];
+  if (!videoURL) {
+    playerVC.player = nil;
+    return;
+  }
+
+  playerVC.player = [AVPlayer playerWithURL:videoURL];
+}
+
+#pragma mark - Layout & Measurement
+
+- (void)layoutSubviews
+{
+  [super layoutSubviews];
+  _hostController.view.frame = self.bounds;
+  _playIconOverlay.center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
+}
+
+- (CGFloat)measureHeight:(CGFloat)maxWidth
+{
+  return maxWidth / ENRMVideoAspectRatio(_config);
+}
+
++ (CGFloat)measureHeightForVideoNode:(__unused MarkdownASTNode *)node
+                              config:(StyleConfig *)config
+                            maxWidth:(CGFloat)maxWidth
+{
+  return maxWidth / ENRMVideoAspectRatio(config);
+}
+
+#pragma mark - Cleanup
+
+- (void)dealloc
+{
+  [_hostController.playerViewController.player pause];
+  _hostController.playerViewController.player = nil;
+  [_hostController beginAppearanceTransition:NO animated:NO];
+  [_hostController endAppearanceTransition];
+  [_hostController willMoveToParentViewController:nil];
+  [_hostController removeFromParentViewController];
+}
+
+@end
+
+#endif

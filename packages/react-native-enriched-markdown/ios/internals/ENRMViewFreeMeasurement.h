@@ -18,6 +18,9 @@
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
 #endif
+#if ENRICHED_MARKDOWN_VIDEO
+#import "ENRMVideoContainerView.h"
+#endif
 
 /**
  * View-free markdown measurement (issue #550).
@@ -330,6 +333,18 @@ static inline CGSize ENRMMeasureSegmentedMarkdownViewFree(const PropsT &typedPro
         maxContentWidth = maxWidth;
         if (shouldAddBottomMargin) {
           yOffset += config.mathMarginBottom;
+        }
+      }
+#endif
+#if ENRICHED_MARKDOWN_VIDEO
+      else if (segment.kind == ENRMSegmentKindVideo && segment.videoSegment) {
+        yOffset += config.videoMarginTop;
+        yOffset += [ENRMVideoContainerView measureHeightForVideoNode:segment.videoSegment.videoNode
+                                                              config:config
+                                                            maxWidth:maxWidth];
+        maxContentWidth = maxWidth;
+        if (shouldAddBottomMargin) {
+          yOffset += config.videoMarginBottom;
         }
       }
 #endif

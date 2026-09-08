@@ -529,6 +529,15 @@ object MeasurementStore {
               totalHeightPx += style.blockquoteStyle.marginBottom
             }
           }
+
+          is RenderedSegment.Video -> {
+            totalHeightPx += style.videoStyle.marginTop
+            totalHeightPx += width / style.videoStyle.resolvedAspectRatio
+            maxContentWidthPx = width
+            if (includeBottomMargin) {
+              totalHeightPx += style.videoStyle.marginBottom
+            }
+          }
         }
       }
 

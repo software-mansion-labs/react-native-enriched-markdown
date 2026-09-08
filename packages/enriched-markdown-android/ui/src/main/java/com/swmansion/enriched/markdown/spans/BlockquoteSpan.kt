@@ -18,14 +18,23 @@ import androidx.core.graphics.withSave
 import com.swmansion.enriched.markdown.renderer.BlockStyle
 import com.swmansion.enriched.markdown.renderer.SpanStyleCache
 import com.swmansion.enriched.markdown.styles.BlockquoteStyle
+import com.swmansion.enriched.markdown.utils.text.TypefaceUtils
 import com.swmansion.enriched.markdown.utils.text.extensions.applyBlockStyleFont
 import com.swmansion.enriched.markdown.utils.text.extensions.applyColorPreserving
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 class BlockquoteSpan(
   private val blockquoteStyle: BlockquoteStyle,
   val depth: Int,
   private val context: Context,
   private val styleCache: SpanStyleCache,
+  /**
+   * Set when this quote is a themed admonition, `null` for a plain quote (and for an admonition
+   * nested in a list, which deliberately falls back to plain rendering — see [BlockquoteRenderer]).
+   * Drives the per-type tint and the header this span paints onto the reserved spacer line.
+   */
+  private val header: AdmonitionHeaderSpan? = null,
 ) : MetricAffectingSpan(),
   LeadingMarginSpan,
   LineBackgroundSpan {
@@ -37,6 +46,33 @@ class BlockquoteSpan(
       fontWeight = blockquoteStyle.fontWeight,
       color = blockquoteStyle.color,
     )
+
+  private val admonitionColors = header?.let { blockquoteStyle.admonitions[it.type] }
+
+  /** Accent color of this level: the admonition tint when themed, else the plain border color. */
+  private val tintColor: Int = admonitionColors?.color ?: blockquoteStyle.borderColor
+
+  /**
+   * Fill of this level's box, or `null` when it is drawn unfilled. An admonition never falls back
+   * to the plain blockquote background: a type with no palette entry, or one whose entry sets no
+   * background, stays transparent — matching the React Native renderer.
+   */
+  private val boxBackgroundColor: Int? =
+    (if (header != null) admonitionColors?.backgroundColor else blockquoteStyle.backgroundColor)
+      ?.takeIf { it != Color.TRANSPARENT }
+
+  private val iconSizePx: Int = ceil(blockquoteStyle.fontSize).toInt()
+
+  private val titlePaint: TextPaint by lazy {
+    TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+      // The title is always bold, whatever fontWeight the blockquote style carries.
+      typeface = TypefaceUtils.applyStyles(context, blockquoteStyle.fontFamily, "bold")
+      textSize = blockquoteStyle.fontSize
+    }
+  }
+  private val iconPaint: Paint by lazy {
+    Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+  }
 
   // Cache for shouldSkipDrawing to avoid repeated getSpans() calls during draw passes
   private var cachedText: CharSequence? = null
@@ -98,6 +134,9 @@ class BlockquoteSpan(
       val stripeBottom = bottom.toFloat() - bottomInset
 
       val levelSpan = if (level == 0) rootSpan else spanAtDepth(spanned, start, level)
+      // Each level is painted in its own accent color: this span draws every enclosing level, and
+      // an admonition nested in a plain quote (or vice versa) must not repaint its parent's bar.
+      borderPaint.color = levelSpan?.tintColor ?: tintColor
       val clipToOwn =
         radius > 0f && level > 0 && levelSpan != null && isBoundaryLine(spanned, start, end, levelSpan)
 
@@ -124,6 +163,57 @@ class BlockquoteSpan(
         if (isLastLineOf(spanned, end, levelSpan)) bottomInset += padding
       }
     }
+
+    if (header != null && start == spanned.getSpanStart(header)) {
+      drawAdmonitionHeader(c, x, dir, top)
+    }
+  }
+
+  /**
+   * Draws the admonition header — tinted octicon plus bold capitalized title — into the band the
+   * [AdmonitionHeaderSpan] reserved at the top of the quote.
+   *
+   * Geometry matches `BlockquoteContainerView.drawAdmonitionHeader` in the React Native package so
+   * both renderers place the icon and title identically: the icon is a square of the blockquote
+   * font size scaled from the 16x16 octicon viewBox, vertically centered in the band, and the
+   * title sits 0.4x an icon width after it, centered on the band.
+   */
+  private fun drawAdmonitionHeader(
+    canvas: Canvas,
+    x: Int,
+    dir: Int,
+    top: Int,
+  ) {
+    val headerSpan = header ?: return
+    val headerTop = top.toFloat()
+    val headerHeight = headerSpan.contentHeight
+    // Content edge of this box: past every enclosing level's accent bar and gap.
+    val contentEdge = x + levelSpacing * (depth + 1) * dir
+    var titleEdge = contentEdge
+
+    val iconPath = AdmonitionIcons.path(headerSpan.type)
+    if (iconPath != null) {
+      val scale = iconSizePx / AdmonitionIcons.VIEWBOX
+      val iconY = headerTop + (headerHeight - iconSizePx) / 2f
+      iconPaint.color = tintColor
+      canvas.withSave {
+        translate(if (dir >= 0) contentEdge else contentEdge - iconSizePx, iconY)
+        scale(scale, scale)
+        drawPath(iconPath, iconPaint)
+      }
+      titleEdge = contentEdge + (iconSizePx + (iconSizePx * 0.4f).roundToInt()) * dir
+    }
+
+    titlePaint.color = tintColor
+    val title = headerSpan.title
+    val fm = titlePaint.fontMetrics
+    val baseline = headerTop + headerHeight / 2f - (fm.ascent + fm.descent) / 2f
+    canvas.drawText(
+      title,
+      if (dir >= 0) titleEdge else titleEdge - titlePaint.measureText(title),
+      baseline,
+      titlePaint,
+    )
   }
 
   override fun drawBackground(
@@ -144,10 +234,12 @@ class BlockquoteSpan(
     boxLeft = left.toFloat()
     boxRight = right.toFloat()
 
-    val bgColor = blockquoteStyle.backgroundColor?.takeIf { it != Color.TRANSPARENT } ?: return
+    val rootSpan = (text as? Spanned)?.let { spanAtMinDepth(it, start) }
+    // The outermost box owns the fill: a LineBackgroundSpan only ever sees the full line width, so
+    // a nested level has no way to inset its own background anyway.
+    val bgColor = (rootSpan ?: this).boxBackgroundColor ?: return
     val backgroundPaint = configureBackgroundPaint(bgColor)
     val radius = blockquoteStyle.borderRadius
-    val rootSpan = (text as? Spanned)?.let { spanAtMinDepth(it, start) }
 
     if (radius <= 0f || rootSpan == null) {
       canvas.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), backgroundPaint)
@@ -196,7 +288,7 @@ class BlockquoteSpan(
 
   private fun configureBorderPaint(): Paint =
     sharedBorderPaint.apply {
-      color = blockquoteStyle.borderColor
+      color = tintColor
     }
 
   private fun configureBackgroundPaint(bgColor: Int): Paint =

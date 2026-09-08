@@ -380,6 +380,10 @@ jobs:
             echo "turbo_cache_hit=1" >> $GITHUB_ENV
           fi
 
+      - name: Restore RaTeX vendor files
+        if: env.turbo_cache_hit != 1
+        run: yarn workspace react-native-enriched-markdown vendor-ratex
+
       - name: Set up Xcode
         if: env.turbo_cache_hit != 1
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
@@ -434,6 +438,10 @@ jobs:
           if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
             echo "turbo_cache_hit=1" >> $GITHUB_ENV
           fi
+
+      - name: Restore RaTeX vendor files
+        if: env.turbo_cache_hit != 1
+        run: yarn workspace react-native-enriched-markdown vendor-ratex
 
       - name: Set up Xcode
         if: env.turbo_cache_hit != 1

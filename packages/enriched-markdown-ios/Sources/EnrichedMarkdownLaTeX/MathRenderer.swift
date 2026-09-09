@@ -13,9 +13,12 @@ final class MathRenderer: NodeRenderer {
     ) -> MathTypesetResult?
 
     private let typeset: Typeset
+    /// `{latex}` template for the attachment's VoiceOver label.
+    private let accessibilityLabel: String
 
-    init(typeset: @escaping Typeset) {
+    init(typeset: @escaping Typeset, accessibilityLabel: String) {
         self.typeset = typeset
+        self.accessibilityLabel = accessibilityLabel
     }
 
     func render(node: MarkdownASTNode, into output: NSMutableAttributedString, context: RenderContext) {
@@ -37,7 +40,8 @@ final class MathRenderer: NodeRenderer {
             latex: latex,
             isDisplay: isDisplay,
             isBlock: context.rendersPluginBlock,
-            result: result
+            result: result,
+            accessibilityLabel: accessibilityLabel.replacingOccurrences(of: "{latex}", with: latex)
         )
         SourceOffsetAnnotator.tagSourceRange(in: &attributes, of: node)
         output.append(NSAttributedString(string: "\u{FFFC}", attributes: attributes))

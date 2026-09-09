@@ -25,6 +25,7 @@
 #import "MarkdownExtractor.h"
 #import "MeasurementCache.h"
 #import "ParagraphStyleUtils.h"
+#import "RenderContext.h"
 #import "RuntimeKeys.h"
 #import "SelectionColorUtils.h"
 #import "StylePropsUtils.h"
@@ -63,6 +64,7 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
                     selectedText:(NSString *)selectedText
                   selectionStart:(NSUInteger)selectionStart
                     selectionEnd:(NSUInteger)selectionEnd;
+- (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode;
 @end
 
 @implementation EnrichedMarkdownText {
@@ -121,6 +123,9 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
   ENRMDirtyFlags _dirtyFlags;
 
   ENRMAtomicSize _lastCommittedSize;
+
+  NSMutableSet<NSString *> *_reportedLatexErrors;
+  NSMutableArray<NSDictionary *> *_pendingLatexErrors;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -240,6 +245,8 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
     _renderCoordinator =
         [[ENRMAsyncRenderCoordinator alloc] initWithQueueLabel:"com.swmansion.enriched.markdown.render"];
 
+    _reportedLatexErrors = [NSMutableSet set];
+    _pendingLatexErrors = [NSMutableArray array];
     _maxFontSizeMultiplier = 0;
     _allowTrailingMargin = NO;
     _enableLinkPreview = YES;
@@ -374,6 +381,7 @@ typedef NS_OPTIONS(NSUInteger, ENRMDirtyFlags) {
         self->_lastElementMarginBottom = result.lastElementMarginBottom;
         self->_accessibilityInfo = result.accessibilityInfo;
         self->_renderedStyleFingerprint = self->_pendingStyleFingerprint;
+        [self wireLatexErrorReporters:result.context.mathReporters];
         [self applyRenderedText:result.attributedText];
       }];
 }
@@ -788,6 +796,61 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
         .selectionStart = (int)selectionStart,
         .selectionEnd = (int)selectionEnd,
     });
+}
+
+- (void)wireLatexErrorReporters:(NSArray<id<ENRMLatexErrorReporting>> *)reporters
+{
+  if (reporters.count == 0)
+    return;
+  __weak __typeof(self) weakSelf = self;
+  ENRMLatexErrorHandler handler = ^(NSString *source, NSString *message, BOOL displayMode) {
+    [weakSelf reportLatexErrorWithSource:source message:message displayMode:displayMode];
+  };
+  for (id<ENRMLatexErrorReporting> reporter in reporters) {
+    reporter.onLatexError = handler;
+    [reporter reportLatexErrorIfNeeded];
+  }
+}
+
+- (void)reportLatexErrorWithSource:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
+{
+  NSString *key = [NSString stringWithFormat:@"%@ %@", displayMode ? @"B" : @"I", source];
+  if ([_reportedLatexErrors containsObject:key])
+    return;
+  [_reportedLatexErrors addObject:key];
+  if (![self emitLatexError:source message:message displayMode:displayMode]) {
+    [_pendingLatexErrors addObject:@{@"source" : source, @"message" : message, @"displayMode" : @(displayMode)}];
+  }
+}
+
+- (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
+  if (!emitter)
+    return NO;
+  emitter->onLatexError({
+      .source = std::string(source.UTF8String ?: ""),
+      .message = std::string(message.UTF8String ?: ""),
+      .displayMode = displayMode ? true : false,
+  });
+  return YES;
+}
+
+- (void)flushPendingLatexErrors
+{
+  if (_pendingLatexErrors.count == 0)
+    return;
+  NSArray<NSDictionary *> *pending = [_pendingLatexErrors copy];
+  [_pendingLatexErrors removeAllObjects];
+  for (NSDictionary *e in pending) {
+    [self emitLatexError:e[@"source"] message:e[@"message"] displayMode:[e[@"displayMode"] boolValue]];
+  }
+}
+
+- (void)updateEventEmitter:(const facebook::react::EventEmitter::Shared &)eventEmitter
+{
+  [super updateEventEmitter:eventEmitter];
+  [self flushPendingLatexErrors];
 }
 
 - (void)textTapped:(ENRMTapRecognizer *)recognizer

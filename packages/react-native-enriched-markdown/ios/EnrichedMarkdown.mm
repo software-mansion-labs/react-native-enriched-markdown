@@ -34,6 +34,7 @@
 #import "MarkdownExtractor.h"
 #import "MeasurementCache.h"
 #import "ParagraphStyleUtils.h"
+#import "RenderContext.h"
 #import "RenderedMarkdownSegment.h"
 #import "RuntimeKeys.h"
 #import "SegmentReconciler.h"
@@ -82,6 +83,7 @@ static char kENRMSegmentFadeAnimatorKey;
                     selectedText:(NSString *)selectedText
                   selectionStart:(NSUInteger)selectionStart
                     selectionEnd:(NSUInteger)selectionEnd;
+- (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode;
 - (void)pushBlockContextMenuToSegments;
 @end
 
@@ -92,6 +94,8 @@ static char kENRMSegmentFadeAnimatorKey;
   BOOL _isGFM;
   NSString *_cachedMarkdown;
   NSString *_renderedMarkdown;
+  NSMutableSet<NSString *> *_reportedLatexErrors;
+  NSMutableArray<NSDictionary *> *_pendingLatexErrors;
   NSMutableArray<RCTUIView *> *_segmentViews;
   NSMutableArray<NSNumber *> *_segmentSignatures;
   ENRMSegmentViewRegistry *_segmentViewRegistry;
@@ -168,6 +172,8 @@ static char kENRMSegmentFadeAnimatorKey;
     _isGFM = defaultProps->isGFM;
     _segmentViews = [NSMutableArray array];
     _segmentSignatures = [NSMutableArray array];
+    _reportedLatexErrors = [NSMutableSet set];
+    _pendingLatexErrors = [NSMutableArray array];
     _dirtyFlags = ENRMDirtyNone;
     [self configureSegmentViewRegistry];
 
@@ -860,6 +866,7 @@ static char kENRMSegmentFadeAnimatorKey;
   view.accessibilityInfo = segment.accessibilityInfo;
   view.accessibilityLabels = _accessibilityLabels;
   view.textView.selectable = _selectable;
+  [self wireLatexErrorReporters:segment.context.mathReporters];
   [view applyAttributedText:segment.attributedText context:segment.context];
 
   const auto &selectionProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(self->_props);
@@ -953,6 +960,10 @@ static char kENRMSegmentFadeAnimatorKey;
   mathView.accessibilityLabels = _accessibilityLabels;
   mathView.copyLabel = _selectionMenuLabels.copyLabel;
   mathView.copyAsMarkdownLabel = _selectionMenuLabels.copyAsMarkdownLabel;
+  __weak __typeof(self) weakSelf = self;
+  mathView.onLatexError = ^(NSString *source, NSString *message, BOOL displayMode) {
+    [weakSelf reportLatexErrorWithSource:source message:message displayMode:displayMode];
+  };
   [mathView applyLatex:mathSegment.latex];
   return mathView;
 }
@@ -1426,6 +1437,61 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
         .selectionStart = (int)selectionStart,
         .selectionEnd = (int)selectionEnd,
     });
+}
+
+- (void)wireLatexErrorReporters:(NSArray<id<ENRMLatexErrorReporting>> *)reporters
+{
+  if (reporters.count == 0)
+    return;
+  __weak __typeof(self) weakSelf = self;
+  ENRMLatexErrorHandler handler = ^(NSString *source, NSString *message, BOOL displayMode) {
+    [weakSelf reportLatexErrorWithSource:source message:message displayMode:displayMode];
+  };
+  for (id<ENRMLatexErrorReporting> reporter in reporters) {
+    reporter.onLatexError = handler;
+    [reporter reportLatexErrorIfNeeded];
+  }
+}
+
+- (void)reportLatexErrorWithSource:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
+{
+  NSString *key = [NSString stringWithFormat:@"%@ %@", displayMode ? @"B" : @"I", source];
+  if ([_reportedLatexErrors containsObject:key])
+    return;
+  [_reportedLatexErrors addObject:key];
+  if (![self emitLatexError:source message:message displayMode:displayMode]) {
+    [_pendingLatexErrors addObject:@{@"source" : source, @"message" : message, @"displayMode" : @(displayMode)}];
+  }
+}
+
+- (BOOL)emitLatexError:(NSString *)source message:(NSString *)message displayMode:(BOOL)displayMode
+{
+  auto emitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
+  if (!emitter)
+    return NO;
+  emitter->onLatexError({
+      .source = std::string(source.UTF8String ?: ""),
+      .message = std::string(message.UTF8String ?: ""),
+      .displayMode = displayMode ? true : false,
+  });
+  return YES;
+}
+
+- (void)flushPendingLatexErrors
+{
+  if (_pendingLatexErrors.count == 0)
+    return;
+  NSArray<NSDictionary *> *pending = [_pendingLatexErrors copy];
+  [_pendingLatexErrors removeAllObjects];
+  for (NSDictionary *e in pending) {
+    [self emitLatexError:e[@"source"] message:e[@"message"] displayMode:[e[@"displayMode"] boolValue]];
+  }
+}
+
+- (void)updateEventEmitter:(const facebook::react::EventEmitter::Shared &)eventEmitter
+{
+  [super updateEventEmitter:eventEmitter];
+  [self flushPendingLatexErrors];
 }
 
 - (void)textTapped:(ENRMTapRecognizer *)recognizer

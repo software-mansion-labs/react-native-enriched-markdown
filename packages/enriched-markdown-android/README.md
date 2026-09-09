@@ -162,7 +162,7 @@ fun EnrichedMarkdownText(
 | `onLinkPress` | Called when a link is tapped |
 | `onLinkLongPress` | Called when a link is long-pressed |
 | `onTaskListItemPress` | Called after a task list checkbox tap toggles the item |
-| `enableTaskListItemToggle` | Render the checkboxes read-only (default `true`) |
+| `enableTaskListItemToggle` | Whether a checkbox tap toggles the item (default `true`) |
 
 Style defaults come from the nearest `MarkdownTheme`.
 

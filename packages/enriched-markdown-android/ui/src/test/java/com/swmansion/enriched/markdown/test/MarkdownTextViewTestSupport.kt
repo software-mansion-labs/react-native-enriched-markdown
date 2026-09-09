@@ -114,10 +114,8 @@ object MarkdownTextViewTestSupport {
     textView: EnrichedMarkdownText,
     markdown: String,
   ) {
-    listOf("currentMarkdown", "baseMarkdown").forEach { name ->
-      val field = EnrichedMarkdownText::class.java.getDeclaredField(name)
-      field.isAccessible = true
-      field.set(textView, markdown)
-    }
+    val field = EnrichedMarkdownText::class.java.getDeclaredField("baseMarkdown")
+    field.isAccessible = true
+    field.set(textView, markdown)
   }
 }

@@ -135,11 +135,26 @@ class TaskListInteractionTest {
   }
 
   @Test
+  fun ignoresTapsOutsideTheLaidOutText() {
+    val textView = laidOutTextView(render(checklist()))
+    val belowText = textView.totalPaddingTop + textView.layout.height + OUTSIDE_TEXT_DISTANCE
+
+    assertNull(
+      "A tap above the text must not reach the first item's checkbox",
+      TaskListTapUtils.hitTest(textView, rawX = 1f, rawY = -OUTSIDE_TEXT_DISTANCE),
+    )
+    assertNull(
+      "A tap below the text must not reach the last item's checkbox",
+      TaskListTapUtils.hitTest(textView, rawX = 1f, rawY = belowText),
+    )
+  }
+
+  @Test
   fun togglesTheCheckboxAndItsTextDecorationInPlace() {
     val style = decoratedStyle()
     val textView = laidOutTextView(render(checklist(), style))
 
-    val updated = TaskListTapUtils.updateTaskListItemCheckedState(textView, 0, newChecked = true, style)
+    val updated = textView.toggle("Open item", newChecked = true, style)
 
     assertTrue(updated)
     val text = textView.text as SpannableString
@@ -153,7 +168,7 @@ class TaskListInteractionTest {
     val style = decoratedStyle()
     val textView = laidOutTextView(render(checklist(), style))
 
-    TaskListTapUtils.updateTaskListItemCheckedState(textView, 1, newChecked = false, style)
+    textView.toggle("Done item", newChecked = false, style)
 
     val text = textView.text as SpannableString
     assertFalse(text.taskSpanCovering("Done item").isChecked)
@@ -172,7 +187,7 @@ class TaskListInteractionTest {
       )
     val textView = laidOutTextView(render(checklist, style))
 
-    TaskListTapUtils.updateTaskListItemCheckedState(textView, 0, newChecked = false, style)
+    textView.toggle("Struck item", newChecked = false, style)
 
     val text = textView.text as SpannableString
     assertTrue(
@@ -200,7 +215,7 @@ class TaskListInteractionTest {
     val textView = laidOutTextView(render(nested, style))
     val before = textView.leadingMarginSpans()
 
-    TaskListTapUtils.updateTaskListItemCheckedState(textView, 2, newChecked = true, style)
+    textView.toggle("Second nested", newChecked = true, style)
 
     // Layout.draw walks LeadingMarginSpans in buffer order, accumulating each
     // one's margin, so reordering them moves where a marker is painted.
@@ -247,7 +262,7 @@ class TaskListInteractionTest {
       Spanned.SPAN_INCLUSIVE_INCLUSIVE,
     )
 
-    TaskListTapUtils.updateTaskListItemCheckedState(textView, target.taskIndex, newChecked = true, style)
+    TaskListTapUtils.updateTaskListItemCheckedState(textView, target, newChecked = true, style)
 
     // A selectable TextView draws its text from a render node its Editor caches
     // and only re-records on a reported span change, so flipping the span
@@ -257,15 +272,18 @@ class TaskListInteractionTest {
   }
 
   @Test
-  fun leavesUnknownTaskIndicesAlone() {
+  fun leavesADetachedSpanAlone() {
     val style = decoratedStyle()
     val textView = laidOutTextView(render(checklist(), style))
+    val detached = (textView.text as SpannableString).taskSpanCovering("Open item")
+    // Stands in for a render that landed between the touch down and up.
+    textView.setText(render(checklist(), style), TextView.BufferType.SPANNABLE)
 
-    assertFalse(TaskListTapUtils.updateTaskListItemCheckedState(textView, 7, newChecked = true, style))
+    assertFalse(TaskListTapUtils.updateTaskListItemCheckedState(textView, detached, newChecked = true, style))
   }
 
   @Test
-  fun rewritesTheNthMarkerInTheSource() {
+  fun rewritesTheNthMarkersInTheSource() {
     val markdown =
       """
       - [ ] first
@@ -279,7 +297,7 @@ class TaskListInteractionTest {
         * [x] nested
       + [ ] third
       """.trimIndent(),
-      TaskListToggleUtils.toggleAtIndex(markdown, 0, checked = true),
+      TaskListToggleUtils.applyCheckedStates(markdown, mapOf(0 to true)),
     )
     assertEquals(
       """
@@ -287,9 +305,18 @@ class TaskListInteractionTest {
         * [ ] nested
       + [ ] third
       """.trimIndent(),
-      TaskListToggleUtils.toggleAtIndex(markdown, 1, checked = false),
+      TaskListToggleUtils.applyCheckedStates(markdown, mapOf(1 to false)),
     )
-    assertEquals(markdown, TaskListToggleUtils.toggleAtIndex(markdown, 9, checked = true))
+    assertEquals(
+      """
+      - [x] first
+        * [ ] nested
+      + [x] third
+      """.trimIndent(),
+      TaskListToggleUtils.applyCheckedStates(markdown, mapOf(0 to true, 1 to false, 2 to true)),
+    )
+    assertEquals(markdown, TaskListToggleUtils.applyCheckedStates(markdown, mapOf(9 to true)))
+    assertEquals(markdown, TaskListToggleUtils.applyCheckedStates(markdown, emptyMap()))
   }
 
   @Test
@@ -374,6 +401,18 @@ class TaskListInteractionTest {
     assertFalse((view.text as SpannableString).taskSpanCovering("Open item").isChecked)
     assertEquals(markdown, view.currentMarkdown)
   }
+
+  private fun TextView.toggle(
+    itemText: String,
+    newChecked: Boolean,
+    style: StyleConfig,
+  ): Boolean =
+    TaskListTapUtils.updateTaskListItemCheckedState(
+      this,
+      (text as SpannableString).taskSpanCovering(itemText),
+      newChecked,
+      style,
+    )
 
   private fun checklist() =
     document(
@@ -460,6 +499,7 @@ class TaskListInteractionTest {
   private companion object {
     const val VIEW_WIDTH = 400
     const val DRAG_DISTANCE = 200f
+    const val OUTSIDE_TEXT_DISTANCE = 20f
     const val CHECKED_TEXT_COLOR = 0xFF9E9E9E.toInt()
   }
 }

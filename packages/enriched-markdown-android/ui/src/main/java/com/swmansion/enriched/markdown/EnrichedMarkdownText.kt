@@ -47,19 +47,19 @@ class EnrichedMarkdownText
       private set
 
     /**
-     * The markdown this view currently renders: [baseMarkdown] plus any
-     * checkbox toggles applied since it was set.
-     */
-    var currentMarkdown: String = ""
-      private set
-
-    /**
      * The markdown last handed to [setMarkdownContent]. Setting the same string
      * again is a no-op, so checkbox toggles survive a caller that re-supplies
      * its unchanged source on every recomposition; a different string wins and
      * drops them.
      */
     private var baseMarkdown: String = ""
+
+    /** Checked states set by checkbox taps since [baseMarkdown] was last set, keyed by task index. */
+    private val taskListToggles = mutableMapOf<Int, Boolean>()
+
+    /** The markdown this view renders: [baseMarkdown] with those toggles applied. */
+    val currentMarkdown: String
+      get() = TaskListToggleUtils.applyCheckedStates(baseMarkdown, taskListToggles)
 
     var md4cFlags: Md4cFlags = Md4cFlags.DEFAULT
       private set
@@ -84,7 +84,7 @@ class EnrichedMarkdownText
     fun setMarkdownContent(markdown: String) {
       if (baseMarkdown == markdown) return
       baseMarkdown = markdown
-      currentMarkdown = markdown
+      taskListToggles.clear()
       scheduleRender()
     }
 
@@ -205,14 +205,15 @@ class EnrichedMarkdownText
      */
     private fun toggleTaskListItem(hit: TaskListHitTestResult) {
       val newChecked = !hit.checked
-      currentMarkdown = TaskListToggleUtils.toggleAtIndex(currentMarkdown, hit.taskIndex, newChecked)
+      taskListToggles[hit.taskIndex] = newChecked
 
       val toggledInPlace =
-        TaskListTapUtils.updateTaskListItemCheckedState(this, hit.taskIndex, newChecked, markdownStyle)
+        TaskListTapUtils.updateTaskListItemCheckedState(this, hit.span, newChecked, markdownStyle)
       if (toggledInPlace) {
         accessibilityHelper.invalidateAccessibilityItems()
       } else {
-        // No spans to patch (text not rendered yet); fall back to the rewritten source.
+        // The span is gone, taken by a render that landed mid-gesture. Re-render
+        // instead, from a source that now carries the toggle.
         scheduleRender()
       }
 
@@ -222,7 +223,7 @@ class EnrichedMarkdownText
     }
 
     private fun scheduleRenderIfNeeded() {
-      if (currentMarkdown.isNotEmpty()) {
+      if (baseMarkdown.isNotEmpty()) {
         scheduleRender()
       }
     }

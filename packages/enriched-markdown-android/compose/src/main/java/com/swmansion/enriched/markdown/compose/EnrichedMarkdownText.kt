@@ -31,11 +31,6 @@ typealias TaskListItemPressEvent = TaskListItemPressEventInternal
  *
  * [flags] selects the optional md4c syntax extensions.
  *
- * Tapping a task-list checkbox toggles it in place and reports the new state to
- * [onTaskListItemPress]; [markdown] itself is never rewritten, so persist the
- * change from the callback if it has to survive a new source string. Set
- * [enableTaskListItemToggle] to `false` to render the checkboxes read-only.
- *
  * **Previews:** This component renders nothing in `@Preview` because it relies on [AndroidView].
  */
 @Composable

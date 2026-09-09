@@ -12,35 +12,40 @@ import com.swmansion.enriched.markdown.spans.TaskListSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.span.SPAN_FLAGS_EXCLUSIVE_EXCLUSIVE
 
-/** The task item under a tap: its index, its state *before* the tap, and its first line of text. */
+/** The task item under a tap: the span drawing it, its state *before* the tap, and its first line of text. */
 data class TaskListHitTestResult(
-  val taskIndex: Int,
+  val span: TaskListSpan,
   val checked: Boolean,
   val itemText: String,
-)
+) {
+  val taskIndex: Int get() = span.taskIndex
+}
 
 object TaskListToggleUtils {
-  private val TASK_PATTERN = Regex("""^([ \t]*[-*+][ \t]+)\[[ xX]]""", RegexOption.MULTILINE)
+  private val TASK_PATTERN = Regex("""^[ \t]*[-*+][ \t]+\[[ xX]]""", RegexOption.MULTILINE)
 
   /**
-   * Rewrites the [index]-th `- [ ]` / `- [x]` marker in [markdown]. The pattern
-   * scans top-down, so its indices line up with the renderer's document-order
-   * task indices.
+   * Rewrites [markdown]'s `- [ ]` / `- [x]` markers to the states in
+   * [checkedStates], keyed by task index. The pattern scans top-down, so its
+   * indices line up with the renderer's document-order task indices; an index
+   * the document does not have is ignored.
    */
-  fun toggleAtIndex(
+  fun applyCheckedStates(
     markdown: String,
-    index: Int,
-    checked: Boolean,
+    checkedStates: Map<Int, Boolean>,
   ): String {
-    val matches = TASK_PATTERN.findAll(markdown).toList()
-    if (index < 0 || index >= matches.size) return markdown
+    if (checkedStates.isEmpty()) return markdown
 
-    val match = matches[index]
-    val prefix = match.groupValues[1]
+    // A marker's state character is the second to last of its match and its
+    // replacement is one character wide too, so a single scan rewrites every
+    // marker in place, without shifting the offsets of the ones after it.
+    val rewritten = StringBuilder(markdown)
+    TASK_PATTERN.findAll(markdown).forEachIndexed { index, match ->
+      val checked = checkedStates[index] ?: return@forEachIndexed
+      rewritten.setCharAt(match.range.last - 1, if (checked) 'x' else ' ')
+    }
 
-    val replacement = "$prefix[${if (checked) "x" else " "}]"
-
-    return markdown.replaceRange(match.range, replacement)
+    return rewritten.toString()
   }
 }
 
@@ -61,6 +66,10 @@ object TaskListTapUtils {
 
       val x = rawX.toInt() - totalPaddingLeft + scrollX
       val y = rawY.toInt() - totalPaddingTop + scrollY
+
+      // getLineForVertical clamps, so a tap in the padding above or below the
+      // laid-out text would otherwise hit the first or last line's checkbox.
+      if (y < 0 || y > layout.height) return null
 
       val line = layout.getLineForVertical(y)
 
@@ -96,43 +105,33 @@ object TaskListTapUtils {
           .trim()
 
       return TaskListHitTestResult(
-        taskIndex = taskSpan.taskIndex,
+        span = taskSpan,
         checked = taskSpan.isChecked,
         itemText = itemText,
       )
     }
 
   /**
-   * Flips one task item's checkbox and checked-text decoration directly on
-   * [textView]'s spans — no re-parse, so a tap redraws immediately.
+   * Flips [span]'s checkbox and checked-text decoration directly on [textView]'s
+   * spans — no re-parse, so a tap redraws immediately.
    *
-   * Returns `false` when the view holds no spannable text or carries no item
-   * with [targetIndex]; the caller then has to fall back to re-rendering the
-   * rewritten markdown source.
+   * Returns `false` when the view holds no spannable text or [span] is no longer
+   * attached to it, which a render landing mid-gesture can do; the caller then
+   * has to fall back to re-rendering the markdown source.
    */
   fun updateTaskListItemCheckedState(
     textView: TextView,
-    targetIndex: Int,
+    span: TaskListSpan,
     newChecked: Boolean,
     styleConfig: StyleConfig,
   ): Boolean {
     val spannable = textView.text as? Spannable ?: return false
 
-    val targetSpans =
-      spannable
-        .getSpans(0, spannable.length, TaskListSpan::class.java)
-        .filter { it.taskIndex == targetIndex }
-    if (targetSpans.isEmpty()) {
-      return false
-    }
+    val spanStart = spannable.getSpanStart(span)
+    val spanEnd = spannable.getSpanEnd(span)
+    if (spanStart < 0) return false
 
-    if (targetSpans.all { it.isChecked == newChecked }) {
-      return true
-    }
-
-    val itemDepth = targetSpans.first().depth
-    val spanStart = targetSpans.minOf { spannable.getSpanStart(it) }
-    val spanEnd = targetSpans.maxOf { spannable.getSpanEnd(it) }
+    if (span.isChecked == newChecked) return true
 
     // Flip the span in place, then re-set it over the range it already holds.
     // Re-setting an attached span keeps its slot in the buffer's span array —
@@ -142,21 +141,14 @@ object TaskListTapUtils {
     // The setSpan still reports a span change, and that is what makes TextView
     // drop the render node its Editor caches the drawn text in; a bare
     // invalidate() re-runs onDraw off that cache and repaints the old checkbox.
-    targetSpans.forEach { span ->
-      span.isChecked = newChecked
-      spannable.setSpan(
-        span,
-        spannable.getSpanStart(span),
-        spannable.getSpanEnd(span),
-        spannable.getSpanFlags(span),
-      )
-    }
+    span.isChecked = newChecked
+    spannable.setSpan(span, spanStart, spanEnd, spannable.getSpanFlags(span))
 
     // Nested items and code blocks keep their own styling, exactly as on the
     // initial render in ListItemRenderer.
     val excludedRanges =
       (
-        spannable.getSpans(spanStart, spanEnd, BaseListSpan::class.java).filter { it.depth > itemDepth } +
+        spannable.getSpans(spanStart, spanEnd, BaseListSpan::class.java).filter { it.depth > span.depth } +
           spannable.getSpans(spanStart, spanEnd, CodeBlockSpan::class.java).toList()
       ).map { spannable.getSpanStart(it) to spannable.getSpanEnd(it) }
         .sortedBy { it.first }

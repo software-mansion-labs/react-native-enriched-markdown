@@ -61,12 +61,7 @@
   // Avoid standard line height on block images to prevent vertical alignment issues
   if (!isBlockImage) {
     applyLineHeight(output, range, _config.paragraphLineHeight);
-    // A blockquote re-stamps its own (usually different) line height over this
-    // content afterwards and applies the matching baseline offset itself. Applying
-    // the paragraph-line-height offset here would lock in a stale value the
-    // blockquote pass can't override (applyBaselineOffset skips ranges that already
-    // carry an offset), leaving the text mis-centered inside the quote's line box.
-    if (context.currentBlockType != BlockTypeBlockquote) {
+    if (!ENRMBlockTypeReappliesBaselineOffset(context.currentBlockType)) {
       applyBaselineOffset(output, range);
     }
   }

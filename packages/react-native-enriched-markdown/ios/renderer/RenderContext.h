@@ -11,6 +11,16 @@ typedef NS_ENUM(NSInteger, BlockType) {
   BlockTypeCodeBlock
 };
 
+/// YES when the enclosing block re-stamps its own line height over paragraph content and applies the
+/// matching baseline offset itself, so a paragraph nested inside it must not apply its own (the outer
+/// block's line height wins, and applyBaselineOffset skips ranges that already carry an offset).
+/// TODO: loose list items have the same shape (ParagraphRenderer runs, then the list re-stamps its
+/// line height); add BlockTypeUnorderedList/BlockTypeOrderedList here once lists own their offset too.
+static inline BOOL ENRMBlockTypeReappliesBaselineOffset(BlockType type)
+{
+  return type == BlockTypeBlockquote;
+}
+
 typedef NS_ENUM(NSInteger, ListType) { ListTypeUnordered, ListTypeOrdered };
 
 @interface BlockStyle : NSObject

@@ -26,13 +26,15 @@ final class MathAttachment: NSTextAttachment, MarkdownPluginAttachment {
         isDisplay ? "$$" : "$"
     }
 
-    init(latex: String, isDisplay: Bool, isBlock: Bool, result: MathTypesetResult) {
+    /// `accessibilityLabel` is fully resolved here because the base
+    /// package's element builder reads it generically.
+    init(latex: String, isDisplay: Bool, isBlock: Bool, result: MathTypesetResult, accessibilityLabel: String) {
         self.latex = latex
         self.isDisplay = isDisplay
         self.isBlock = isBlock
         self.result = result
         super.init(data: nil, ofType: nil)
-        accessibilityLabel = latex
+        self.accessibilityLabel = accessibilityLabel
     }
 
     @available(*, unavailable)

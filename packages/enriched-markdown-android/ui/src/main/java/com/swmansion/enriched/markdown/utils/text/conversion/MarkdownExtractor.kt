@@ -20,6 +20,7 @@ import com.swmansion.enriched.markdown.spans.StrongSpan
 import com.swmansion.enriched.markdown.spans.TaskListSpan
 import com.swmansion.enriched.markdown.spans.ThematicBreakSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
+import java.util.Locale
 
 /** Extracts markdown from styled text (Spannable). */
 object MarkdownExtractor {
@@ -196,7 +197,7 @@ object MarkdownExtractor {
 
     val depth = spannable.getSpans(start, end, BlockquoteSpan::class.java).maxOfOrNull { it.depth } ?: 0
     result.append("> ".repeat(depth + 1))
-    result.append("[!").append(header.type.uppercase()).append("]\n")
+    result.append("[!").append(header.type.uppercase(Locale.ROOT)).append("]\n")
     state.blockquoteDepth = depth
   }
 

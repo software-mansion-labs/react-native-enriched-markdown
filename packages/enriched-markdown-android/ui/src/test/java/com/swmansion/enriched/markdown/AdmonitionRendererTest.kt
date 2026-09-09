@@ -144,7 +144,6 @@ class AdmonitionRendererTest {
 
     val header = rendered.getSpans(0, rendered.length, AdmonitionHeaderSpan::class.java).single()
     assertEquals("tip", header.type)
-    // Outer plain quote plus the inner admonition.
     assertEquals(2, rendered.getSpans(0, rendered.length, BlockquoteSpan::class.java).size)
   }
 
@@ -155,7 +154,6 @@ class AdmonitionRendererTest {
 
   @Test
   fun anAdmonitionWithNoBodyRendersNothing() {
-    // Same as an empty plain blockquote: there is no content to hang a box on.
     val rendered = render(document(admonition("important")))
 
     assertEquals(0, rendered.length)

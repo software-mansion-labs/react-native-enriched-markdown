@@ -114,7 +114,6 @@ class AdmonitionPaintingTest {
     assertTrue(rasterize(document(admonition("tip", paragraph(text("A"))))).count(TIP) > 0)
     assertTrue(rasterize(document(admonition("warning", paragraph(text("A"))))).count(WARNING) > 0)
 
-    // A tip must not be painted with the note color.
     assertEquals(0, rasterize(document(admonition("tip", paragraph(text("A"))))).count(NOTE))
   }
 

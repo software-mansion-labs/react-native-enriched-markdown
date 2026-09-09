@@ -191,7 +191,6 @@ object HTMLGenerator {
       }
     }
 
-    /** Accent color of an admonition type, falling back to the plain blockquote border color. */
     fun admonitionColor(type: String): String = admonitionPalette[type]?.color?.let { colorToCSS(it) } ?: blockquoteBorderColor
 
     /**

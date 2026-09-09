@@ -535,11 +535,6 @@ internal data class BlockquoteStylePatch(
       admonitions = applyAdmonitions(base, units),
     )
 
-  /**
-   * Merges the patched types over the palette already in [base], so overriding one alert type
-   * leaves the other four on their defaults. Within a type, an unset field keeps its previous
-   * value; a type touched for the first time inherits the plain blockquote border color.
-   */
   private fun applyAdmonitions(
     base: BlockquoteStyle,
     units: StyleUnits,

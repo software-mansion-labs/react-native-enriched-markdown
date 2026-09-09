@@ -81,8 +81,6 @@ val CustomMarkdownStyle: MarkdownStyle =
       backgroundColor = Color(0xFFF9FAFB)
       gapWidth = 16.dp
       marginBottom = 16.dp
-      // Accent colors already default to the GitHub palette; this adds the matching background
-      // tints, which are opt-in so a callout is unfilled unless asked for.
       admonitions {
         note { backgroundColor = Color(0xFFDDF4FF) }
         tip { backgroundColor = Color(0xFFDAFBE1) }

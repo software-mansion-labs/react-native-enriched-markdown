@@ -49,7 +49,6 @@ class BlockquoteSpan(
 
   private val admonitionColors = header?.let { blockquoteStyle.admonitions[it.type] }
 
-  /** Accent color of this level: the admonition tint when themed, else the plain border color. */
   private val tintColor: Int = admonitionColors?.color ?: blockquoteStyle.borderColor
 
   /**

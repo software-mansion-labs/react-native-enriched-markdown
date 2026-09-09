@@ -37,7 +37,6 @@ class AdmonitionHeaderSpan(
   /** Total height of the spacer line: the icon + title row plus the gap down to the body. */
   val reservedHeight: Float = admonitionHeaderReservedHeight(style)
 
-  /** Title shown in the header, e.g. "Note". */
   val title: String get() = AdmonitionIcons.title(type)
 
   override fun chooseHeight(

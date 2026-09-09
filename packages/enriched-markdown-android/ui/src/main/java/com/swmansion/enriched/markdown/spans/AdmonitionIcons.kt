@@ -57,6 +57,5 @@ object AdmonitionIcons {
   /** The octicon path for [type] in the 16x16 icon space. */
   fun path(type: String): Path? = PATHS[type]
 
-  /** Capitalized header title for [type] (e.g. "note" -> "Note"). */
   fun title(type: String): String = TITLES[type] ?: type.replaceFirstChar { it.uppercase() }
 }

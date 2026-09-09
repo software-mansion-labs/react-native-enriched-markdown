@@ -147,6 +147,8 @@ export const EnrichedMarkdownText = ({
   textBreakStrategy,
   lineBreakStrategyIOS,
   writingDirection = 'first-strong',
+  numberOfLines,
+  ellipsizeMode,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyleRef = useRef<MarkdownStyleInternal | null>(null);
@@ -360,6 +362,8 @@ export const EnrichedMarkdownText = ({
     textBreakStrategy,
     lineBreakStrategyIOS,
     writingDirection,
+    numberOfLines,
+    ellipsizeMode,
     ...rest,
   };
 

@@ -13,10 +13,10 @@ final class MathRenderer: NodeRenderer {
     ) -> MathTypesetResult?
 
     private let typeset: Typeset
-    /// `{latex}` template for the attachment's VoiceOver label.
-    private let accessibilityLabel: String
+    /// Produces the attachment's VoiceOver label from the source.
+    private let accessibilityLabel: (String) -> String
 
-    init(typeset: @escaping Typeset, accessibilityLabel: String) {
+    init(typeset: @escaping Typeset, accessibilityLabel: @escaping (String) -> String) {
         self.typeset = typeset
         self.accessibilityLabel = accessibilityLabel
     }
@@ -41,7 +41,7 @@ final class MathRenderer: NodeRenderer {
             isDisplay: isDisplay,
             isBlock: context.rendersPluginBlock,
             result: result,
-            accessibilityLabel: accessibilityLabel.replacingOccurrences(of: "{latex}", with: latex)
+            accessibilityLabel: accessibilityLabel(latex)
         )
         SourceOffsetAnnotator.tagSourceRange(in: &attributes, of: node)
         output.append(NSAttributedString(string: "\u{FFFC}", attributes: attributes))

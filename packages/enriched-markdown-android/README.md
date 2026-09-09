@@ -121,6 +121,8 @@ The `markdownStyle` builder supports these blocks:
 | `emphasis` | Italic text |
 | `strikethrough` | Struck-through text |
 | `underline` | Underlined text (requires `Md4cFlags(underline = true)`) |
+| `superscript` | Superscript text (`^text^`) |
+| `subscript` | Subscript text (`~text~`) |
 | `code` | Inline code |
 | `codeBlock` | Fenced code blocks |
 | `blockquote` | Block quotes |
@@ -131,6 +133,23 @@ The `markdownStyle` builder supports these blocks:
 | `thematicBreak` | Horizontal rules |
 
 Use `MarkdownStyle.copy { }` to layer overrides (e.g. light/dark variants) without rebuilding the full style.
+
+`superscript` and `subscript` take unitless floats instead of `Dp`/`sp`/`Color`: `fontScale` shrinks the text size relative to its surrounding text, and `baselineOffsetScale` shifts the baseline (as a fraction of text size) up for superscript and down for subscript.
+
+```kotlin
+markdownStyle {
+  superscript {
+    fontScale = 0.65f
+    baselineOffsetScale = 0.35f
+  }
+  subscript {
+    fontScale = 0.65f
+    baselineOffsetScale = 0.2f
+  }
+}
+```
+
+Rendering `^text^`/`~text~` as superscript/subscript nodes requires enabling the corresponding `Md4cFlags` when parsing.
 
 ## API reference
 
@@ -168,7 +187,9 @@ Style defaults come from the nearest `MarkdownTheme`.
 
 ```kotlin
 data class Md4cFlags(
-  val underline: Boolean = false,  // _text_ and __text__ render underlined instead of italic and bold
+  val underline: Boolean = false,    // _text_ and __text__ render underlined instead of italic and bold
+  val superscript: Boolean = false,  // ^text^ renders raised above the baseline
+  val subscript: Boolean = false,    // ~text~ renders lowered below the baseline
   // … further md4c extensions
 ) {
   companion object {
@@ -234,7 +255,7 @@ Creates a style that tracks `MaterialTheme.colorScheme` changes. Use inside `Mat
 
 - Headings (`#`–`######`)
 - Paragraphs, line breaks
-- **Bold**, *italic*, `inline code`, __underline__, ~~strikethrough~~
+- **Bold**, *italic*, `inline code`, __underline__, ~~strikethrough~~, ^superscript^, ~subscript~
 - Fenced code blocks
 - Block quotes
 - Ordered and unordered lists

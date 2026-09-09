@@ -257,16 +257,6 @@ static inline void ENRMBlurTextView(ENRMPlatformTextView *textView)
 /// Applies shared configuration to a text view used for markdown rendering.
 /// Handles platform differences: scroll indicators, text container insets,
 /// drawsBackground (macOS), accessibilityElementsHidden (iOS).
-///
-/// `usesFontLeading = NO` mirrors the view-free measurement path
-/// (`ENRMMeasureAttributedTextViewFree`) so the rendered layout matches the
-/// measured size. A layout manager defaults to YES, which adds the used
-/// fonts' leading (lineGap) on top of the paragraph style's line-height
-/// clamp, making each rendered line taller than measured. Fonts with a
-/// nonzero lineGap (e.g. Poppins, 100 upm ~= 1.4pt at 14pt) then overflow the
-/// measured frame by that leading per line, and the surplus accumulates until
-/// the last block's descenders clip at the bottom (issue #770). Fonts with a
-/// zero lineGap (system, Urbanist, Montserrat) are unaffected either way.
 static inline void ENRMConfigureMarkdownTextView(ENRMPlatformTextView *textView)
 {
   textView.font = [UIFont systemFontOfSize:16.0];

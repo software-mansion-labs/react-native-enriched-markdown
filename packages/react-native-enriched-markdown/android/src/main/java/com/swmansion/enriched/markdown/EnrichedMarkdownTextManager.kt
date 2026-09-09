@@ -321,7 +321,7 @@ class EnrichedMarkdownTextManager :
     attachmentsPositions: FloatArray?,
   ): Long {
     val id = localData?.getInt("viewTag")
-    return MeasurementStore.getMeasureById(context, id, width, height, heightMode, props)
+    return MeasurementStore.getMeasureById(context, id, width, widthMode, height, heightMode, props)
   }
 
   companion object {

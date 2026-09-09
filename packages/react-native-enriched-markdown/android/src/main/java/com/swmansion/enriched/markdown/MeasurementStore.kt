@@ -135,30 +135,41 @@ object MeasurementStore {
     context: Context,
     id: Int?,
     width: Float,
+    widthMode: YogaMeasureMode?,
     height: Float,
     heightMode: YogaMeasureMode?,
     props: ReadableMap?,
     splitTableSegments: Boolean = false,
   ): Long {
-    // Early exit for empty markdown
+    // Early exit for empty markdown. Honor widthMode here too: empty content has
+    // zero intrinsic width, so only fill when the width is EXACTLY assigned -
+    // otherwise an empty view would claim all available horizontal space.
     val markdown = props.getStringOrDefault("markdown", "")
     if (markdown.isEmpty()) {
-      return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(width), 0f)
+      val emptyWidth = if (widthMode === YogaMeasureMode.EXACTLY) PixelUtil.toDIPFromPixel(width) else 0f
+      return YogaMeasureOutput.make(emptyWidth, 0f)
     }
 
     val size = getMeasureByIdInternal(context, id, width, props, splitTableSegments)
-    val resultHeight = YogaMeasureOutput.getHeight(size)
 
+    // Honor the Yoga width contract. When the parent assigns an exact width
+    // (flex child, alignItems: stretch, explicit width / width: "100%"), fill it
+    // instead of reporting the content's widest line, which would make the node
+    // hug its content and wrap early. Mirrors RN's TextLayoutManager.calculateWidth;
+    // iOS already does this via ENRMClampMeasuredSize.
+    val resultWidth =
+      if (widthMode === YogaMeasureMode.EXACTLY) {
+        PixelUtil.toDIPFromPixel(width)
+      } else {
+        YogaMeasureOutput.getWidth(size)
+      }
+
+    var resultHeight = YogaMeasureOutput.getHeight(size)
     if (heightMode === YogaMeasureMode.AT_MOST) {
-      val maxHeight = PixelUtil.toDIPFromPixel(height)
-      val finalHeight = resultHeight.coerceAtMost(maxHeight)
-      return YogaMeasureOutput.make(
-        YogaMeasureOutput.getWidth(size),
-        finalHeight,
-      )
+      resultHeight = resultHeight.coerceAtMost(PixelUtil.toDIPFromPixel(height))
     }
 
-    return size
+    return YogaMeasureOutput.make(resultWidth, resultHeight)
   }
 
   fun updateFontScalingSettings(

@@ -2,10 +2,13 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Canvas
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Layout
+import android.text.Spannable
+import android.text.Spanned
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -13,9 +16,11 @@ import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 import com.swmansion.enriched.markdown.parser.Md4cFlags
 import com.swmansion.enriched.markdown.parser.Parser
 import com.swmansion.enriched.markdown.renderer.Renderer
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.SelectionMenuConfig
+import com.swmansion.enriched.markdown.utils.text.view.TableScrollController
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
 import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
@@ -52,6 +57,8 @@ class EnrichedMarkdownText
     private var selectionHandleColor: Int? = null
     private var isSelectable = true
     private var selectionMenuConfig = SelectionMenuConfig()
+
+    private val tableScroll = TableScrollController(this) { event -> super.onTouchEvent(event) }
 
     init {
       setupAsMarkdownTextView()
@@ -131,6 +138,7 @@ class EnrichedMarkdownText
       setMarkdownContent("")
       text = ""
       pendingStyledText = null
+      tableScroll.reset()
     }
 
     fun setSelectionColor(color: Int?) {
@@ -225,6 +233,9 @@ class EnrichedMarkdownText
     }
 
     private fun applyRenderedText(styledText: CharSequence) {
+      val tableSpans = renderer.getCollectedTableSpans()
+      tableScroll.setTables(tableSpans)
+
       text = styledText
 
       if (movementMethod !is LinkLongPressMovementMethod) {
@@ -234,6 +245,8 @@ class EnrichedMarkdownText
       renderer.getCollectedImageSpans().forEach { span ->
         span.registerTextView(this)
       }
+
+      tableSpans.forEach { span -> span.registerTextView(this) }
 
       accessibilityHelper.invalidateAccessibilityItems()
       applySelectionColors(selectionColor, selectionHandleColor)
@@ -247,7 +260,15 @@ class EnrichedMarkdownText
       }
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean = super.onTouchEvent(event)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+      if (tableScroll.onTouchEvent(event)) return true
+      return super.onTouchEvent(event)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+      super.onDraw(canvas)
+      tableScroll.onDraw(canvas)
+    }
 
     companion object {
       private const val TAG = "EnrichedMarkdownText"

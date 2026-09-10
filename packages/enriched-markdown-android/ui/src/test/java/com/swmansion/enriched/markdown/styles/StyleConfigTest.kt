@@ -28,6 +28,7 @@ class StyleConfigTest {
         taskListStyle = sampleTaskList(),
         codeBlockStyle = sampleCodeBlock(),
         thematicBreakStyle = sampleThematicBreak(),
+        tableStyle = sampleTable(),
       )
 
     val second =
@@ -46,6 +47,7 @@ class StyleConfigTest {
         taskListStyle = sampleTaskList(),
         codeBlockStyle = sampleCodeBlock(),
         thematicBreakStyle = sampleThematicBreak(),
+        tableStyle = sampleTable(),
       )
 
     assertEquals(first, second)
@@ -71,6 +73,7 @@ class StyleConfigTest {
         taskListStyle = sampleTaskList(),
         codeBlockStyle = sampleCodeBlock(),
         thematicBreakStyle = sampleThematicBreak(),
+        tableStyle = sampleTable(),
       )
 
     assertFalse(first == second)
@@ -92,6 +95,7 @@ class StyleConfigTest {
       taskListStyle = sampleTaskList(),
       codeBlockStyle = sampleCodeBlock(),
       thematicBreakStyle = sampleThematicBreak(),
+      tableStyle = sampleTable(),
     )
 
   private fun sampleParagraph(color: Int = 0xFF112233.toInt()) =
@@ -201,6 +205,28 @@ class StyleConfigTest {
       borderRadius = 8f,
       borderWidth = 1f,
       padding = 16f,
+    )
+
+  private fun sampleTable() =
+    TableStyle(
+      fontSize = 14f,
+      fontFamily = "sans-serif",
+      fontWeight = "",
+      color = 0xFF1F2937.toInt(),
+      marginTop = 0f,
+      marginBottom = 16f,
+      lineHeight = 22f,
+      headerFontFamily = "",
+      headerBackgroundColor = 0xFFF3F4F6.toInt(),
+      headerTextColor = 0xFF111827.toInt(),
+      rowEvenBackgroundColor = 0xFFFFFFFF.toInt(),
+      rowOddBackgroundColor = 0xFFF9FAFB.toInt(),
+      borderColor = 0xFFE5E7EB.toInt(),
+      borderWidth = 1f,
+      borderRadius = 6f,
+      cellPaddingHorizontal = 12f,
+      cellPaddingVertical = 8f,
+      align = TableAlignment.AUTO,
     )
 
   private fun sampleThematicBreak() =

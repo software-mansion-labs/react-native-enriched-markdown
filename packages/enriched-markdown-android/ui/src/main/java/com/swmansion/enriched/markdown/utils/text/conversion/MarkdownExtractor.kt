@@ -16,6 +16,7 @@ import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
 import com.swmansion.enriched.markdown.spans.StrongSpan
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.spans.TaskListSpan
 import com.swmansion.enriched.markdown.spans.ThematicBreakSpan
 import com.swmansion.enriched.markdown.spans.UnorderedListSpan
@@ -90,13 +91,22 @@ object MarkdownExtractor {
   ): Boolean {
     val thematicBreakSpans = spannable.getSpans(segmentStart, segmentEnd, ThematicBreakSpan::class.java)
     if (thematicBreakSpans.isNotEmpty()) {
+      headingAccumulator.flush(result, state)
       appendThematicBreak(result, state)
+      return true
+    }
+
+    val tableSpans = spannable.getSpans(segmentStart, segmentEnd, TableSpan::class.java)
+    if (tableSpans.isNotEmpty()) {
+      headingAccumulator.flush(result, state)
+      appendTable(tableSpans[0], result, state)
       return true
     }
 
     if (segmentText == "\uFFFC" || segmentText == "\u200B") {
       val imageSpans = spannable.getSpans(segmentStart, segmentEnd, ImageSpan::class.java)
       if (imageSpans.isNotEmpty()) {
+        if (!imageSpans[0].isInline) headingAccumulator.flush(result, state)
         appendImage(imageSpans[0], result, state)
         return true
       }
@@ -164,6 +174,20 @@ object MarkdownExtractor {
       state.blockquoteDepth = -1
       state.listDepth = -1
     }
+  }
+
+  /** Emits the table's markdown source; its placeholder character carries no text of its own. */
+  private fun appendTable(
+    table: TableSpan,
+    result: StringBuilder,
+    state: ExtractionState,
+  ) {
+    if (table.tableMarkdown.isEmpty()) return
+    result.ensureBlankLine()
+    result.append(table.tableMarkdown)
+    state.needsBlankLine = true
+    state.blockquoteDepth = -1
+    state.listDepth = -1
   }
 
   private fun appendThematicBreak(

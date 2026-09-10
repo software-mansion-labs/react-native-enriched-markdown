@@ -14,6 +14,7 @@ import com.swmansion.enriched.markdown.spans.HeadingSpan
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.LinkSpan
 import com.swmansion.enriched.markdown.spans.OrderedListSpan
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.spans.TaskListSpan
 
 class MarkdownAccessibilityHelper(
@@ -37,11 +38,15 @@ class MarkdownAccessibilityHelper(
     val linkUrl: String? = null,
     val listInfo: ListItemInfo? = null,
     val imageAltText: String? = null,
+    /** Set for a table row, whose bounds come from the table's own grid, not from a text range. */
+    val customBounds: Rect? = null,
+    val isTableHeaderRow: Boolean = false,
   ) {
     val isHeading get() = headingLevel > 0
     val isLink get() = linkUrl != null
     val isListItem get() = listInfo != null
     val isImage get() = imageAltText != null
+    val isTableRow get() = customBounds != null
   }
 
   data class ListItemInfo(
@@ -157,7 +162,58 @@ class MarkdownAccessibilityHelper(
       paraStart = paraEnd
     }
 
-    return result.ifEmpty { listOf(AccessibilityItem(0, text.trim(), 0, spanned.length)) }
+    addTableRowItems(result, spanned)
+
+    if (result.isEmpty()) return listOf(AccessibilityItem(0, text.trim(), 0, spanned.length))
+
+    // Table rows are appended out of order and share the placeholder's offsets, so the list is
+    // re-sorted into reading order and the ids renumbered — `id` doubles as the index into `items`.
+    return result
+      .sortedBy { it.start }
+      .mapIndexed { index, item -> item.copy(id = index) }
+  }
+
+  /**
+   * Exposes each table row as its own node, so a screen reader walks a table row by row instead of
+   * landing on the single placeholder character the table is anchored to.
+   */
+  private fun addTableRowItems(
+    items: MutableList<AccessibilityItem>,
+    spanned: Spanned,
+  ) {
+    val layout = textView.layout ?: return
+
+    for (table in spanned.getSpans(0, spanned.length, TableSpan::class.java)) {
+      val start = spanned.getSpanStart(table)
+      if (start < 0) continue
+      val end = spanned.getSpanEnd(table)
+      val line = layout.getLineForOffset(start)
+      val lineTop = layout.getLineTop(line) + textView.paddingTop
+      val lineLeft = layout.getLineLeft(line).toInt() + textView.paddingLeft
+
+      table.rowBounds().forEachIndexed { rowIndex, bounds ->
+        val row = table.rows.getOrNull(rowIndex) ?: return@forEachIndexed
+        val content = row.cells.joinToString(", ") { it.plainText }.trim()
+        if (content.isEmpty()) return@forEachIndexed
+
+        items.add(
+          AccessibilityItem(
+            id = 0,
+            text = "Row ${rowIndex + 1}: $content",
+            start = start,
+            end = end,
+            isTableHeaderRow = row.isHeader,
+            customBounds =
+              Rect(
+                lineLeft + bounds.left.toInt(),
+                lineTop + bounds.top.toInt(),
+                lineLeft + bounds.right.toInt(),
+                lineTop + bounds.bottom.toInt(),
+              ),
+          ),
+        )
+      }
+    }
   }
 
   private fun collectSemanticSpans(spanned: Spanned): List<SpanRange> =
@@ -263,6 +319,10 @@ class MarkdownAccessibilityHelper(
     rebuildIfNeeded()
     if (items.isEmpty()) return HOST_ID
 
+    items
+      .firstOrNull { it.customBounds?.contains(x.toInt(), y.toInt()) == true }
+      ?.let { return it.id }
+
     val offset = getCharOffsetAt(x, y)
 
     val exact =
@@ -336,6 +396,11 @@ class MarkdownAccessibilityHelper(
     }
 
     when {
+      item.isTableRow -> {
+        roleDescription = "table row"
+        if (item.isTableHeaderRow) isHeading = true
+      }
+
       item.isHeading -> {
         isHeading = true
         contentDescription = "${item.text}, heading level ${item.headingLevel}"
@@ -367,6 +432,7 @@ class MarkdownAccessibilityHelper(
     }
 
   private fun boundsForItem(item: AccessibilityItem): Rect {
+    item.customBounds?.let { return it }
     val layout = textView.layout ?: return Rect()
     val vs = item.visibleStart
     val ve = item.visibleEnd

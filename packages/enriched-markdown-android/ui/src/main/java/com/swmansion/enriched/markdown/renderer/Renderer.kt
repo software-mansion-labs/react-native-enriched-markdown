@@ -6,6 +6,7 @@ import android.text.SpannableStringBuilder
 import com.swmansion.enriched.markdown.parser.MarkdownASTNode
 import com.swmansion.enriched.markdown.spans.ImageSpan
 import com.swmansion.enriched.markdown.spans.MarginBottomSpan
+import com.swmansion.enriched.markdown.spans.TableSpan
 import com.swmansion.enriched.markdown.styles.StyleConfig
 
 class Renderer {
@@ -15,6 +16,7 @@ class Renderer {
   private var cachedImageRequestHeaders: Map<String, String> = emptyMap()
 
   private val collectedImageSpans = mutableListOf<ImageSpan>()
+  private val collectedTableSpans = mutableListOf<TableSpan>()
   private var lastElementMarginBottom: Float = 0f
 
   fun configure(
@@ -29,9 +31,11 @@ class Renderer {
     cachedImageRequestHeaders = imageRequestHeaders
     cachedFactory =
       RendererFactory(
-        RendererConfig(style, imageRequestHeaders),
-        context,
-      ) { span -> reportImageSpan(span) }
+        config = RendererConfig(style, imageRequestHeaders),
+        context = context,
+        onImageSpanCreated = { span -> collectedImageSpans.add(span) },
+        onTableSpanCreated = { span -> collectedTableSpans.add(span) },
+      )
   }
 
   fun renderDocument(
@@ -46,6 +50,7 @@ class Renderer {
 
     factory.resetForNewRender()
     collectedImageSpans.clear()
+    collectedTableSpans.clear()
     lastElementMarginBottom = 0f
 
     val builder = SpannableStringBuilder()
@@ -103,14 +108,10 @@ class Renderer {
   }
 
   /**
-   * Internal helper used by the Factory's lambda to collect spans.
-   */
-  private fun reportImageSpan(span: ImageSpan) {
-    collectedImageSpans.add(span)
-  }
-
-  /**
    * Provides the EnrichedMarkdownText with the exact list of spans that need registration.
    */
   fun getCollectedImageSpans(): List<ImageSpan> = collectedImageSpans
+
+  /** Table spans of the last render; they need the host view's width to lay their columns out. */
+  fun getCollectedTableSpans(): List<TableSpan> = collectedTableSpans
 }
